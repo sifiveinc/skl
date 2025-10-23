@@ -1,0 +1,30 @@
+// Copyright 2025 SiFive, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
+#pragma once
+
+#if !defined(__riscv_xsfvfexp32e)
+#error This file requires the Xsfvfexp32e extension
+#endif
+
+#include <stddef.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * @brief Xsfvfexp32e-based 513-ULP FP32 Sigmoid Linear Unit.
+ *
+ * @param out - Array of output elements.
+ * @param in - Array of input elements.
+ * @param n - Number of elements to process.
+ *
+ * Computes the SiLU function as defined by:
+ * silu(x) = x / (1 + e^(-x))
+ */
+void skl_silu_513u_f32_xsfvfexp32e(float *out, const float *in, size_t n);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif

@@ -43,6 +43,8 @@ set(SKL_SCALAR_SRCS
   src/gemm/scalar/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.c
   src/logistic/logistic_f16_scalar.c
   src/logistic/logistic_f32_scalar.c
+  src/silu/silu_f16_scalar.c
+  src/silu/silu_f32_scalar.c
   src/softmax/softmax_f16_scalar.c
   src/softmax/softmax_bf16_scalar.c
   src/softmax/softmax_f32_scalar.c
@@ -61,6 +63,7 @@ set(SKL_ZVFH_SRCS
   src/gemm/rvv/gemm_f16_f16_f16_zvfh_x390.c
   src/gemm/rvv/gemm_f16_f16_f32_zvfh_x390.c
   src/logistic/logistic_f16_zvfh.c
+  src/silu/silu_f16_zvfh.c
   src/softmax/softmax_f16_zvfh.c
 )
 
@@ -71,6 +74,7 @@ set(SKL_ZVE32F_SRCS
   src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390.c
   src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390_clp.c
   src/logistic/logistic_f32_zve32f.c
+  src/silu/silu_f32_zve32f.c
   src/softmax/softmax_bf16_zve32f.c
   src/softmax/softmax_f32_zve32f.c
   src/gelu/gelu_f32_zve32f.c
@@ -115,6 +119,7 @@ set(SKL_XSFVFBFA_SRCS
 
 set(SKL_XSFVFEXPA_ZVFH_SRCS
   src/exp/exp_f16_xsfvfexpa_zvfh.c
+  src/silu/silu_f16_xsfvfexpa_zvfh.c
   src/softmax/softmax_f16_xsfvfexpa_zvfh.c
 )
 
@@ -130,12 +135,14 @@ set(SKL_XSFVFEXPA_ZVFBFMIN_SRCS
 set(SKL_XSFVFEXPA_SRCS
   src/exp/exp_f32_xsfvfexpa.c
   src/logistic/logistic_f32_xsfvfexpa.c
+  src/silu/silu_f32_xsfvfexpa.c
   src/softmax/softmax_f32_xsfvfexpa.c
 )
 
 set(SKL_XSFVFEXP16E_SRCS
   src/exp/exp_f16_xsfvfexp16e.c
   src/logistic/logistic_f16_xsfvfexp16e.c
+  src/silu/silu_f16_xsfvfexp16e.c
   src/softmax/softmax_f16_xsfvfexp16e.c
 )
 
@@ -153,6 +160,7 @@ set(SKL_XSFVFBFEXP16E_ZVFBFMIN_SRCS
 
 set(SKL_XSFVFEXP32E_SRCS
   src/exp/exp_f32_xsfvfexp32e.c
+  src/silu/silu_f32_xsfvfexp32e.c
   src/softmax/softmax_f32_xsfvfexp32e.c
 )
 
@@ -378,7 +386,8 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
       "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
     skl_add_test(skl_gemm_f16_f16_f32_zvfh_x390_wrapper gemm/gemm_f16rc_f16rc_f32rc.c
       "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
-    skl_add_test(logistic_f16 logistic/logistic_f16.c "-DRUN_ALL")
+    skl_add_test(logistic_f16_zvfh logistic/logistic_f16.c "-DRUN_ALL")
+    skl_add_test(silu_f16_zvfh silu/silu_f16.c "-DRUN_ALL")
   endif()
   skl_add_test(softmax_f16 softmax/softmax_f16.c "-DRUN_ALL;-DBETA=0.5")
   skl_add_test(softmax_bf16 softmax/softmax_bf16.c "-DRUN_ALL;-DBETA=0.5")
@@ -395,6 +404,7 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
       "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
     skl_add_test(logistic_f32_zve32f logistic/logistic_f32.c "-DRUN_ALL")
     skl_add_test(gelu_f32 gelu/gelu_f32.c "")
+    skl_add_test(silu_f32_zve32f silu/silu_f32.c "-DRUN_ALL")
   endif()
   if(RISCV_ZVE64D)
     skl_add_test(skl_gemm_f64_f64_f64_zve64d_x390_wrapper gemm/gemm_f64rc_f64rc_f64rc.c

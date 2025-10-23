@@ -142,6 +142,37 @@
 #endif
 
 /*
+ * SiLU Function Kernels
+ */
+
+#include "../src/silu/silu_f16_scalar.h"
+#include "../src/silu/silu_f32_scalar.h"
+
+#if defined(__riscv_zvfh)
+#include "../src/silu/silu_f16_zvfh.h"
+#endif
+
+#if defined(__riscv_zve32f)
+#include "../src/silu/silu_f32_zve32f.h"
+#endif
+
+#if defined(__riscv_xsfvfexp16e)
+#include "../src/silu/silu_f16_xsfvfexp16e.h"
+#endif
+
+#if defined(__riscv_xsfvfexpa)
+#include "../src/silu/silu_f32_xsfvfexpa.h"
+#endif
+
+#if defined(__riscv_xsfvfexpa) && defined(__riscv_zvfh)
+#include "../src/silu/silu_f16_xsfvfexpa_zvfh.h"
+#endif
+
+#if defined(__riscv_xsfvfexp32e)
+#include "../src/silu/silu_f32_xsfvfexp32e.h"
+#endif
+
+/*
  * Conversion Functions
  */
 #if defined(__riscv_zvfofp8min)
