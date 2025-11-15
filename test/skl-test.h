@@ -6,6 +6,7 @@
 #include <float.h>
 #include <inttypes.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,7 +48,20 @@ static inline void print_float(float x) {
   printf("%d.%04d", i, f);
 }
 
-// Output performance result for throughput (elements/cycle) kernel
+/**
+ * @brief Output performance results in throughput and latency.
+ *
+ * @param name The name of the function.
+ * @param cycles The number of cycles of execution.
+ * @param insts The number of instructions executed.
+ * @param num_elems The number of elements (application-specific)
+ *
+ * Writes a performance report to stdout in the following format:
+ * ```
+ * SIFIVE <name> latency: <cycles> cycles
+ * SIFIVE <name> throughput: <epc> elements/cycle
+ * ```
+ */
 static inline void report_perf_epc(const char *name, uint64_t cycles,
                                    uint64_t insts, size_t num_elems) {
   float epc = (float)num_elems / (float)cycles;
@@ -59,6 +73,47 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
   print_float(ipe);
   printf(" insts / element  (%" PRIu64 " insts)\n", insts);
 }
+
+/**
+ * @brief Run a benchmark and report performance.
+ *
+ * @param num_elems - The number of elements (application-specific).
+ * @param warmup - Whether to run a warmup iteration.
+ * @param func - The name of the function to benchmark.
+ * @param ... - The arguments to pass to the function.
+ *
+ * This macro is a wrapper around riscv_read_mcycle() and
+ * riscv_read_minstret() to measure the performance of a function.
+ *
+ * If warmup is true, run the function once before timing to warm up caches.
+ *
+ * If ENABLE_BENCHMARK is not defined, this macro does nothing.
+ */
+#if defined(ENABLE_BENCHMARK)
+#define SKL_BENCHMARK_RUN(num_elems, warmup, func, ...)                     \
+  do {                                                                         \
+    printf("SKL Benchmark %s (%zu elements):\n", #func, (size_t)num_elems);     \
+    if (warmup) {                                                              \
+      func(__VA_ARGS__);                                                       \
+    }                                                                          \
+    riscv_fence();                                                             \
+    uint64_t c0 = riscv_read_mcycle();                                         \
+    uint64_t i0 = riscv_read_minstret();                                       \
+    func(__VA_ARGS__);                                                         \
+    riscv_fence();                                                             \
+    uint64_t c1 = riscv_read_mcycle();                                         \
+    uint64_t i1 = riscv_read_minstret();                                       \
+    uint64_t cycles = c1 - c0;                                                 \
+    uint64_t insts = i1 - i0;                                                  \
+    printf("SIFIVE %s latency: %" PRIu64 " cycles\n", #func, cycles);           \
+    printf("SIFIVE %s instructions: %" PRIu64 " instructions\n", #func, insts); \
+    printf("SIFIVE %s throughput: ", #func);                                    \
+    print_float((float)num_elems / (float)cycles);                             \
+    printf(" elements/cycle\n");                                               \
+  } while (0)
+#else
+#define SKL_BENCHMARK_RUN(num_elems, warmup, func, ...) ((void)0)
+#endif
 
 /**
  * @brief Macro to check a requirement and set status to 1 if not met.
