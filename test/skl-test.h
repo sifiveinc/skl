@@ -77,9 +77,10 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
 /**
  * @brief Run a benchmark and report performance.
  *
+ * @param name - The name of the benchmark.
  * @param num_elems - The number of elements (application-specific).
  * @param warmup - Whether to run a warmup iteration.
- * @param func - The name of the function to benchmark.
+ * @param func - The function to benchmark (will be applied to __VA_ARGS__).
  * @param ... - The arguments to pass to the function.
  *
  * This macro is a wrapper around riscv_read_mcycle() and
@@ -90,9 +91,9 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
  * If ENABLE_BENCHMARK is not defined, this macro does nothing.
  */
 #if defined(ENABLE_BENCHMARK)
-#define SKL_BENCHMARK_RUN(num_elems, warmup, func, ...)                     \
+#define SKL_BENCHMARK_RUN(name, num_elems, warmup, func, ...)                  \
   do {                                                                         \
-    printf("SKL Benchmark %s (%zu elements):\n", #func, (size_t)num_elems);     \
+    printf("SKL Benchmark %s (%zu elements):\n", name, (size_t)num_elems);     \
     if (warmup) {                                                              \
       func(__VA_ARGS__);                                                       \
     }                                                                          \
@@ -105,14 +106,14 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
     uint64_t i1 = riscv_read_minstret();                                       \
     uint64_t cycles = c1 - c0;                                                 \
     uint64_t insts = i1 - i0;                                                  \
-    printf("SIFIVE %s latency: %" PRIu64 " cycles\n", #func, cycles);           \
-    printf("SIFIVE %s instructions: %" PRIu64 " instructions\n", #func, insts); \
-    printf("SIFIVE %s throughput: ", #func);                                    \
+    printf("SIFIVE %s latency: %" PRIu64 " cycles\n", name, cycles);           \
+    printf("SIFIVE %s instructions: %" PRIu64 " instructions\n", name, insts); \
+    printf("SIFIVE %s throughput: ", name);                                    \
     print_float((float)num_elems / (float)cycles);                             \
     printf(" elements/cycle\n");                                               \
   } while (0)
 #else
-#define SKL_BENCHMARK_RUN(num_elems, warmup, func, ...) ((void)0)
+#define SKL_BENCHMARK_RUN(name, num_elems, warmup, func, ...) ((void)0)
 #endif
 
 /**
