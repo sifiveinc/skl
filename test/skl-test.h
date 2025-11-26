@@ -54,17 +54,29 @@ static inline void print_float(float x) {
   printf("%d.%04d", i, f);
 }
 
+/** @brief Determine whether to execute a warmup iteration.
+ *
+ * Used by most SKL benchmarks as a default. Can be overridden by defining
+ * before including skl-test.h.
+ */
+#if !defined(SKL_TEST_WARMUP)
+#define SKL_TEST_WARMUP 1
+#endif
+
 /**
  * @brief Output performance results in throughput and latency. (Default)
  *
  * @param name The name of the function.
+ * @param num_elems The number of elements (application-specific)
+ * @param warmup Whether this is a warmup iteration.
  * @param cycles The number of cycles of execution.
  * @param insts The number of instructions executed.
- * @param num_elems The number of elements (application-specific)
  */
-static inline void report_perf_epc(const char *name, uint64_t cycles,
-                                   uint64_t insts, size_t num_elems) {
-  printf("SKL Benchmark %s (%zu elements):\n", name, (size_t)num_elems);
+static inline void report_perf_epc(const char *name, size_t num_elems,
+                                   bool warmup, uint64_t cycles,
+                                   uint64_t insts) {
+  printf("SKL Benchmark %s (%zu elements%s):\n", name, (size_t)num_elems,
+         warmup ? ", warmup" : "");
   printf("%15s : ", name);
   float epc = (float)num_elems / (float)cycles;
   print_float(epc);
@@ -76,23 +88,14 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
   printf("\n");
 }
 
-/** @brief Determine whether to execute a warmup iteration.
- *
- * Used by most SKL benchmarks as a default. Can be overridden by defining
- * before including skl-test.h.
- */
-#if !defined(SKL_TEST_WARMUP)
-#define SKL_TEST_WARMUP 1
-#endif
-
 /**
  * @brief Set benchmark performance reporting function.
  *
  * Must be a function with the following signature:
  *
  * ```c
- * void report_perf(const char *name, uint64_t cycles, uint64_t insts, size_t
- * num_elems);
+ * void report_perf(const char *name, size_t num_elems, bool warmup,
+ * uint64_t cycles, uint64_t insts);
  * ```
  *
  * Used by most SKL benchmarks as a default. Can be overridden by defining
@@ -134,7 +137,8 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
     uint64_t i1 = riscv_read_minstret();                                       \
     uint64_t cycles = c1 - c0;                                                 \
     uint64_t insts = i1 - i0;                                                  \
-    SKL_TEST_PERF_REPORT(name, cycles, insts, (size_t)(num_elems));            \
+    SKL_TEST_PERF_REPORT(name, (size_t)(num_elems), (bool)(warmup), cycles,    \
+                         insts);                                               \
   } while (0)
 #else
 #define SKL_BENCHMARK_RUN(name, num_elems, warmup, func, ...) ((void)0)
