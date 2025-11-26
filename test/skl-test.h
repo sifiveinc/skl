@@ -85,7 +85,6 @@ static inline void report_perf_epc(const char *name, size_t num_elems,
   printf("%15s : ", name);
   print_float(ipe);
   printf(" insts / element  (%" PRIu64 " insts)\n", insts);
-  printf("\n");
 }
 
 /**
