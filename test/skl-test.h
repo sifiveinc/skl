@@ -13,7 +13,8 @@
 
 /* Extract the test name from SKL_TEST_NAME as a string. */
 #define SKL_TEST_NAME_STR(NAME) #NAME
-#define DECL_SKL_TEST_NAME(NAME) const char *skl_test_name = SKL_TEST_NAME_STR(NAME);
+#define DECL_SKL_TEST_NAME(NAME)                                               \
+  const char *skl_test_name = SKL_TEST_NAME_STR(NAME);
 DECL_SKL_TEST_NAME(SKL_TEST_NAME)
 
 #if __riscv_xlen == 32
@@ -54,29 +55,25 @@ static inline void print_float(float x) {
 }
 
 /**
- * @brief Output performance results in throughput and latency.
+ * @brief Output performance results in throughput and latency. (Default)
  *
  * @param name The name of the function.
  * @param cycles The number of cycles of execution.
  * @param insts The number of instructions executed.
  * @param num_elems The number of elements (application-specific)
- *
- * Writes a performance report to stdout in the following format:
- * ```
- * SIFIVE <name> latency: <cycles> cycles
- * SIFIVE <name> throughput: <epc> elements/cycle
- * ```
  */
 static inline void report_perf_epc(const char *name, uint64_t cycles,
                                    uint64_t insts, size_t num_elems) {
+  printf("SKL Benchmark %s (%zu elements):\n", name, (size_t)num_elems);
+  printf("%15s : ", name);
   float epc = (float)num_elems / (float)cycles;
-  printf("\n%15s : ", name);
   print_float(epc);
   printf(" elements / cycle (%" PRIu64 " cycles)\n", cycles);
   float ipe = (float)insts / (float)num_elems;
   printf("%15s : ", name);
   print_float(ipe);
   printf(" insts / element  (%" PRIu64 " insts)\n", insts);
+  printf("\n");
 }
 
 /** @brief Determine whether to execute a warmup iteration.
@@ -86,6 +83,23 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
  */
 #if !defined(SKL_TEST_WARMUP)
 #define SKL_TEST_WARMUP 1
+#endif
+
+/**
+ * @brief Set benchmark performance reporting function.
+ *
+ * Must be a function with the following signature:
+ *
+ * ```c
+ * void report_perf(const char *name, uint64_t cycles, uint64_t insts, size_t
+ * num_elems);
+ * ```
+ *
+ * Used by most SKL benchmarks as a default. Can be overridden by defining
+ * before including skl-test.h.
+ */
+#if !defined(SKL_TEST_PERF_REPORT)
+#define SKL_TEST_PERF_REPORT report_perf_epc
 #endif
 
 /**
@@ -108,7 +122,6 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
 #if defined(ENABLE_BENCHMARK)
 #define SKL_BENCHMARK_RUN(name, num_elems, warmup, func, ...)                  \
   do {                                                                         \
-    printf("SKL Benchmark %s (%zu elements):\n", name, (size_t)num_elems);     \
     if (warmup) {                                                              \
       func(__VA_ARGS__);                                                       \
     }                                                                          \
@@ -121,11 +134,7 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
     uint64_t i1 = riscv_read_minstret();                                       \
     uint64_t cycles = c1 - c0;                                                 \
     uint64_t insts = i1 - i0;                                                  \
-    printf("SIFIVE %s latency: %" PRIu64 " cycles\n", name, cycles);           \
-    printf("SIFIVE %s instructions: %" PRIu64 " instructions\n", name, insts); \
-    printf("SIFIVE %s throughput: ", name);                                    \
-    print_float((float)num_elems / (float)cycles);                             \
-    printf(" elements/cycle\n");                                               \
+    SKL_TEST_PERF_REPORT(name, cycles, insts, (size_t)(num_elems));            \
   } while (0)
 #else
 #define SKL_BENCHMARK_RUN(name, num_elems, warmup, func, ...) ((void)0)
