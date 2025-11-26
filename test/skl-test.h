@@ -79,6 +79,15 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
   printf(" insts / element  (%" PRIu64 " insts)\n", insts);
 }
 
+/** @brief Determine whether to execute a warmup iteration.
+ *
+ * Used by most SKL benchmarks as a default. Can be overridden by defining
+ * before including skl-test.h.
+ */
+#if !defined(SKL_TEST_WARMUP)
+#define SKL_TEST_WARMUP 1
+#endif
+
 /**
  * @brief Run a benchmark and report performance.
  *
@@ -92,6 +101,7 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
  * riscv_read_minstret() to measure the performance of a function.
  *
  * If warmup is true, run the function once before timing to warm up caches.
+ * Usually warmup is set to SKL_TEST_WARMUP, which is 1 by default.
  *
  * If ENABLE_BENCHMARK is not defined, this macro does nothing.
  */
