@@ -107,40 +107,40 @@ static inline void report_perf_epc(const char *name, size_t num_elems,
 /**
  * @brief Run a benchmark and report performance.
  *
- * @param name - The name of the benchmark.
- * @param num_elems - The number of elements (application-specific).
- * @param warmup - Whether to run a warmup iteration.
- * @param func - The function to benchmark (will be applied to __VA_ARGS__).
+ * @param NAME - The name of the benchmark.
+ * @param NUM_ELEMS - The number of elements (application-specific).
+ * @param WARMUP - Whether to run a warmup iteration.
+ * @param FUNC - The function to benchmark (will be applied to __VA_ARGS__).
  * @param ... - The arguments to pass to the function.
  *
  * This macro is a wrapper around riscv_read_mcycle() and
  * riscv_read_minstret() to measure the performance of a function.
  *
- * If warmup is true, run the function once before timing to warm up caches.
- * Usually warmup is set to SKL_TEST_WARMUP, which is 1 by default.
+ * If WARMUP is true, run the function once before timing to warm up caches.
+ * Usually WARMUP is set to SKL_TEST_WARMUP, which is 1 by default.
  *
  * If ENABLE_BENCHMARK is not defined, this macro does nothing.
  */
 #if defined(ENABLE_BENCHMARK)
-#define SKL_BENCHMARK_RUN(name, num_elems, warmup, func, ...)                  \
+#define SKL_BENCHMARK_RUN(NAME, NUM_ELEMS, WARMUP, FUNC, ...)                  \
   do {                                                                         \
-    if (warmup) {                                                              \
-      func(__VA_ARGS__);                                                       \
+    if (WARMUP) {                                                              \
+      FUNC(__VA_ARGS__);                                                       \
     }                                                                          \
     riscv_fence();                                                             \
     uint64_t c0 = riscv_read_mcycle();                                         \
     uint64_t i0 = riscv_read_minstret();                                       \
-    func(__VA_ARGS__);                                                         \
+    FUNC(__VA_ARGS__);                                                         \
     riscv_fence();                                                             \
     uint64_t c1 = riscv_read_mcycle();                                         \
     uint64_t i1 = riscv_read_minstret();                                       \
     uint64_t cycles = c1 - c0;                                                 \
     uint64_t insts = i1 - i0;                                                  \
-    SKL_TEST_PERF_REPORT(name, (size_t)(num_elems), (bool)(warmup), cycles,    \
+    SKL_TEST_PERF_REPORT(NAME, (size_t)(NUM_ELEMS), (bool)(WARMUP), cycles,    \
                          insts);                                               \
   } while (0)
 #else
-#define SKL_BENCHMARK_RUN(name, num_elems, warmup, func, ...) ((void)0)
+#define SKL_BENCHMARK_RUN(NAME, NUM_ELEMS, WARMUP, FUNC, ...) ((void)0)
 #endif
 
 /**
