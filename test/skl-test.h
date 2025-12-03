@@ -68,7 +68,7 @@ static inline void print_float(float x) {
  *
  * @param name The name of the function.
  * @param num_elems The number of elements (application-specific)
- * @param warmup Whether this is a warmup iteration.
+ * @param warmup Whether warmup was performed for this result.
  * @param cycles The number of cycles of execution.
  * @param insts The number of instructions executed.
  */
