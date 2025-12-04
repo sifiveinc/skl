@@ -1,0 +1,34 @@
+Checks:
+  - clang-analyzer-*
+  - -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
+  - clang-diagnostic-*
+  - bugprone-*
+  - -bugprone-easily-swappable-parameters
+  - cert-*
+  - -cert-dcl37-c   # __riscv_* identifiers
+  - -cert-dcl51-cpp # __riscv_* identifiers
+  - -cert-msc30-c   # rand() in tests
+  - -cert-msc50-cpp # rand() in tests
+  - cppcoreguidelines-*
+  - -cppcoreguidelines-avoid-magic-numbers
+  - -cppcoreguidelines-avoid-non-const-global-variables
+  - -cppcoreguidelines-init-variables
+  - google-*
+  - hicpp-*
+  - -hicpp-no-assembler # We use inline asm
+  - llvm-*
+  - misc-*
+  - modernize-*
+  - performance-*
+  - portability-*
+  - readability-*
+  - -readability-identifier-length
+  - -readability-magic-numbers
+  - -readability-math-missing-parentheses
+  - -*-braces-around-statements
+  - -*-uppercase-literal-suffix # Allow lowercase litteral suffixes
+WarningsAsErrors: '*'
+CheckOptions:
+  bugprone-reserved-identifier.AllowedIdentifiers: '__riscv_*'
+  readability-function-cognitive-complexity.Threshold: 180
+  hicpp-signed-bitwise.IgnorePositiveIntegerLiterals: true
