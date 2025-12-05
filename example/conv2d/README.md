@@ -138,7 +138,7 @@ An optimized implementation that leverages bulk memory operations:
 
 The example uses the optimized RISC-V Vector GEMM kernel:
 - **Function**: `skl_gemm_f32_f32_f32_zve32f_x390`
-- **Location**: `skl-open/src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390.c`
+- **Location**: `src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390.c`
 - **Features**:
   - RVV float32 matrix-matrix multiplication (SGEMM) for row-major matrices
   - RISC-V Vector extension (Zve32f) optimized, tuned for X390

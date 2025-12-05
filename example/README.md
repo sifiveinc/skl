@@ -1,6 +1,6 @@
 # SKL Examples
 
-This directory contains example implementations that demonstrate how to use SKL-Open library functions to build higher-level operations and algorithms.
+This directory contains example implementations that demonstrate how to use SKL functions to build higher-level operations and algorithms.
 
 ## Purpose
 
