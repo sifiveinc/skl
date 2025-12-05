@@ -134,9 +134,7 @@ extern "C" {
 
 ## Examples
 
-In addition to the testsuite described below, SKL provides a set of example programs in the `examples` directory that demonstrate how to combine multiple SKL kernels to implement more complex operations.
-
-**TODO**: Describe convolution example when it is merged.
+In addition to the testsuite described below, SKL provides a set of example programs in the `example` directory that demonstrate how to combine multiple SKL kernels to implement more complex operations. See the Examples [README.md](./example/README.md) for details.
 
 ## Testing and Benchmarking
 
