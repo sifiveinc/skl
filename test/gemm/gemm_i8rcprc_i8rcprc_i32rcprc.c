@@ -117,18 +117,16 @@ void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_wrapper(
     int32_t *c_pack, __attribute__((unused)) size_t rsc0,
     __attribute__((unused)) size_t csc0, size_t rsc1, size_t csc1) {
   int status = 0;
-  size_t rsa1_mod_k0 = rsa1 % k0;
   SKL_TEST_REQUIRE(status, m0 == 1);
   SKL_TEST_REQUIRE(status, n0 == 1);
   SKL_TEST_REQUIRE(status, k0 == 4);
   SKL_TEST_REQUIRE(status, csa0 == 1);
-  SKL_TEST_REQUIRE(status, rsa1_mod_k0 == 0);
-  SKL_TEST_REQUIRE(status, rsa1 >= m0 * k0 * k1);
+  SKL_TEST_REQUIRE(status, rsa1 >= k1 * csa1);
   SKL_TEST_REQUIRE(status, csa1 == m0 * k0);
   SKL_TEST_REQUIRE(status, rsb0 == 1);
-  SKL_TEST_REQUIRE(status, rsb1 >= k0 * n0 * n1);
+  SKL_TEST_REQUIRE(status, rsb1 >= n1 * csb1);
   SKL_TEST_REQUIRE(status, csb1 == k0 * n0);
-  SKL_TEST_REQUIRE(status, rsc1 >= m0 * n0 * n1);
+  SKL_TEST_REQUIRE(status, rsc1 >= n1 * csc1);
   SKL_TEST_REQUIRE(status, csc1 == m0 * n0);
   SKL_TEST_REQUIRE(status, alpha == 1);
   SKL_TEST_REQUIRE(status, beta == 0 || beta == 1);

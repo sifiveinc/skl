@@ -22,8 +22,7 @@
  *  - BETA, as an integer literal. BETA must be 0 or 1.
  *
  * Users may optionally provide the values of the following:
- *  - RSA, which must be a multiple of 4 and >= K (the default is
- *    RSA = 4 * ceil(K / 4))
+ *  - RSA, which must be >= K (the default is RSA = K)
  *  - RSB, which must be >= N (the default is RSB = N)
  *  - RSC, which must be >= N (the default is RSC = N)
  *  - RSB1, the row stride of B_pack, which must be >= 4 * N (the default is
@@ -66,7 +65,7 @@
 
 /* The macros below set the matrix strides. */
 #if !defined(RSA)
-#define RSA (K0 * K1)
+#define RSA K
 #endif
 #if !defined(RSB)
 #define RSB N
@@ -132,7 +131,6 @@ int check_error(void) {
 
 int main(void) {
   int status = 0;
-  SKL_TEST_REQUIRE(status, (RSA / 4) * 4 == RSA);
   SKL_TEST_REQUIRE(status, RSA >= K);
   SKL_TEST_REQUIRE(status, RSB >= N);
   SKL_TEST_REQUIRE(status, RSC >= N);

@@ -819,7 +819,6 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(size_t n, size_t k,
   uint32_t a2;
   uint32_t a3;
 
-  size_t k_rem = k % 4;
   while (k >= 16) {
     // load 4 words from A.
     memcpy(&a0, a, 4);
