@@ -992,14 +992,35 @@ SKL_FUNC void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
   const size_t n0 = __riscv_vsetvlmax_e32m4();
   const size_t k0 = 4;
 
+  void (*skl_mm_6xe32m4_i8i32_vqdotvx_kernel)(
+      size_t n, size_t k, const int8_t *a, size_t rsa1, size_t csa1,
+      const int8_t *b, size_t rsb1, int32_t *c, size_t rsc, bool accum);
+  void (*skl_mm_lt6xe32m4_i8i32_vqdotvx_kernel)(
+      size_t m, size_t n, size_t k, const int8_t *a, size_t rsa1, size_t csa1,
+      const int8_t *b, size_t rsb1, int32_t *c, size_t rsc, bool accum);
+  void (*skl_vm_1xe32m4_i8i32_vqdotvx_kernel)(
+      size_t n, size_t k, const int8_t *a, const int8_t *b, size_t rsb1,
+      int32_t *c, bool accum);
+
+  if ((uintptr_t)a % (k0 * sizeof(int8_t)) == 0 && rsa % k0 == 0) {
+    skl_mm_6xe32m4_i8i32_vqdotvx_kernel = &skl_mm_6xe32m4_aligned_i8i32_vqdotvx;
+    skl_mm_lt6xe32m4_i8i32_vqdotvx_kernel =
+        &skl_mm_lt6xe32m4_aligned_i8i32_vqdotvx;
+    skl_vm_1xe32m4_i8i32_vqdotvx_kernel = &skl_vm_1xe32m4_aligned_i8i32_vqdotvx;
+  } else {
+    skl_mm_6xe32m4_i8i32_vqdotvx_kernel = &skl_mm_6xe32m4_i8i32_vqdotvx;
+    skl_mm_lt6xe32m4_i8i32_vqdotvx_kernel = &skl_mm_lt6xe32m4_i8i32_vqdotvx;
+    skl_vm_1xe32m4_i8i32_vqdotvx_kernel = &skl_vm_1xe32m4_i8i32_vqdotvx;
+  }
+
   if (m == 1) {
     // dispatch to GEMV kernel for better performance.
     for (size_t n_idx = 0; n_idx < n; n_idx += n0) {
       int32_t *c_write = c + n_idx;
       const int8_t *b_tile_ptr = b_pack + k0 * n_idx;
       const size_t n_tile = n0 <= n - n_idx ? n0 : n - n_idx;
-      skl_vm_1xe32m4_i8i32_vqdotvx(n_tile, k, a, b_tile_ptr, rsb1, c_write,
-                                   accum);
+      (*skl_vm_1xe32m4_i8i32_vqdotvx_kernel)(n_tile, k, a, b_tile_ptr, rsb1,
+                                             c_write, accum);
     }
   } else {
     size_t m_idx = 0;
@@ -1009,8 +1030,9 @@ SKL_FUNC void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
       for (size_t n_idx = 0; n_idx < n; n_idx += n0) {
         const int8_t *b_tile_ptr = b_pack + k0 * n_idx;
         const size_t n_tile = n0 <= n - n_idx ? n0 : n - n_idx;
-        skl_mm_6xe32m4_i8i32_vqdotvx(n_tile, k, a_tile_ptr, rsa, k0, b_tile_ptr,
-                                     rsb1, c_write, rsc, accum);
+        (*skl_mm_6xe32m4_i8i32_vqdotvx_kernel)(n_tile, k, a_tile_ptr, rsa, k0,
+                                               b_tile_ptr, rsb1, c_write, rsc,
+                                               accum);
         c_write += n_tile;
       }
     }
@@ -1022,8 +1044,9 @@ SKL_FUNC void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
       for (size_t n_idx = 0; n_idx < n; n_idx += n0) {
         const int8_t *b_tile_ptr = b_pack + k0 * n_idx;
         const size_t n_tile = n0 <= n - n_idx ? n0 : n - n_idx;
-        skl_mm_lt6xe32m4_i8i32_vqdotvx(m_left, n_tile, k, a_tile_ptr, rsa, k0,
-                                       b_tile_ptr, rsb1, c_write, rsc, accum);
+        (*skl_mm_lt6xe32m4_i8i32_vqdotvx_kernel)(m_left, n_tile, k, a_tile_ptr,
+                                                 rsa, k0, b_tile_ptr, rsb1,
+                                                 c_write, rsc, accum);
         c_write += n_tile;
       }
     }
