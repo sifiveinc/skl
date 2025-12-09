@@ -26,9 +26,8 @@ extern "C" {
  * @param m - Number of rows in matrix A and matrix C.
  * @param n - Number of columns in matrix B and matrix C.
  * @param k - Number of columns in matrix A and rows in matrix B.
- * @param a - Pointer to 4-byte-aligned matrix A in row-major format.
- * @param rsa - Stride between rows of matrix A in elements. Must be a multiple
- *              of 4.
+ * @param a - Pointer to matrix A in row-major format.
+ * @param rsa - Stride between rows of matrix A in elements.
  * @param b_pack - Pointer to packed matrix B.
  * @param rsb1 - Row stride between blocks of packed matrix B in elements.
  * @param c - Pointer to matrix C in row-major format.
@@ -69,7 +68,8 @@ extern "C" {
  *
  * @note
  * Matrix B must be pre-packed using skl_pack_b_i8_xsfvqdotq(). Matrix A is used
- * directly in row-major format without requiring pre-packing.
+ * directly in row-major format without requiring pre-packing. Performance will
+ * be best when A is 4-byte-aligned and rsa is a multiple of 4.
  */
 void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
                                           const int8_t *a, size_t rsa,
