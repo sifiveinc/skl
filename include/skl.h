@@ -59,7 +59,7 @@
 #endif
 
 #if defined(__riscv_xsfvqdotq)
-#include "../src/gemm/xsfvqdotq/gemm_a1b01_i8_i8p_i32_xsfvqdotq.h"
+#include "../src/gemm/xsfvqdotq/gemm_a1b01_i8_i8pc_i32_xsfvqdotq.h"
 #endif
 
 /*

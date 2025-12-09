@@ -178,7 +178,7 @@ set(SKL_ZVFOFP4MIN_SRCS
   src/cvt/cvt_zvfofp4min.c
 )
 set(SKL_XSFVQDOTQ_SRCS
-  src/gemm/xsfvqdotq/gemm_a1b01_i8_i8p_i32_xsfvqdotq.c
+  src/gemm/xsfvqdotq/gemm_a1b01_i8_i8pc_i32_xsfvqdotq.c
 )
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get-riscv-extensions.cmake)
@@ -370,7 +370,7 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test(skl_transpose_e8_zve32x transpose/transpose_e8.c "")
     skl_add_test(skl_transpose_e16_zve32x transpose/transpose_e16.c "")
     skl_add_test(skl_transpose_e32_zve32x transpose/transpose_e32.c "")
-    skl_add_test(skl_pack_b_xsfvqdotq gemm/pack_b_xsfvqdotq.c "")
+    skl_add_test(skl_pack_b_xsfvqdotq gemm/pack_b_xsfvqdotq.c "-DK=126;-DN=128")
   endif()
   if(RISCV_ZVFH)
     skl_add_test(skl_depthwise_conv2d_f16_f16_f16_zvfh depthwise_conv2d/depthwise_conv2d_f16_f16_f16.c "")
@@ -452,6 +452,8 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test(skl_cvt_zvfofp4min cvt/cvt_ofp_zvfofp4min.c "")
   endif()
   if(RISCV_XSFVQDOTQ)
-    skl_add_test(gemm_a1b01_i8_i8p_i32_xsfvqdotq gemm/gemm_a1b01_i8_i8p_i32_xsfvqdotq.c "-DM=128;-DN=128;-DK=256;-DBETA=1")
+    skl_add_test(gemm_a1b01_i8_i8pc_i32_xsfvqdotq gemm/gemm_a1b01_i8_i8pc_i32_xsfvqdotq.c "-DM=128;-DN=128;-DK=256;-DBETA=1")
+    skl_add_test(skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_wrapper gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+      "-DM0=1;-DN0=1;-DK0=4;-DM1=12;-DN1=128;-DK1=8;;-DRSB0=1;-DCSB0=0;-DALPHA=1;-DBETA=0;")
   endif()
 endif()

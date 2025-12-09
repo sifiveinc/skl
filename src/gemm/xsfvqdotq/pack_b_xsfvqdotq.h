@@ -22,7 +22,8 @@ extern "C" {
  * @param n - Number of columns in matrix B
  * @param b - Pointer to input matrix B in row-major format
  * @param rsb - Stride between rows of matrix B in elements
- * @param b_pack - Packed output matrix of ((k + 3) / 4) * 4 * n bytes
+ * @param b_pack - Packed output matrix of ((k + 3) / 4) * rsb1 bytes
+ * @param rsb1 - Row stride between blocks of packed matrix B in elements.
  *
  * Packs matrix B into a format optimized for the SiFive xsfvqdotq extension.
  * The packing operation reorganizes the matrix data to enable efficient vector
@@ -37,13 +38,14 @@ extern "C" {
  *
  * @note
  * The output buffer b_pack must be large enough to hold the padded data.
- * The minimum size is ((k + 3) / 4) * 4 * n bytes, and must be 4-byte aligned.
+ * The minimum size is ((k + 3) / 4) * 4 * n bytes.
  *
  * @note
- * This function is designed to work with skl_gemm_a1b01_i8_i8p_i32_xsfvqdotq().
+ * This function is designed to work with
+ * skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq().
  */
 void skl_pack_b_i8_xsfvqdotq(size_t k, size_t n, const int8_t *b, size_t rsb,
-                             int8_t *b_pack);
+                             int8_t *b_pack, size_t rsb1);
 
 #if defined(__cplusplus)
 } // extern "C"

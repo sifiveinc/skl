@@ -1,12 +1,34 @@
 // Copyright 2025 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+#if !defined(__riscv_zve32x)
+#error This source file requires compiler support for the RISC-V Zve32x extension.
+#endif
+
+/* Test and benchmark for skl_pack_b_i8_xsfvqdotq.
+ *
+ * B is a K x N row-major matrix with row stride RSB.
+ * B_pack is a packed K1 x N1 row-major matrix with row stride RSB1 and K0 x N0
+ * column-major tiles, where K0 = 4, N0 = 1, K1 = ceil(K / K0), and N1 = N.
+ *
+ * Users must provide the values of the following as compiler flags using -D:
+ *  - Dimensions K and N
+ *
+ * Users may optionally provide the values of the following:
+ *  - RSB, which must be >= N (the default is RSB = N)
+ *  - RSB1, which must be >= 4 * N (the default is RSB1 = 4 * N).
+ */
+
 #if !(defined(ENABLE_TEST) || defined(ENABLE_BENCHMARK))
 #error Must define at least one of ENABLE_TEST and ENABLE_BENCHMARK
 #endif
 
-#if !defined(__riscv_zve32x)
-#error This source file requires compiler support for the RISC-V Zve32x extension.
+#ifndef K
+#error Must define K
+#endif
+
+#ifndef N
+#error Must define N
 #endif
 
 #include "skl-test.h"
@@ -20,110 +42,117 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* The macros below set the matrix strides. */
+#if !defined(RSB)
+#define RSB N
+#endif
+
+#if !defined(RSB1)
+#define RSB1 (K0 * N)
+#endif
+
 enum {
-  ALIGN = 4096, /* Align all matrices to 4096 bytes */
-  DIFF_TOLERANCE = 0,
+  ALIGN = 4096,
+  CSB = 1,
+  K0 = 4, // xsfvqdotq K0 constraint
+  N0 = 1, // xsfvqdotq N0 constraint
+  K1 = (K + (K0 - 1)) / K0,
+  RSB0 = 1,
+  CSB0 = 0,
+  CSB1 = K0 * N0,
+  BLEN = K * RSB,
+  BLEN_PACKED = K1 * RSB1,
 };
 
-void init_zero_i8(int8_t *arr, size_t len) {
-  memset(arr, 0, len * sizeof(int8_t));
+_Alignas(ALIGN) int8_t b[BLEN];
+_Alignas(ALIGN) int8_t b_pack[BLEN_PACKED];
+#if defined(ENABLE_TEST)
+_Alignas(ALIGN) int8_t b_pack_ref[BLEN_PACKED];
+_Alignas(ALIGN) int8_t b_pack_test[BLEN_PACKED];
+#endif // ENABLE_TEST
+
+#if defined(ENABLE_TEST)
+void skl_pack_i8_scalar(size_t m, size_t n, const int8_t *c, size_t rsc,
+                        size_t csc, size_t m0, size_t n0, int8_t *c_pack,
+                        size_t rsc0, size_t csc0, size_t rsc1, size_t csc1) {
+  size_t m1 = (m + m0 - 1) / m0; // ceil(m / m0)
+  size_t n1 = (n + n0 - 1) / n0; // ceil(n / n0)
+  for (size_t ii1 = 0; ii1 < m1; ++ii1) {
+    for (size_t jj1 = 0; jj1 < n1; ++jj1) {
+      const int8_t *c_block = c + ii1 * m0 * rsc + jj1 * n0 * csc;
+      int8_t *c_pack_block = c_pack + ii1 * rsc1 + jj1 * csc1;
+      for (size_t ii0 = 0; ii0 < m0; ++ii0) {
+        for (size_t jj0 = 0; jj0 < n0; ++jj0) {
+          if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
+            c_pack_block[ii0 * rsc0 + jj0 * csc0] =
+                c_block[ii0 * rsc + jj0 * csc];
+          } else {
+            // Pad with zeros
+            c_pack_block[ii0 * rsc0 + jj0 * csc0] = 0;
+          }
+        }
+      }
+    }
+  }
 }
 
-/**
- * General Pack implementation for i8 data type.
- */
-void skl_pack_i8(size_t m, size_t n, const int8_t *c, size_t ldc,
-                 int8_t *c_packed, size_t MT, size_t NT, size_t rsc_packed,
-                 size_t csc_packed, size_t rsc_t, size_t csc_t) {
-  size_t m_packed = (m + MT - 1) / MT; // ceil(m / MT)
-  size_t n_packed = (n + NT - 1) / NT; // ceil(n / NT)
-  for (size_t i = 0; i < m; ++i) {
-    for (size_t j = 0; j < n; ++j) {
-      c_packed[(i / MT) * rsc_packed + (j / NT) * csc_packed +
-               (i % MT) * rsc_t + (j % NT) * csc_t] = c[i * ldc + j];
-    }
-    // pad right edge
-    for (size_t j = n; j < n_packed * NT; ++j) {
-      c_packed[(i / MT) * rsc_packed + (j / NT) * csc_packed +
-               (i % MT) * rsc_t + (j % NT) * csc_t] = 0;
+int check_error(void) {
+  /* Compute the reference (scalar) matrix output. */
+  skl_pack_i8_scalar(K, N, b, RSB, CSB, K0, N0, b_pack_ref, RSB0, CSB0,
+                     (size_t)RSB1, CSB1);
+
+  /* Compare the reference and test outputs. */
+  for (size_t i = 0; i < BLEN_PACKED; ++i) {
+    if (b_pack_test[i] != b_pack_ref[i]) {
+      return 1;
     }
   }
 
-  // pad bottom edge
-  for (size_t i = m; i < m_packed * MT; ++i) {
-    for (size_t j = 0; j < n_packed * NT; ++j) {
-      c_packed[(i / MT) * rsc_packed + (j / NT) * csc_packed +
-               (i % MT) * rsc_t + (j % NT) * csc_t] = 0;
-    }
-  }
+  return 0;
 }
-
-bool repack_verify(const int8_t *goldens, const int8_t *results, size_t k,
-                   size_t n, uint64_t diff_tolerance) {
-  bool pass = true;
-  // flat to 1-d array for verification.
-  for (size_t i = 0; i < k * n; i++) {
-    int8_t golden = goldens[i];
-    int8_t result = results[i];
-    uint64_t diff = result > golden ? (uint64_t)(result) - (uint64_t)(golden)
-                                    : (uint64_t)(golden) - (uint64_t)(result);
-    if (diff > diff_tolerance) {
-      pass = false;
-      printf("results[%zu]: %d != goldens[%zu]: %d (diff %lu > tol %lu)\n", i,
-             result, i, golden, diff, diff_tolerance);
-    }
-  }
-  return pass;
-}
+#endif
 
 int main(void) {
-  int res = EXIT_SUCCESS;
-  const size_t k0 = 4;
-  const size_t K = 5;
-  const size_t N = 8;
-  const size_t KK = (K + k0 - 1) / k0 * k0; // round up to multiple of k0.
-  printf("K: %zu, N: %zu, KK: %zu\n", K, N, KK);
-
-  int8_t *b = (int8_t *)aligned_alloc(ALIGN, K * N * sizeof(int8_t));
-  int8_t *b_pack = (int8_t *)aligned_alloc(ALIGN, KK * N * sizeof(int8_t));
-#if defined(ENABLE_TEST)
-  int8_t *b_pack_ref = (int8_t *)aligned_alloc(ALIGN, KK * N * sizeof(int8_t));
-
-  skl_test_init_i8(b, K * N, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
-  init_zero_i8(b_pack_ref, KK * N);
-  init_zero_i8(b_pack, KK * N);
-
-  skl_pack_i8(K, N, b, N, b_pack_ref, k0, 1, 4 * N, 4, 1, 4);
-  skl_pack_b_i8_xsfvqdotq(K, N, b, N, b_pack);
-  if (!repack_verify(b_pack_ref, b_pack, KK, N, DIFF_TOLERANCE)) {
-    res = EXIT_FAILURE;
-    printf("b_pack verification failed\n");
+  int status = 0;
+  SKL_TEST_REQUIRE(status, RSB >= N);
+  SKL_TEST_REQUIRE(status, RSB1 >= 4 * N);
+  if (status) {
+    exit(status);
   }
 
-  free(b_pack_ref);
+  int res = EXIT_SUCCESS;
+  printf("K = %u, N = %u\n", K, N);
+  printf("RSB = %u, RSB1 = %u\n", RSB, RSB1);
+  skl_test_init_i8(b, BLEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
+
+#if defined(ENABLE_TEST)
+  skl_test_init_i8(b_pack_ref, BLEN_PACKED, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
+  memcpy(b_pack_test, b_pack_ref, BLEN_PACKED * sizeof(int8_t));
+
+  skl_pack_b_i8_xsfvqdotq(K, N, b, RSB, b_pack_test, (size_t)RSB1);
+  res += check_error();
 #endif // ENABLE_TEST
 
 #if defined(ENABLE_BENCHMARK)
-  skl_test_init_i8(b, K * N, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
-  init_zero_i8(b_pack, KK * N);
-
   // warmup.
-  skl_pack_b_i8_xsfvqdotq(K, N, b, N, b_pack);
+  skl_pack_b_i8_xsfvqdotq(K, N, b, RSB, b_pack, (size_t)RSB1);
 
   // benchmark.
+  riscv_fence();
   uint64_t c0 = riscv_read_mcycle();
-  skl_pack_b_i8_xsfvqdotq(K, N, b, N, b_pack);
+
+  skl_pack_b_i8_xsfvqdotq(K, N, b, RSB, b_pack, (size_t)RSB1);
+
+  riscv_fence();
   uint64_t c1 = riscv_read_mcycle();
   uint64_t cycles = c1 - c0;
-  printf("Cycle count: %" PRIu64 "\n", cycles);
-  printf("Output matrix size: %zu x %zu\n", KK, N);
-  printf("Throughput (elements / cycle): ");
-  print_float((float)(KK * N) / (float)cycles);
-  printf("\n");
 
+  printf("Cycle count: %" PRIu64 "\n", cycles);
+  printf("Output matrix size: %u x %u\n", K0 * K1, N);
+  printf("Throughput (elements / cycle): ");
+  print_float((float)(K0 * K1 * N) / (float)cycles);
+  printf("\n");
 #endif // ENABLE_BENCHMARK
 
-  free(b);
-  free(b_pack);
   return res;
 }

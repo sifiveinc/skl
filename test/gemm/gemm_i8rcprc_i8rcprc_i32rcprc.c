@@ -105,6 +105,42 @@ void skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i_wrapper(
 }
 #endif
 
+/* Include various int8 GEMM kernels depending on ISA compatibility. */
+#if defined(__riscv_xsfvqdotq)
+#include "gemm/xsfvqdotq/gemm_a1b01_i8_i8pc_i32_xsfvqdotq.h"
+
+void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_wrapper(
+    size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
+    int32_t alpha, const int8_t *a_pack, __attribute__((unused)) size_t rsa0,
+    size_t csa0, size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb0,
+    __attribute__((unused)) size_t csb0, size_t rsb1, size_t csb1, int32_t beta,
+    int32_t *c_pack, __attribute__((unused)) size_t rsc0,
+    __attribute__((unused)) size_t csc0, size_t rsc1, size_t csc1) {
+  int status = 0;
+  size_t rsa1_mod_k0 = rsa1 % k0;
+  SKL_TEST_REQUIRE(status, m0 == 1);
+  SKL_TEST_REQUIRE(status, n0 == 1);
+  SKL_TEST_REQUIRE(status, k0 == 4);
+  SKL_TEST_REQUIRE(status, csa0 == 1);
+  SKL_TEST_REQUIRE(status, rsa1_mod_k0 == 0);
+  SKL_TEST_REQUIRE(status, rsa1 >= m0 * k0 * k1);
+  SKL_TEST_REQUIRE(status, csa1 == m0 * k0);
+  SKL_TEST_REQUIRE(status, rsb0 == 1);
+  SKL_TEST_REQUIRE(status, rsb1 >= k0 * n0 * n1);
+  SKL_TEST_REQUIRE(status, csb1 == k0 * n0);
+  SKL_TEST_REQUIRE(status, rsc1 >= m0 * n0 * n1);
+  SKL_TEST_REQUIRE(status, csc1 == m0 * n0);
+  SKL_TEST_REQUIRE(status, alpha == 1);
+  SKL_TEST_REQUIRE(status, beta == 0 || beta == 1);
+  if (status) {
+    exit(status);
+  }
+  skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(
+      m0 * m1, n0 * n1, k0 * k1, a_pack /* == a */, rsa1 /* == rsa */, b_pack,
+      rsb1, c_pack /* == c */, rsc1 /* == rsc */, beta != 0);
+}
+#endif
+
 /* The macros below set the matrix strides. */
 #if !defined(RSA0) && !defined(CSA0)
 #define RSA0 K0 // Default to row major
@@ -171,17 +207,18 @@ int32_t ref_c[CLEN], test_c[CLEN];
 int check_error(void) {
   /* Compute the reference (scalar) matrix output. */
   skl_gemm_i8rcprc_i8rcprc_i32rcprc_scalar(
-      M0, N0, K0, M1, N1, K1, ALPHA, a, RSA0, CSA0, (size_t)RSA1, (size_t)CSA1,
-      b, RSB0, CSB0, (size_t)RSB1, (size_t)CSB1, BETA, ref_c, RSC0, CSC0,
-      (size_t)RSC1, (size_t)CSC1);
+      M0, N0, K0, M1, N1, K1, ALPHA, a, (size_t)RSA0, (size_t)CSA0,
+      (size_t)RSA1, (size_t)CSA1, b, (size_t)RSB0, (size_t)CSB0, (size_t)RSB1,
+      (size_t)CSB1, BETA, ref_c, (size_t)RSC0, (size_t)CSC0, (size_t)RSC1,
+      (size_t)CSC1);
 
   /* Compare the reference and test outputs. */
   for (size_t i1 = 0; i1 < M1; ++i1) {
     for (size_t j1 = 0; j1 < N1; ++j1) {
       for (size_t i0 = 0; i0 < M0; ++i0) {
         for (size_t j0 = 0; j0 < N0; ++j0) {
-          size_t idx =
-              i1 * (size_t)RSC1 + j1 * (size_t)CSC1 + i0 * RSC0 + j0 * CSC0;
+          size_t idx = i1 * (size_t)RSC1 + j1 * (size_t)CSC1 +
+                       i0 * (size_t)RSC0 + j0 * (size_t)CSC0;
           if (test_c[idx] != ref_c[idx]) {
             printf("result [%zu, %zu, %zu, %zu] (%d) != reference (%d)\n", i0,
                    j0, i1, j1, test_c[idx], ref_c[idx]);
@@ -222,25 +259,28 @@ int main(void) {
   /* Make copies of C to write the reference and test outputs to. */
   memcpy(ref_c, c, CLEN * sizeof(int32_t));
   memcpy(test_c, c, CLEN * sizeof(int32_t));
-  SKL_TEST_NAME(M0, N0, K0, M1, N1, K1, ALPHA, a, RSA0, CSA0, (size_t)RSA1,
-                (size_t)CSA1, b, RSB0, CSB0, (size_t)RSB1, (size_t)CSB1, BETA,
-                test_c, RSC0, CSC0, (size_t)RSC1, (size_t)CSC1);
+  SKL_TEST_NAME(M0, N0, K0, M1, N1, K1, ALPHA, a, (size_t)RSA0, (size_t)CSA0,
+                (size_t)RSA1, (size_t)CSA1, b, (size_t)RSB0, (size_t)CSB0,
+                (size_t)RSB1, (size_t)CSB1, BETA, test_c, (size_t)RSC0,
+                (size_t)CSC0, (size_t)RSC1, (size_t)CSC1);
   res += check_error();
 #endif // ENABLE_TEST
 
 #if defined(ENABLE_BENCHMARK)
   /* Warmup run */
-  SKL_TEST_NAME(M0, N0, K0, M1, N1, K1, ALPHA, a, RSA0, CSA0, (size_t)RSA1,
-                (size_t)CSA1, b, RSB0, CSB0, (size_t)RSB1, (size_t)CSB1, BETA,
-                c, RSC0, CSC0, (size_t)RSC1, (size_t)CSC1);
+  SKL_TEST_NAME(M0, N0, K0, M1, N1, K1, ALPHA, a, (size_t)RSA0, (size_t)CSA0,
+                (size_t)RSA1, (size_t)CSA1, b, (size_t)RSB0, (size_t)CSB0,
+                (size_t)RSB1, (size_t)CSB1, BETA, c, (size_t)RSC0, (size_t)CSC0,
+                (size_t)RSC1, (size_t)CSC1);
 
   /* Benchmark matrix matmul. */
   riscv_fence();
   uint64_t c0 = riscv_read_mcycle();
 
-  SKL_TEST_NAME(M0, N0, K0, M1, N1, K1, ALPHA, a, RSA0, CSA0, (size_t)RSA1,
-                (size_t)CSA1, b, RSB0, CSB0, (size_t)RSB1, (size_t)CSB1, BETA,
-                c, RSC0, CSC0, (size_t)RSC1, (size_t)CSC1);
+  SKL_TEST_NAME(M0, N0, K0, M1, N1, K1, ALPHA, a, (size_t)RSA0, (size_t)CSA0,
+                (size_t)RSA1, (size_t)CSA1, b, (size_t)RSB0, (size_t)CSB0,
+                (size_t)RSB1, (size_t)CSB1, BETA, c, (size_t)RSC0, (size_t)CSC0,
+                (size_t)RSC1, (size_t)CSC1);
 
   riscv_fence();
   uint64_t c1 = riscv_read_mcycle();

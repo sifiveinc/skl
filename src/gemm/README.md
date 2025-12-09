@@ -89,7 +89,7 @@ Public SKL GEMM functions are dispatch functions that choose between one or more
 - `skl_gemm_i8_i8_i32_zve32x_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc)`
 - `skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(m, n, k, a, csa, b, rsb, c, rsc, accum)`
 - `skl_gemm_a1b01_f32pc_f32p_f32p_xsfmm32a32f(...)`  (See the [Packed GEMM API](packed-gemm.md) document for details)
-- `skl_gemm_i8_i8p_i32_xsfvqdot(...)` (See above.)
+- `skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(...)` (See above.)
 
 ### Memory Layout and Packing
 
@@ -102,7 +102,7 @@ These are separate kernels, and not automatically applied by the GEMM functions 
 - If one input is available offline, or reused across multiple GEMMs, it should not be packed multiple times
 - Some applications may provide data in the necessary format already, and should not be forced to repack it
 
-As a general rule, the packing functions are named after the target and ISA they are designed for (e.g., `skl_pack_b_i8_xsfvqdot`).
+As a general rule, the packing functions are named after the target and ISA they are designed for (e.g., `skl_pack_b_i8_xsfvqdotq`).
 To the extent possible, their layouts depend only on ISA parameters, not on register tiling decisions or machine-specific parameters such as VLEN or cache sizes.
 
 ## File Organization
