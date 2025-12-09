@@ -53,6 +53,15 @@ jobs:
         CLANG_TIDY_TARBALL: riscv64-unknown-elf-clang-tidy.tar.xz
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: clang-format
+      run: |
+        HEAD_SHA=${{ github.event.pull_request.head.sha }}
+        BASE_SHA=${{ github.event.pull_request.base.sha }}
+        MERGE_BASE_SHA=$(git merge-base $HEAD_SHA $BASE_SHA)
+        git diff --name-only $MERGE_BASE_SHA $HEAD_SHA | \
+          egrep "\.(c|h)$" | \
+          xargs -I{} bash -c "if [ -f {} ] ; then clang-format --dry-run -style=file --Werror {} ; fi"
+
     - name: Configure and build (tests and benchmarks)
       run: |
         cmake -B ${{ github.workspace }}/build \
@@ -85,12 +94,3 @@ jobs:
     - name: Run (benchmarks only)
       working-directory: ${{ github.workspace }}/build
       run: ctest --verbose --output-on-failure
-
-    - name: clang-format
-      run: |
-        HEAD_SHA=${{ github.event.pull_request.head.sha }}
-        BASE_SHA=${{ github.event.pull_request.base.sha }}
-        MERGE_BASE_SHA=$(git merge-base $HEAD_SHA $BASE_SHA)
-        git diff --name-only $MERGE_BASE_SHA $HEAD_SHA | \
-          egrep "\.(c|h)$" | \
-          xargs -I{} bash -c "if [ -f {} ] ; then clang-format --dry-run -style=file --Werror {} ; fi"
