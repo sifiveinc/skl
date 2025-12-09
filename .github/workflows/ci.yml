@@ -1,0 +1,96 @@
+name: SKL CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    types: [ opened, synchronize ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  CI:
+    runs-on:
+      group: linux-runners
+      labels: ubuntu-22.04-x64-2
+
+    env:
+      SKL_TAG: v0.0.0
+      TOOLCHAIN_TAG: 2025.08.28
+
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup QEMU
+      run: |
+        gh release download $SKL_TAG -p "$QEMU_TARBALL"
+        tar -xvf $QEMU_TARBALL
+        echo "${{ github.workspace }}" >> $GITHUB_PATH
+      env:
+        QEMU_TARBALL: qemu-riscv64-v10.1.0-ubuntu-22.04.tar.xz
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup toolchain
+      run: |
+        gh release download $TOOLCHAIN_TAG -R riscv-collab/riscv-gnu-toolchain -p "$TOOLCHAIN_TARBALL"
+        tar -xvf $TOOLCHAIN_TARBALL
+        echo "${{ github.workspace }}/riscv/bin" >> $GITHUB_PATH
+      env:
+        TOOLCHAIN_TARBALL: riscv64-elf-ubuntu-22.04-llvm-nightly-${{ env.TOOLCHAIN_TAG }}-nightly.tar.xz
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup clang-tidy
+      run: |
+        gh release download $SKL_TAG -p "$CLANG_TIDY_TARBALL"
+        tar -xvf $CLANG_TIDY_TARBALL -C ${{ github.workspace }}/riscv/bin
+      env:
+        CLANG_TIDY_TARBALL: riscv64-unknown-elf-clang-tidy.tar.xz
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: clang-format
+      run: |
+        HEAD_SHA=${{ github.event.pull_request.head.sha }}
+        BASE_SHA=${{ github.event.pull_request.base.sha }}
+        MERGE_BASE_SHA=$(git merge-base $HEAD_SHA $BASE_SHA)
+        git diff --name-only $MERGE_BASE_SHA $HEAD_SHA | \
+          egrep "\.(c|h)$" | \
+          xargs -I{} bash -c "if [ -f {} ] ; then clang-format --dry-run -style=file --Werror {} ; fi"
+
+    - name: Configure and build (tests and benchmarks)
+      run: |
+        cmake -B ${{ github.workspace }}/build \
+              -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
+              -DSKL_BUILD_TESTS=ON -DSKL_BUILD_BENCHMARKS=ON
+        cmake --build ${{ github.workspace }}/build --verbose
+
+    - name: Run (tests and benchmarks)
+      working-directory: ${{ github.workspace }}/build
+      run: ctest --verbose --output-on-failure
+
+    - name: Configure and build (tests only)
+      run: |
+        cmake -B ${{ github.workspace }}/build \
+              -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
+              -DSKL_BUILD_TESTS=ON -DSKL_BUILD_BENCHMARKS=OFF
+        cmake --build ${{ github.workspace }}/build --verbose
+
+    - name: Run (tests only)
+      working-directory: ${{ github.workspace }}/build
+      run: ctest --verbose --output-on-failure
+
+    - name: Configure and build (benchmarks only)
+      run: |
+        cmake -B ${{ github.workspace }}/build \
+              -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
+              -DSKL_BUILD_TESTS=OFF -DSKL_BUILD_BENCHMARKS=ON
+        cmake --build ${{ github.workspace }}/build --verbose
+
+    - name: Run (benchmarks only)
+      working-directory: ${{ github.workspace }}/build
+      run: ctest --verbose --output-on-failure

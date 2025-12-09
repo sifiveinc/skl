@@ -1,5 +1,7 @@
 set(CMAKE_SYSTEM_PROCESSOR riscv)
 
+set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+
 set(CMAKE_C_COMPILER riscv64-unknown-elf-clang)
 option(SKL_ENABLE_CLANG_TIDY "Enable clang-tidy command" ON)
 if(SKL_ENABLE_CLANG_TIDY)
@@ -10,22 +12,22 @@ set(SKL_ARCH_EXTENSIONS
   rv64gcv
   zba
   zbb
-  xsfmmbase
-  xsfmm32a8f
-  xsfmm32a8i
-  xsfmm32a16f
-  xsfmm32a32f
-  xsfmm64t
+  # xsfmmbase
+  # xsfmm32a8f
+  # xsfmm32a8i
+  # xsfmm32a16f
+  # xsfmm32a32f
+  # xsfmm64t
   zfh
   zvfh
-  xsfvfbfa
-  xsfvfbfexp16e
-  xsfvfexp16e
-  xsfvfexp32e
-  xsfvfexpa
-  zvfofp8min0p2
-  zvfofp4min0p1
-  xsfvqdotq
+  # xsfvfbfa
+  # xsfvfbfexp16e
+  # xsfvfexp16e
+  # xsfvfexp32e
+  # xsfvfexpa
+  # zvfofp8min0p2
+  # zvfofp4min0p1
+  # xsfvqdotq
   zvfbfmin
 )
 
