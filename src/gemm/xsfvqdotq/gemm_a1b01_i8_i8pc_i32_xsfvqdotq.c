@@ -814,9 +814,103 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(size_t n, size_t k,
   vint32m4_t cvec0 = __riscv_vmv_v_x_i32m4(0, n);
   vint32m4_t cvec1 = __riscv_vmv_v_x_i32m4(0, n);
 
+  uint32_t a0;
+  uint32_t a1;
+  uint32_t a2;
+  uint32_t a3;
+
   size_t k_rem = k % 4;
-  size_t k_idx = 0;
-  for (; k_idx + 15 < k; k_idx += 16) {
+  while (k >= 16) {
+    // load 4 words from A.
+    memcpy(&a0, a, 4);
+    a += 4;
+    memcpy(&a1, a, 4);
+    a += 4;
+    memcpy(&a2, a, 4);
+    a += 4;
+    memcpy(&a3, a, 4);
+    a += 4;
+
+    // load 4 B tiles (4xn).
+    vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b, 4 * n);
+    b += rsb1;
+    vint8m4_t bvec1 = __riscv_vle8_v_i8m4(b, 4 * n);
+    b += rsb1;
+    vint8m4_t bvec2 = __riscv_vle8_v_i8m4(b, 4 * n);
+    b += rsb1;
+    vint8m4_t bvec3 = __riscv_vle8_v_i8m4(b, 4 * n);
+    b += rsb1;
+
+    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0, n);
+    cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec1, a1, n);
+    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec2, a2, n);
+    cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec3, a3, n);
+
+    k -= 16;
+  }
+
+  while (k >= 8) {
+    // load 2 words from A.
+    memcpy(&a0, a, 4);
+    a += 4;
+    memcpy(&a1, a, 4);
+    a += 4;
+
+    // load 2 B tiles (4xn).
+    vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b, 4 * n);
+    b += rsb1;
+    vint8m4_t bvec1 = __riscv_vle8_v_i8m4(b, 4 * n);
+    b += rsb1;
+
+    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0, n);
+    cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec1, a1, n);
+
+    k -= 8;
+  }
+
+  while (k >= 4) {
+    // load 1 word from A.
+    memcpy(&a0, a, 4);
+    a += 4;
+
+    // load 1 B tile (4xn).
+    vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b, 4 * n);
+    b += rsb1;
+
+    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0, n);
+
+    k -= 4;
+  }
+
+  if (k) {
+    uint32_t mask = 0xFFFFFFFF >> (8 * (4 - k));
+    memcpy(&a0, a, k);
+    vint8m4_t bvec = __riscv_vle8_v_i8m4(b, 4 * n);
+    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec, a0 & mask, n);
+  }
+
+  cvec0 = __riscv_vadd_vv_i32m4(cvec0, cvec1, n);
+  cvec = __riscv_vadd_vv_i32m4(cvec, cvec0, n);
+  __riscv_vse32_v_i32m4(c, cvec, n);
+}
+
+SKL_FUNC_PRIVATE void
+skl_vm_1xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a,
+                                     const int8_t *b, size_t rsb1, int32_t *c,
+                                     bool accum) {
+  // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
+  vint32m4_t cvec = __riscv_vundefined_i32m4();
+  if (!accum) {
+    cvec = __riscv_vmv_v_x_i32m4(0, n);
+  } else {
+    // load 1 row from C.
+    cvec = __riscv_vle32_v_i32m4(c, n);
+  }
+  // init 2 int32m4_t accumulators.
+  vint32m4_t cvec0 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t cvec1 = __riscv_vmv_v_x_i32m4(0, n);
+
+  while (k >= 16) {
     // load 4 words from A.
     uint32_t a0 = *(uint32_t *)a;
     a += 4;
@@ -841,9 +935,11 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(size_t n, size_t k,
     cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec1, a1, n);
     cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec2, a2, n);
     cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec3, a3, n);
+
+    k -= 16;
   }
 
-  for (; k_idx + 7 < k; k_idx += 8) {
+  while (k >= 8) {
     // load 2 words from A.
     uint32_t a0 = *(uint32_t *)a;
     a += 4;
@@ -858,9 +954,11 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(size_t n, size_t k,
 
     cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0, n);
     cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec1, a1, n);
+
+    k -= 8;
   }
 
-  for (; k_idx + 3 < k; k_idx += 4) {
+  while (k >= 4) {
     // load 1 word from A.
     uint32_t a0 = *(uint32_t *)a;
     a += 4;
@@ -870,10 +968,12 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(size_t n, size_t k,
     b += rsb1;
 
     cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0, n);
+
+    k -= 4;
   }
 
-  if (k_rem) {
-    uint32_t mask = 0xffffffff >> (4 - k_rem) * 8;
+  if (k) {
+    uint32_t mask = 0xFFFFFFFF >> (8 * (4 - k));
     vint8m4_t bvec = __riscv_vle8_v_i8m4(b, 4 * n);
     cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec, *(uint32_t *)a & mask, n);
   }
