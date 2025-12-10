@@ -454,6 +454,6 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   if(RISCV_XSFVQDOTQ)
     skl_add_test(gemm_a1b01_i8_i8pc_i32_xsfvqdotq gemm/gemm_a1b01_i8_i8pc_i32_xsfvqdotq.c "-DM=128;-DN=128;-DK=256;-DBETA=1")
     skl_add_test(skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_wrapper gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
-      "-DM0=1;-DN0=1;-DK0=4;-DM1=12;-DN1=128;-DK1=8;;-DRSB0=1;-DCSB0=0;-DALPHA=1;-DBETA=0;")
+      "-DM0=1;-DN0=1;-DK0=4;-DM1=12;-DN1=128;-DK1=8;-DRSB0=1;-DCSB0=0;-DALPHA=1;-DBETA=0;")
   endif()
 endif()
