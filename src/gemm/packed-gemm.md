@@ -190,7 +190,7 @@ void skl_pack_<a/b/c>_<datatype>_<isa>(
   size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the input matrix
   for (size_t ii1 = 0; ii1 < m1; ++ii1) {
     for (size_t jj1 = 0; jj1 < n1; ++jj1) {
-      const <type>* src_block = src + ii1 * rs + jj1 * cs;
+      const <type>* src_block = src + ii1 * m0 * rs + jj1 * n0 * cs;
       <type>* dst_block = dst + ii1 * rs1 + jj1 * cs1;
       for (size_t ii0 = 0; ii0 < m0; ++ii0) {
         for (size_t jj0 = 0; jj0 < n0; ++jj0) {
@@ -228,18 +228,24 @@ Where the element types of `A` and `B` are `int8_t` and `C` is accumulated as `i
 Here, `VL` is the vector length, and the value `A[i, k:k+4]` is held in a single 32-bit scalar register.
 
 In order to make use of this instruction with accumulator as a row vector across the output matrix `C`, we must pack the `B` matrix such that each block has dimensions `4xN`, where `N` is the input matrix width.
-This is done by dividing the `k` dimension into into `k0=4` and `k1=ceil(k/4)`, while keeping the `n` dimension unchanged (`n0=n` and `n1=1`).
-Moreover, since the dot product is performed along the `k` dimension, it must be contiguous in memory, resulting in a column-major layout within each block (`rsb0=1` and `csb0=4`).
+This is done by dividing the `k` dimension into `k0=4` and `k1=ceil(k/4)`, while keeping the `n` dimension unchanged.
+Moreover, since the dot product is performed along the `k` dimension, it must be contiguous in memory, resulting in a column-major layout within each block.
+
+In the actual implementation, we think of blocks as having fixed dimensions `4x1` (`n0=1`) instead of `4xN`.
+Each column of the `4xN` blocks of B can be thought of as one of these `4x1` blocks, so `n1 = N`.
+And since each `4xN` block of B is column-major and stored contiguously in memory, we find that `rsb0=1` and `csb1=k0*n0`.
+Note that `csb0` is unused since each `4x1` block has only one column.
 
 The packed kernel could be depicted as implemented by the following wrapper for the general packed GEMM API:
 ```c
-void skl_gemm_i8_i8p_i32_xsfvqdot(
+void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(
   size_t m,             // Num. rows in A and C
   size_t n,             // Num. columns in B and C
-  size_t k,             // Num. column blocks in A and B
+  size_t k,             // Num. columns in A and rows in B
   const int8_t* a,      // Input matrix A [m x k]
   size_t rsa,           // Row stride of A
-  const int8_t* b_pack, // Packed matrix B [k/4 x (n x 4)]
+  const int8_t* b_pack, // Packed matrix B [ceil(k/4) x n x (4 x 1)]
+  size_t rsb1,          // Row stride between blocks of B
   int32_t* c,           // Output matrix C [m x n]
   size_t rsc,           // Row stride of C
   bool accum            // Whether to accumulate into C
@@ -248,12 +254,13 @@ void skl_gemm_i8_i8p_i32_xsfvqdot(
   // K-fringe elements; this is just for illustration
   size_t k1 = k / 4;
   size_t kfix = k % 4;
-  skl_gemm_i8_i8p_i32_scalar(
-    m, n, 4, 1, 1, k1,           // m0, n0, k0, m1, n1, k1
-    1, a, rsa, 1, 0, 0,          // alpha, a_pack, rsa0, csa0, rsa1, csa1
-    b_pack, 1, 4, 4, n * 4,      // b_pack, rsb0, csb0, rsb1, csb1
-    accum ? 1 : 0, c, 1, 1,      // beta, c_pack, rsc0, csc0
-    rsc, n                       // rsc1, csc1
+  skl_gemm_i8rcprc_i8rcprc_i32rcprc_scalar(
+    1, 1, 4, m, n, k1,      // m0, n0, k0, m1, n1, k1
+    1,                      // alpha
+    a, 0, 1, rsa, 4,        // a_pack, rsa0, csa0, rsa1, csa1
+    b_pack, 1, 0, rsb1, 4,  // b_pack, rsb0, csb0, rsb1, csb1
+    accum ? 1 : 0,          // beta
+    c, 0, 0, rsc, 1         // c_pack, rsc0, csc0, rsc1, csc1
   );
   if (kfix != 0) {
     // Handle the dot-product fringe manually
@@ -262,9 +269,9 @@ void skl_gemm_i8_i8p_i32_xsfvqdot(
         int32_t acc = 0;
         size_t kstart = k1 * 4;
         for (size_t kk = kstart; kk < k; ++kk) {
-          acc += a[ii * rsa + kk] * b_pack[kk * n + jj];
+          acc += a[ii * rsa + kk] * b_pack[k1 * rsb1 + jj * 4 + (kk % 4)];
         }
-        c[ii * rsc + jj] = accum ? c[ii * rsc + jj] + acc : acc;
+        c[ii * rsc + jj] += acc;
       }
     }
   }
@@ -371,11 +378,10 @@ void example_blocked_gemm(size_t m, size_t n, size_t k, const int8_t *a,
       for (size_t kk_tile = 0; kk_tile < k; kk_tile += k_tile) {
         size_t k0 = min(k_tile, k - kk_tile);
         // Pack and compute tile
-        skl_pack_b_xsfvqdot(k0, n0, b + jj_tile + kk_tile * rsb, rsb, b_pack);
-        skl_gemm_i8_i8p_i32_xsfvqdot(
-            m0, n0, k0, 1 /* alpha */, a + ii_tile * rsa + kk_tile, rsa, b_pack,
-            n0 /* leading dim. of b_pack */, kk_tile > 0 /* accum */,
-            c + ii_tile * rsc + jj_tile, rsc);
+        skl_pack_b_i8_xsfvqdotq(k0, n0, b + kk_tile * rsb + jj_tile, rsb, b_pack, 4 * n0);
+        skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(
+            m0, n0, k0, a + ii_tile * rsa + kk_tile, rsa, b_pack,
+            4 * n0, c + ii_tile * rsc + jj_tile, rsc, kk_tile > 0 /* accum */);
       }
     }
   }
