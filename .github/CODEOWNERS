@@ -1,1 +1,13 @@
-* @ericlove
+/cmake @Aaron-Hutchinson
+/doc @Aaron-Hutchinson
+/include @Aaron-Hutchinson
+
+/src/gemm/rvv @Aaron-Hutchinson
+/src/gemm/scalar @Aaron-Hutchinson
+/src/transpose/rvv @Aaron-Hutchinson
+/src/transpose/scalar @Aaron-Hutchinson
+
+/test/gemm @Aaron-Hutchinson
+/test/transpose @Aaron-Hutchinson
+
+/CMakeLists.txt @Aaron-Hutchinson
