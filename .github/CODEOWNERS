@@ -4,12 +4,19 @@
 /doc @Aaron-Hutchinson
 /include @Aaron-Hutchinson
 
+/example/conv2d @peichialin
+
+/src/cvt @Harlen126
+/src/depthwise_conv2d @peichialin
 /src/gemm/rvv @Aaron-Hutchinson
 /src/gemm/scalar @Aaron-Hutchinson
-/src/transpose/rvv @Aaron-Hutchinson
-/src/transpose/scalar @Aaron-Hutchinson
+/src/gemm/xsfvqdotq @france5289 @peichialin
+/src/transpose/rvv @Aaron-Hutchinson @Harlen126 @peichialin
+/src/transpose/scalar @Aaron-Hutchinson @Harlen126
 
-/test/gemm @Aaron-Hutchinson
-/test/transpose @Aaron-Hutchinson
+/test/cvt @Harlen126
+/test/depthwise_conv2d @peichialin
+/test/gemm @Aaron-Hutchinson @france5289 @peichialin
+/test/transpose @Aaron-Hutchinson @Harlen126
 
 /CMakeLists.txt @Aaron-Hutchinson
