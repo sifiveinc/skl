@@ -15,31 +15,32 @@ extern "C" {
 #endif
 
 /**
- * @brief Xsfmm float32 A * B matrix-matrix multiplication (SGEMM) for
+ * @brief Xsfmm float32 matrix-matrix multiplication (SGEMM) for
  * column-major A and row-major B.
  *
  * @param m - Number of rows in matrices A and C.
  * @param n - Number of columns in matrices B and C.
  * @param k - Number of columns in A and rows in B (inner dimension).
+ * @param alpha - Scalar multiplier for A * B product.
  * @param a - Pointer to matrix A.
  * @param csa - Column stride of matrix A in elements.
  * @param b - Pointer to matrix B.
  * @param rsb - Row stride of matrix B in elements.
+ * @param beta - Scalar multiplier for matrix C.
  * @param c - Pointer to matrix C.
  * @param rsc - Row stride of matrix C in elements.
- * @param accum - Determines if output matrix is incremented or overwritten.
  *
- * Computes `C = A * B` (if `accum == false`) or `C += A * B` * (if `accum ==
- * true`) for FP32 column-major matrix A and FP32 row-major matrices B and C.
+ * Computes `C = alpha * A * B + beta * C` for FP32 column-major matrix A and
+ * FP32 row-major matrices B and C.
  *
  * Equivalent to scalar call:
  * ```
  * skl_gemm_f32rc_f32rc_f32rc_scalar(
  *     m, n, k,       // m, n, k
- *     1,             // alpha
+ *     alpha,         // alpha
  *     a, 1, csa,     // a, rsa, csa
  *     b, rsb, 1,     // b, rsb, csb
- *     accum ? 1 : 0, // beta
+ *     beta,          // beta
  *     c, rsc, 1      // c, rsc, csc
  * );
  * ```
@@ -51,45 +52,47 @@ extern "C" {
  * row-major order, and then call this function with A^T, using its row stride
  * as `csa`.
  **/
-void skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
-                                             const float *a, size_t csa,
-                                             const float *b, size_t rsb,
-                                             float *c, size_t rsc, bool accum);
+void skl_gemm_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
+                                       float alpha, const float *a, size_t csa,
+                                       const float *b, size_t rsb, float beta,
+                                       float *c, size_t rsc);
 
 /**
- * @brief Xsfmm float32 A * B packed matrix-matrix multiplication.
+ * @brief Xsfmm float32 packed matrix-matrix multiplication.
  *
  * @param m1 - Number of rows in A and C as block matrices.
  * @param n1 - Number of columns in B and C as block matrices.
  * @param k - Number of columns in A and rows in B (inner dimension).
+ * @param alpha - Scalar multiplier for A * B product.
  * @param a_pack - Pointer to matrix A.
  * @param rsa1 - Row stride between blocks of A in elements.
  * @param b_pack - Pointer to matrix B.
  * @param csb1 - Column stride between blocks of B in elements.
+ * @param beta - Scalar multiplier for matrix C.
  * @param c_pack - Pointer to matrix C.
  * @param rsc1 - Row stride between blocks of C in elements.
  * @param csc1 - Column stride between blocks of C in elements.
- * @param accum - Determines if output matrix is incremented or overwritten.
  *
- * Computes `C = A * B` (if `accum == false`) or `C += A * B` (if `accum ==
- * true`) for packed FP32 matrices A, B, and C.
+ * Computes `C = alpha * A * B + beta * C` for packed FP32 matrices A, B, and C.
  *
  * Equivalent to scalar call:
  * ```
  * skl_gemm_f32rcprc_f32rcprc_f32rcprc_scalar(
  *     TE, TE, 1, m1, n1, k,     // m0, n0, k0, m1, n1, k1
- *     1,                        // alpha
+ *     alpha,                    // alpha
  *     a_pack, 1, 0, rsa1, TE,   // a_pack, rsa0, csa0, rsa1, csa1
  *     b_pack, 0, 1, TE, csb1,   // b_pack, rsb0, csb0, rsb1, csb1
- *     accum ? 1 : 0,            // beta
+ *     beta,                     // beta
  *     c_pack, TE, 1, rsc1, csc1 // c_pack, rsc0, csc0, rsc1, csc1
  * );
  * ```
  */
-void skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
-    size_t m1, size_t n1, size_t k, const float *a_pack, size_t rsa1,
-    const float *b_pack, size_t csb1, float *c_pack, size_t rsc1, size_t csc1,
-    bool accum);
+void skl_gemm_f32pc_f32cp_f32rcp_xsfmm32a32f(size_t m1, size_t n1, size_t k,
+                                             float alpha, const float *a_pack,
+                                             size_t rsa1, const float *b_pack,
+                                             size_t csb1, float beta,
+                                             float *c_pack, size_t rsc1,
+                                             size_t csc1);
 
 #if defined(__cplusplus)
 } // extern "C"

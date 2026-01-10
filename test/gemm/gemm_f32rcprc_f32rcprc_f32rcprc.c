@@ -78,7 +78,7 @@
 #if defined(__riscv_xsfmm32a32f)
 #include "gemm/xsfmm/gemm_a1b01_f32c_f32_f32_xsfmm32a32f.h"
 
-void skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f_wrapper(
+void skl_gemm_f32pc_f32cp_f32rcp_xsfmm32a32f_wrapper(
     size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
     float alpha, const float *a_pack, size_t rsa0,
     __attribute__((unused)) size_t csa0, size_t rsa1, size_t csa1,
@@ -96,14 +96,12 @@ void skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f_wrapper(
   SKL_TEST_REQUIRE(status, rsb1 == k0 * n0);
   SKL_TEST_REQUIRE(status, rsc0 == n0);
   SKL_TEST_REQUIRE(status, csc0 == 1);
-  SKL_TEST_REQUIRE(status, alpha == 1.f);
-  SKL_TEST_REQUIRE(status, beta == 0.f || beta == 1.f);
   if (status) {
     exit(status);
   }
-  skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(m1, n1, k0 * k1, a_pack, rsa1,
-                                                b_pack, csb1, c_pack, rsc1,
-                                                csc1, beta != 0.f);
+  skl_gemm_f32pc_f32cp_f32rcp_xsfmm32a32f(m1, n1, k0 * k1, alpha, a_pack, rsa1,
+                                                b_pack, csb1, beta, c_pack, rsc1,
+                                                csc1);
 }
 #endif
 
