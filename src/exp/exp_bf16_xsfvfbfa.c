@@ -25,13 +25,13 @@ SKL_FUNC void skl_exp_1u_bf16_xsfvfbfa(__bf16 *out, const __bf16 *in,
     /* 1. Reduce */
     vbfloat16m4_t v = __riscv_vfmul_vf_bf16m4(vx, (__bf16)0x1.72p0, vl);
     vint8m2_t j = __riscv_vmv_v_x_i8m2(0, vl);
-    j = __riscv_vfncvt_x_f_w_bf16m4_mu(nn, j, v, vl);
+    j = __riscv_vfncvt_x_f_w_bf16m4_i8m2_mu(nn, j, v, vl);
     j = __riscv_vmax_vx_i8m2(j, -126, vl);
-    vbfloat16m4_t w = __riscv_vfwcvt_bf_x_v_bf16m4(j, vl);
+    vbfloat16m4_t w = __riscv_vfwcvt_f_x_v_bf16m4(j, vl);
     v = __riscv_vfsub_vv_bf16m4(v, w, vl);
     vint8m2_t k = __riscv_vmv_v_x_i8m2(0, vl);
-    k = __riscv_vfncvt_x_f_w_bf16m4_mu(nn, k, v, vl);
-    vbfloat16m4_t y = __riscv_vfwcvt_bf_x_v_bf16m4(k, vl);
+    k = __riscv_vfncvt_x_f_w_bf16m4_i8m2_mu(nn, k, v, vl);
+    vbfloat16m4_t y = __riscv_vfwcvt_f_x_v_bf16m4(k, vl);
     vbfloat16m4_t z = __riscv_vfadd_vv_bf16m4(w, y, vl);
     vbfloat16m4_t s = __riscv_vfnmsac_vf_bf16m4(vx, (__bf16)0x1.6p-1, z, vl);
     s = __riscv_vfnmsac_vf_bf16m4(s, (__bf16)0x1.72p-8, z, vl);
