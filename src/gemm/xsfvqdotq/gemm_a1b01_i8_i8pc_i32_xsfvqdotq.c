@@ -324,6 +324,8 @@ SKL_FUNC_PRIVATE void skl_mm_6xe32m4_aligned_i8i32_vqdotvx(
     // load first B tile (4xn)
     // vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b, 4 * n);
     // b += rsb1;
+    // vint8m4_t bvec1 = __riscv_vle8_v_i8m4(b, 4 * n);
+    // b += rsb1;
 
     while (k >= 8) {
       vint8m4_t bvec0;
@@ -335,30 +337,30 @@ SKL_FUNC_PRIVATE void skl_mm_6xe32m4_aligned_i8i32_vqdotvx(
           "add %[b], %[b], %[rsb1]\n"
 
           // load second B tile (4xn)
-          // "vsetvli x0, %[n4], e8, m4, ta, ma\n"
+          "vsetvli x0, %[n4], e8, m4, ta, ma\n"
           "vle8.v %[bvec1], (%[b])\n"
           "add %[b], %[b], %[rsb1]\n"
 
           "lw %[a0_0], 0(%[a0])\n"
-          "add %[a0], %[a0], %[csa1]\n"
+          // "add %[a0], %[a0], %[csa1]\n"
           "lw %[a0_1], 0(%[a1])\n"
-          "add %[a1], %[a1], %[csa1]\n"
+          // "add %[a1], %[a1], %[csa1]\n"
           "lw %[a0_2], 0(%[a2])\n"
-          "add %[a2], %[a2], %[csa1]\n"
+          // "add %[a2], %[a2], %[csa1]\n"
           "lw %[a0_3], 0(%[a3])\n"
-          "add %[a3], %[a3], %[csa1]\n"
+          // "add %[a3], %[a3], %[csa1]\n"
           // "lw %[a0_4], 0(%[a4])\n"
           // "add %[a4], %[a4], %[csa1]\n"
           // "lw %[a0_5], 0(%[a5])\n"
           // "add %[a5], %[a5], %[csa1]\n"
-          "lw %[a1_0], 0(%[a0])\n"
-          "add %[a0], %[a0], %[csa1]\n"
-          "lw %[a1_1], 0(%[a1])\n"
-          "add %[a1], %[a1], %[csa1]\n"
-          "lw %[a1_2], 0(%[a2])\n"
-          "add %[a2], %[a2], %[csa1]\n"
-          "lw %[a1_3], 0(%[a3])\n"
-          "add %[a3], %[a3], %[csa1]\n"
+          "lw %[a1_0], 4(%[a0])\n"
+          // "add %[a0], %[a0], %[csa1]\n"
+          "lw %[a1_1], 4(%[a1])\n"
+          // "add %[a1], %[a1], %[csa1]\n"
+          "lw %[a1_2], 4(%[a2])\n"
+          // "add %[a2], %[a2], %[csa1]\n"
+          "lw %[a1_3], 4(%[a3])\n"
+          // "add %[a3], %[a3], %[csa1]\n"
           // "lw %[a1_4], 0(%[a4])\n"
           // "add %[a4], %[a4], %[csa1]\n"
           // "lw %[a1_5], 0(%[a5])\n"
@@ -376,6 +378,10 @@ SKL_FUNC_PRIVATE void skl_mm_6xe32m4_aligned_i8i32_vqdotvx(
           // "sf.vqdot.vx %[cvec4], %[bvec0], %[a0_4]\n"
           // "sf.vqdot.vx %[cvec5], %[bvec0], %[a0_5]\n"
 
+          "add %[a0], %[a0], %[csa1]\n"
+          "add %[a1], %[a1], %[csa1]\n"
+          "add %[a2], %[a2], %[csa1]\n"
+          "add %[a3], %[a3], %[csa1]\n"
           // compute second tile
           "sf.vqdot.vx %[cvec0], %[bvec1], %[a1_0]\n"
           "sf.vqdot.vx %[cvec1], %[bvec1], %[a1_1]\n"
@@ -397,7 +403,7 @@ SKL_FUNC_PRIVATE void skl_mm_6xe32m4_aligned_i8i32_vqdotvx(
             [a1] "+&r"(a1), [a2] "+&r"(a2), [a3] "+&r"(a3),
             // [a4] "+&r"(a4), [a5] "+&r"(a5),
             [b] "+&r"(b)
-          : [csa1] "rI"(csa1 * sizeof(int8_t)),
+          : [csa1] "rI"(2 * csa1 * sizeof(int8_t)),
             [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n), [n4] "r"(4 * n)
           : "vl", "vtype", "memory");
 
@@ -1006,7 +1012,7 @@ SKL_FUNC void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
                                                    const int8_t *b_pack,
                                                    size_t rsb1, int32_t *c,
                                                    size_t rsc, bool accum) {
-  const size_t m0 = 6;
+  const size_t m0 = 4;
   const size_t n0 = __riscv_vsetvlmax_e32m4();
   const size_t k0 = 4;
 
