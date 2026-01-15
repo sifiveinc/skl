@@ -145,21 +145,6 @@ int main(void) {
   printf("Measuring %d-element GELU:\n", NUM_ELEMS);
   init_random(input, NUM_ELEMS); // input data
 
-#if defined(ENABLE_BENCHMARK)
-  // cycle and instruction counts
-  uint64_t c0, c1, i0, i1; // NOLINT(*-isolate-declaration)
-#define MEASURE_PERF(FUNCTION, NAME)                                           \
-  /* Measure 2nd run after caches warmed */                                    \
-  riscv_fence();                                                               \
-  c0 = riscv_read_mcycle(), i0 = riscv_read_minstret();                        \
-  FUNCTION(output, input, NUM_ELEMS);                                          \
-  riscv_fence();                                                               \
-  c1 = riscv_read_mcycle(), i1 = riscv_read_minstret();                        \
-  report_perf_epc(NAME, c1 - c0, i1 - i0, NUM_ELEMS);
-#else
-#define MEASURE_PERF(FUNCTION, NAME)
-#endif
-
 #if defined(ENABLE_TEST)
   memset(ref_output, 0, NUM_ELEMS * sizeof(*ref_output));
   reference_gelu_f32(ref_output, input, NUM_ELEMS);
@@ -173,7 +158,8 @@ int main(void) {
 #define RUN_(FUNCTION, NAME, TOL, GEN2, GEN1, GE0, SPECIALS)                   \
   memset(output, 0, NUM_ELEMS * sizeof(*output));                              \
   FUNCTION(output, input, NUM_ELEMS);                                          \
-  MEASURE_PERF(FUNCTION, NAME);                                                \
+  SKL_BENCHMARK_RUN(NAME, NUM_ELEMS, SKL_TEST_WARMUP, FUNCTION, output, input, \
+                    NUM_ELEMS);                                                \
   CHECK_RESULT(FUNCTION, NAME, TOL, GEN2, GEN1, GE0, SPECIALS);
 
 #define PASTE3(a, b, c) a##b##c
