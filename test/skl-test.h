@@ -55,7 +55,7 @@ static inline void print_float(float x) {
 }
 
 /**
- * @brief Output performance results in throughput and latency. (Default)
+ * @brief Output performance results in throughput. (Default)
  *
  * @param name The name of the function.
  * @param cycles The number of cycles of execution.
@@ -64,9 +64,8 @@ static inline void print_float(float x) {
  */
 static inline void report_perf_epc(const char *name, uint64_t cycles,
                                    uint64_t insts, size_t num_elems) {
-  printf("SKL Benchmark %s (%zu elements):\n", name, (size_t)num_elems);
-  printf("%15s : ", name);
   float epc = (float)num_elems / (float)cycles;
+  printf("\n%15s : ", name);
   print_float(epc);
   printf(" elements / cycle (%" PRIu64 " cycles)\n", cycles);
   float ipe = (float)insts / (float)num_elems;
