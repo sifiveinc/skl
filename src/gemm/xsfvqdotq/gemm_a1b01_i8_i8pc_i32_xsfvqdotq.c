@@ -328,6 +328,11 @@ SKL_FUNC_PRIVATE void skl_mm_6xe32m4_aligned_i8i32_vqdotvx(
     while (k >= 12) {
       vint8m4_t bvec1;
       __asm__ volatile(
+          // load second B tile (4xn)
+          "vsetvli x0, %[n4], e8, m4, ta, ma\n"
+          "vle8.v %[bvec1], (%[b])\n"
+          "add %[b], %[b], %[rsb1]\n"
+
           // compute first tile
           "vsetvli x0, %[n], e32, m4, ta, ma\n"
           "sf.vqdot.vx %[cvec0], %[bvec0], %[a0_0]\n"
@@ -336,11 +341,6 @@ SKL_FUNC_PRIVATE void skl_mm_6xe32m4_aligned_i8i32_vqdotvx(
           "sf.vqdot.vx %[cvec3], %[bvec0], %[a0_3]\n"
           "sf.vqdot.vx %[cvec4], %[bvec0], %[a0_4]\n"
           "sf.vqdot.vx %[cvec5], %[bvec0], %[a0_5]\n"
-
-          // load second B tile (4xn)
-          "vsetvli x0, %[n4], e8, m4, ta, ma\n"
-          "vle8.v %[bvec1], (%[b])\n"
-          "add %[b], %[b], %[rsb1]\n"
 
           "lw %[a1_0], 0(%[a0])\n"
           "lw %[a1_1], 0(%[a1])\n"
