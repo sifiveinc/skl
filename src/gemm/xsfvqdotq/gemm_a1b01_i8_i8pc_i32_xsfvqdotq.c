@@ -261,16 +261,16 @@ SKL_FUNC_PRIVATE void skl_mm_6xe32m4_aligned_i8i32_vqdotvx(
   vint32m4_t cvec1 = __riscv_vundefined_i32m4();
   vint32m4_t cvec2 = __riscv_vundefined_i32m4();
   vint32m4_t cvec3 = __riscv_vundefined_i32m4();
-  // vint32m4_t cvec4 = __riscv_vundefined_i32m4();
-  // vint32m4_t cvec5 = __riscv_vundefined_i32m4();
+  vint32m4_t cvec4 = __riscv_vundefined_i32m4();
+  vint32m4_t cvec5 = __riscv_vundefined_i32m4();
   // NOLINTEND(clang-analyzer-deadcode.DeadStores)
   if (!accum) {
     cvec0 = __riscv_vmv_v_x_i32m4(0, n);
     cvec1 = __riscv_vmv_v_x_i32m4(0, n);
     cvec2 = __riscv_vmv_v_x_i32m4(0, n);
     cvec3 = __riscv_vmv_v_x_i32m4(0, n);
-    // cvec4 = __riscv_vmv_v_x_i32m4(0, n);
-    // cvec5 = __riscv_vmv_v_x_i32m4(0, n);
+    cvec4 = __riscv_vmv_v_x_i32m4(0, n);
+    cvec5 = __riscv_vmv_v_x_i32m4(0, n);
   } else {
     // load 6 rows from C.
     int32_t *c_read = c;
@@ -281,91 +281,53 @@ SKL_FUNC_PRIVATE void skl_mm_6xe32m4_aligned_i8i32_vqdotvx(
     cvec2 = __riscv_vle32_v_i32m4(c_read, n);
     c_read += rsc;
     cvec3 = __riscv_vle32_v_i32m4(c_read, n);
-    // c_read += rsc;
-    // cvec4 = __riscv_vle32_v_i32m4(c_read, n);
-    // c_read += rsc;
-    // cvec5 = __riscv_vle32_v_i32m4(c_read, n);
+    c_read += rsc;
+    cvec4 = __riscv_vle32_v_i32m4(c_read, n);
+    c_read += rsc;
+    cvec5 = __riscv_vle32_v_i32m4(c_read, n);
   }
 
   const int8_t *a0 = a + 0 * rsa1;
   const int8_t *a1 = a + 1 * rsa1;
   const int8_t *a2 = a + 2 * rsa1;
   const int8_t *a3 = a + 3 * rsa1;
-  // const int8_t *a4 = a + 4 * rsa1;
-  // const int8_t *a5 = a + 5 * rsa1;
+  const int8_t *a4 = a + 4 * rsa1;
+  const int8_t *a5 = a + 5 * rsa1;
 
   // process the first (k / 4) * 4 elements of the inner dimension
-  if (k >= 8) {
+  if (k >= 4) {
     uint32_t a0_0;
     uint32_t a0_1;
     uint32_t a0_2;
     uint32_t a0_3;
-    // uint32_t a0_4;
-    // uint32_t a0_5;
+    uint32_t a0_4;
+    uint32_t a0_5;
     uint32_t a1_0;
     uint32_t a1_1;
     uint32_t a1_2;
     uint32_t a1_3;
-    // uint32_t a1_4;
-    // uint32_t a1_5;
-    // a0_0 = *(uint32_t *)a0;
-    // a0 += csa1;
-    // a0_1 = *(uint32_t *)a1;
-    // a1 += csa1;
-    // a0_2 = *(uint32_t *)a2;
-    // a2 += csa1;
-    // a0_3 = *(uint32_t *)a3;
-    // a3 += csa1;
-    // a0_4 = *(uint32_t *)a4;
-    // a4 += csa1;
-    // a0_5 = *(uint32_t *)a5;
-    // a5 += csa1;
+    uint32_t a1_4;
+    uint32_t a1_5;
+    a0_0 = *(uint32_t *)a0;
+    a0 += csa1;
+    a0_1 = *(uint32_t *)a1;
+    a1 += csa1;
+    a0_2 = *(uint32_t *)a2;
+    a2 += csa1;
+    a0_3 = *(uint32_t *)a3;
+    a3 += csa1;
+    a0_4 = *(uint32_t *)a4;
+    a4 += csa1;
+    a0_5 = *(uint32_t *)a5;
+    a5 += csa1;
 
     // load first B tile (4xn)
-    // vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b, 4 * n);
-    // b += rsb1;
-    // vint8m4_t bvec1 = __riscv_vle8_v_i8m4(b, 4 * n);
-    // b += rsb1;
+    vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b, 4 * n);
+    b += rsb1;
 
-    while (k >= 8) {
-      vint8m4_t bvec0;
+    while (k >= 12) {
       vint8m4_t bvec1;
       __asm__ volatile(
-          // pre-load first B tile (4xn) of next iteration
-          "vsetvli x0, %[n4], e8, m4, ta, ma\n"
-          "vle8.v %[bvec0], (%[b])\n"
-          "add %[b], %[b], %[rsb1]\n"
-
-          // load second B tile (4xn)
-          "vsetvli x0, %[n4], e8, m4, ta, ma\n"
-          "vle8.v %[bvec1], (%[b])\n"
-          "add %[b], %[b], %[rsb1]\n"
-
-          "lw %[a0_0], 0(%[a0])\n"
-          // "add %[a0], %[a0], %[csa1]\n"
-          "lw %[a0_1], 0(%[a1])\n"
-          // "add %[a1], %[a1], %[csa1]\n"
-          "lw %[a0_2], 0(%[a2])\n"
-          // "add %[a2], %[a2], %[csa1]\n"
-          "lw %[a0_3], 0(%[a3])\n"
-          // "add %[a3], %[a3], %[csa1]\n"
-          // "lw %[a0_4], 0(%[a4])\n"
-          // "add %[a4], %[a4], %[csa1]\n"
-          // "lw %[a0_5], 0(%[a5])\n"
-          // "add %[a5], %[a5], %[csa1]\n"
-          "lw %[a1_0], 4(%[a0])\n"
-          // "add %[a0], %[a0], %[csa1]\n"
-          "lw %[a1_1], 4(%[a1])\n"
-          // "add %[a1], %[a1], %[csa1]\n"
-          "lw %[a1_2], 4(%[a2])\n"
-          // "add %[a2], %[a2], %[csa1]\n"
-          "lw %[a1_3], 4(%[a3])\n"
-          // "add %[a3], %[a3], %[csa1]\n"
-          // "lw %[a1_4], 0(%[a4])\n"
-          // "add %[a4], %[a4], %[csa1]\n"
-          // "lw %[a1_5], 0(%[a5])\n"
-          // "add %[a5], %[a5], %[csa1]\n"
-
           // compute first tile
           "vsetvli x0, %[n], e32, m4, ta, ma\n"
           "sf.vqdot.vx %[cvec0], %[bvec0], %[a0_0]\n"
@@ -373,98 +335,112 @@ SKL_FUNC_PRIVATE void skl_mm_6xe32m4_aligned_i8i32_vqdotvx(
           "sf.vqdot.vx %[cvec2], %[bvec0], %[a0_2]\n"
           "sf.vqdot.vx %[cvec3], %[bvec0], %[a0_3]\n"
 
+          // load second B tile (4xn)
+          "vsetvli x0, %[n4], e8, m4, ta, ma\n"
+          "vle8.v %[bvec1], (%[b])\n"
+          "add %[b], %[b], %[rsb1]\n"
 
-          // "vsetvli x0, %[n], e32, m4, ta, ma\n"
-          // "sf.vqdot.vx %[cvec4], %[bvec0], %[a0_4]\n"
-          // "sf.vqdot.vx %[cvec5], %[bvec0], %[a0_5]\n"
-
+          "lw %[a1_0], 0(%[a0])\n"
           "add %[a0], %[a0], %[csa1]\n"
+          "lw %[a1_1], 0(%[a1])\n"
           "add %[a1], %[a1], %[csa1]\n"
+          "lw %[a1_2], 0(%[a2])\n"
           "add %[a2], %[a2], %[csa1]\n"
+          "lw %[a1_3], 0(%[a3])\n"
           "add %[a3], %[a3], %[csa1]\n"
+          "lw %[a1_4], 0(%[a4])\n"
+          "add %[a4], %[a4], %[csa1]\n"
+          "lw %[a1_5], 0(%[a5])\n"
+          "add %[a5], %[a5], %[csa1]\n"
+
+          "vsetvli x0, %[n], e32, m4, ta, ma\n"
+          "sf.vqdot.vx %[cvec4], %[bvec0], %[a0_4]\n"
+          "sf.vqdot.vx %[cvec5], %[bvec0], %[a0_5]\n"
+
           // compute second tile
           "sf.vqdot.vx %[cvec0], %[bvec1], %[a1_0]\n"
           "sf.vqdot.vx %[cvec1], %[bvec1], %[a1_1]\n"
           "sf.vqdot.vx %[cvec2], %[bvec1], %[a1_2]\n"
           "sf.vqdot.vx %[cvec3], %[bvec1], %[a1_3]\n"
-          // "sf.vqdot.vx %[cvec4], %[bvec1], %[a1_4]\n"
-          // "sf.vqdot.vx %[cvec5], %[bvec1], %[a1_5]\n"
+          "sf.vqdot.vx %[cvec4], %[bvec1], %[a1_4]\n"
+          "sf.vqdot.vx %[cvec5], %[bvec1], %[a1_5]\n"
 
+          // pre-load first B tile (4xn) of next iteration
+          "vsetvli x0, %[n4], e8, m4, ta, ma\n"
+          "vle8.v %[bvec0], (%[b])\n"
+          "add %[b], %[b], %[rsb1]\n"
+
+          "lw %[a0_0], 0(%[a0])\n"
+          "add %[a0], %[a0], %[csa1]\n"
+          "lw %[a0_1], 0(%[a1])\n"
+          "add %[a1], %[a1], %[csa1]\n"
+          "lw %[a0_2], 0(%[a2])\n"
+          "add %[a2], %[a2], %[csa1]\n"
+          "lw %[a0_3], 0(%[a3])\n"
+          "add %[a3], %[a3], %[csa1]\n"
+          "lw %[a0_4], 0(%[a4])\n"
+          "add %[a4], %[a4], %[csa1]\n"
+          "lw %[a0_5], 0(%[a5])\n"
+          "add %[a5], %[a5], %[csa1]\n"
           : [cvec0] "+&vr"(cvec0), [cvec1] "+&vr"(cvec1), [cvec2] "+&vr"(cvec2),
-            [cvec3] "+&vr"(cvec3),
-            // [cvec4] "+&vr"(cvec4), [cvec5] "+&vr"(cvec5),
+            [cvec3] "+&vr"(cvec3), [cvec4] "+&vr"(cvec4), [cvec5] "+&vr"(cvec5),
             [bvec0] "+&vr"(bvec0), [bvec1] "=&vr"(bvec1), [a0_0] "+&r"(a0_0),
             [a0_1] "+&r"(a0_1), [a0_2] "+&r"(a0_2), [a0_3] "+&r"(a0_3),
-            // [a0_4] "+&r"(a0_4), [a0_5] "+&r"(a0_5),
-            [a1_0] "=&r"(a1_0),
+            [a0_4] "+&r"(a0_4), [a0_5] "+&r"(a0_5), [a1_0] "=&r"(a1_0),
             [a1_1] "=&r"(a1_1), [a1_2] "=&r"(a1_2), [a1_3] "=&r"(a1_3),
-            // [a1_4] "=&r"(a1_4), [a1_5] "=&r"(a1_5),
-            [a0] "+&r"(a0),
-            [a1] "+&r"(a1), [a2] "+&r"(a2), [a3] "+&r"(a3),
-            // [a4] "+&r"(a4), [a5] "+&r"(a5),
-            [b] "+&r"(b)
-          : [csa1] "rI"(2 * csa1 * sizeof(int8_t)),
+            [a1_4] "=&r"(a1_4), [a1_5] "=&r"(a1_5), [a0] "+&r"(a0),
+            [a1] "+&r"(a1), [a2] "+&r"(a2), [a3] "+&r"(a3), [a4] "+&r"(a4),
+            [a5] "+&r"(a5), [b] "+&r"(b)
+          : [csa1] "rI"(csa1 * sizeof(int8_t)),
             [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n), [n4] "r"(4 * n)
           : "vl", "vtype", "memory");
 
       k -= 8;
     }
-  }
 
-    /*
     if (k >= 8) { // 8 <= k < 11
-      vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b, 4 * n);
-      b += rsb1;
+      // compute first tile
+      cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0_0, n);
+      a1_0 = *(uint32_t *)a0;
+      a0 += csa1;
+      cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec0, a0_1, n);
+      a1_1 = *(uint32_t *)a1;
+      a1 += csa1;
+
       // load second B tile (4xn)
       vint8m4_t bvec1 = __riscv_vle8_v_i8m4(b, 4 * n);
       b += rsb1;
 
-      // compute first tile
-      a0_0 = *(uint32_t *)a0;
-      a0 += csa1;
-      a0_1 = *(uint32_t *)a1;
-      a0 += csa1;
-      a0_2 = *(uint32_t *)a2;
-      a2 += csa1;
-      a0_3 = *(uint32_t *)a3;
-      a3 += csa1;
-
-      a1_0 = *(uint32_t *)a0;
-      a0 += csa1;
-      a1_1 = *(uint32_t *)a1;
-      a1 += csa1;
+      cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec0, a0_2, n);
       a1_2 = *(uint32_t *)a2;
       a2 += csa1;
+      cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec0, a0_3, n);
       a1_3 = *(uint32_t *)a3;
       a3 += csa1;
-      // cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec0, a0_4, n);
-      // a1_4 = *(uint32_t *)a4;
-      // a4 += csa1;
-      // cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec0, a0_5, n);
-      // a1_5 = *(uint32_t *)a5;
-      // a5 += csa1;
+      cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec0, a0_4, n);
+      a1_4 = *(uint32_t *)a4;
+      a4 += csa1;
+      cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec0, a0_5, n);
+      a1_5 = *(uint32_t *)a5;
+      a5 += csa1;
 
       // compute second tile
-      cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0_0, n);
-      cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec0, a0_1, n);
-      cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec0, a0_2, n);
-      cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec0, a0_3, n);
       cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec1, a1_0, n);
       cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec1, a1_1, n);
       cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec1, a1_2, n);
       cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec1, a1_3, n);
-      // cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec1, a1_4, n);
-      // cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec1, a1_5, n);
+      cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec1, a1_4, n);
+      cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec1, a1_5, n);
 
       k -= 8;
     } else { // 4 <= k < 8
       // compute first tile
-      // cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0_0, n);
-      // cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec0, a0_1, n);
-      // cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec0, a0_2, n);
-      // cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec0, a0_3, n);
-      // cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec0, a0_4, n);
-      // cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec0, a0_5, n);
+      cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0_0, n);
+      cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec0, a0_1, n);
+      cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec0, a0_2, n);
+      cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec0, a0_3, n);
+      cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec0, a0_4, n);
+      cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec0, a0_5, n);
 
       k -= 4;
     }
@@ -479,10 +455,9 @@ SKL_FUNC_PRIVATE void skl_mm_6xe32m4_aligned_i8i32_vqdotvx(
     cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec, *(uint32_t *)a1 & mask, n);
     cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec, *(uint32_t *)a2 & mask, n);
     cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec, *(uint32_t *)a3 & mask, n);
-    // cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec, *(uint32_t *)a4 & mask, n);
-    // cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec, *(uint32_t *)a5 & mask, n);
+    cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec, *(uint32_t *)a4 & mask, n);
+    cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec, *(uint32_t *)a5 & mask, n);
   }
-    */
 
   // write result back to c tile.
   __riscv_vse32_v_i32m4(c, cvec0, n);
@@ -492,10 +467,10 @@ SKL_FUNC_PRIVATE void skl_mm_6xe32m4_aligned_i8i32_vqdotvx(
   __riscv_vse32_v_i32m4(c, cvec2, n);
   c += rsc;
   __riscv_vse32_v_i32m4(c, cvec3, n);
-  // c += rsc;
-  // __riscv_vse32_v_i32m4(c, cvec4, n);
-  // c += rsc;
-  // __riscv_vse32_v_i32m4(c, cvec5, n);
+  c += rsc;
+  __riscv_vse32_v_i32m4(c, cvec4, n);
+  c += rsc;
+  __riscv_vse32_v_i32m4(c, cvec5, n);
 }
 
 SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_i8i32_vqdotvx(
@@ -1012,7 +987,7 @@ SKL_FUNC void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
                                                    const int8_t *b_pack,
                                                    size_t rsb1, int32_t *c,
                                                    size_t rsc, bool accum) {
-  const size_t m0 = 4;
+  const size_t m0 = 6;
   const size_t n0 = __riscv_vsetvlmax_e32m4();
   const size_t k0 = 4;
 
@@ -1026,16 +1001,10 @@ SKL_FUNC void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
       size_t n, size_t k, const int8_t *a, const int8_t *b, size_t rsb1,
       int32_t *c, bool accum);
 
-  if ((uintptr_t)a % (k0 * sizeof(int8_t)) == 0 && rsa % k0 == 0) {
-    skl_mm_6xe32m4_i8i32_vqdotvx_kernel = &skl_mm_6xe32m4_aligned_i8i32_vqdotvx;
-    skl_mm_lt6xe32m4_i8i32_vqdotvx_kernel =
-        &skl_mm_lt6xe32m4_aligned_i8i32_vqdotvx;
-    skl_vm_1xe32m4_i8i32_vqdotvx_kernel = &skl_vm_1xe32m4_aligned_i8i32_vqdotvx;
-  } else {
-    skl_mm_6xe32m4_i8i32_vqdotvx_kernel = &skl_mm_6xe32m4_i8i32_vqdotvx;
-    skl_mm_lt6xe32m4_i8i32_vqdotvx_kernel = &skl_mm_lt6xe32m4_i8i32_vqdotvx;
-    skl_vm_1xe32m4_i8i32_vqdotvx_kernel = &skl_vm_1xe32m4_i8i32_vqdotvx;
-  }
+  skl_mm_6xe32m4_i8i32_vqdotvx_kernel = &skl_mm_6xe32m4_aligned_i8i32_vqdotvx;
+  skl_mm_lt6xe32m4_i8i32_vqdotvx_kernel =
+      &skl_mm_lt6xe32m4_aligned_i8i32_vqdotvx;
+  skl_vm_1xe32m4_i8i32_vqdotvx_kernel = &skl_vm_1xe32m4_aligned_i8i32_vqdotvx;
 
   if (m == 1) {
     // dispatch to GEMV kernel for better performance.
