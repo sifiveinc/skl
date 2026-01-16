@@ -118,8 +118,8 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
       FUNC(__VA_ARGS__);                                                       \
     }                                                                          \
     riscv_fence();                                                             \
-    uint64_t c0 = riscv_read_mcycle();                                         \
     uint64_t i0 = riscv_read_minstret();                                       \
+    uint64_t c0 = riscv_read_mcycle();                                         \
     FUNC(__VA_ARGS__);                                                         \
     riscv_fence();                                                             \
     uint64_t c1 = riscv_read_mcycle();                                         \
