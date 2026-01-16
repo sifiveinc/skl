@@ -355,20 +355,20 @@ SKL_FUNC_PRIVATE void skl_mm_6xe32m4_aligned_i8i32_vqdotvx(
           "lw %[a0_4], 4(%[a4])\n"
           "lw %[a0_5], 4(%[a5])\n"
 
-          "vsetvli x0, %[n], e32, m4, ta, ma\n"
+
+          // pre-load first B tile (4xn) of next iteration
+          "vsetvli x0, %[n4], e8, m4, ta, ma\n"
+          "vle8.v %[bvec0], (%[b])\n"
+          "add %[b], %[b], %[rsb1]\n"
 
           // compute second tile
+          "vsetvli x0, %[n], e32, m4, ta, ma\n"
           "sf.vqdot.vx %[cvec0], %[bvec1], %[a1_0]\n"
           "sf.vqdot.vx %[cvec1], %[bvec1], %[a1_1]\n"
           "sf.vqdot.vx %[cvec2], %[bvec1], %[a1_2]\n"
           "sf.vqdot.vx %[cvec3], %[bvec1], %[a1_3]\n"
           "sf.vqdot.vx %[cvec4], %[bvec1], %[a1_4]\n"
           "sf.vqdot.vx %[cvec5], %[bvec1], %[a1_5]\n"
-
-          // pre-load first B tile (4xn) of next iteration
-          "vsetvli x0, %[n4], e8, m4, ta, ma\n"
-          "vle8.v %[bvec0], (%[b])\n"
-          "add %[b], %[b], %[rsb1]\n"
 
           "add %[a0], %[a0], %[csa1]\n"
           "add %[a1], %[a1], %[csa1]\n"
