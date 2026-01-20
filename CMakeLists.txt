@@ -71,6 +71,7 @@ set(SKL_ZVE32F_SRCS
   src/exp/exp_bf16_zve32f.c
   src/exp/exp_f32_zve32f.c
   src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390.c
+  src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390_clp.c
   src/logistic/logistic_f32_zve32f.c
   src/softmax/softmax_bf16_zve32f.c
   src/softmax/softmax_f32_zve32f.c
@@ -389,6 +390,8 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test(exp_f32 exp/exp_f32.c "-DRUN_ZVE32F;-DRUN_VFEXPA;-DRUN_VFEXP")
     skl_add_test(exp_bf16 exp/exp_bf16.c "-DRUN_ZVE32F;-DRUN_VFBFA;-DRUN_VFEXP;-DRUN_VFEXPA")
     skl_add_test(skl_gemm_f32_f32_f32_zve32f_x390_wrapper gemm/gemm_f32rc_f32rc_f32rc.c
+      "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
+    skl_add_test(skl_gemm_f32_f32_f32_zve32f_x390_clp_wrapper gemm/gemm_f32rc_f32rc_f32rc.c
       "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
     skl_add_test(logistic_f32_zve32f logistic/logistic_f32.c "-DRUN_RVV")
     skl_add_test(gelu_f32 gelu/gelu_f32.c "")
