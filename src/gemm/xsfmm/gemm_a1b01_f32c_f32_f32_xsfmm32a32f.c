@@ -13,7 +13,7 @@
 typedef struct {
   float alpha;
   float beta;
-} alpha_beta_f32;
+} alpha_beta_f32_f32;
 
 typedef void (*fused_ker_f32_t)(size_t tm, size_t tn, size_t tss, float *c,
                                 size_t rsc0, size_t csc0, size_t rsc1,
@@ -400,7 +400,7 @@ SKL_XSFMM_IN
 SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_1tm1tn_f32_f32_xsfmmbase(
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
     size_t rsc1, size_t csc1, size_t row, size_t col, void *params) {
-  alpha_beta_f32 *params_cast = (alpha_beta_f32 *)params;
+  alpha_beta_f32_f32 *params_cast = (alpha_beta_f32_f32 *)params;
   float alpha = params_cast->alpha;
   float beta = params_cast->beta;
   float *c_tile = c + row * rsc1 + col * csc1;
@@ -700,7 +700,7 @@ SKL_FUNC void skl_gemm_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
                                                 size_t csa, const float *b,
                                                 size_t rsb, float beta,
                                                 float *c, size_t rsc) {
-  alpha_beta_f32 params = {.alpha = alpha, .beta = beta};
+  alpha_beta_f32_f32 params = {.alpha = alpha, .beta = beta};
   skl_gemm_fused_f32c_f32_f32_xsfmm32a32f(
       m, n, k, a, csa, b, rsb, c, rsc,
       &skl_gemm_alpha_beta_scaling_1tm1tn_f32_f32_xsfmmbase, &params);
@@ -711,7 +711,7 @@ SKL_FUNC void skl_gemm_f32pc_f32cp_f32rcp_xsfmm32a32f(
     size_t m1, size_t n1, size_t k, float alpha, const float *a_pack,
     size_t rsa1, const float *b_pack, size_t csb1, float beta, float *c_pack,
     size_t rsc1, size_t csc1) {
-  alpha_beta_f32 params = {.alpha = alpha, .beta = beta};
+  alpha_beta_f32_f32 params = {.alpha = alpha, .beta = beta};
   skl_gemm_fused_f32pc_f32cp_f32rcp_xsfmm32a32f(
       m1, n1, k, a_pack, rsa1, b_pack, csb1, c_pack, rsc1, csc1,
       &skl_gemm_alpha_beta_scaling_1tm1tn_f32_f32_xsfmmbase, &params);
