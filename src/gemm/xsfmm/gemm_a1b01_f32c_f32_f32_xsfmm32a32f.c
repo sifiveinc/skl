@@ -15,10 +15,10 @@ typedef struct {
   float beta;
 } alpha_beta_f32_f32;
 
-typedef void (*fused_ker_f32_t)(size_t tm, size_t tn, size_t tss, float *c,
-                                size_t rsc0, size_t csc0, size_t rsc1,
-                                size_t csc1, size_t row, size_t col,
-                                void *params);
+typedef void (*fused_ker_f32_f32_t)(size_t tm, size_t tn, size_t tss, float *c,
+                                    size_t rsc0, size_t csc0, size_t rsc1,
+                                    size_t csc1, size_t row, size_t col,
+                                    void *params);
 
 /* Computes C := alpha * tile + beta * C, where tile is the tm x tn tile
  * specified by tss. tm and tn must be <= TE. This is a general implementation
@@ -421,7 +421,8 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_1tm1tn_f32_f32_xsfmmbase(
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE void skl_gemm_fused_1tm1tn_f32c_f32_f32_xsfmm32a32f(
     size_t tm, size_t tn, size_t k, const float *a, size_t csa, const float *b,
-    size_t rsb, float *c, size_t rsc, fused_ker_f32_t kernel, void *params) {
+    size_t rsb, float *c, size_t rsc, fused_ker_f32_f32_t kernel,
+    void *params) {
   if (tm == 0 || tn == 0) {
     return;
   }
@@ -480,7 +481,7 @@ SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE void skl_gemm_fused_2tm2tn_f32pc_f32cp_f32rcp_xsfmm32a32f(
     size_t tm, size_t tn, size_t k, const float *a, size_t csa0, size_t rsa1,
     const float *b, size_t rsb0, size_t csb1, float *c, size_t rsc0,
-    size_t rsc1, size_t csc1, fused_ker_f32_t kernel, void *params) {
+    size_t rsc1, size_t csc1, fused_ker_f32_f32_t kernel, void *params) {
   if (tm == 0 || tn == 0) {
     return;
   }
@@ -588,7 +589,8 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_2tm2tn_f32pc_f32cp_f32rcp_xsfmm32a32f(
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE void skl_gemm_fused_f32c_f32_f32_xsfmm32a32f(
     size_t m, size_t n, size_t k, const float *a, size_t csa, const float *b,
-    size_t rsb, float *c, size_t rsc, fused_ker_f32_t kernel, void *params) {
+    size_t rsb, float *c, size_t rsc, fused_ker_f32_f32_t kernel,
+    void *params) {
   if (m == 0 || n == 0) {
     return;
   }
@@ -651,7 +653,7 @@ SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE void skl_gemm_fused_f32pc_f32cp_f32rcp_xsfmm32a32f(
     size_t m1, size_t n1, size_t k, const float *a_pack, size_t rsa1,
     const float *b_pack, size_t csb1, float *c_pack, size_t rsc1, size_t csc1,
-    fused_ker_f32_t kernel, void *params) {
+    fused_ker_f32_f32_t kernel, void *params) {
   if (m1 == 0 || n1 == 0) {
     return;
   }
