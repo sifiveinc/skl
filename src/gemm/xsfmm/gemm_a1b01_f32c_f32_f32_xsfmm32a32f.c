@@ -25,7 +25,7 @@ typedef void (*fused_ker_f32_f32_t)(size_t tm, size_t tn, size_t tss, float *c,
  * that will work on all Xsfmm machines.
  */
 SKL_XSFMM_IN
-SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_1tm1tn_m8_f32_f32_xsfmmbase(
+SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m8_f32_f32_xsfmmbase(
     size_t tm, size_t tn, float alpha, size_t tss, float beta,
     float *c, // NOLINT(readability-non-const-parameter)
     size_t rsc0, size_t csc0) {
@@ -86,7 +86,7 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_1tm1tn_m8_f32_f32_xsfmmbase(
  * moving data from the tile state to the vector register file.
  */
 SKL_XSFMM_IN
-SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_1tm1tn_m2_f32_f32_xsfmmbase(
+SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m2_f32_f32_xsfmmbase(
     size_t tm, size_t tn, float alpha, size_t tss, float beta, float *c,
     size_t rsc0) {
   if (tm == 0 || tn == 0) {
@@ -397,7 +397,7 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_1tm1tn_m2_f32_f32_xsfmmbase(
  * corresponding GEMM even though they do not depend on it.
  */
 SKL_XSFMM_IN
-SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_1tm1tn_f32_f32_xsfmmbase(
+SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_f32_f32_xsfmmbase(
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
     size_t rsc1, size_t csc1, size_t row, size_t col, void *params) {
   alpha_beta_f32_f32 *params_cast = (alpha_beta_f32_f32 *)params;
@@ -409,11 +409,11 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_1tm1tn_f32_f32_xsfmmbase(
   __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(te) : : "vtype", "vl");
 
   if (te <= (size_t)2 * __riscv_v_min_vlen / (8 * sizeof(float)) && csc0 == 1) {
-    skl_gemm_alpha_beta_scaling_1tm1tn_m2_f32_f32_xsfmmbase(tm, tn, alpha, tss,
-                                                            beta, c_tile, rsc0);
+    skl_gemm_alpha_beta_scaling_m2_f32_f32_xsfmmbase(tm, tn, alpha, tss, beta,
+                                                     c_tile, rsc0);
   } else {
-    skl_gemm_alpha_beta_scaling_1tm1tn_m8_f32_f32_xsfmmbase(
-        tm, tn, alpha, tss, beta, c_tile, rsc0, csc0);
+    skl_gemm_alpha_beta_scaling_m8_f32_f32_xsfmmbase(tm, tn, alpha, tss, beta,
+                                                     c_tile, rsc0, csc0);
   }
 }
 
@@ -705,7 +705,7 @@ SKL_FUNC void skl_gemm_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
   alpha_beta_f32_f32 params = {.alpha = alpha, .beta = beta};
   skl_gemm_fused_f32c_f32_f32_xsfmm32a32f(
       m, n, k, a, csa, b, rsb, c, rsc,
-      &skl_gemm_alpha_beta_scaling_1tm1tn_f32_f32_xsfmmbase, &params);
+      &skl_gemm_alpha_beta_scaling_f32_f32_xsfmmbase, &params);
 }
 
 SKL_XSFMM_NEW
@@ -716,5 +716,5 @@ SKL_FUNC void skl_gemm_f32pc_f32cp_f32rcp_xsfmm32a32f(
   alpha_beta_f32_f32 params = {.alpha = alpha, .beta = beta};
   skl_gemm_fused_f32pc_f32cp_f32rcp_xsfmm32a32f(
       m1, n1, k, a_pack, rsa1, b_pack, csb1, c_pack, rsc1, csc1,
-      &skl_gemm_alpha_beta_scaling_1tm1tn_f32_f32_xsfmmbase, &params);
+      &skl_gemm_alpha_beta_scaling_f32_f32_xsfmmbase, &params);
 }
