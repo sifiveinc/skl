@@ -76,7 +76,7 @@
 
 /* Include various FP32 GEMM kernels depending on ISA compatibility. */
 #if defined(__riscv_xsfmm32a32f)
-#include "gemm/xsfmm/gemm_a1b01_f32c_f32_f32_xsfmm32a32f.h"
+#include "gemm/xsfmm/gemm_f32c_f32_f32_xsfmm32a32f.h"
 
 void skl_gemm_f32pc_f32cp_f32rcp_xsfmm32a32f_wrapper(
     size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,

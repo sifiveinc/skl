@@ -55,7 +55,7 @@
 #endif
 
 #if defined(__riscv_xsfmm32a32f)
-#include "../src/gemm/xsfmm/gemm_a1b01_f32c_f32_f32_xsfmm32a32f.h"
+#include "../src/gemm/xsfmm/gemm_f32c_f32_f32_xsfmm32a32f.h"
 #endif
 
 #if defined(__riscv_xsfvqdotq)
