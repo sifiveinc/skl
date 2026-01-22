@@ -408,7 +408,7 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_f32_f32_xsfmmbase(
   size_t te = 0;
   __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(te) : : "vtype", "vl");
 
-  if (te <= (size_t)2 * __riscv_v_min_vlen / (8 * sizeof(float)) && csc0 == 1) {
+  if (te <= __riscv_vsetvlmax_e32m2() && csc0 == 1) {
     skl_gemm_alpha_beta_scaling_m2_f32_f32_xsfmmbase(tm, tn, alpha, tss, beta,
                                                      c_tile, rsc0);
   } else {
