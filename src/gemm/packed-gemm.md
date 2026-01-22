@@ -303,18 +303,19 @@ If all matrices were packed into `TE` x `TE` blocks, then the kernel could be ca
 However, to obtain peak performance it is often necessary for the kernel to use `2*TE` x `2*TE` register tiles, so the strides between blocks must necessarily be exposed to the implementation, motivating the provision of a packed API for this target:
 
 ```c
-void skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
+void skl_gemm_f32pc_f32cp_f32rcp_xsfmm32a32f(
   size_t m1,            // Num. row blocks in A and C
   size_t n1,            // Num. column blocks in B and C
   size_t k,             // Num. columns in A, rows in B
+  float alpha,          // Scalar multiplier for A * B product
   const float* a_pack,  // Input matrix A [m1 x k x (TE x 1)]
   size_t rsa1,          // Row stride between panels of A
   const float* b_pack,  // Input matrix B [k x n1 x (1 x TE)]
   size_t csb1,          // Column stride between panels of B
+  float beta,           // Scalar multiplier for matrix C
   float* c_pack,        // Output matrix C [m1 x n1 x (TE x TE)]
   size_t rsc1,          // Row stride between blocks of C
-  size_t csc1,          // Column stride between blocks of C
-  bool accum            // Whether to accumulate into C
+  size_t csc1           // Column stride between blocks of C
 );
 ```
 
