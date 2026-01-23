@@ -10,6 +10,7 @@
 
 #include "skl-common.h"
 
+// params type for the fused alpha/beta scaling kernel
 typedef struct {
   float alpha;
   float beta;
