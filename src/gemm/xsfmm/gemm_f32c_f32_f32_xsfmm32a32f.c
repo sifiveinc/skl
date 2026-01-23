@@ -81,9 +81,9 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m8_f32_f32_xsfmmbase(
 /* Computes C := alpha * tile + beta * C, where tile is the tm x tn tile
  * specified by tss. tm and tn must be <= TE. This is an optimized
  * implementation when tile rows fit into m2 register groups and csc0 == 1.
- * In this case, the availability of extra register groups allows us to
- * interleave the execution of multiple rows to better hide the latency of
- * moving data from the tile state to the vector register file.
+ * In this case, the availability of 16 register groups allows unrolling the
+ * scaling loop by a factor of 8 and software pipelining the tile row transfers
+ * to overlap their latency with the scaling computation.
  */
 SKL_XSFMM_IN
 SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m2_f32_f32_xsfmmbase(
