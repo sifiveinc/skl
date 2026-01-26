@@ -136,12 +136,12 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x2_f32_f32_f32_zve32f_x390_clp(
             "flw %[a001], 0(%[a_load_4]) \n\t"
             "flw %[a002], 0(%[a_load_5]) \n\t"
             "flw %[a003], 0(%[a_load_6]) \n\t"
+            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m4, ta, ma \n\t"
+            "vle32.v %[b00], (%[b_load_0]) \n\t"
             "flw %[a010], 0(%[a_load_7]) \n\t"
             "flw %[a011], 0(%[a_load_8]) \n\t"
             "flw %[a012], 0(%[a_load_9]) \n\t"
             "flw %[a013], 0(%[a_load_10]) \n\t"
-            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m4, ta, ma \n\t"
-            "vle32.v %[b00], (%[b_load_0]) \n\t"
             "vle32.v %[b01], (%[b_load_1]) \n\t"
             : [a000] "=&f"(a000), [a001] "=&f"(a001), [a002] "=&f"(a002),
               [a003] "=&f"(a003), [a010] "=&f"(a010), [a011] "=&f"(a011),
@@ -176,11 +176,11 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x2_f32_f32_f32_zve32f_x390_clp(
             "flw %[a001], 0(%[a_load_12]) \n\t"
             "flw %[a002], 0(%[a_load_13]) \n\t"
             "flw %[a003], 0(%[a_load_14]) \n\t"
+            "vle32.v %[b00], (%[b_load_2]) \n\t"
             "flw %[a010], 0(%[a_load_15]) \n\t"
             "flw %[a011], 0(%[a_load_16]) \n\t"
             "flw %[a012], 0(%[a_load_17]) \n\t"
             "flw %[a013], 0(%[a_load_18]) \n\t"
-            "vle32.v %[b00], (%[b_load_2]) \n\t"
             "vle32.v %[b01], (%[b_load_3]) \n\t"
             : [jj_vl_out] "=&r"(jj_vl), [acc0] "+&vr"(acc0), [a000] "+&f"(a000),
               [b00] "+&vr"(b00), [acc1] "+&vr"(acc1), [a001] "+&f"(a001),
