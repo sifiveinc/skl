@@ -157,7 +157,6 @@ int main(void) {
 
 #define RUN_(FUNCTION, NAME, TOL, GEN2, GEN1, GE0, SPECIALS)                   \
   memset(output, 0, NUM_ELEMS * sizeof(*output));                              \
-  FUNCTION(output, input, NUM_ELEMS);                                          \
   SKL_BENCHMARK_RUN(NAME, NUM_ELEMS, SKL_TEST_WARMUP, FUNCTION, output, input, \
                     NUM_ELEMS);                                                \
   CHECK_RESULT(FUNCTION, NAME, TOL, GEN2, GEN1, GE0, SPECIALS);

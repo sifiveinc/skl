@@ -109,7 +109,8 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
  * If WARMUP is true, run the function once before timing to warm up caches.
  * Usually WARMUP is set to SKL_TEST_WARMUP, which is 1 by default.
  *
- * If ENABLE_BENCHMARK is not defined, this macro does nothing.
+ * If ENABLE_BENCHMARK is not defined, but ENABLE_TEST is defined, this macro
+ * calls FUNC(__VA_ARGS__).  Otherwise, this macro does nothing.
  */
 #if defined(ENABLE_BENCHMARK)
 #define SKL_BENCHMARK_RUN(NAME, NUM_ELEMS, WARMUP, FUNC, ...)                  \
@@ -127,6 +128,11 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
     uint64_t cycles = c1 - c0;                                                 \
     uint64_t insts = i1 - i0;                                                  \
     SKL_TEST_PERF_REPORT(NAME, cycles, insts, (size_t)(NUM_ELEMS));            \
+  } while (0)
+#elif defined(ENABLE_TEST)
+#define SKL_BENCHMARK_RUN(NAME, NUM_ELEMS, WARMUP, FUNC, ...)                  \
+  do {                                                                         \
+    FUNC(__VA_ARGS__);                                                         \
   } while (0)
 #else
 #define SKL_BENCHMARK_RUN(NAME, NUM_ELEMS, WARMUP, FUNC, ...) ((void)0)
