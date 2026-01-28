@@ -6,6 +6,7 @@
 #include <float.h>
 #include <inttypes.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,7 +48,14 @@ static inline void print_float(float x) {
   printf("%d.%04d", i, f);
 }
 
-// Output performance result for throughput (elements/cycle) kernel
+/**
+ * @brief Output performance results in throughput. (Default)
+ *
+ * @param name The name of the function.
+ * @param cycles The number of cycles of execution.
+ * @param insts The number of instructions executed.
+ * @param num_elems The number of elements (application-specific)
+ */
 static inline void report_perf_epc(const char *name, uint64_t cycles,
                                    uint64_t insts, size_t num_elems) {
   float epc = (float)num_elems / (float)cycles;
@@ -59,6 +67,76 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
   print_float(ipe);
   printf(" insts / element  (%" PRIu64 " insts)\n", insts);
 }
+
+/** @brief Determine whether to execute a warmup iteration.
+ *
+ * Used by most SKL benchmarks as a default. Can be overridden by defining
+ * before including skl-test.h.
+ */
+#if !defined(SKL_TEST_WARMUP)
+#define SKL_TEST_WARMUP 1
+#endif
+
+/**
+ * @brief Set benchmark performance reporting function.
+ *
+ * Must be a function with the following signature:
+ *
+ * ```c
+ * void report_perf(const char *name, uint64_t cycles, uint64_t insts, size_t
+ * num_elems);
+ * ```
+ *
+ * Used by most SKL benchmarks as a default. Can be overridden by defining
+ * before including skl-test.h.
+ */
+#if !defined(SKL_TEST_PERF_REPORT)
+#define SKL_TEST_PERF_REPORT report_perf_epc
+#endif
+
+/**
+ * @brief Run a benchmark and report performance.
+ *
+ * @param NAME - The name of the benchmark.
+ * @param NUM_ELEMS - The number of elements (application-specific).
+ * @param WARMUP - Whether to run a warmup iteration.
+ * @param FUNC - The function to benchmark (will be applied to __VA_ARGS__).
+ * @param ... - The arguments to pass to the function.
+ *
+ * This macro is a wrapper around riscv_read_mcycle() and
+ * riscv_read_minstret() to measure the performance of a function.
+ *
+ * If WARMUP is true, run the function once before timing to warm up caches.
+ * Usually WARMUP is set to SKL_TEST_WARMUP, which is 1 by default.
+ *
+ * If ENABLE_BENCHMARK is not defined, but ENABLE_TEST is defined, this macro
+ * calls FUNC(__VA_ARGS__).  Otherwise, this macro does nothing.
+ */
+#if defined(ENABLE_BENCHMARK)
+#define SKL_BENCHMARK_RUN(NAME, NUM_ELEMS, WARMUP, FUNC, ...)                  \
+  do {                                                                         \
+    if (WARMUP) {                                                              \
+      FUNC(__VA_ARGS__);                                                       \
+    }                                                                          \
+    riscv_fence();                                                             \
+    uint64_t i0 = riscv_read_minstret();                                       \
+    uint64_t c0 = riscv_read_mcycle();                                         \
+    FUNC(__VA_ARGS__);                                                         \
+    riscv_fence();                                                             \
+    uint64_t c1 = riscv_read_mcycle();                                         \
+    uint64_t i1 = riscv_read_minstret();                                       \
+    uint64_t cycles = c1 - c0;                                                 \
+    uint64_t insts = i1 - i0;                                                  \
+    SKL_TEST_PERF_REPORT(NAME, cycles, insts, (size_t)(NUM_ELEMS));            \
+  } while (0)
+#elif defined(ENABLE_TEST)
+#define SKL_BENCHMARK_RUN(NAME, NUM_ELEMS, WARMUP, FUNC, ...)                  \
+  do {                                                                         \
+    FUNC(__VA_ARGS__);                                                         \
+  } while (0)
+#else
+#define SKL_BENCHMARK_RUN(NAME, NUM_ELEMS, WARMUP, FUNC, ...) ((void)0)
+#endif
 
 /**
  * @brief Macro to check a requirement and set status to 1 if not met.
