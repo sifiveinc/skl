@@ -105,15 +105,15 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x2_f32_f32_f32_zve32f_x390_clp(
            kk_peel = kk_peel + 1) {
         __asm__ volatile(
             "\n\t"
-            "flw %[a00_0], 0(%[a_load]) \n\t"
-            "flw %[a01_0], 0(%[a_load_0]) \n\t"
-            "flw %[a02], 0(%[a_load_1]) \n\t"
-            "flw %[a03], 0(%[a_load_2]) \n\t"
             "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m4, ta, ma \n\t"
             "vle32.v %[b0], (%[b_load]) \n\t"
+            "flw %[a00_0], 0(%[a_load]) \n\t"
             "vfmul.vf %[acc0], %[b0], %[a00_0] \n\t"
+            "flw %[a01_0], 0(%[a_load_0]) \n\t"
             "vfmul.vf %[acc1], %[b0], %[a01_0] \n\t"
+            "flw %[a02], 0(%[a_load_1]) \n\t"
             "vfmul.vf %[acc2], %[b0], %[a02] \n\t"
+            "flw %[a03], 0(%[a_load_2]) \n\t"
             "vfmul.vf %[acc3], %[b0], %[a03] \n\t"
             : [a00_0] "=&f"(a00_0), [a01_0] "=&f"(a01_0), [a02] "=&f"(a02),
               [a03] "=&f"(a03), [jj_vl_out] "=&r"(jj_vl), [b0] "=&vr"(b0),
@@ -138,10 +138,10 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x2_f32_f32_f32_zve32f_x390_clp(
             "flw %[a003], 0(%[a_load_6]) \n\t"
             "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m4, ta, ma \n\t"
             "vle32.v %[b00], (%[b_load_0]) \n\t"
-            "flw %[a010], 0(%[a_load_7]) \n\t"
-            "flw %[a011], 0(%[a_load_8]) \n\t"
-            "flw %[a012], 0(%[a_load_9]) \n\t"
-            "flw %[a013], 0(%[a_load_10]) \n\t"
+            "flw %[a010], 4(%[a_load_3]) \n\t"
+            "flw %[a011], 4(%[a_load_4]) \n\t"
+            "flw %[a012], 4(%[a_load_5]) \n\t"
+            "flw %[a013], 4(%[a_load_6]) \n\t"
             "vle32.v %[b01], (%[b_load_1]) \n\t"
             : [a000] "=&f"(a000), [a001] "=&f"(a001), [a002] "=&f"(a002),
               [a003] "=&f"(a003), [a010] "=&f"(a010), [a011] "=&f"(a011),
@@ -151,10 +151,6 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x2_f32_f32_f32_zve32f_x390_clp(
               [a_load_4] "r"(a + (((ii + 1) * rsa) + ((kk_start + 0) * 1))),
               [a_load_5] "r"(a + (((ii + 2) * rsa) + ((kk_start + 0) * 1))),
               [a_load_6] "r"(a + (((ii + 3) * rsa) + ((kk_start + 0) * 1))),
-              [a_load_7] "r"(a + (((ii + 0) * rsa) + ((kk_start + 1) * 1))),
-              [a_load_8] "r"(a + (((ii + 1) * rsa) + ((kk_start + 1) * 1))),
-              [a_load_9] "r"(a + (((ii + 2) * rsa) + ((kk_start + 1) * 1))),
-              [a_load_10] "r"(a + (((ii + 3) * rsa) + ((kk_start + 1) * 1))),
               [jj_vl_in] "r"(n - jj),
               [b_load_0] "r"(b + (((kk_start + 0) * rsb) + ((jj + 0) * 1))),
               [b_load_1] "r"(b + (((kk_start + 1) * rsb) + ((jj + 0) * 1)))
@@ -166,22 +162,22 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x2_f32_f32_f32_zve32f_x390_clp(
             "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m4, ta, ma \n\t"
             "vfmacc.vf %[acc0], %[a000], %[b00] \n\t"
             "vfmacc.vf %[acc1], %[a001], %[b00] \n\t"
+            "flw %[a000], 0(%[a_load_11]) \n\t"
             "vfmacc.vf %[acc2], %[a002], %[b00] \n\t"
             "vfmacc.vf %[acc3], %[a003], %[b00] \n\t"
+            "flw %[a001], 0(%[a_load_12]) \n\t"
             "vfmacc.vf %[acc0], %[a010], %[b01] \n\t"
+            "flw %[a002], 0(%[a_load_13]) \n\t"
             "vfmacc.vf %[acc1], %[a011], %[b01] \n\t"
+            "vle32.v %[b00], (%[b_load_2]) \n\t"
             "vfmacc.vf %[acc2], %[a012], %[b01] \n\t"
             "vfmacc.vf %[acc3], %[a013], %[b01] \n\t"
-            "flw %[a000], 0(%[a_load_11]) \n\t"
-            "flw %[a001], 0(%[a_load_12]) \n\t"
-            "flw %[a002], 0(%[a_load_13]) \n\t"
             "flw %[a003], 0(%[a_load_14]) \n\t"
-            "vle32.v %[b00], (%[b_load_2]) \n\t"
-            "flw %[a010], 0(%[a_load_15]) \n\t"
-            "flw %[a011], 0(%[a_load_16]) \n\t"
-            "flw %[a012], 0(%[a_load_17]) \n\t"
-            "flw %[a013], 0(%[a_load_18]) \n\t"
             "vle32.v %[b01], (%[b_load_3]) \n\t"
+            "flw %[a010], 4(%[a_load_11]) \n\t"
+            "flw %[a011], 4(%[a_load_12]) \n\t"
+            "flw %[a012], 4(%[a_load_13]) \n\t"
+            "flw %[a013], 4(%[a_load_14]) \n\t"
             : [jj_vl_out] "=&r"(jj_vl), [acc0] "+&vr"(acc0), [a000] "+&f"(a000),
               [b00] "+&vr"(b00), [acc1] "+&vr"(acc1), [a001] "+&f"(a001),
               [acc2] "+&vr"(acc2), [a002] "+&f"(a002), [acc3] "+&vr"(acc3),
@@ -192,10 +188,6 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x2_f32_f32_f32_zve32f_x390_clp(
               [a_load_12] "r"(a + (((ii + 1) * rsa) + ((kk + 2) * 1))),
               [a_load_13] "r"(a + (((ii + 2) * rsa) + ((kk + 2) * 1))),
               [a_load_14] "r"(a + (((ii + 3) * rsa) + ((kk + 2) * 1))),
-              [a_load_15] "r"(a + (((ii + 0) * rsa) + ((kk + 3) * 1))),
-              [a_load_16] "r"(a + (((ii + 1) * rsa) + ((kk + 3) * 1))),
-              [a_load_17] "r"(a + (((ii + 2) * rsa) + ((kk + 3) * 1))),
-              [a_load_18] "r"(a + (((ii + 3) * rsa) + ((kk + 3) * 1))),
               [b_load_2] "r"(b + (((kk + 2) * rsb) + ((jj + 0) * 1))),
               [b_load_3] "r"(b + (((kk + 3) * rsb) + ((jj + 0) * 1)))
             : "vtype", "vl", "memory");
@@ -303,17 +295,16 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x2_f32_f32_f32_zve32f_x390_clp(
         __asm__ volatile(
             "\n\t"
             "flw %[a00_1], 0(%[a_load_24]) \n\t"
-            "flw %[a01_1], 0(%[a_load_25]) \n\t"
+            "flw %[a01_1], 4(%[a_load_24]) \n\t"
             "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m4, ta, ma \n\t"
             "vle32.v %[b00], (%[b_load_6]) \n\t"
-            "vle32.v %[b01], (%[b_load_7]) \n\t"
             "vfmacc.vf %[acc], %[a00_1], %[b00] \n\t"
+            "vle32.v %[b01], (%[b_load_7]) \n\t"
             "vfmacc.vf %[acc], %[a01_1], %[b01] \n\t"
             : [a00_1] "=&f"(a00_1), [a01_1] "=&f"(a01_1),
               [jj_vl_out] "=&r"(jj_vl), [b00] "=&vr"(b00), [b01] "=&vr"(b01),
               [acc] "+&vr"(acc)
             : [a_load_24] "r"(a + (((ii0 + 0) * rsa) + ((kk + 0) * 1))),
-              [a_load_25] "r"(a + (((ii0 + 0) * rsa) + ((kk + 1) * 1))),
               [jj_vl_in] "r"(n - jj),
               [b_load_6] "r"(b + (((kk + 0) * rsb) + ((jj + 0) * 1))),
               [b_load_7] "r"(b + (((kk + 1) * rsb) + ((jj + 0) * 1)))
