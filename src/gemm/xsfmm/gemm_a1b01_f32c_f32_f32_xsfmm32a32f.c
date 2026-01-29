@@ -956,9 +956,9 @@ SKL_FUNC void skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
   __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
 
   size_t i = 0;
-  for (; i + 3 < m1; i += 4) {
+  for (; i + 4 <= m1; i += 4) {
     size_t j = 0;
-    for (; j + 1 < n1; j += 2) {
+    for (; j + 2 <= n1; j += 2) {
       skl_gemm_2tm2tn_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
           ete, ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
           csb1, c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
@@ -974,9 +974,9 @@ SKL_FUNC void skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
     }
   }
 
-  if (i + 1 < m1) {
+  if (i + 2 <= m1) {
     size_t j = 0;
-    for (; j + 1 < n1; j += 2) {
+    for (; j + 2 <= n1; j += 2) {
       skl_gemm_2tm2tn_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
           ete, ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
           csb1, c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
@@ -991,7 +991,7 @@ SKL_FUNC void skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
 
   if (i < m1) {
     size_t j = 0;
-    for (; j + 3 < n1; j += 4) {
+    for (; j + 4 <= n1; j += 4) {
       skl_gemm_1tm4tn_a1b01_f32c_f32cp_f32rcp_xsfmm32a32f(
           ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete, csb1,
           c_pack + i * rsc1 + j * csc1, ete, csc1, accum);
