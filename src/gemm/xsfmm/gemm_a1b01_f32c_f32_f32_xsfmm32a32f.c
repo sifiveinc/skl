@@ -857,13 +857,33 @@ SKL_FUNC void skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(
   size_t ete = 0; // Effective tile edge length (always TE for TEW=32).
   __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
 
-  size_t num_processed_by_2tm2tn_m = (m / (2 * ete)) * 2 * ete;
-  size_t num_processed_by_2tm2tn_n = (n / (2 * ete)) * 2 * ete;
-
   size_t i = 0;
-  for (; i < num_processed_by_2tm2tn_m; i += 2 * ete) {
+  for (; i + 4 * ete <= m; i += 4 * ete) {
     size_t j = 0;
-    for (; j < num_processed_by_2tm2tn_n; j += 2 * ete) {
+    for (; j + 2 * ete <= n; j += 2 * ete) {
+      skl_gemm_2tm2tn_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
+          ete, ete, k, a + i, csa, ete, b + j, rsb, ete, c + i * rsc + j, rsc,
+          ete * rsc, ete, accum);
+      skl_gemm_2tm2tn_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
+          ete, ete, k, a + i + 2 * ete, csa, ete, b + j, rsb, ete, c + (i + 2 * ete) * rsc + j, rsc,
+          ete * rsc, ete, accum);
+    }
+    while (j < n) {
+      size_t tn = 0;
+      __asm__ volatile("sf.vsettnt %0, %1, e32, w1"
+                       : "=r"(tn)
+                       : "r"(n - j)
+                       : "vtype", "vl");
+      skl_gemm_4tm1tn_a1b01_f32pc_f32_f32rcp_xsfmm32a32f(
+          ete, tn, k, a + i, csa, ete, b + j, rsb,
+          c + i * rsc + j, rsc, ete * rsc, accum);
+      j += tn;
+    }
+  }
+  
+  if (i + 2 * ete <= m) {
+    size_t j = 0;
+    for (; j + 2 * ete <= n; j += 2 * ete) {
       skl_gemm_2tm2tn_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
           ete, ete, k, a + i, csa, ete, b + j, rsb, ete, c + i * rsc + j, rsc,
           ete * rsc, ete, accum);
@@ -874,13 +894,12 @@ SKL_FUNC void skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(
                        : "=r"(tn)
                        : "r"(n - j)
                        : "vtype", "vl");
-      skl_gemm_1tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
-          ete, tn, k, a + i, csa, b + j, rsb, c + i * rsc + j, rsc, accum);
-      skl_gemm_1tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
-          ete, tn, k, a + i + ete, csa, b + j, rsb, c + (i + ete) * rsc + j,
-          rsc, accum);
+      skl_gemm_2tm1tn_a1b01_f32pc_f32_f32rcp_xsfmm32a32f(
+          ete, tn, k, a + i, csa, ete, b + j, rsb,
+          c + i * rsc + j, rsc, ete * rsc, accum);
       j += tn;
     }
+    i += 2 * ete;
   }
 
   while (i < m) {
@@ -889,8 +908,25 @@ SKL_FUNC void skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(
                      "sf.vsettm %0, %1\n"
                      : "=r"(tm)
                      : "r"(m - i)
-                     : "vtype", "vl");
+                     : "vtype", "vl"); 
     size_t j = 0;
+    for (; j + 4 * ete <= n; j += 4 * ete) {
+      skl_gemm_1tm4tn_a1b01_f32c_f32cp_f32rcp_xsfmm32a32f(
+          tm, ete, k, a + i, csa, b + j, rsb, ete,
+          c + i * rsc + j, rsc, ete, accum);
+    }
+    if (j + 3 * ete <= n) {
+      skl_gemm_1tm3tn_a1b01_f32c_f32cp_f32rcp_xsfmm32a32f(
+          tm, ete, k, a + i, csa, b + j, rsb, ete,
+          c + i * rsc + j, rsc, ete, accum);
+      j += 3 * ete;
+    }
+    if (j + 2 * ete <= n) {
+      skl_gemm_1tm2tn_a1b01_f32c_f32cp_f32rcp_xsfmm32a32f(
+          tm, ete, k, a + i, csa, b + j, rsb, ete,
+          c + i * rsc + j, rsc, ete, accum);
+      j += 2 * ete;
+    }
     while (j < n) {
       size_t tn = 0;
       __asm__ volatile("sf.vsettnt %0, %1, e32, w1"
@@ -903,6 +939,7 @@ SKL_FUNC void skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(
     }
     i += tm;
   }
+
   __asm__ volatile("sf.vtdiscard");
 }
 
