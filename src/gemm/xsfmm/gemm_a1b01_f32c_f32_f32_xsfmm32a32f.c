@@ -210,8 +210,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm2tn_2tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
       "sf.mm.f.f mt4, v0, v16\n"
 
       "2:\n"
-      : [a0] "+&r"(a0), [b0] "+&r"(b0), [b1] "+&r"(b1),
-        [k] "+&r"(k)
+      : [a0] "+&r"(a0), [b0] "+&r"(b0), [b1] "+&r"(b1), [k] "+&r"(k)
       : [sa] "r"(rsa * sizeof(float)), [sb] "r"(rsb0 * sizeof(float)),
         [tm0] "r"(tm0), [tn0] "r"(tn0), [i2] "r"(2)
       : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
@@ -225,26 +224,24 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm2tn_2tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
   float *c0_store = c0;
   float *c1_store = c1;
   i = 0;
-  __asm__ volatile(
-      "sf.vsettnt x0, %[tn], e32, w1\n"
+  __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
 
-      "0:\n"
-      "addi %[i], %[i], 1\n"
-      "sf.vste32 %[mt0], (%[c0])\n"
-      "add %[mt0], %[mt0], %[kRowInc]\n"
-      "add %[c0], %[c0], %[sc]\n"
-      "sf.vste32 %[mt4], (%[c1])\n"
-      "add %[mt4], %[mt4], %[kRowInc]\n"
-      "add %[c1], %[c1], %[sc]\n"
-      "bltu %[i], %[tm], 0b\n"
+                   "0:\n"
+                   "addi %[i], %[i], 1\n"
+                   "sf.vste32 %[mt0], (%[c0])\n"
+                   "add %[mt0], %[mt0], %[kRowInc]\n"
+                   "add %[c0], %[c0], %[sc]\n"
+                   "sf.vste32 %[mt4], (%[c1])\n"
+                   "add %[mt4], %[mt4], %[kRowInc]\n"
+                   "add %[c1], %[c1], %[sc]\n"
+                   "bltu %[i], %[tm], 0b\n"
 
-      "sf.vtdiscard"
-      : [mt0] "+&r"(mt0_store), [mt4] "+&r"(mt4_store),
-        [c0] "+&r"(c0_store), [c1] "+&r"(c1_store),
-        [i] "+&r"(i)
-      : [kRowInc] "rI"(kRowInc), [sc] "r"(rsc0 * sizeof(float)), [tm] "r"(tm),
-        [tn] "r"(tn)
-      : "vtype", "vl", "memory");
+                   "sf.vtdiscard"
+                   : [mt0] "+&r"(mt0_store), [mt4] "+&r"(mt4_store),
+                     [c0] "+&r"(c0_store), [c1] "+&r"(c1_store), [i] "+&r"(i)
+                   : [kRowInc] "rI"(kRowInc), [sc] "r"(rsc0 * sizeof(float)),
+                     [tm] "r"(tm), [tn] "r"(tn)
+                   : "vtype", "vl", "memory");
 }
 
 SKL_XSFMM_NEW
@@ -303,8 +300,9 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm3tn_3tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
                    "add %[c2], %[c2], %[sc]\n"
                    "bltu %[i], %[tm], 1b\n"
                    "2:\n"
-                   : [mt0] "+&r"(mt0_load), [mt4] "+&r"(mt4_load), [mt8] "+&r"(mt8_load),
-                     [c0] "+&r"(c0_load), [c1] "+&r"(c1_load), [c2] "+&r"(c2_load), [i] "+&r"(i)
+                   : [mt0] "+&r"(mt0_load), [mt4] "+&r"(mt4_load),
+                     [mt8] "+&r"(mt8_load), [c0] "+&r"(c0_load),
+                     [c1] "+&r"(c1_load), [c2] "+&r"(c2_load), [i] "+&r"(i)
                    : [accum] "r"(accum), [kRowInc] "rI"(kRowInc),
                      [sc] "r"(rsc0 * sizeof(float)), [tm] "r"(tm), [tn] "r"(tn),
                      [tm0] "r"(tm0), [tn0] "r"(tn0)
@@ -374,7 +372,8 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm3tn_3tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
         [tm0] "r"(tm0), [tn0] "r"(tn0), [i2] "r"(2)
       : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
         "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20",
-        "v21", "v22", "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31", "vtype", "vl", "memory");
+        "v21", "v22", "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30",
+        "v31", "vtype", "vl", "memory");
 
   /* Store tiles to memory. */
   size_t mt0_store = mt0;
@@ -385,29 +384,28 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm3tn_3tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
   float *c1_store = c1;
   float *c2_store = c2;
   i = 0;
-  __asm__ volatile(
-      "sf.vsettnt x0, %[tn], e32, w1\n"
+  __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
 
-      "0:\n"
-      "addi %[i], %[i], 1\n"
-      "sf.vste32 %[mt0], (%[c0])\n"
-      "add %[mt0], %[mt0], %[kRowInc]\n"
-      "add %[c0], %[c0], %[sc]\n"
-      "sf.vste32 %[mt4], (%[c1])\n"
-      "add %[mt4], %[mt4], %[kRowInc]\n"
-      "add %[c1], %[c1], %[sc]\n"
-      "sf.vste32 %[mt8], (%[c2])\n"
-      "add %[mt8], %[mt8], %[kRowInc]\n"
-      "add %[c2], %[c2], %[sc]\n"
-      "bltu %[i], %[tm], 0b\n"
+                   "0:\n"
+                   "addi %[i], %[i], 1\n"
+                   "sf.vste32 %[mt0], (%[c0])\n"
+                   "add %[mt0], %[mt0], %[kRowInc]\n"
+                   "add %[c0], %[c0], %[sc]\n"
+                   "sf.vste32 %[mt4], (%[c1])\n"
+                   "add %[mt4], %[mt4], %[kRowInc]\n"
+                   "add %[c1], %[c1], %[sc]\n"
+                   "sf.vste32 %[mt8], (%[c2])\n"
+                   "add %[mt8], %[mt8], %[kRowInc]\n"
+                   "add %[c2], %[c2], %[sc]\n"
+                   "bltu %[i], %[tm], 0b\n"
 
-      "sf.vtdiscard"
-      : [mt0] "+&r"(mt0_store), [mt4] "+&r"(mt4_store), [mt8] "+&r"(mt8_store),
-        [c0] "+&r"(c0_store), [c1] "+&r"(c1_store), [c2] "+&r"(c2_store),
-        [i] "+&r"(i)
-      : [kRowInc] "rI"(kRowInc), [sc] "r"(rsc0 * sizeof(float)), [tm] "r"(tm),
-        [tn] "r"(tn)
-      : "vtype", "vl", "memory");
+                   "sf.vtdiscard"
+                   : [mt0] "+&r"(mt0_store), [mt4] "+&r"(mt4_store),
+                     [mt8] "+&r"(mt8_store), [c0] "+&r"(c0_store),
+                     [c1] "+&r"(c1_store), [c2] "+&r"(c2_store), [i] "+&r"(i)
+                   : [kRowInc] "rI"(kRowInc), [sc] "r"(rsc0 * sizeof(float)),
+                     [tm] "r"(tm), [tn] "r"(tn)
+                   : "vtype", "vl", "memory");
 }
 
 SKL_XSFMM_NEW
@@ -447,39 +445,41 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm4tn_4tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
   float *c2_load = c2;
   float *c3_load = c3;
   size_t i = 0;
-  __asm__ volatile("bnez %[accum], 0f\n"
-                   "sf.vsettnt x0, %[tn0], e32, w1\n"
-                   "sf.vsettm x0, %[tm0]\n"
+  __asm__ volatile(
+      "bnez %[accum], 0f\n"
+      "sf.vsettnt x0, %[tn0], e32, w1\n"
+      "sf.vsettm x0, %[tm0]\n"
 
-                   "sf.vtzero.t mt0\n"
-                   "sf.vtzero.t mt4\n"
-                   "sf.vtzero.t mt8\n"
-                   "sf.vtzero.t mt12\n"
-                   "j 2f\n"
-                   "0:\n"
-                   "sf.vsettnt x0, %[tn], e32, w1\n"
-                   "1:\n"
-                   "addi %[i], %[i], 1\n"
-                   "sf.vlte32 %[mt0], (%[c0])\n"
-                   "add %[mt0], %[mt0], %[kRowInc]\n"
-                   "add %[c0], %[c0], %[sc]\n"
-                   "sf.vlte32 %[mt4], (%[c1])\n"
-                   "add %[mt4], %[mt4], %[kRowInc]\n"
-                   "add %[c1], %[c1], %[sc]\n"
-                   "sf.vlte32 %[mt8], (%[c2])\n"
-                   "add %[mt8], %[mt8], %[kRowInc]\n"
-                   "add %[c2], %[c2], %[sc]\n"
-                   "sf.vlte32 %[mt12], (%[c3])\n"
-                   "add %[mt12], %[mt12], %[kRowInc]\n"
-                   "add %[c3], %[c3], %[sc]\n"
-                   "bltu %[i], %[tm], 1b\n"
-                   "2:\n"
-                   : [mt0] "+&r"(mt0_load), [mt4] "+&r"(mt4_load), [mt8] "+&r"(mt8_load), [mt12] "+&r"(mt12_load),
-                     [c0] "+&r"(c0_load), [c1] "+&r"(c1_load), [c2] "+&r"(c2_load), [c3] "+&r"(c3_load), [i] "+&r"(i)
-                   : [accum] "r"(accum), [kRowInc] "rI"(kRowInc),
-                     [sc] "r"(rsc0 * sizeof(float)), [tm] "r"(tm), [tn] "r"(tn),
-                     [tm0] "r"(tm0), [tn0] "r"(tn0)
-                   : "vtype", "vl", "memory");
+      "sf.vtzero.t mt0\n"
+      "sf.vtzero.t mt4\n"
+      "sf.vtzero.t mt8\n"
+      "sf.vtzero.t mt12\n"
+      "j 2f\n"
+      "0:\n"
+      "sf.vsettnt x0, %[tn], e32, w1\n"
+      "1:\n"
+      "addi %[i], %[i], 1\n"
+      "sf.vlte32 %[mt0], (%[c0])\n"
+      "add %[mt0], %[mt0], %[kRowInc]\n"
+      "add %[c0], %[c0], %[sc]\n"
+      "sf.vlte32 %[mt4], (%[c1])\n"
+      "add %[mt4], %[mt4], %[kRowInc]\n"
+      "add %[c1], %[c1], %[sc]\n"
+      "sf.vlte32 %[mt8], (%[c2])\n"
+      "add %[mt8], %[mt8], %[kRowInc]\n"
+      "add %[c2], %[c2], %[sc]\n"
+      "sf.vlte32 %[mt12], (%[c3])\n"
+      "add %[mt12], %[mt12], %[kRowInc]\n"
+      "add %[c3], %[c3], %[sc]\n"
+      "bltu %[i], %[tm], 1b\n"
+      "2:\n"
+      : [mt0] "+&r"(mt0_load), [mt4] "+&r"(mt4_load), [mt8] "+&r"(mt8_load),
+        [mt12] "+&r"(mt12_load), [c0] "+&r"(c0_load), [c1] "+&r"(c1_load),
+        [c2] "+&r"(c2_load), [c3] "+&r"(c3_load), [i] "+&r"(i)
+      : [accum] "r"(accum), [kRowInc] "rI"(kRowInc),
+        [sc] "r"(rsc0 * sizeof(float)), [tm] "r"(tm), [tn] "r"(tn),
+        [tm0] "r"(tm0), [tn0] "r"(tn0)
+      : "vtype", "vl", "memory");
 
   /* Accumulate matrix product into tiles. */
   const float *a0 = a;
@@ -549,8 +549,8 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm4tn_4tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
       "sf.mm.f.f mt12, v0, v16\n"
 
       "2:\n"
-      : [a0] "+&r"(a0), [b0] "+&r"(b0), [b1] "+&r"(b1), [b2] "+&r"(b2), [b3] "+&r"(b3),
-        [k] "+&r"(k)
+      : [a0] "+&r"(a0), [b0] "+&r"(b0), [b1] "+&r"(b1), [b2] "+&r"(b2),
+        [b3] "+&r"(b3), [k] "+&r"(k)
       : [sa] "r"(rsa * sizeof(float)), [sb] "r"(rsb0 * sizeof(float)),
         [tm0] "r"(tm0), [tn0] "r"(tn0), [i2] "r"(2)
       : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
@@ -588,9 +588,9 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm4tn_4tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
       "bltu %[i], %[tm], 0b\n"
 
       "sf.vtdiscard"
-      : [mt0] "+&r"(mt0_store), [mt4] "+&r"(mt4_store), [mt8] "+&r"(mt8_store), [mt12] "+&r"(mt12_store),
-        [c0] "+&r"(c0_store), [c1] "+&r"(c1_store), [c2] "+&r"(c2_store), [c3] "+&r"(c3_store),
-        [i] "+&r"(i)
+      : [mt0] "+&r"(mt0_store), [mt4] "+&r"(mt4_store), [mt8] "+&r"(mt8_store),
+        [mt12] "+&r"(mt12_store), [c0] "+&r"(c0_store), [c1] "+&r"(c1_store),
+        [c2] "+&r"(c2_store), [c3] "+&r"(c3_store), [i] "+&r"(i)
       : [kRowInc] "rI"(kRowInc), [sc] "r"(rsc0 * sizeof(float)), [tm] "r"(tm),
         [tn] "r"(tn)
       : "vtype", "vl", "memory");
@@ -601,11 +601,10 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm4tn_4tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
  */
 SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void skl_gemm_1tm2tn_a1b01_f32c_f32cp_f32rcp_xsfmm32a32f(
-    size_t tm, size_t tn, size_t k, const float *a, size_t csa,
-    const float *b, size_t rsb0, size_t csb1, float *c, size_t rsc0,
-    size_t csc1, bool accum) {
-skl_gemm_1tm2tn_2tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
-    tm, tn, k, a, csa, b, rsb0, csb1, c, rsc0, csc1, accum, false);
+    size_t tm, size_t tn, size_t k, const float *a, size_t csa, const float *b,
+    size_t rsb0, size_t csb1, float *c, size_t rsc0, size_t csc1, bool accum) {
+  skl_gemm_1tm2tn_2tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
+      tm, tn, k, a, csa, b, rsb0, csb1, c, rsc0, csc1, accum, false);
 }
 
 /* Process 2 (= 2 x 1) contiguous tm x tn tiles of c.
@@ -614,10 +613,10 @@ skl_gemm_1tm2tn_2tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
 SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void skl_gemm_2tm1tn_a1b01_f32pc_f32_f32rcp_xsfmm32a32f(
     size_t tm, size_t tn, size_t k, const float *a, size_t csa0, size_t rsa1,
-    const float *b, size_t rsb, float *c, size_t rsc0,
-    size_t rsc1, bool accum) {
-skl_gemm_1tm2tn_2tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
-    tm, tn, k, b, rsb, a, csa0, rsa1, c, rsc0, rsc1, accum, true);
+    const float *b, size_t rsb, float *c, size_t rsc0, size_t rsc1,
+    bool accum) {
+  skl_gemm_1tm2tn_2tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
+      tm, tn, k, b, rsb, a, csa0, rsa1, c, rsc0, rsc1, accum, true);
 }
 
 /* Process 3 (= 1 x 3) contiguous tm x tn tiles of c.
@@ -625,11 +624,10 @@ skl_gemm_1tm2tn_2tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
  */
 SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void skl_gemm_1tm3tn_a1b01_f32c_f32cp_f32rcp_xsfmm32a32f(
-    size_t tm, size_t tn, size_t k, const float *a, size_t csa,
-    const float *b, size_t rsb0, size_t csb1, float *c, size_t rsc0,
-    size_t csc1, bool accum) {
-skl_gemm_1tm3tn_3tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
-    tm, tn, k, a, csa, b, rsb0, csb1, c, rsc0, csc1, accum, false);
+    size_t tm, size_t tn, size_t k, const float *a, size_t csa, const float *b,
+    size_t rsb0, size_t csb1, float *c, size_t rsc0, size_t csc1, bool accum) {
+  skl_gemm_1tm3tn_3tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
+      tm, tn, k, a, csa, b, rsb0, csb1, c, rsc0, csc1, accum, false);
 }
 
 /* Process 3 (= 3 x 1) contiguous tm x tn tiles of c.
@@ -638,10 +636,10 @@ skl_gemm_1tm3tn_3tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
 SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void skl_gemm_3tm1tn_a1b01_f32pc_f32_f32rcp_xsfmm32a32f(
     size_t tm, size_t tn, size_t k, const float *a, size_t csa0, size_t rsa1,
-    const float *b, size_t rsb, float *c, size_t rsc0,
-    size_t rsc1, bool accum) {
-skl_gemm_1tm3tn_3tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
-    tm, tn, k, b, rsb, a, csa0, rsa1, c, rsc0, rsc1, accum, true);
+    const float *b, size_t rsb, float *c, size_t rsc0, size_t rsc1,
+    bool accum) {
+  skl_gemm_1tm3tn_3tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
+      tm, tn, k, b, rsb, a, csa0, rsa1, c, rsc0, rsc1, accum, true);
 }
 
 /* Process 4 (= 1 x 4) contiguous tm x tn tiles of c.
@@ -649,11 +647,10 @@ skl_gemm_1tm3tn_3tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
  */
 SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void skl_gemm_1tm4tn_a1b01_f32c_f32cp_f32rcp_xsfmm32a32f(
-    size_t tm, size_t tn, size_t k, const float *a, size_t csa,
-    const float *b, size_t rsb0, size_t csb1, float *c, size_t rsc0,
-    size_t csc1, bool accum) {
-skl_gemm_1tm4tn_4tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
-    tm, tn, k, a, csa, b, rsb0, csb1, c, rsc0, csc1, accum, false);
+    size_t tm, size_t tn, size_t k, const float *a, size_t csa, const float *b,
+    size_t rsb0, size_t csb1, float *c, size_t rsc0, size_t csc1, bool accum) {
+  skl_gemm_1tm4tn_4tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
+      tm, tn, k, a, csa, b, rsb0, csb1, c, rsc0, csc1, accum, false);
 }
 
 /* Process 4 (= 4 x 1) contiguous tm x tn tiles of c.
@@ -662,10 +659,10 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
 SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void skl_gemm_4tm1tn_a1b01_f32pc_f32_f32rcp_xsfmm32a32f(
     size_t tm, size_t tn, size_t k, const float *a, size_t csa0, size_t rsa1,
-    const float *b, size_t rsb, float *c, size_t rsc0,
-    size_t rsc1, bool accum) {
-skl_gemm_1tm4tn_4tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
-    tm, tn, k, b, rsb, a, csa0, rsa1, c, rsc0, rsc1, accum, true);
+    const float *b, size_t rsb, float *c, size_t rsc0, size_t rsc1,
+    bool accum) {
+  skl_gemm_1tm4tn_4tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
+      tm, tn, k, b, rsb, a, csa0, rsa1, c, rsc0, rsc1, accum, true);
 }
 
 /* Process 4 (= 2 x 2) contiguous tm x tn tiles of c.
@@ -921,37 +918,67 @@ SKL_FUNC void skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
   size_t ete = 0; // Effective tile edge length (always TE for TEW=32).
   __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
 
-  size_t num_processed_by_2tm2tn_m1 = (m1 / 2) * 2;
-  size_t num_processed_by_2tm2tn_n1 = (n1 / 2) * 2;
-
   size_t i = 0;
-  for (; i < num_processed_by_2tm2tn_m1; i += 2) {
+  for (; i + 3 < m1; i += 4) {
     size_t j = 0;
-    for (; j < num_processed_by_2tm2tn_n1; j += 2) {
+    for (; j + 1 < n1; j += 2) {
+      skl_gemm_2tm2tn_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
+          ete, ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
+          csb1, c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
+      skl_gemm_2tm2tn_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
+          ete, ete, k, a_pack + (i + 2) * rsa1, ete, rsa1, b_pack + j * csb1,
+          ete, csb1, c_pack + (i + 2) * rsc1 + j * csc1, ete, rsc1, csc1,
+          accum);
+    }
+    if (j < n1) {
+      skl_gemm_4tm1tn_a1b01_f32pc_f32_f32rcp_xsfmm32a32f(
+          ete, ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
+          c_pack + i * rsc1 + j * csc1, ete, rsc1, accum);
+    }
+  }
+
+  if (i + 1 < m1) {
+    size_t j = 0;
+    for (; j + 1 < n1; j += 2) {
       skl_gemm_2tm2tn_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
           ete, ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
           csb1, c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
     }
-    while (j < n1) {
+    if (j < n1) {
+      skl_gemm_2tm1tn_a1b01_f32pc_f32_f32rcp_xsfmm32a32f(
+          ete, ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
+          c_pack + i * rsc1 + j * csc1, ete, rsc1, accum);
+    }
+    i += 2;
+  }
+
+  if (i < m1) {
+    size_t j = 0;
+    for (; j + 3 < n1; j += 4) {
+      skl_gemm_1tm4tn_a1b01_f32c_f32cp_f32rcp_xsfmm32a32f(
+          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete, csb1,
+          c_pack + i * rsc1 + j * csc1, ete, csc1, accum);
+    }
+    switch (n1 - j) {
+    case 3:
+      skl_gemm_1tm3tn_a1b01_f32c_f32cp_f32rcp_xsfmm32a32f(
+          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete, csb1,
+          c_pack + i * rsc1 + j * csc1, ete, csc1, accum);
+      break;
+    case 2:
+      skl_gemm_1tm2tn_a1b01_f32c_f32cp_f32rcp_xsfmm32a32f(
+          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete, csb1,
+          c_pack + i * rsc1 + j * csc1, ete, csc1, accum);
+      break;
+    case 1:
       skl_gemm_1tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
           ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete,
           c_pack + i * rsc1 + j * csc1, ete, accum);
-      skl_gemm_1tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
-          ete, ete, k, a_pack + (i + 1) * rsa1, ete, b_pack + j * csb1, ete,
-          c_pack + (i + 1) * rsc1 + j * csc1, ete, accum);
-      j += 1;
+      break;
+    default:
+      break;
     }
   }
 
-  while (i < m1) {
-    size_t j = 0;
-    while (j < n1) {
-      skl_gemm_1tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
-          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete,
-          c_pack + i * rsc1 + j * csc1, ete, accum);
-      j += 1;
-    }
-    i += 1;
-  }
   __asm__ volatile("sf.vtdiscard");
 }
