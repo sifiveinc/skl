@@ -517,12 +517,14 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
 SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
     size_t m, size_t n, size_t k, float alpha, const float *a, size_t rsa,
     const float *b, size_t rsb, float beta, float *c, size_t rsc) {
-  size_t jj_vl;
+  size_t jj_vl = __riscv_vsetvlmax_e32m4();
   size_t ii;
   size_t jj;
   size_t kk_peel;
   size_t kk;
   size_t ii0;
+  float alpha0;
+  float beta0;
   float a00;
   float a01;
   float a02;
@@ -539,12 +541,14 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
   float a0;
   vfloat32m4_t acc;
   vfloat32m4_t c0;
+  alpha0 = alpha;
+  beta0 = beta;
   if (k == 0) {
     for (ii = 0; (ii + 1) <= m; ii = ii + 1) {
       for (jj = 0; jj < n; jj = jj + jj_vl) {
         jj_vl = __riscv_vsetvl_e32m4(n - jj);
         c0 = __riscv_vle32_v_f32m4(c + (((ii + 0) * rsc) + jj), jj_vl);
-        c0 = __riscv_vfmul_vf_f32m4(c0, beta, jj_vl);
+        c0 = __riscv_vfmul_vf_f32m4(c0, beta0, jj_vl);
         __riscv_vse32_v_f32m4(c + (((ii + 0) * rsc) + jj), c0, jj_vl);
       }
     }
@@ -552,68 +556,136 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
   }
   for (ii = 0; (ii + 4) <= m; ii = ii + 4) {
     for (jj = 0; jj < n; jj = jj + jj_vl) {
-      jj_vl = __riscv_vsetvl_e32m4(n - jj);
-      for (kk_peel = 0; ((kk_peel + 1) <= k) && (kk_peel < 1);
+      for (kk_peel = 0; ((kk_peel + 1) <= k) && (kk_peel < (0 + (1 * 1)));
            kk_peel = kk_peel + 1) {
-        b0 = __riscv_vle32_v_f32m4(b + ((kk_peel * rsb) + jj), jj_vl);
-        skl_instruction_schedule_barrier();
-        a00 = a[((ii + 0) * rsa) + kk_peel];
-        a01 = a[((ii + 1) * rsa) + kk_peel];
-        a02 = a[((ii + 2) * rsa) + kk_peel];
-        a03 = a[((ii + 3) * rsa) + kk_peel];
-        acc0 = __riscv_vfmul_vf_f32m4(b0, a00, jj_vl);
-        acc1 = __riscv_vfmul_vf_f32m4(b0, a01, jj_vl);
-        acc2 = __riscv_vfmul_vf_f32m4(b0, a02, jj_vl);
-        acc3 = __riscv_vfmul_vf_f32m4(b0, a03, jj_vl);
+        __asm__ volatile(
+            "\n\t"
+            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m4, ta, ma \n\t"
+            "vle32.v %[b0], (%[b_load]) \n\t"
+            "flw %[a00], 0(%[a_load]) \n\t"
+            "flw %[a01], 0(%[a_load_0]) \n\t"
+            "flw %[a02], 0(%[a_load_1]) \n\t"
+            "flw %[a03], 0(%[a_load_2]) \n\t"
+            "vfmul.vf %[acc0], %[b0], %[a00] \n\t"
+            "vfmul.vf %[acc1], %[b0], %[a01] \n\t"
+            "vfmul.vf %[acc2], %[b0], %[a02] \n\t"
+            "vfmul.vf %[acc3], %[b0], %[a03] \n\t"
+            : [a00] "=&f"(a00), [a01] "=&f"(a01), [a02] "=&f"(a02),
+              [a03] "=&f"(a03), [jj_vl_out] "=&r"(jj_vl), [b0] "=&vr"(b0),
+              [acc0] "=&vr"(acc0), [acc1] "=&vr"(acc1), [acc2] "=&vr"(acc2),
+              [acc3] "=vr"(acc3)
+            : [a_load] "r"(a + (((ii + 0) * rsa) + ((kk_peel + 0) * 1))),
+              [a_load_0] "r"(a + (((ii + 1) * rsa) + ((kk_peel + 0) * 1))),
+              [a_load_1] "r"(a + (((ii + 2) * rsa) + ((kk_peel + 0) * 1))),
+              [a_load_2] "r"(a + (((ii + 3) * rsa) + ((kk_peel + 0) * 1))),
+              [jj_vl_in] "r"(n - jj),
+              [b_load] "r"(b + (((kk_peel + 0) * rsb) + ((jj + 0) * 1)))
+            : "vtype", "vl", "memory");
       }
       for (kk = kk_peel; (kk + 1) <= k; kk = kk + 1) {
-        b0 = __riscv_vle32_v_f32m4(b + ((kk * rsb) + jj), jj_vl);
-        skl_instruction_schedule_barrier();
-        a00 = a[((ii + 0) * rsa) + kk];
-        a01 = a[((ii + 1) * rsa) + kk];
-        a02 = a[((ii + 2) * rsa) + kk];
-        a03 = a[((ii + 3) * rsa) + kk];
-        acc0 = __riscv_vfmacc_vf_f32m4(acc0, a00, b0, jj_vl);
-        acc1 = __riscv_vfmacc_vf_f32m4(acc1, a01, b0, jj_vl);
-        acc2 = __riscv_vfmacc_vf_f32m4(acc2, a02, b0, jj_vl);
-        acc3 = __riscv_vfmacc_vf_f32m4(acc3, a03, b0, jj_vl);
+        __asm__ volatile(
+            "\n\t"
+            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m4, ta, ma \n\t"
+            "vle32.v %[b0], (%[b_load_0]) \n\t"
+            "flw %[a00], 0(%[a_load_3]) \n\t"
+            "flw %[a01], 0(%[a_load_4]) \n\t"
+            "flw %[a02], 0(%[a_load_5]) \n\t"
+            "flw %[a03], 0(%[a_load_6]) \n\t"
+            "vfmacc.vf %[acc0], %[a00], %[b0] \n\t"
+            "vfmacc.vf %[acc1], %[a01], %[b0] \n\t"
+            "vfmacc.vf %[acc2], %[a02], %[b0] \n\t"
+            "vfmacc.vf %[acc3], %[a03], %[b0] \n\t"
+            : [a00] "=&f"(a00), [a01] "=&f"(a01), [a02] "=&f"(a02),
+              [a03] "=&f"(a03), [jj_vl_out] "=&r"(jj_vl), [b0] "=&vr"(b0),
+              [acc0] "+&vr"(acc0), [acc1] "+&vr"(acc1), [acc2] "+&vr"(acc2),
+              [acc3] "+vr"(acc3)
+            : [a_load_3] "r"(a + (((ii + 0) * rsa) + ((kk + 0) * 1))),
+              [a_load_4] "r"(a + (((ii + 1) * rsa) + ((kk + 0) * 1))),
+              [a_load_5] "r"(a + (((ii + 2) * rsa) + ((kk + 0) * 1))),
+              [a_load_6] "r"(a + (((ii + 3) * rsa) + ((kk + 0) * 1))),
+              [jj_vl_in] "r"(n - jj),
+              [b_load_0] "r"(b + (((kk + 0) * rsb) + ((jj + 0) * 1)))
+            : "vtype", "vl", "memory");
       }
-      c00 = __riscv_vle32_v_f32m4(c + (((ii + 0) * rsc) + jj), jj_vl);
-      c01 = __riscv_vle32_v_f32m4(c + (((ii + 1) * rsc) + jj), jj_vl);
-      c02 = __riscv_vle32_v_f32m4(c + (((ii + 2) * rsc) + jj), jj_vl);
-      c03 = __riscv_vle32_v_f32m4(c + (((ii + 3) * rsc) + jj), jj_vl);
-      c00 = __riscv_vfmul_vf_f32m4(c00, beta, jj_vl);
-      c00 = __riscv_vfmacc_vf_f32m4(c00, alpha, acc0, jj_vl);
-      __riscv_vse32_v_f32m4(c + (((ii + 0) * rsc) + jj), c00, jj_vl);
-      c01 = __riscv_vfmul_vf_f32m4(c01, beta, jj_vl);
-      c01 = __riscv_vfmacc_vf_f32m4(c01, alpha, acc1, jj_vl);
-      __riscv_vse32_v_f32m4(c + (((ii + 1) * rsc) + jj), c01, jj_vl);
-      c02 = __riscv_vfmul_vf_f32m4(c02, beta, jj_vl);
-      c02 = __riscv_vfmacc_vf_f32m4(c02, alpha, acc2, jj_vl);
-      __riscv_vse32_v_f32m4(c + (((ii + 2) * rsc) + jj), c02, jj_vl);
-      c03 = __riscv_vfmul_vf_f32m4(c03, beta, jj_vl);
-      c03 = __riscv_vfmacc_vf_f32m4(c03, alpha, acc3, jj_vl);
-      __riscv_vse32_v_f32m4(c + (((ii + 3) * rsc) + jj), c03, jj_vl);
+      __asm__ volatile(
+          "\n\t"
+          "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m4, ta, ma \n\t"
+          "vle32.v %[c00], (%[c_load]) \n\t"
+          "vle32.v %[c01], (%[c_load_0]) \n\t"
+          "vle32.v %[c02], (%[c_load_1]) \n\t"
+          "vle32.v %[c03], (%[c_load_2]) \n\t"
+          "vfmul.vf %[c00], %[c00], %[beta0] \n\t"
+          "vfmacc.vf %[c00], %[alpha0], %[acc0] \n\t"
+          "vse32.v %[c00], (%[c_store]) \n\t"
+          "vfmul.vf %[c01], %[c01], %[beta0] \n\t"
+          "vfmacc.vf %[c01], %[alpha0], %[acc1] \n\t"
+          "vse32.v %[c01], (%[c_store_0]) \n\t"
+          "vfmul.vf %[c02], %[c02], %[beta0] \n\t"
+          "vfmacc.vf %[c02], %[alpha0], %[acc2] \n\t"
+          "vse32.v %[c02], (%[c_store_1]) \n\t"
+          "vfmul.vf %[c03], %[c03], %[beta0] \n\t"
+          "vfmacc.vf %[c03], %[alpha0], %[acc3] \n\t"
+          "vse32.v %[c03], (%[c_store_2]) \n\t"
+          : [jj_vl_out] "=&r"(jj_vl), [c00] "=&vr"(c00), [c01] "=&vr"(c01),
+            [c02] "=&vr"(c02), [c03] "=&vr"(c03)
+          : [jj_vl_in] "r"(n - jj),
+            [c_load] "r"(c + (((ii + 0) * rsc) + ((jj + 0) * 1))),
+            [c_load_0] "r"(c + (((ii + 1) * rsc) + ((jj + 0) * 1))),
+            [c_load_1] "r"(c + (((ii + 2) * rsc) + ((jj + 0) * 1))),
+            [c_load_2] "r"(c + (((ii + 3) * rsc) + ((jj + 0) * 1))),
+            [beta0] "f"(beta0), [alpha0] "f"(alpha0), [acc0] "vr"(acc0),
+            [acc1] "vr"(acc1), [acc2] "vr"(acc2), [acc3] "vr"(acc3),
+            [c_store] "r"(c + (((ii + 0) * rsc) + ((jj + 0) * 1))),
+            [c_store_0] "r"(c + (((ii + 1) * rsc) + ((jj + 0) * 1))),
+            [c_store_1] "r"(c + (((ii + 2) * rsc) + ((jj + 0) * 1))),
+            [c_store_2] "r"(c + (((ii + 3) * rsc) + ((jj + 0) * 1)))
+          : "vtype", "vl", "memory");
     }
   }
   for (ii0 = ii; (ii0 + 1) <= m; ii0 = ii0 + 1) {
     for (jj = 0; jj < n; jj = jj + jj_vl) {
-      jj_vl = __riscv_vsetvl_e32m4(n - jj);
-      for (kk_peel = 0; ((kk_peel + 1) <= k) && (kk_peel < 1);
+      for (kk_peel = 0; ((kk_peel + 1) <= k) && (kk_peel < (0 + (1 * 1)));
            kk_peel = kk_peel + 1) {
-        a0 = a[((ii0 + 0) * rsa) + kk_peel];
-        b0 = __riscv_vle32_v_f32m4(b + ((kk_peel * rsb) + jj), jj_vl);
-        acc = __riscv_vfmul_vf_f32m4(b0, a0, jj_vl);
+        __asm__ volatile(
+            "\n\t"
+            "flw %[a0], 0(%[a_load_7]) \n\t"
+            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m4, ta, ma \n\t"
+            "vle32.v %[b0], (%[b_load_1]) \n\t"
+            "vfmul.vf %[acc], %[b0], %[a0] \n\t"
+            : [a0] "=&f"(a0), [jj_vl_out] "=&r"(jj_vl), [b0] "=&vr"(b0),
+              [acc] "=vr"(acc)
+            : [a_load_7] "r"(a + (((ii0 + 0) * rsa) + ((kk_peel + 0) * 1))),
+              [jj_vl_in] "r"(n - jj),
+              [b_load_1] "r"(b + (((kk_peel + 0) * rsb) + ((jj + 0) * 1)))
+            : "vtype", "vl", "memory");
       }
       for (kk = kk_peel; (kk + 1) <= k; kk = kk + 1) {
-        a0 = a[((ii0 + 0) * rsa) + kk];
-        b0 = __riscv_vle32_v_f32m4(b + ((kk * rsb) + jj), jj_vl);
-        acc = __riscv_vfmacc_vf_f32m4(acc, a0, b0, jj_vl);
+        __asm__ volatile(
+            "\n\t"
+            "flw %[a0], 0(%[a_load_8]) \n\t"
+            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m4, ta, ma \n\t"
+            "vle32.v %[b0], (%[b_load_2]) \n\t"
+            "vfmacc.vf %[acc], %[a0], %[b0] \n\t"
+            : [a0] "=&f"(a0), [jj_vl_out] "=&r"(jj_vl), [b0] "=&vr"(b0),
+              [acc] "+vr"(acc)
+            : [a_load_8] "r"(a + (((ii0 + 0) * rsa) + ((kk + 0) * 1))),
+              [jj_vl_in] "r"(n - jj),
+              [b_load_2] "r"(b + (((kk + 0) * rsb) + ((jj + 0) * 1)))
+            : "vtype", "vl", "memory");
       }
-      c0 = __riscv_vle32_v_f32m4(c + (((ii0 + 0) * rsc) + jj), jj_vl);
-      c0 = __riscv_vfmul_vf_f32m4(c0, beta, jj_vl);
-      c0 = __riscv_vfmacc_vf_f32m4(c0, alpha, acc, jj_vl);
-      __riscv_vse32_v_f32m4(c + (((ii0 + 0) * rsc) + jj), c0, jj_vl);
+      __asm__ volatile(
+          "\n\t"
+          "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m4, ta, ma \n\t"
+          "vle32.v %[c0], (%[c_load_3]) \n\t"
+          "vfmul.vf %[c0], %[c0], %[beta0] \n\t"
+          "vfmacc.vf %[c0], %[alpha0], %[acc] \n\t"
+          "vse32.v %[c0], (%[c_store_3]) \n\t"
+          : [jj_vl_out] "=&r"(jj_vl), [c0] "=&vr"(c0)
+          : [jj_vl_in] "r"(n - jj),
+            [c_load_3] "r"(c + (((ii0 + 0) * rsc) + ((jj + 0) * 1))),
+            [beta0] "f"(beta0), [alpha0] "f"(alpha0), [acc] "vr"(acc),
+            [c_store_3] "r"(c + (((ii0 + 0) * rsc) + ((jj + 0) * 1)))
+          : "vtype", "vl", "memory");
     }
   }
 }
