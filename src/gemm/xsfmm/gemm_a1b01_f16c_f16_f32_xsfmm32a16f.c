@@ -417,139 +417,140 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm3tn_3tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
   const _Float16 *b2_1 = b2_0 + rsb0;
 
   if (k < 2) {
-    __asm__ volatile("beqz %[k], 0f\n"
+    __asm__ volatile(
+        "beqz %[k], 0f\n"
 
-                     "sf.vsettnt x0, %[tn0], e16, w2\n"
-                     "sf.vsettm x0, %[tm0]\n"
-                     "sf.vsettk x0, %[k]\n"
+        "sf.vsettnt x0, %[tn0], e16, w2\n"
+        "sf.vsettm x0, %[tm0]\n"
+        "sf.vsettk x0, %[k]\n"
 
-                     // k == 1
-                     "sf.vsettn x0, %[tm0]\n"
-                     "vle16.v v0, (%[a0_0])\n"
+        // k == 1
+        "sf.vsettn x0, %[tm0]\n"
+        "vle16.v v0, (%[a0_0])\n"
 
-                     "sf.vsettn x0, %[tn0]\n"
-                     "vle16.v v8, (%[b0_0])\n"
+        "sf.vsettn x0, %[tn0]\n"
+        "vle16.v v8, (%[b0_0])\n"
 
-                     "sf.mm.f.f mt0, v0, v8\n"
+        "sf.mm.f.f mt0, v0, v8\n"
 
-                     "vle16.v v16, (%[b1_0])\n"
+        "vle16.v v16, (%[b1_0])\n"
 
-                     "sf.mm.f.f mt4, v0, v16\n"
+        "sf.mm.f.f mt4, v0, v16\n"
 
-                     "vle16.v v24, (%[b2_0])\n"
+        "vle16.v v24, (%[b2_0])\n"
 
-                     "sf.mm.f.f mt8, v0, v24\n"
+        "sf.mm.f.f mt8, v0, v24\n"
 
-                     "0:\n"
-                     :
-                     : [a0_0] "r"(a0_0), [b0_0] "r"(b0_0), [b1_0] "r"(b1_0), [b2_0] "r"(b2_0),
-                       [tm0] "r"(tm0), [tn0] "r"(tn0), [k] "r"(k)
-                     : "v0", "v1", "v2", "v3", "v8", "v9", "v10", "v11", "v16",
-                       "v17", "v18", "v19", "v24", "v25", "v26", "v27", "vtype", "vl", "memory");
+        "0:\n"
+        :
+        : [a0_0] "r"(a0_0), [b0_0] "r"(b0_0), [b1_0] "r"(b1_0),
+          [b2_0] "r"(b2_0), [tm0] "r"(tm0), [tn0] "r"(tn0), [k] "r"(k)
+        : "v0", "v1", "v2", "v3", "v8", "v9", "v10", "v11", "v16", "v17", "v18",
+          "v19", "v24", "v25", "v26", "v27", "vtype", "vl", "memory");
   } else {
-    __asm__ volatile("sf.vsettnt x0, %[tn0], e16, w2\n"
-                     "sf.vsettm x0, %[tm0]\n"
-                     "sf.vsettk x0, %[k]\n"
+    __asm__ volatile(
+        "sf.vsettnt x0, %[tn0], e16, w2\n"
+        "sf.vsettm x0, %[tm0]\n"
+        "sf.vsettk x0, %[k]\n"
 
-                     "sf.vsettn x0, %[tm0]\n"
-                     "vle16.v v0, (%[a0_0])\n"
-                     "add %[a0_0], %[a0_0], %[sa]\n"
-                     "vle16.v v4, (%[a0_1])\n"
-                     "add %[a0_1], %[a0_1], %[sa]\n"
-                     "sf.vsettn x0, %[tn0]\n"
+        "sf.vsettn x0, %[tm0]\n"
+        "vle16.v v0, (%[a0_0])\n"
+        "add %[a0_0], %[a0_0], %[sa]\n"
+        "vle16.v v4, (%[a0_1])\n"
+        "add %[a0_1], %[a0_1], %[sa]\n"
+        "sf.vsettn x0, %[tn0]\n"
 
-                     "vle16.v v8, (%[b0_0])\n"
-                     "add %[b0_0], %[b0_0], %[sb]\n"
-                     "vle16.v v12, (%[b0_1])\n"
-                     "add %[b0_1], %[b0_1], %[sb]\n"
+        "vle16.v v8, (%[b0_0])\n"
+        "add %[b0_0], %[b0_0], %[sb]\n"
+        "vle16.v v12, (%[b0_1])\n"
+        "add %[b0_1], %[b0_1], %[sb]\n"
 
-                     "bltu %[k], %[i4], 1f\n"
+        "bltu %[k], %[i4], 1f\n"
 
-                     "0:\n"
-                     "addi %[k], %[k], -2\n"
-                     "vle16.v v16, (%[b1_0])\n"
-                     "add %[b1_0], %[b1_0], %[sb]\n"
-                     "vle16.v v20, (%[b1_1])\n"
-                     "add %[b1_1], %[b1_1], %[sb]\n"
+        "0:\n"
+        "addi %[k], %[k], -2\n"
+        "vle16.v v16, (%[b1_0])\n"
+        "add %[b1_0], %[b1_0], %[sb]\n"
+        "vle16.v v20, (%[b1_1])\n"
+        "add %[b1_1], %[b1_1], %[sb]\n"
 
-                     "sf.mm.f.f mt0, v0, v8\n"
+        "sf.mm.f.f mt0, v0, v8\n"
 
-                     "vle16.v v24, (%[b2_0])\n"
-                     "add %[b2_0], %[b2_0], %[sb]\n"
-                     "vle16.v v28, (%[b2_1])\n"
-                     "add %[b2_1], %[b2_1], %[sb]\n"
+        "vle16.v v24, (%[b2_0])\n"
+        "add %[b2_0], %[b2_0], %[sb]\n"
+        "vle16.v v28, (%[b2_1])\n"
+        "add %[b2_1], %[b2_1], %[sb]\n"
 
-                     "sf.mm.f.f mt4, v0, v16\n"
+        "sf.mm.f.f mt4, v0, v16\n"
 
-                     "vle16.v v8, (%[b0_0])\n"
-                     "add %[b0_0], %[b0_0], %[sb]\n"
-                     "vle16.v v12, (%[b0_1])\n"
-                     "add %[b0_1], %[b0_1], %[sb]\n"
+        "vle16.v v8, (%[b0_0])\n"
+        "add %[b0_0], %[b0_0], %[sb]\n"
+        "vle16.v v12, (%[b0_1])\n"
+        "add %[b0_1], %[b0_1], %[sb]\n"
 
-                     "sf.mm.f.f mt8, v0, v24\n"
+        "sf.mm.f.f mt8, v0, v24\n"
 
-                     "sf.vsettn x0, %[tm0]\n"
-                     "vle16.v v0, (%[a0_0])\n"
-                     "add %[a0_0], %[a0_0], %[sa]\n"
-                     "vle16.v v4, (%[a0_1])\n"
-                     "add %[a0_1], %[a0_1], %[sa]\n"
-                     "sf.vsettn x0, %[tn0]\n"
+        "sf.vsettn x0, %[tm0]\n"
+        "vle16.v v0, (%[a0_0])\n"
+        "add %[a0_0], %[a0_0], %[sa]\n"
+        "vle16.v v4, (%[a0_1])\n"
+        "add %[a0_1], %[a0_1], %[sa]\n"
+        "sf.vsettn x0, %[tn0]\n"
 
-                     "bgeu %[k], %[i4], 0b\n"
+        "bgeu %[k], %[i4], 0b\n"
 
-                     "1:\n"
-                     "addi %[k], %[k], -2\n"
-                     "vle16.v v16, (%[b1_0])\n"
-                     "add %[b1_0], %[b1_0], %[sb]\n"
-                     "vle16.v v20, (%[b1_1])\n"
-                     "add %[b1_1], %[b1_1], %[sb]\n"
+        "1:\n"
+        "addi %[k], %[k], -2\n"
+        "vle16.v v16, (%[b1_0])\n"
+        "add %[b1_0], %[b1_0], %[sb]\n"
+        "vle16.v v20, (%[b1_1])\n"
+        "add %[b1_1], %[b1_1], %[sb]\n"
 
-                     "sf.mm.f.f mt0, v0, v8\n"
+        "sf.mm.f.f mt0, v0, v8\n"
 
-                     "vle16.v v24, (%[b2_0])\n"
-                     "add %[b2_0], %[b2_0], %[sb]\n"
-                     "vle16.v v28, (%[b2_1])\n"
-                     "add %[b2_1], %[b2_1], %[sb]\n"
+        "vle16.v v24, (%[b2_0])\n"
+        "add %[b2_0], %[b2_0], %[sb]\n"
+        "vle16.v v28, (%[b2_1])\n"
+        "add %[b2_1], %[b2_1], %[sb]\n"
 
-                     "sf.mm.f.f mt4, v0, v16\n"
+        "sf.mm.f.f mt4, v0, v16\n"
 
-                     "beqz %[k], 2f\n"
+        "beqz %[k], 2f\n"
 
-                     // k % 2 == 1
-                     "vle16.v v8, (%[b0_0])\n"
+        // k % 2 == 1
+        "vle16.v v8, (%[b0_0])\n"
 
-                     "sf.mm.f.f mt8, v0, v24\n"
+        "sf.mm.f.f mt8, v0, v24\n"
 
-                     "sf.vsettn x0, %[tm0]\n"
-                     "vle16.v v0, (%[a0_0])\n"
-                     "sf.vsettn x0, %[tn0]\n"
+        "sf.vsettn x0, %[tm0]\n"
+        "vle16.v v0, (%[a0_0])\n"
+        "sf.vsettn x0, %[tn0]\n"
 
-                     "vle16.v v16, (%[b1_0])\n"
+        "vle16.v v16, (%[b1_0])\n"
 
-                     "sf.vsettk x0, %[k]\n"
-                     "sf.mm.f.f mt0, v0, v8\n"
+        "sf.vsettk x0, %[k]\n"
+        "sf.mm.f.f mt0, v0, v8\n"
 
-                     "vle16.v v24, (%[b2_0])\n"
+        "vle16.v v24, (%[b2_0])\n"
 
-                     "sf.mm.f.f mt4, v0, v16\n"
-                     "sf.mm.f.f mt8, v0, v24\n"
-                     "j 3f\n"
+        "sf.mm.f.f mt4, v0, v16\n"
+        "sf.mm.f.f mt8, v0, v24\n"
+        "j 3f\n"
 
-                     "2:\n" // k % 2 == 0
-                     "sf.mm.f.f mt8, v0, v24\n"
+        "2:\n" // k % 2 == 0
+        "sf.mm.f.f mt8, v0, v24\n"
 
-                     "3:\n"
-                     : [a0_0] "+&r"(a0_0), [a0_1] "+&r"(a0_1),
-                       [b0_0] "+&r"(b0_0), [b0_1] "+&r"(b0_1),
-                       [b1_0] "+&r"(b1_0), [b1_1] "+&r"(b1_1),
-                       [b2_0] "+&r"(b2_0), [b2_1] "+&r"(b2_1), [k] "+&r"(k)
-                     : [sa] "r"(2 * rsa * sizeof(_Float16)),
-                       [sb] "r"(2 * rsb0 * sizeof(_Float16)), [tm0] "r"(tm0),
-                       [tn0] "r"(tn0), [i4] "r"(4)
-                     : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8",
-                       "v9", "v10", "v11", "v12", "v13", "v14", "v15", "v16",
-                       "v17", "v18", "v19", "v20", "v21", "v22", "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31", "vtype",
-                       "vl", "memory");
+        "3:\n"
+        : [a0_0] "+&r"(a0_0), [a0_1] "+&r"(a0_1), [b0_0] "+&r"(b0_0),
+          [b0_1] "+&r"(b0_1), [b1_0] "+&r"(b1_0), [b1_1] "+&r"(b1_1),
+          [b2_0] "+&r"(b2_0), [b2_1] "+&r"(b2_1), [k] "+&r"(k)
+        : [sa] "r"(2 * rsa * sizeof(_Float16)),
+          [sb] "r"(2 * rsb0 * sizeof(_Float16)), [tm0] "r"(tm0), [tn0] "r"(tn0),
+          [i4] "r"(4)
+        : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
+          "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20",
+          "v21", "v22", "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30",
+          "v31", "vtype", "vl", "memory");
   }
 
   /* Store tiles to memory. */
