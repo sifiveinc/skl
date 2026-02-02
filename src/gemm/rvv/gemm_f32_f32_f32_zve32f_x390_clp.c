@@ -42,7 +42,8 @@
  * Uses a 4 x LMUL=4 x 2 register tile. Vectorized across the N dimension.
  *
  * @note
- * Works best when `m >= 4` and `n >= __riscv_vsetvlmax_e32m4()`.
+ * Works best when `m >= 4` and `n >= __riscv_vsetvlmax_e32m4()`, and `a`
+ * resides in core local port memory.
  */
 SKL_FUNC_PRIVATE void skl_gemm_4xm4x2_f32_f32_f32_zve32f_x390_clp(
     size_t m, size_t n, size_t k, float alpha, const float *a, size_t rsa,
