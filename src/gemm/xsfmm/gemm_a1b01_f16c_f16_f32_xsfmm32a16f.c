@@ -186,7 +186,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm2tn_2tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
                    : "vtype", "vl", "memory");
 
   /* Accumulate matrix product into tiles. */
-  // a0_{0,1} are used to load a tm x 2 submatrix of A,
+  // a0_{0,1} are used to load a 2 x tm submatrix of A,
   // b0_{0,1} are used to load a 2 x tn submatrix of B,
   // and similarly for a1_{0,1} and b1_{0,1}.
   const _Float16 *a0_0 = a;
@@ -404,7 +404,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm3tn_3tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
                    : "vtype", "vl", "memory");
 
   /* Accumulate matrix product into tiles. */
-  // a0_{0,1} are used to load a tm x 2 submatrix of A,
+  // a0_{0,1} are used to load a 2 x tm submatrix of A,
   // b0_{0,1} are used to load a 2 x tn submatrix of B,
   // and similarly for a1_{0,1} and b1_{0,1}.
   const _Float16 *a0_0 = a;
@@ -663,7 +663,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm4tn_4tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
       : "vtype", "vl", "memory");
 
   /* Accumulate matrix product into tiles. */
-  // a0_{0,1} are used to load a tm x 2 submatrix of A,
+  // a0_{0,1} are used to load a 2 x tm submatrix of A,
   // b0_{0,1} are used to load a 2 x tn submatrix of B,
   // and similarly for a1_{0,1} and b1_{0,1}.
   const _Float16 *a0_0 = a;
