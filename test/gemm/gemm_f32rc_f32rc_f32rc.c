@@ -69,6 +69,21 @@ void skl_gemm_f32_f32_f32_zve32f_x390_wrapper(size_t m, size_t n, size_t k,
   skl_gemm_f32_f32_f32_zve32f_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c,
                                    rsc);
 }
+
+void skl_gemm_f32_f32_f32_zve32f_x390_clp_wrapper(
+    size_t m, size_t n, size_t k, float alpha, const float *a, size_t rsa,
+    size_t csa, const float *b, size_t rsb, size_t csb, float beta, float *c,
+    size_t rsc, size_t csc) {
+  int status = 0;
+  SKL_TEST_REQUIRE(status, csa == 1);
+  SKL_TEST_REQUIRE(status, csb == 1);
+  SKL_TEST_REQUIRE(status, csc == 1);
+  if (status) {
+    exit(status);
+  }
+  skl_gemm_f32_f32_f32_zve32f_x390_clp(m, n, k, alpha, a, rsa, b, rsb, beta, c,
+                                       rsc);
+}
 #endif
 
 #if defined(__riscv_xsfmm32a32f)

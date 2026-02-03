@@ -35,6 +35,7 @@
 
 #if defined(__riscv_zve32f)
 #include "../src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390.h"
+#include "../src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390_clp.h"
 #endif
 
 #if defined(__riscv_zve64d)
