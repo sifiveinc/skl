@@ -1866,37 +1866,66 @@ SKL_FUNC void skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f(
   size_t ete = 0; // Effective tile edge length (always TE for TEW=32).
   __asm__ volatile("sf.vsettnt %0, x0, e8, w4" : "=r"(ete) : : "vtype", "vl");
 
-  size_t num_processed_by_2tm2tn_m1 = (m1 / 2) * 2;
-  size_t num_processed_by_2tm2tn_n1 = (n1 / 2) * 2;
-
   size_t i = 0;
-  for (; i < num_processed_by_2tm2tn_m1; i += 2) {
+  for (; i + 4 <= m1; i += 4) {
     size_t j = 0;
-    for (; j < num_processed_by_2tm2tn_n1; j += 2) {
+    for (; j + 2 <= n1; j += 2) {
+      skl_gemm_2tm2tn_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f(
+          ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete, csb1,
+          c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
+      skl_gemm_2tm2tn_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f(
+          ete, k, a_pack + (i + 2) * rsa1, ete, rsa1, b_pack + j * csb1, ete,
+          csb1, c_pack + (i + 2) * rsc1 + j * csc1, ete, rsc1, csc1, accum);
+    }
+    if (j < n1) {
+      skl_gemm_4tm1tn_a1b01_f8e4m3pc_f8e4m3_f32rcp_xsfmm32a8f(
+          ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
+          c_pack + i * rsc1 + j * csc1, ete, rsc1, accum);
+    }
+  }
+
+  if (i + 2 <= m1) {
+    size_t j = 0;
+    for (; j + 2 <= n1; j += 2) {
       skl_gemm_2tm2tn_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f(
           ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete, csb1,
           c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
     }
-    while (j < n1) {
+    if (j < n1) {
+      skl_gemm_2tm1tn_a1b01_f8e4m3pc_f8e4m3_f32rcp_xsfmm32a8f(
+          ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
+          c_pack + i * rsc1 + j * csc1, ete, rsc1, accum);
+    }
+    i += 2;
+  }
+
+  if (i < m1) {
+    size_t j = 0;
+    for (; j + 4 <= n1; j += 4) {
+      skl_gemm_1tm4tn_a1b01_f8e4m3c_f8e4m3cp_f32rcp_xsfmm32a8f(
+          ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete, csb1,
+          c_pack + i * rsc1 + j * csc1, ete, csc1, accum);
+    }
+    switch (n1 - j) {
+    case 3:
+      skl_gemm_1tm3tn_a1b01_f8e4m3c_f8e4m3cp_f32rcp_xsfmm32a8f(
+          ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete, csb1,
+          c_pack + i * rsc1 + j * csc1, ete, csc1, accum);
+      break;
+    case 2:
+      skl_gemm_1tm2tn_a1b01_f8e4m3c_f8e4m3cp_f32rcp_xsfmm32a8f(
+          ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete, csb1,
+          c_pack + i * rsc1 + j * csc1, ete, csc1, accum);
+      break;
+    case 1:
       skl_gemm_1tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
           ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete,
           c_pack + i * rsc1 + j * csc1, ete, accum);
-      skl_gemm_1tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
-          ete, ete, k, a_pack + (i + 1) * rsa1, ete, b_pack + j * csb1, ete,
-          c_pack + (i + 1) * rsc1 + j * csc1, ete, accum);
-      j += 1;
+      break;
+    default:
+      break;
     }
   }
 
-  while (i < m1) {
-    size_t j = 0;
-    while (j < n1) {
-      skl_gemm_1tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
-          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete,
-          c_pack + i * rsc1 + j * csc1, ete, accum);
-      j += 1;
-    }
-    i += 1;
-  }
   __asm__ volatile("sf.vtdiscard");
 }
