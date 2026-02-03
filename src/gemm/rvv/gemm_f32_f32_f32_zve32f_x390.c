@@ -53,7 +53,6 @@ skl_gemm_1x2m8x2_f32_f32_f32_zve32f_x390(size_t n, size_t k, float alpha,
   size_t kk_peel;
   size_t kk;
   size_t kk0;
-  size_t jj0;
   float alpha0;
   float beta0;
   float a0;
@@ -67,10 +66,6 @@ skl_gemm_1x2m8x2_f32_f32_f32_zve32f_x390(size_t n, size_t k, float alpha,
   float a01;
   vfloat32m8_t c00;
   vfloat32m8_t c01;
-  vfloat32m8_t b0;
-  vfloat32m8_t acc;
-  vfloat32m8_t b00_1;
-  vfloat32m8_t b01_1;
   vfloat32m8_t c0;
   alpha0 = alpha;
   beta0 = beta;
