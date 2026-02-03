@@ -46,8 +46,8 @@ SKL_FUNC_PRIVATE void
 skl_gemm_1x2m8x2_f32_f32_f32_zve32f_x390(size_t n, size_t k, float alpha,
                                          const float *a, const float *b,
                                          size_t rsb, float beta, float *c) {
-  size_t jj_vl = __riscv_vsetvlmax_e32m8();
-  size_t jj_vl_0 = __riscv_vsetvlmax_e32m8();
+  size_t jj_vl;
+  size_t jj_vl_0;
   size_t ii;
   size_t jj;
   size_t kk_peel;
