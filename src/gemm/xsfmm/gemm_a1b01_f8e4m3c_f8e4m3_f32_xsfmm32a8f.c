@@ -893,14 +893,12 @@ skl_gemm_1tm3tn_3tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
 SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void
 skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
-    size_t tn, size_t k, const uint8_t *a, size_t rsa, const uint8_t *b,
-    size_t rsb0, size_t csb1, float *c, size_t rsc0, size_t tsc1, bool accum,
-    bool bta) {
+    size_t tm, size_t tn, size_t k, const uint8_t *a, size_t rsa,
+    const uint8_t *b, size_t rsb0, size_t csb1, float *c, size_t rsc0,
+    size_t tsc1, bool accum, bool bta) {
   // We can use the same inner loop code for both values of bta by computing A^T
   // * B0 and A^T * B1 and then transposing the result if bta == true.
   // The active tile state has shape tm0 x tn0.
-  size_t tm = tn;
-
   if (tm == 0 || tn == 0) {
     return;
   }
@@ -995,10 +993,12 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
         "beq %[k], %[i1], 1f\n"
 
         // k == 3
+        "sf.vsettn x0, %[tm0]\n"
         "vle8.v v0, (%[a0_0])\n"
         "add %[a0_0], %[a0_0], %[sa]\n"
         "vle8.v v2, (%[a0_1])\n"
         "vle8.v v4, (%[a0_0])\n"
+        "sf.vsettn x0, %[tn0]\n"
 
         "vle8.v v8, (%[b0_0])\n"
         "add %[b0_0], %[b0_0], %[sb]\n"
@@ -1030,8 +1030,10 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
         "j 2f\n"
 
         "0:\n" // k == 2
+        "sf.vsettn x0, %[tm0]\n"
         "vle8.v v0, (%[a0_0])\n"
         "vle8.v v2, (%[a0_1])\n"
+        "sf.vsettn x0, %[tn0]\n"
 
         "vle8.v v8, (%[b0_0])\n"
         "vle8.v v10, (%[b0_1])\n"
@@ -1055,7 +1057,9 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
         "j 2f\n"
 
         "1:\n" // k == 1
+        "sf.vsettn x0, %[tm0]\n"
         "vle8.v v0, (%[a0_0])\n"
+        "sf.vsettn x0, %[tn0]\n"
 
         "vle8.v v8, (%[b0_0])\n"
 
@@ -1089,6 +1093,7 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
         "sf.vsettm x0, %[tm0]\n"
         "sf.vsettk x0, %[k]\n"
 
+        "sf.vsettn x0, %[tm0]\n"
         "vle8.v v0, (%[a0_0])\n"
         "add %[a0_0], %[a0_0], %[sa]\n"
         "vle8.v v2, (%[a0_1])\n"
@@ -1097,6 +1102,7 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
         "add %[a0_0], %[a0_0], %[sa]\n"
         "vle8.v v6, (%[a0_1])\n"
         "add %[a0_1], %[a0_1], %[sa]\n"
+        "sf.vsettn x0, %[tn0]\n"
 
         "vle8.v v8, (%[b0_0])\n"
         "add %[b0_0], %[b0_0], %[sb]\n"
@@ -1155,6 +1161,7 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
 
         "sf.mm.e4m3.e4m3 mt12, v0, v16\n"
 
+        "sf.vsettn x0, %[tm0]\n"
         "vle8.v v0, (%[a0_0])\n"
         "add %[a0_0], %[a0_0], %[sa]\n"
         "vle8.v v2, (%[a0_1])\n"
@@ -1163,6 +1170,7 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
         "add %[a0_0], %[a0_0], %[sa]\n"
         "vle8.v v6, (%[a0_1])\n"
         "add %[a0_1], %[a0_1], %[sa]\n"
+        "sf.vsettn x0, %[tn0]\n"
 
         "bgeu %[k], %[i8], 0b\n"
 
@@ -1213,10 +1221,12 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
 
         "sf.mm.e4m3.e4m3 mt12, v0, v16\n"
 
+        "sf.vsettn x0, %[tm0]\n"
         "vle8.v v0, (%[a0_0])\n"
         "add %[a0_0], %[a0_0], %[sa]\n"
         "vle8.v v2, (%[a0_1])\n"
         "vle8.v v4, (%[a0_0])\n"
+        "sf.vsettn x0, %[tn0]\n"
 
         "vle8.v v16, (%[b1_0])\n"
         "add %[b1_0], %[b1_0], %[sb]\n"
@@ -1248,8 +1258,10 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
 
         "sf.mm.e4m3.e4m3 mt12, v0, v16\n"
 
+        "sf.vsettn x0, %[tm0]\n"
         "vle8.v v0, (%[a0_0])\n"
         "vle8.v v2, (%[a0_1])\n"
+        "sf.vsettn x0, %[tn0]\n"
 
         "vle8.v v16, (%[b1_0])\n"
         "vle8.v v18, (%[b1_1])\n"
@@ -1274,7 +1286,9 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
 
         "sf.mm.e4m3.e4m3 mt12, v0, v16\n"
 
+        "sf.vsettn x0, %[tm0]\n"
         "vle8.v v0, (%[a0_0])\n"
+        "sf.vsettn x0, %[tn0]\n"
 
         "vle8.v v16, (%[b1_0])\n"
 
@@ -1399,10 +1413,11 @@ SKL_FUNC_PRIVATE void skl_gemm_3tm1tn_a1b01_f8e4m3pc_f8e4m3_f32rcp_xsfmm32a8f(
  */
 SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void skl_gemm_1tm4tn_a1b01_f8e4m3c_f8e4m3cp_f32rcp_xsfmm32a8f(
-    size_t tn, size_t k, const uint8_t *a, size_t csa, const uint8_t *b,
-    size_t rsb0, size_t csb1, float *c, size_t rsc0, size_t csc1, bool accum) {
+    size_t tm, size_t tn, size_t k, const uint8_t *a, size_t csa,
+    const uint8_t *b, size_t rsb0, size_t csb1, float *c, size_t rsc0,
+    size_t csc1, bool accum) {
   skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
-      tn, k, a, csa, b, rsb0, csb1, c, rsc0, csc1, accum, false);
+      tm, tn, k, a, csa, b, rsb0, csb1, c, rsc0, csc1, accum, false);
 }
 
 /* Process 4 (= 4 x 1) contiguous tm x tn tiles of c.
@@ -1410,11 +1425,11 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm4tn_a1b01_f8e4m3c_f8e4m3cp_f32rcp_xsfmm32a8f(
  */
 SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void skl_gemm_4tm1tn_a1b01_f8e4m3pc_f8e4m3_f32rcp_xsfmm32a8f(
-    size_t tn, size_t k, const uint8_t *a, size_t csa0, size_t rsa1,
+    size_t tm, size_t tn, size_t k, const uint8_t *a, size_t csa0, size_t rsa1,
     const uint8_t *b, size_t rsb, float *c, size_t rsc0, size_t rsc1,
     bool accum) {
   skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
-      tn, k, b, rsb, a, csa0, rsa1, c, rsc0, rsc1, accum, true);
+      tm, tn, k, b, rsb, a, csa0, rsa1, c, rsc0, rsc1, accum, true);
 }
 
 /* Process 4 (= 2 x 2) contiguous tn x tn tiles of c. tn must be <= TE. */
@@ -1909,7 +1924,7 @@ SKL_FUNC void skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f(
     }
     if (j < n1) {
       skl_gemm_4tm1tn_a1b01_f8e4m3pc_f8e4m3_f32rcp_xsfmm32a8f(
-          ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
+          ete, ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
           c_pack + i * rsc1 + j * csc1, ete, rsc1, accum);
     }
   }
@@ -1933,7 +1948,7 @@ SKL_FUNC void skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f(
     size_t j = 0;
     for (; j + 4 <= n1; j += 4) {
       skl_gemm_1tm4tn_a1b01_f8e4m3c_f8e4m3cp_f32rcp_xsfmm32a8f(
-          ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete, csb1,
+          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete, csb1,
           c_pack + i * rsc1 + j * csc1, ete, csc1, accum);
     }
     switch (n1 - j) {
