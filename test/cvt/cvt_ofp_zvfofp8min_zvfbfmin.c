@@ -52,10 +52,6 @@ __attribute__((aligned(ALIGN))) uint8_t ref_ofp8[NUM_ELEMS];
 
 static float scaling_factor = 1.0f;
 
-#if defined(ENABLE_BENCHMARK)
-static uint64_t c0, c1, i0, i1; // Cycle and instruction counts
-#endif
-
 #if defined(ENABLE_TEST)
 static void golden_cvt_bf16_f8e4m3_scale(uint8_t *pDst, const __bf16 *pSrc,
                                          float scaling_factor, size_t n) {
@@ -140,19 +136,6 @@ static int check_error_ofp8(const char *name, const uint8_t *res,
 #define TEST_LABEL(S) #S ":\n"
 #define PRINT_TEST_NAME(S) printf(TEST_LABEL(S));
 
-#if defined(ENABLE_BENCHMARK)
-#define MEASURE_PERF_NCVT(FUNCTION, NAME, IN_TYPE, OUT_TYPE)                   \
-  /* Measure 2nd run after caches warmed */                                    \
-  riscv_fence();                                                               \
-  c0 = riscv_read_mcycle(), i0 = riscv_read_minstret();                        \
-  FUNCTION(out_##OUT_TYPE, in_##IN_TYPE, scaling_factor, NUM_ELEMS);           \
-  riscv_fence();                                                               \
-  c1 = riscv_read_mcycle(), i1 = riscv_read_minstret();                        \
-  report_perf_epc(#NAME, c1 - c0, i1 - i0, NUM_ELEMS);
-#else
-#define MEASURE_PERF_NCVT(FUNCTION, NAME, IN_TYPE, OUT_TYPE)
-#endif
-
 #if defined(ENABLE_TEST)
 #define GENERATE_GOLDEN_NCVT(NAME, IN_TYPE, OUT_TYPE)                          \
   golden_##NAME(ref_##OUT_TYPE, in_##IN_TYPE, scaling_factor, NUM_ELEMS);
@@ -169,8 +152,8 @@ static int check_error_ofp8(const char *name, const uint8_t *res,
 
 #define RUN_NCVT(FUNCTION, NAME, IN_TYPE, OUT_TYPE)                            \
   memset(out_##OUT_TYPE, 0, NUM_ELEMS * sizeof(*out_##OUT_TYPE));              \
-  FUNCTION(out_##OUT_TYPE, in_##IN_TYPE, scaling_factor, NUM_ELEMS);           \
-  MEASURE_PERF_NCVT(FUNCTION, NAME, IN_TYPE, OUT_TYPE);                        \
+  SKL_BENCHMARK_RUN(#NAME, NUM_ELEMS, SKL_TEST_WARMUP, FUNCTION,               \
+                    out_##OUT_TYPE, in_##IN_TYPE, scaling_factor, NUM_ELEMS);  \
   GENERATE_GOLDEN_NCVT(NAME, IN_TYPE, OUT_TYPE);                               \
   CHECK_RESULT(NAME, IN_TYPE, OUT_TYPE);
 

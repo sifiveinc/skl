@@ -27,6 +27,7 @@ Each datatype is represented in the `<types>` field with a string generally foll
 
 | `<type>` | Description | C Type |
 |----------|-------------|---------|
+| `f4e2m1` | 4-bit OFP4 E2M1 floating point | `uint8_t` |
 | `f8e4m3` | 8-bit OFP8 E4M3 floating point | `uint8_t` |
 | `bf16` | 16-bit bfloat16 floating point | `__bf16` |
 | `f16`  | 16-bit IEEE half-precision floating point | `_Float16` |

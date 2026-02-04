@@ -32,13 +32,7 @@ __attribute__((aligned(ALIGN))) uint8_t out_ofp8[NUM_ELEMS];
 
 #if defined(ENABLE_TEST)
 __attribute__((aligned(ALIGN))) uint8_t ref_ofp8[NUM_ELEMS];
-#endif
 
-#if defined(ENABLE_BENCHMARK)
-uint64_t c0, c1, i0, i1; // Cycle and instruction counts
-#endif
-
-#if defined(ENABLE_TEST)
 static void cvt_ofp4x2_f8e4m3(uint8_t in, uint8_t *out0, uint8_t *out1) {
 
   uint8_t in_0 = in & 0xFU;
@@ -82,19 +76,6 @@ static int check_error_ofp8(const char *name, const uint8_t *res,
 #define TEST_LABEL(S) #S ":\n"
 #define PRINT_TEST_NAME(S) printf(TEST_LABEL(S));
 
-#if defined(ENABLE_BENCHMARK)
-#define MEASURE_PERF_WCVT(FUNCTION, NAME, IN_TYPE, OUT_TYPE)                   \
-  /* Measure 2nd run after caches warmed */                                    \
-  riscv_fence();                                                               \
-  c0 = riscv_read_mcycle(), i0 = riscv_read_minstret();                        \
-  FUNCTION(out_##OUT_TYPE, in_##IN_TYPE, NUM_ELEMS);                           \
-  riscv_fence();                                                               \
-  c1 = riscv_read_mcycle(), i1 = riscv_read_minstret();                        \
-  report_perf_epc(#NAME, c1 - c0, i1 - i0, NUM_ELEMS);
-#else
-#define MEASURE_PERF_WCVT(FUNCTION, NAME, IN_TYPE, OUT_TYPE)
-#endif
-
 #if defined(ENABLE_TEST)
 #define GENERATE_GOLDEN_WCVT(NAME, IN_TYPE, OUT_TYPE)                          \
   golden_##NAME(ref_##OUT_TYPE, in_##IN_TYPE, NUM_ELEMS);
@@ -111,8 +92,8 @@ static int check_error_ofp8(const char *name, const uint8_t *res,
 
 #define RUN_WCVT(FUNCTION, NAME, IN_TYPE, OUT_TYPE)                            \
   memset(out_##OUT_TYPE, 0, NUM_ELEMS * sizeof(*out_##OUT_TYPE));              \
-  FUNCTION(out_##OUT_TYPE, in_##IN_TYPE, NUM_ELEMS);                           \
-  MEASURE_PERF_WCVT(FUNCTION, NAME, IN_TYPE, OUT_TYPE);                        \
+  SKL_BENCHMARK_RUN(#NAME, NUM_ELEMS, SKL_TEST_WARMUP, FUNCTION,               \
+                    out_##OUT_TYPE, in_##IN_TYPE, NUM_ELEMS);                  \
   GENERATE_GOLDEN_WCVT(NAME, IN_TYPE, OUT_TYPE);                               \
   CHECK_RESULT(NAME, IN_TYPE, OUT_TYPE);
 
