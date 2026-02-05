@@ -274,8 +274,8 @@ static inline float skl_error_ulp_f32(const float *res, const float *ref,
  * @brief Determine maximum error for _Float16 data
  * @details @copydetails skl_check_ulp_f32
  */
-static inline float skl_error_ulp_f16(const _Float16 *res,
-                                      const _Float16 *ref, size_t len) {
+static inline float skl_error_ulp_f16(const _Float16 *res, const _Float16 *ref,
+                                      size_t len) {
   float max = 0;
   for (size_t i = 0; i < len; i++) {
     float err = skl_abs_error_ulp_f16(res[i], ref[i]);
