@@ -66,3 +66,12 @@ SKL_FUNC void skl_softmax_f32_xsfvfexpa(float *pDst, const float *pSrc,
     __riscv_vse32_v_f32m8(pDst + i, vx, vl);
   }
 }
+
+SKL_FUNC void skl_softmax_2d_f32_xsfvfexpa(float *s, const size_t rss,
+                                           const float *a, const size_t rsa,
+                                           const float beta, const size_t m,
+                                           const size_t n) {
+  for (size_t i = 0; i < m; ++i) {
+    skl_softmax_f32_xsfvfexpa(s + i * rss, a + i * rsa, beta, n);
+  }
+}

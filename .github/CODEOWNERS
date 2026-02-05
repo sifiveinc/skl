@@ -9,17 +9,23 @@
 
 /src/cvt @Harlen126
 /src/depthwise_conv2d @peichialin
+/src/exp @ebavier
+/src/gelu @ebavier
 /src/gemm/rvv @Aaron-Hutchinson
 /src/gemm/scalar @Aaron-Hutchinson @myeh01
 /src/gemm/xsfmm @myeh01
 /src/gemm/xsfvqdotq @france5289 @myeh01 @peichialin
+/src/softmax @ebavier
 /src/transpose/rvv @Aaron-Hutchinson @Harlen126 @peichialin
 /src/transpose/scalar @Aaron-Hutchinson @Harlen126 @myeh01
 /src/transpose/xsfmm @myeh01
 
 /test/cvt @Harlen126
 /test/depthwise_conv2d @peichialin
+/test/exp @ebavier
+/test/gelu @ebavier
 /test/gemm @Aaron-Hutchinson @france5289 @myeh01 @peichialin
+/test/softmax @ebavier
 /test/transpose @Aaron-Hutchinson @Harlen126 @myeh01
 
 /CMakeLists.txt @Aaron-Hutchinson
