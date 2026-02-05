@@ -18,12 +18,11 @@
 
 #include "skl-common.h"
 
-SKL_FUNC_PRIVATE void skl_mm_6xe32m4_i8i32_vqdotvx(size_t n, size_t k,
-                                                   const int8_t *a, size_t rsa1,
-                                                   size_t csa1, const int8_t *b,
-                                                   size_t rsb1, int32_t *c,
-                                                   size_t rsc, bool accum,
-                                                   bool x390_clp) {
+SKL_FUNC_PRIVATE void
+skl_mm_6xe32m4_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a, size_t rsa1,
+                             size_t csa1, const int8_t *b, size_t rsb1,
+                             int32_t *c, size_t rsc, bool accum,
+                             __attribute__((unused)) bool x390_clp) {
   // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
   vint32m4_t cvec0 = __riscv_vundefined_i32m4();
   vint32m4_t cvec1 = __riscv_vundefined_i32m4();
