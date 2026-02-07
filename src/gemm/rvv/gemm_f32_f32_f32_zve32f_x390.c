@@ -232,6 +232,7 @@ skl_gemm_1x2m8x2_f32_f32_f32_zve32f_x390(size_t n, size_t k, float alpha,
  * @note
  * Works best when `m >= 8` and `n <= 2*__riscv_vsetvlmax_e32m1()`.
  */
+
 SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
     size_t m, size_t n, size_t k, float alpha, const float *a, size_t rsa,
     const float *b, size_t rsb, float beta, float *c, size_t rsc) {
@@ -242,8 +243,8 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
   size_t kk;
   size_t kk0;
   size_t ii0;
-  float _alpha;
-  float _beta;
+  float alpha0;
+  float beta0;
   float a00;
   float a01;
   float a02;
@@ -308,15 +309,15 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
   float a0;
   vfloat32m1_t acc;
   vfloat32m1_t c0;
-  _alpha = alpha;
-  _beta = beta;
+  alpha0 = alpha;
+  beta0 = beta;
   if (k == 0) {
     for (ii = 0; (ii + 1) <= m; ii = ii + 1) {
       for (jj = 0; jj < n; jj = jj + jj_vl) {
         jj_vl = __riscv_vsetvl_e32m1(n - jj);
         c0 = __riscv_vle32_v_f32m1(c + (((ii + 0) * rsc) + ((jj + 0) * 1)),
                                    jj_vl);
-        c0 = __riscv_vfmul_vf_f32m1(c0, _beta, jj_vl);
+        c0 = __riscv_vfmul_vf_f32m1(c0, beta0, jj_vl);
         __riscv_vse32_v_f32m1(c + (((ii + 0) * rsc) + ((jj + 0) * 1)), c0,
                               jj_vl);
       }
@@ -325,195 +326,437 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
   }
   for (ii = 0; (ii + 8) <= m; ii = ii + 8) {
     for (jj = 0; jj < n; jj = jj + jj_vl) {
-      jj_vl = __riscv_vsetvl_e32m1(n - jj);
-      for (kk_peel = 0; ((kk_peel + 1) <= k) && (kk_peel < (0 + (1 * 1)));
-           kk_peel = kk_peel + 1) {
-        a00 = a[((ii + 0) * rsa) + ((kk_peel + 0) * 1)];
-        a01 = a[((ii + 1) * rsa) + ((kk_peel + 0) * 1)];
-        a02 = a[((ii + 2) * rsa) + ((kk_peel + 0) * 1)];
-        a03 = a[((ii + 3) * rsa) + ((kk_peel + 0) * 1)];
-        a04 = a[((ii + 4) * rsa) + ((kk_peel + 0) * 1)];
-        a05 = a[((ii + 5) * rsa) + ((kk_peel + 0) * 1)];
-        a06 = a[((ii + 6) * rsa) + ((kk_peel + 0) * 1)];
-        a07 = a[((ii + 7) * rsa) + ((kk_peel + 0) * 1)];
-        b0 = __riscv_vle32_v_f32m1(b + (((kk_peel + 0) * rsb) + ((jj + 0) * 1)),
-                                   jj_vl);
-        acc0 = __riscv_vfmul_vf_f32m1(b0, a00, jj_vl);
-        acc1 = __riscv_vfmul_vf_f32m1(b0, a01, jj_vl);
-        acc2 = __riscv_vfmul_vf_f32m1(b0, a02, jj_vl);
-        acc3 = __riscv_vfmul_vf_f32m1(b0, a03, jj_vl);
-        acc4 = __riscv_vfmul_vf_f32m1(b0, a04, jj_vl);
-        acc5 = __riscv_vfmul_vf_f32m1(b0, a05, jj_vl);
-        acc6 = __riscv_vfmul_vf_f32m1(b0, a06, jj_vl);
-        acc7 = __riscv_vfmul_vf_f32m1(b0, a07, jj_vl);
-      }
-      for (kk = kk_peel; (kk + 4) <= k; kk = kk + 4) {
-        a000 = a[((ii + 0) * rsa) + ((kk + 0) * 1)];
-        a001 = a[((ii + 0) * rsa) + ((kk + 1) * 1)];
-        a002 = a[((ii + 0) * rsa) + ((kk + 2) * 1)];
-        a003 = a[((ii + 0) * rsa) + ((kk + 3) * 1)];
-        a010 = a[((ii + 1) * rsa) + ((kk + 0) * 1)];
-        a011 = a[((ii + 1) * rsa) + ((kk + 1) * 1)];
-        a012 = a[((ii + 1) * rsa) + ((kk + 2) * 1)];
-        a013 = a[((ii + 1) * rsa) + ((kk + 3) * 1)];
-        a020 = a[((ii + 2) * rsa) + ((kk + 0) * 1)];
-        a021 = a[((ii + 2) * rsa) + ((kk + 1) * 1)];
-        a022 = a[((ii + 2) * rsa) + ((kk + 2) * 1)];
-        a023 = a[((ii + 2) * rsa) + ((kk + 3) * 1)];
-        a030 = a[((ii + 3) * rsa) + ((kk + 0) * 1)];
-        a031 = a[((ii + 3) * rsa) + ((kk + 1) * 1)];
-        a032 = a[((ii + 3) * rsa) + ((kk + 2) * 1)];
-        a033 = a[((ii + 3) * rsa) + ((kk + 3) * 1)];
-        a040 = a[((ii + 4) * rsa) + ((kk + 0) * 1)];
-        a041 = a[((ii + 4) * rsa) + ((kk + 1) * 1)];
-        a042 = a[((ii + 4) * rsa) + ((kk + 2) * 1)];
-        a043 = a[((ii + 4) * rsa) + ((kk + 3) * 1)];
-        a050 = a[((ii + 5) * rsa) + ((kk + 0) * 1)];
-        a051 = a[((ii + 5) * rsa) + ((kk + 1) * 1)];
-        a052 = a[((ii + 5) * rsa) + ((kk + 2) * 1)];
-        a053 = a[((ii + 5) * rsa) + ((kk + 3) * 1)];
-        a060 = a[((ii + 6) * rsa) + ((kk + 0) * 1)];
-        a061 = a[((ii + 6) * rsa) + ((kk + 1) * 1)];
-        a062 = a[((ii + 6) * rsa) + ((kk + 2) * 1)];
-        a063 = a[((ii + 6) * rsa) + ((kk + 3) * 1)];
-        a070 = a[((ii + 7) * rsa) + ((kk + 0) * 1)];
-        a071 = a[((ii + 7) * rsa) + ((kk + 1) * 1)];
-        a072 = a[((ii + 7) * rsa) + ((kk + 2) * 1)];
-        a073 = a[((ii + 7) * rsa) + ((kk + 3) * 1)];
-        skl_instruction_schedule_barrier();
-        b00 = __riscv_vle32_v_f32m1(b + (((kk + 0) * rsb) + ((jj + 0) * 1)),
-                                    jj_vl);
-        b01 = __riscv_vle32_v_f32m1(b + (((kk + 1) * rsb) + ((jj + 0) * 1)),
-                                    jj_vl);
-        b02 = __riscv_vle32_v_f32m1(b + (((kk + 2) * rsb) + ((jj + 0) * 1)),
-                                    jj_vl);
-        b03 = __riscv_vle32_v_f32m1(b + (((kk + 3) * rsb) + ((jj + 0) * 1)),
-                                    jj_vl);
-        acc0 = __riscv_vfmacc_vf_f32m1(acc0, a000, b00, jj_vl);
-        acc1 = __riscv_vfmacc_vf_f32m1(acc1, a010, b00, jj_vl);
-        acc2 = __riscv_vfmacc_vf_f32m1(acc2, a020, b00, jj_vl);
-        acc3 = __riscv_vfmacc_vf_f32m1(acc3, a030, b00, jj_vl);
-        acc4 = __riscv_vfmacc_vf_f32m1(acc4, a040, b00, jj_vl);
-        acc5 = __riscv_vfmacc_vf_f32m1(acc5, a050, b00, jj_vl);
-        acc6 = __riscv_vfmacc_vf_f32m1(acc6, a060, b00, jj_vl);
-        acc7 = __riscv_vfmacc_vf_f32m1(acc7, a070, b00, jj_vl);
-        acc0 = __riscv_vfmacc_vf_f32m1(acc0, a001, b01, jj_vl);
-        acc1 = __riscv_vfmacc_vf_f32m1(acc1, a011, b01, jj_vl);
-        acc2 = __riscv_vfmacc_vf_f32m1(acc2, a021, b01, jj_vl);
-        acc3 = __riscv_vfmacc_vf_f32m1(acc3, a031, b01, jj_vl);
-        acc4 = __riscv_vfmacc_vf_f32m1(acc4, a041, b01, jj_vl);
-        acc5 = __riscv_vfmacc_vf_f32m1(acc5, a051, b01, jj_vl);
-        acc6 = __riscv_vfmacc_vf_f32m1(acc6, a061, b01, jj_vl);
-        acc7 = __riscv_vfmacc_vf_f32m1(acc7, a071, b01, jj_vl);
-        acc0 = __riscv_vfmacc_vf_f32m1(acc0, a002, b02, jj_vl);
-        acc1 = __riscv_vfmacc_vf_f32m1(acc1, a012, b02, jj_vl);
-        acc2 = __riscv_vfmacc_vf_f32m1(acc2, a022, b02, jj_vl);
-        acc3 = __riscv_vfmacc_vf_f32m1(acc3, a032, b02, jj_vl);
-        acc4 = __riscv_vfmacc_vf_f32m1(acc4, a042, b02, jj_vl);
-        acc5 = __riscv_vfmacc_vf_f32m1(acc5, a052, b02, jj_vl);
-        acc6 = __riscv_vfmacc_vf_f32m1(acc6, a062, b02, jj_vl);
-        acc7 = __riscv_vfmacc_vf_f32m1(acc7, a072, b02, jj_vl);
-        acc0 = __riscv_vfmacc_vf_f32m1(acc0, a003, b03, jj_vl);
-        acc1 = __riscv_vfmacc_vf_f32m1(acc1, a013, b03, jj_vl);
-        acc2 = __riscv_vfmacc_vf_f32m1(acc2, a023, b03, jj_vl);
-        acc3 = __riscv_vfmacc_vf_f32m1(acc3, a033, b03, jj_vl);
-        acc4 = __riscv_vfmacc_vf_f32m1(acc4, a043, b03, jj_vl);
-        acc5 = __riscv_vfmacc_vf_f32m1(acc5, a053, b03, jj_vl);
-        acc6 = __riscv_vfmacc_vf_f32m1(acc6, a063, b03, jj_vl);
-        acc7 = __riscv_vfmacc_vf_f32m1(acc7, a073, b03, jj_vl);
+      const float *a_addr = a + ii * rsa;
+      __asm__ volatile(
+          "\n\t"
+          "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
+          "vle32.v %[b0], (%[b_load]) \n\t"
+          "flw %[a00], 0(%[a_addr]) \n\t"
+          "sh2add %[a_addr], %[rsa], %[a_addr] \n\t"
+          "flw %[a01], 0(%[a_addr]) \n\t"
+          "sh2add %[a_addr], %[rsa], %[a_addr] \n\t"
+          "flw %[a02], 0(%[a_addr]) \n\t"
+          "sh2add %[a_addr], %[rsa], %[a_addr] \n\t"
+          "flw %[a03], 0(%[a_addr]) \n\t"
+          "sh2add %[a_addr], %[rsa], %[a_addr] \n\t"
+          "flw %[a04], 0(%[a_addr]) \n\t"
+          "sh2add %[a_addr], %[rsa], %[a_addr] \n\t"
+          "flw %[a05], 0(%[a_addr]) \n\t"
+          "sh2add %[a_addr], %[rsa], %[a_addr] \n\t"
+          "flw %[a06], 0(%[a_addr]) \n\t"
+          "sh2add %[a_addr], %[rsa], %[a_addr] \n\t"
+          "flw %[a07], 0(%[a_addr]) \n\t"
+          "vfmul.vf %[acc0], %[b0], %[a00] \n\t"
+          "vfmul.vf %[acc1], %[b0], %[a01] \n\t"
+          "vfmul.vf %[acc2], %[b0], %[a02] \n\t"
+          "vfmul.vf %[acc3], %[b0], %[a03] \n\t"
+          "vfmul.vf %[acc4], %[b0], %[a04] \n\t"
+          "vfmul.vf %[acc5], %[b0], %[a05] \n\t"
+          "vfmul.vf %[acc6], %[b0], %[a06] \n\t"
+          "vfmul.vf %[acc7], %[b0], %[a07] \n\t"
+          : [a00] "=&f"(a00), [a01] "=&f"(a01), [a02] "=&f"(a02),
+            [a03] "=&f"(a03), [a04] "=&f"(a04), [a05] "=&f"(a05),
+            [a06] "=&f"(a06), [a07] "=&f"(a07), [jj_vl_out] "=&r"(jj_vl),
+            [b0] "=&vr"(b0), [acc0] "=&vr"(acc0), [acc1] "=&vr"(acc1),
+            [acc2] "=&vr"(acc2), [acc3] "=&vr"(acc3), [acc4] "=&vr"(acc4),
+            [acc5] "=&vr"(acc5), [acc6] "=&vr"(acc6), [acc7] "=vr"(acc7),
+            [a_addr] "+&r"(a_addr)
+          : [rsa] "r"(rsa), [jj_vl_in] "r"(n - jj), [b_load] "r"(b + jj)
+          : "vtype", "vl", "memory");
+
+      const float *a_addr0 = a + (ii + 0) * rsa + 1;
+      const float *a_addr1 = a + (ii + 1) * rsa + 1;
+      const float *a_addr2 = a + (ii + 2) * rsa + 1;
+      const float *a_addr3 = a + (ii + 3) * rsa + 1;
+      const float *a_addr4 = a + (ii + 4) * rsa + 1;
+      const float *a_addr5 = a + (ii + 5) * rsa + 1;
+      const float *a_addr6 = a + (ii + 6) * rsa + 1;
+      const float *a_addr7 = a + (ii + 7) * rsa + 1;
+      const float *b_addr0 = b + (1 + 0) * rsb + jj;
+      const float *b_addr1 = b + (1 + 1) * rsb + jj;
+      const float *b_addr2 = b + (1 + 2) * rsb + jj;
+      const float *b_addr3 = b + (1 + 3) * rsb + jj;
+      kk = 1;
+      if (k - 1 >= 4) {
+        __asm__ volatile( // Initialize pipeline.
+            "\n\t"
+            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
+            "vle32.v %[b00], (%[b_addr0]) \n\t"
+            "vle32.v %[b01], (%[b_addr1]) \n\t"
+            "vle32.v %[b02], (%[b_addr2]) \n\t"
+            "vle32.v %[b03], (%[b_addr3]) \n\t"
+            "flw %[a000], 0(%[a_addr0]) \n\t"
+            "vfmacc.vf %[acc0], %[a000], %[b00] \n\t"
+
+            "flw %[a001], 4(%[a_addr0]) \n\t"
+            "flw %[a010], 0(%[a_addr1]) \n\t"
+            "vfmacc.vf %[acc0], %[a001], %[b01] \n\t"
+            "vfmacc.vf %[acc1], %[a010], %[b00] \n\t"
+
+            "flw %[a002], 8(%[a_addr0]) \n\t"
+            "flw %[a011], 4(%[a_addr1]) \n\t"
+            "flw %[a020], 0(%[a_addr2]) \n\t"
+            "vfmacc.vf %[acc0], %[a002], %[b02] \n\t"
+            "vfmacc.vf %[acc1], %[a011], %[b01] \n\t"
+            "vfmacc.vf %[acc2], %[a020], %[b00] \n\t"
+            : [a000] "=&f"(a000), [a001] "=&f"(a001), [a002] "=&f"(a002),
+              [a010] "=&f"(a010), [a011] "=&f"(a011), [a020] "=&f"(a020),
+              [jj_vl_out] "=&r"(jj_vl), [b00] "=&vr"(b00), [b01] "=&vr"(b01),
+              [b02] "=&vr"(b02), [b03] "=&vr"(b03), [acc0] "+&vr"(acc0),
+              [acc1] "+&vr"(acc1), [acc2] "+&vr"(acc2),
+              [a_addr0] "+&r"(a_addr0), [a_addr1] "+&r"(a_addr1),
+              [a_addr2] "+&r"(a_addr2), [b_addr0] "+&r"(b_addr0),
+              [b_addr1] "+&r"(b_addr1), [b_addr2] "+&r"(b_addr2),
+              [b_addr3] "+&r"(b_addr3)
+            : [rsa] "r"(rsa), [rsb] "r"(rsb), [jj_vl_in] "r"(n - jj)
+            : "vtype", "vl", "memory");
+
+        for (; (kk + 8) <= k; kk = kk + 4) {
+          __asm__ volatile(
+              "\n\t"
+              "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
+
+              "flw %[a003], 12(%[a_addr0]) \n\t"
+              "flw %[a012], 8(%[a_addr1]) \n\t"
+              "flw %[a021], 4(%[a_addr2]) \n\t"
+              "flw %[a030], 0(%[a_addr3]) \n\t"
+              "vfmacc.vf %[acc0], %[a003], %[b03] \n\t"
+              "vfmacc.vf %[acc1], %[a012], %[b02] \n\t"
+              "vfmacc.vf %[acc2], %[a021], %[b01] \n\t"
+              "vfmacc.vf %[acc3], %[a030], %[b00] \n\t"
+
+              "flw %[a013], 12(%[a_addr1]) \n\t"
+              "flw %[a022], 8(%[a_addr2]) \n\t"
+              "flw %[a031], 4(%[a_addr3]) \n\t"
+              "flw %[a040], 0(%[a_addr4]) \n\t"
+              "vfmacc.vf %[acc1], %[a013], %[b03] \n\t"
+              "vfmacc.vf %[acc2], %[a022], %[b02] \n\t"
+              "vfmacc.vf %[acc3], %[a031], %[b01] \n\t"
+              "vfmacc.vf %[acc4], %[a040], %[b00] \n\t"
+
+              "flw %[a023], 12(%[a_addr2]) \n\t"
+              "flw %[a032], 8(%[a_addr3]) \n\t"
+              "flw %[a041], 4(%[a_addr4]) \n\t"
+              "flw %[a050], 0(%[a_addr5]) \n\t"
+              "vfmacc.vf %[acc2], %[a023], %[b03] \n\t"
+              "vfmacc.vf %[acc3], %[a032], %[b02] \n\t"
+              "vfmacc.vf %[acc4], %[a041], %[b01] \n\t"
+              "vfmacc.vf %[acc5], %[a050], %[b00] \n\t"
+
+              "flw %[a033], 12(%[a_addr3]) \n\t"
+              "flw %[a042], 8(%[a_addr4]) \n\t"
+              "flw %[a051], 4(%[a_addr5]) \n\t"
+              "flw %[a060], 0(%[a_addr6]) \n\t"
+              "vfmacc.vf %[acc3], %[a033], %[b03] \n\t"
+              "vfmacc.vf %[acc4], %[a042], %[b02] \n\t"
+              "vfmacc.vf %[acc5], %[a051], %[b01] \n\t"
+              "vfmacc.vf %[acc6], %[a060], %[b00] \n\t"
+
+              "flw %[a043], 12(%[a_addr4]) \n\t"
+              "flw %[a052], 8(%[a_addr5]) \n\t"
+              "flw %[a061], 4(%[a_addr6]) \n\t"
+              "flw %[a070], 0(%[a_addr7]) \n\t"
+              "vfmacc.vf %[acc4], %[a043], %[b03] \n\t"
+              "vfmacc.vf %[acc5], %[a052], %[b02] \n\t"
+              "vfmacc.vf %[acc6], %[a061], %[b01] \n\t"
+              "vfmacc.vf %[acc7], %[a070], %[b00] \n\t"
+
+              // Fusing next kk iteration begins.
+              "sh2add %[b_addr0], %[rsb4], %[b_addr0] \n\t"
+              "addi %[a_addr0], %[a_addr0], 16 \n\t"
+              "vle32.v %[b00], (%[b_addr0]) \n\t"
+              "flw %[a053], 12(%[a_addr5]) \n\t"
+              "flw %[a062], 8(%[a_addr6]) \n\t"
+              "flw %[a071], 4(%[a_addr7]) \n\t"
+              "flw %[a000], 0(%[a_addr0]) \n\t"
+              "vfmacc.vf %[acc5], %[a053], %[b03] \n\t"
+              "vfmacc.vf %[acc6], %[a062], %[b02] \n\t"
+              "vfmacc.vf %[acc7], %[a071], %[b01] \n\t"
+              "vfmacc.vf %[acc0], %[a000], %[b00] \n\t"
+
+              "sh2add %[b_addr1], %[rsb4], %[b_addr1] \n\t"
+              "addi %[a_addr1], %[a_addr1], 16 \n\t"
+              "vle32.v %[b01], (%[b_addr1]) \n\t"
+              "flw %[a063], 12(%[a_addr6]) \n\t"
+              "flw %[a072], 8(%[a_addr7]) \n\t"
+              "flw %[a001], 4(%[a_addr0]) \n\t"
+              "flw %[a010], 0(%[a_addr1]) \n\t"
+              "vfmacc.vf %[acc6], %[a063], %[b03] \n\t"
+              "vfmacc.vf %[acc7], %[a072], %[b02] \n\t"
+              "vfmacc.vf %[acc0], %[a001], %[b01] \n\t"
+              "vfmacc.vf %[acc1], %[a010], %[b00] \n\t"
+
+              "sh2add %[b_addr2], %[rsb4], %[b_addr2] \n\t"
+              "addi %[a_addr2], %[a_addr2], 16 \n\t"
+              "vle32.v %[b02], (%[b_addr2]) \n\t"
+              "flw %[a073], 12(%[a_addr7]) \n\t"
+              "flw %[a002], 8(%[a_addr0]) \n\t"
+              "flw %[a011], 4(%[a_addr1]) \n\t"
+              "flw %[a020], 0(%[a_addr2]) \n\t"
+              "vfmacc.vf %[acc7], %[a073], %[b03] \n\t"
+              "vfmacc.vf %[acc0], %[a002], %[b02] \n\t"
+              "vfmacc.vf %[acc1], %[a011], %[b01] \n\t"
+              "vfmacc.vf %[acc2], %[a020], %[b00] \n\t"
+
+              "sh2add %[b_addr3], %[rsb4], %[b_addr3] \n\t"
+              "vle32.v %[b03], (%[b_addr3]) \n\t"
+              "addi %[a_addr3], %[a_addr3], 16 \n\t"
+              "addi %[a_addr4], %[a_addr4], 16 \n\t"
+              "addi %[a_addr5], %[a_addr5], 16 \n\t"
+              "addi %[a_addr6], %[a_addr6], 16 \n\t"
+              "addi %[a_addr7], %[a_addr7], 16 \n\t"
+
+              : [a000] "=&f"(a000), [a001] "=&f"(a001), [a002] "=&f"(a002),
+                [a003] "=&f"(a003), [a010] "=&f"(a010), [a011] "=&f"(a011),
+                [a012] "=&f"(a012), [a013] "=&f"(a013), [a020] "=&f"(a020),
+                [a021] "=&f"(a021), [a022] "=&f"(a022), [a023] "=&f"(a023),
+                [a030] "=&f"(a030), [a031] "=&f"(a031), [a032] "=&f"(a032),
+                [a033] "=&f"(a033), [a040] "=&f"(a040), [a041] "=&f"(a041),
+                [a042] "=&f"(a042), [a043] "=&f"(a043), [a050] "=&f"(a050),
+                [a051] "=&f"(a051), [a052] "=&f"(a052), [a053] "=&f"(a053),
+                [a060] "=&f"(a060), [a061] "=&f"(a061), [a062] "=&f"(a062),
+                [a063] "=&f"(a063), [a070] "=&f"(a070), [a071] "=&f"(a071),
+                [a072] "=&f"(a072), [a073] "=&f"(a073),
+                [jj_vl_out] "=&r"(jj_vl), [b00] "=&vr"(b00), [b01] "=&vr"(b01),
+                [b02] "=&vr"(b02), [b03] "=&vr"(b03), [acc0] "+&vr"(acc0),
+                [acc1] "+&vr"(acc1), [acc2] "+&vr"(acc2), [acc3] "+&vr"(acc3),
+                [acc4] "+&vr"(acc4), [acc5] "+&vr"(acc5), [acc6] "+&vr"(acc6),
+                [acc7] "+&vr"(acc7), [a_addr0] "+&r"(a_addr0),
+                [a_addr1] "+&r"(a_addr1), [a_addr2] "+&r"(a_addr2),
+                [a_addr3] "+&r"(a_addr3), [a_addr4] "+&r"(a_addr4),
+                [a_addr5] "+&r"(a_addr5), [a_addr6] "+&r"(a_addr6),
+                [a_addr7] "+&r"(a_addr7), [b_addr0] "+&r"(b_addr0),
+                [b_addr1] "+&r"(b_addr1), [b_addr2] "+&r"(b_addr2),
+                [b_addr3] "+&r"(b_addr3)
+              : [rsb4] "r"(rsb * 4), [jj_vl_in] "r"(n - jj)
+              : "vtype", "vl", "memory");
+        }
+
+        __asm__ volatile( // Drain pipline.
+            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
+
+            "flw %[a003], 12(%[a_addr0]) \n\t"
+            "flw %[a012], 8(%[a_addr1]) \n\t"
+            "flw %[a021], 4(%[a_addr2]) \n\t"
+            "flw %[a030], 0(%[a_addr3]) \n\t"
+            "vfmacc.vf %[acc0], %[a003], %[b03] \n\t"
+            "vfmacc.vf %[acc1], %[a012], %[b02] \n\t"
+            "vfmacc.vf %[acc2], %[a021], %[b01] \n\t"
+            "vfmacc.vf %[acc3], %[a030], %[b00] \n\t"
+
+            "flw %[a013], 12(%[a_addr1]) \n\t"
+            "flw %[a022], 8(%[a_addr2]) \n\t"
+            "flw %[a031], 4(%[a_addr3]) \n\t"
+            "flw %[a040], 0(%[a_addr4]) \n\t"
+            "vfmacc.vf %[acc1], %[a013], %[b03] \n\t"
+            "vfmacc.vf %[acc2], %[a022], %[b02] \n\t"
+            "vfmacc.vf %[acc3], %[a031], %[b01] \n\t"
+            "vfmacc.vf %[acc4], %[a040], %[b00] \n\t"
+
+            "flw %[a023], 12(%[a_addr2]) \n\t"
+            "flw %[a032], 8(%[a_addr3]) \n\t"
+            "flw %[a041], 4(%[a_addr4]) \n\t"
+            "flw %[a050], 0(%[a_addr5]) \n\t"
+            "vfmacc.vf %[acc2], %[a023], %[b03] \n\t"
+            "vfmacc.vf %[acc3], %[a032], %[b02] \n\t"
+            "vfmacc.vf %[acc4], %[a041], %[b01] \n\t"
+            "vfmacc.vf %[acc5], %[a050], %[b00] \n\t"
+
+            "flw %[a033], 12(%[a_addr3]) \n\t"
+            "flw %[a042], 8(%[a_addr4]) \n\t"
+            "flw %[a051], 4(%[a_addr5]) \n\t"
+            "flw %[a060], 0(%[a_addr6]) \n\t"
+            "vfmacc.vf %[acc3], %[a033], %[b03] \n\t"
+            "vfmacc.vf %[acc4], %[a042], %[b02] \n\t"
+            "vfmacc.vf %[acc5], %[a051], %[b01] \n\t"
+            "vfmacc.vf %[acc6], %[a060], %[b00] \n\t"
+
+            "flw %[a043], 12(%[a_addr4]) \n\t"
+            "flw %[a052], 8(%[a_addr5]) \n\t"
+            "flw %[a061], 4(%[a_addr6]) \n\t"
+            "flw %[a070], 0(%[a_addr7]) \n\t"
+            "vfmacc.vf %[acc4], %[a043], %[b03] \n\t"
+            "vfmacc.vf %[acc5], %[a052], %[b02] \n\t"
+            "vfmacc.vf %[acc6], %[a061], %[b01] \n\t"
+            "vfmacc.vf %[acc7], %[a070], %[b00] \n\t"
+
+            "flw %[a053], 12(%[a_addr5]) \n\t"
+            "flw %[a062], 8(%[a_addr6]) \n\t"
+            "flw %[a071], 4(%[a_addr7]) \n\t"
+            "vfmacc.vf %[acc5], %[a053], %[b03] \n\t"
+            "vfmacc.vf %[acc6], %[a062], %[b02] \n\t"
+            "vfmacc.vf %[acc7], %[a071], %[b01] \n\t"
+
+            "flw %[a063], 12(%[a_addr6]) \n\t"
+            "flw %[a072], 8(%[a_addr7]) \n\t"
+            "vfmacc.vf %[acc6], %[a063], %[b03] \n\t"
+            "vfmacc.vf %[acc7], %[a072], %[b02] \n\t"
+
+            "flw %[a073], 12(%[a_addr7]) \n\t"
+            "vfmacc.vf %[acc7], %[a073], %[b03] \n\t"
+            : [a003] "=&f"(a003), [a012] "=&f"(a012), [a013] "=&f"(a013),
+              [a021] "=&f"(a021), [a022] "=&f"(a022), [a023] "=&f"(a023),
+              [a030] "=&f"(a030), [a031] "=&f"(a031), [a032] "=&f"(a032),
+              [a033] "=&f"(a033), [a040] "=&f"(a040), [a041] "=&f"(a041),
+              [a042] "=&f"(a042), [a043] "=&f"(a043), [a050] "=&f"(a050),
+              [a051] "=&f"(a051), [a052] "=&f"(a052), [a053] "=&f"(a053),
+              [a060] "=&f"(a060), [a061] "=&f"(a061), [a062] "=&f"(a062),
+              [a063] "=&f"(a063), [a070] "=&f"(a070), [a071] "=&f"(a071),
+              [a072] "=&f"(a072), [a073] "=&f"(a073), [jj_vl_out] "=&r"(jj_vl),
+              [b00] "=&vr"(b00), [b01] "=&vr"(b01), [b02] "=&vr"(b02),
+              [b03] "=&vr"(b03), [acc0] "+&vr"(acc0), [acc1] "+&vr"(acc1),
+              [acc2] "+&vr"(acc2), [acc3] "+&vr"(acc3), [acc4] "+&vr"(acc4),
+              [acc5] "+&vr"(acc5), [acc6] "+&vr"(acc6), [acc7] "+&vr"(acc7)
+            : [jj_vl_in] "r"(n - jj), [a_addr0] "r"(a_addr0),
+              [a_addr1] "r"(a_addr1), [a_addr2] "r"(a_addr2),
+              [a_addr3] "r"(a_addr3), [a_addr4] "r"(a_addr4),
+              [a_addr5] "r"(a_addr5), [a_addr6] "r"(a_addr6),
+              [a_addr7] "r"(a_addr7), [b_addr0] "r"(b_addr0),
+              [b_addr1] "r"(b_addr1), [b_addr2] "r"(b_addr2),
+              [b_addr3] "r"(b_addr3)
+            : "vtype", "vl", "memory");
+
+        kk += 4; // Account for work done by drain.
       }
       for (kk0 = kk; (kk0 + 1) <= k; kk0 = kk0 + 1) {
-        a00 = a[((ii + 0) * rsa) + ((kk0 + 0) * 1)];
-        a01 = a[((ii + 1) * rsa) + ((kk0 + 0) * 1)];
-        a02 = a[((ii + 2) * rsa) + ((kk0 + 0) * 1)];
-        a03 = a[((ii + 3) * rsa) + ((kk0 + 0) * 1)];
-        a04 = a[((ii + 4) * rsa) + ((kk0 + 0) * 1)];
-        a05 = a[((ii + 5) * rsa) + ((kk0 + 0) * 1)];
-        a06 = a[((ii + 6) * rsa) + ((kk0 + 0) * 1)];
-        a07 = a[((ii + 7) * rsa) + ((kk0 + 0) * 1)];
-        b0 = __riscv_vle32_v_f32m1(b + (((kk0 + 0) * rsb) + ((jj + 0) * 1)),
-                                   jj_vl);
-        acc0 = __riscv_vfmacc_vf_f32m1(acc0, a00, b0, jj_vl);
-        acc1 = __riscv_vfmacc_vf_f32m1(acc1, a01, b0, jj_vl);
-        acc2 = __riscv_vfmacc_vf_f32m1(acc2, a02, b0, jj_vl);
-        acc3 = __riscv_vfmacc_vf_f32m1(acc3, a03, b0, jj_vl);
-        acc4 = __riscv_vfmacc_vf_f32m1(acc4, a04, b0, jj_vl);
-        acc5 = __riscv_vfmacc_vf_f32m1(acc5, a05, b0, jj_vl);
-        acc6 = __riscv_vfmacc_vf_f32m1(acc6, a06, b0, jj_vl);
-        acc7 = __riscv_vfmacc_vf_f32m1(acc7, a07, b0, jj_vl);
+        const float *a_addr = a + ii * rsa + kk0;
+        __asm__ volatile(
+            "\n\t"
+            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
+            "vle32.v %[b0], (%[b_load_4]) \n\t"
+            "flw %[a00], 0(%[a_addr]) \n\t"
+            "sh2add %[a_addr], %[rsa], %[a_addr] \n\t"
+            "flw %[a01], 0(%[a_addr]) \n\t"
+            "sh2add %[a_addr], %[rsa], %[a_addr] \n\t"
+            "flw %[a02], 0(%[a_addr]) \n\t"
+            "sh2add %[a_addr], %[rsa], %[a_addr] \n\t"
+            "flw %[a03], 0(%[a_addr]) \n\t"
+            "sh2add %[a_addr], %[rsa], %[a_addr] \n\t"
+            "flw %[a04], 0(%[a_addr]) \n\t"
+            "sh2add %[a_addr], %[rsa], %[a_addr] \n\t"
+            "flw %[a05], 0(%[a_addr]) \n\t"
+            "sh2add %[a_addr], %[rsa], %[a_addr] \n\t"
+            "flw %[a06], 0(%[a_addr]) \n\t"
+            "sh2add %[a_addr], %[rsa], %[a_addr] \n\t"
+            "flw %[a07], 0(%[a_addr]) \n\t"
+            "vfmacc.vf %[acc0], %[a00], %[b0] \n\t"
+            "vfmacc.vf %[acc1], %[a01], %[b0] \n\t"
+            "vfmacc.vf %[acc2], %[a02], %[b0] \n\t"
+            "vfmacc.vf %[acc3], %[a03], %[b0] \n\t"
+            "vfmacc.vf %[acc4], %[a04], %[b0] \n\t"
+            "vfmacc.vf %[acc5], %[a05], %[b0] \n\t"
+            "vfmacc.vf %[acc6], %[a06], %[b0] \n\t"
+            "vfmacc.vf %[acc7], %[a07], %[b0] \n\t"
+            : [a00] "=&f"(a00), [a01] "=&f"(a01), [a02] "=&f"(a02),
+              [a03] "=&f"(a03), [a04] "=&f"(a04), [a05] "=&f"(a05),
+              [a06] "=&f"(a06), [a07] "=&f"(a07), [jj_vl_out] "=&r"(jj_vl),
+              [b0] "=&vr"(b0), [acc0] "+&vr"(acc0), [acc1] "+&vr"(acc1),
+              [acc2] "+&vr"(acc2), [acc3] "+&vr"(acc3), [acc4] "+&vr"(acc4),
+              [acc5] "+&vr"(acc5), [acc6] "+&vr"(acc6), [acc7] "+vr"(acc7),
+              [a_addr] "+&r"(a_addr)
+            : [jj_vl_in] "r"(n - jj),
+              [b_load_4] "r"(b + (((kk0 + 0) * rsb) + ((jj + 0) * 1))),
+              [rsa] "r"(rsa)
+            : "vtype", "vl", "memory");
       }
-      c00 =
-          __riscv_vle32_v_f32m1(c + (((ii + 0) * rsc) + ((jj + 0) * 1)), jj_vl);
-      c01 =
-          __riscv_vle32_v_f32m1(c + (((ii + 1) * rsc) + ((jj + 0) * 1)), jj_vl);
-      c02 =
-          __riscv_vle32_v_f32m1(c + (((ii + 2) * rsc) + ((jj + 0) * 1)), jj_vl);
-      c03 =
-          __riscv_vle32_v_f32m1(c + (((ii + 3) * rsc) + ((jj + 0) * 1)), jj_vl);
-      c04 =
-          __riscv_vle32_v_f32m1(c + (((ii + 4) * rsc) + ((jj + 0) * 1)), jj_vl);
-      c05 =
-          __riscv_vle32_v_f32m1(c + (((ii + 5) * rsc) + ((jj + 0) * 1)), jj_vl);
-      c06 =
-          __riscv_vle32_v_f32m1(c + (((ii + 6) * rsc) + ((jj + 0) * 1)), jj_vl);
-      c07 =
-          __riscv_vle32_v_f32m1(c + (((ii + 7) * rsc) + ((jj + 0) * 1)), jj_vl);
-      c00 = __riscv_vfmul_vf_f32m1(c00, _beta, jj_vl);
-      c01 = __riscv_vfmul_vf_f32m1(c01, _beta, jj_vl);
-      c02 = __riscv_vfmul_vf_f32m1(c02, _beta, jj_vl);
-      c03 = __riscv_vfmul_vf_f32m1(c03, _beta, jj_vl);
-      c04 = __riscv_vfmul_vf_f32m1(c04, _beta, jj_vl);
-      c05 = __riscv_vfmul_vf_f32m1(c05, _beta, jj_vl);
-      c06 = __riscv_vfmul_vf_f32m1(c06, _beta, jj_vl);
-      c07 = __riscv_vfmul_vf_f32m1(c07, _beta, jj_vl);
-      c00 = __riscv_vfmacc_vf_f32m1(c00, _alpha, acc0, jj_vl);
-      c01 = __riscv_vfmacc_vf_f32m1(c01, _alpha, acc1, jj_vl);
-      c02 = __riscv_vfmacc_vf_f32m1(c02, _alpha, acc2, jj_vl);
-      c03 = __riscv_vfmacc_vf_f32m1(c03, _alpha, acc3, jj_vl);
-      c04 = __riscv_vfmacc_vf_f32m1(c04, _alpha, acc4, jj_vl);
-      c05 = __riscv_vfmacc_vf_f32m1(c05, _alpha, acc5, jj_vl);
-      c06 = __riscv_vfmacc_vf_f32m1(c06, _alpha, acc6, jj_vl);
-      c07 = __riscv_vfmacc_vf_f32m1(c07, _alpha, acc7, jj_vl);
-      __riscv_vse32_v_f32m1(c + (((ii + 0) * rsc) + ((jj + 0) * 1)), c00,
-                            jj_vl);
-      __riscv_vse32_v_f32m1(c + (((ii + 1) * rsc) + ((jj + 0) * 1)), c01,
-                            jj_vl);
-      __riscv_vse32_v_f32m1(c + (((ii + 2) * rsc) + ((jj + 0) * 1)), c02,
-                            jj_vl);
-      __riscv_vse32_v_f32m1(c + (((ii + 3) * rsc) + ((jj + 0) * 1)), c03,
-                            jj_vl);
-      __riscv_vse32_v_f32m1(c + (((ii + 4) * rsc) + ((jj + 0) * 1)), c04,
-                            jj_vl);
-      __riscv_vse32_v_f32m1(c + (((ii + 5) * rsc) + ((jj + 0) * 1)), c05,
-                            jj_vl);
-      __riscv_vse32_v_f32m1(c + (((ii + 6) * rsc) + ((jj + 0) * 1)), c06,
-                            jj_vl);
-      __riscv_vse32_v_f32m1(c + (((ii + 7) * rsc) + ((jj + 0) * 1)), c07,
-                            jj_vl);
+      __asm__ volatile(
+          "\n\t"
+          "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
+          "vle32.v %[c00], (%[c_addr]) \n\t"
+          "vle32.v %[c01], (%[c_addr_0]) \n\t"
+          "vle32.v %[c02], (%[c_addr_1]) \n\t"
+          "vfmul.vf %[c00], %[c00], %[beta0] \n\t"
+          "vfmul.vf %[c01], %[c01], %[beta0] \n\t"
+          "vfmul.vf %[c02], %[c02], %[beta0] \n\t"
+          "vle32.v %[c03], (%[c_addr_2]) \n\t"
+          "vle32.v %[c04], (%[c_addr_3]) \n\t"
+          "vle32.v %[c05], (%[c_addr_4]) \n\t"
+          "vfmul.vf %[c03], %[c03], %[beta0] \n\t"
+          "vle32.v %[c06], (%[c_addr_5]) \n\t"
+          "vfmul.vf %[c04], %[c04], %[beta0] \n\t"
+          "vle32.v %[c07], (%[c_addr_6]) \n\t"
+          "vfmacc.vf %[c00], %[alpha0], %[acc0] \n\t"
+          "vfmul.vf %[c05], %[c05], %[beta0] \n\t"
+          "vfmacc.vf %[c01], %[alpha0], %[acc1] \n\t"
+          "vfmul.vf %[c06], %[c06], %[beta0] \n\t"
+          "vfmacc.vf %[c02], %[alpha0], %[acc2] \n\t"
+          "vfmul.vf %[c07], %[c07], %[beta0] \n\t"
+          "vfmacc.vf %[c03], %[alpha0], %[acc3] \n\t"
+          "vfmacc.vf %[c04], %[alpha0], %[acc4] \n\t"
+          "vse32.v %[c00], (%[c_addr]) \n\t"
+          "vfmacc.vf %[c05], %[alpha0], %[acc5] \n\t"
+          "vse32.v %[c01], (%[c_addr_0]) \n\t"
+          "vfmacc.vf %[c06], %[alpha0], %[acc6] \n\t"
+          "vse32.v %[c02], (%[c_addr_1]) \n\t"
+          "vfmacc.vf %[c07], %[alpha0], %[acc7] \n\t"
+          "vse32.v %[c03], (%[c_addr_2]) \n\t"
+          "vse32.v %[c04], (%[c_addr_3]) \n\t"
+          "vse32.v %[c05], (%[c_addr_4]) \n\t"
+          "vse32.v %[c06], (%[c_addr_5]) \n\t"
+          "vse32.v %[c07], (%[c_addr_6]) \n\t"
+          : [jj_vl_out] "=&r"(jj_vl), [c00] "=&vr"(c00), [c01] "=&vr"(c01),
+            [c02] "=&vr"(c02), [c03] "=&vr"(c03), [c04] "=&vr"(c04),
+            [c05] "=&vr"(c05), [c06] "=&vr"(c06), [c07] "=&vr"(c07)
+          : [jj_vl_in] "r"(n - jj),
+            [c_addr] "r"(c + (((ii + 0) * rsc) + ((jj + 0) * 1))),
+            [c_addr_0] "r"(c + (((ii + 1) * rsc) + ((jj + 0) * 1))),
+            [c_addr_1] "r"(c + (((ii + 2) * rsc) + ((jj + 0) * 1))),
+            [c_addr_2] "r"(c + (((ii + 3) * rsc) + ((jj + 0) * 1))),
+            [c_addr_3] "r"(c + (((ii + 4) * rsc) + ((jj + 0) * 1))),
+            [c_addr_4] "r"(c + (((ii + 5) * rsc) + ((jj + 0) * 1))),
+            [c_addr_5] "r"(c + (((ii + 6) * rsc) + ((jj + 0) * 1))),
+            [c_addr_6] "r"(c + (((ii + 7) * rsc) + ((jj + 0) * 1))),
+            [beta0] "f"(beta0), [alpha0] "f"(alpha0), [acc0] "vr"(acc0),
+            [acc1] "vr"(acc1), [acc2] "vr"(acc2), [acc3] "vr"(acc3),
+            [acc4] "vr"(acc4), [acc5] "vr"(acc5), [acc6] "vr"(acc6),
+            [acc7] "vr"(acc7)
+          : "vtype", "vl", "memory");
     }
   }
   for (ii0 = ii; (ii0 + 1) <= m; ii0 = ii0 + 1) {
     for (jj = 0; jj < n; jj = jj + jj_vl) {
-      jj_vl = __riscv_vsetvl_e32m1(n - jj);
       for (kk_peel = 0; ((kk_peel + 1) <= k) && (kk_peel < (0 + (1 * 1)));
            kk_peel = kk_peel + 1) {
-        a0 = a[((ii0 + 0) * rsa) + ((kk_peel + 0) * 1)];
-        b0 = __riscv_vle32_v_f32m1(b + (((kk_peel + 0) * rsb) + ((jj + 0) * 1)),
-                                   jj_vl);
-        acc = __riscv_vfmul_vf_f32m1(b0, a0, jj_vl);
+        __asm__ volatile(
+            "\n\t"
+            "flw %[a0], 0(%[a_load_47]) \n\t"
+            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
+            "vle32.v %[b0], (%[b_load_5]) \n\t"
+            "vfmul.vf %[acc], %[b0], %[a0] \n\t"
+            : [a0] "=&f"(a0), [jj_vl_out] "=&r"(jj_vl), [b0] "=&vr"(b0),
+              [acc] "=vr"(acc)
+            : [a_load_47] "r"(a + (((ii0 + 0) * rsa) + ((kk_peel + 0) * 1))),
+              [jj_vl_in] "r"(n - jj),
+              [b_load_5] "r"(b + (((kk_peel + 0) * rsb) + ((jj + 0) * 1)))
+            : "vtype", "vl", "memory");
       }
       for (kk = kk_peel; (kk + 1) <= k; kk = kk + 1) {
-        a0 = a[((ii0 + 0) * rsa) + ((kk + 0) * 1)];
-        b0 = __riscv_vle32_v_f32m1(b + (((kk + 0) * rsb) + ((jj + 0) * 1)),
-                                   jj_vl);
-        acc = __riscv_vfmacc_vf_f32m1(acc, a0, b0, jj_vl);
+        __asm__ volatile(
+            "\n\t"
+            "flw %[a0], 0(%[a_load_48]) \n\t"
+            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
+            "vle32.v %[b0], (%[b_load_6]) \n\t"
+            "vfmacc.vf %[acc], %[a0], %[b0] \n\t"
+            : [a0] "=&f"(a0), [jj_vl_out] "=&r"(jj_vl), [b0] "=&vr"(b0),
+              [acc] "+vr"(acc)
+            : [a_load_48] "r"(a + (((ii0 + 0) * rsa) + ((kk + 0) * 1))),
+              [jj_vl_in] "r"(n - jj),
+              [b_load_6] "r"(b + (((kk + 0) * rsb) + ((jj + 0) * 1)))
+            : "vtype", "vl", "memory");
       }
-      c0 = __riscv_vle32_v_f32m1(c + (((ii0 + 0) * rsc) + ((jj + 0) * 1)),
-                                 jj_vl);
-      c0 = __riscv_vfmul_vf_f32m1(c0, _beta, jj_vl);
-      c0 = __riscv_vfmacc_vf_f32m1(c0, _alpha, acc, jj_vl);
-      __riscv_vse32_v_f32m1(c + (((ii0 + 0) * rsc) + ((jj + 0) * 1)), c0,
-                            jj_vl);
+      __asm__ volatile(
+          "\n\t"
+          "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
+          "vle32.v %[c0], (%[c_load_7]) \n\t"
+          "vfmul.vf %[c0], %[c0], %[beta0] \n\t"
+          "vfmacc.vf %[c0], %[alpha0], %[acc] \n\t"
+          "vse32.v %[c0], (%[c_store_7]) \n\t"
+          : [jj_vl_out] "=&r"(jj_vl), [c0] "=&vr"(c0)
+          : [jj_vl_in] "r"(n - jj),
+            [c_load_7] "r"(c + (((ii0 + 0) * rsc) + ((jj + 0) * 1))),
+            [beta0] "f"(beta0), [alpha0] "f"(alpha0), [acc] "vr"(acc),
+            [c_store_7] "r"(c + (((ii0 + 0) * rsc) + ((jj + 0) * 1)))
+          : "vtype", "vl", "memory");
     }
   }
 }
