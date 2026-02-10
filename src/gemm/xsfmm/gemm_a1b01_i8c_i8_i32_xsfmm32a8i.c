@@ -1430,11 +1430,11 @@ SKL_FUNC_PRIVATE void skl_gemm_4tm1tn_a1b01_i8pc_i8_i32rcp_xsfmm32a8i(
 
 /* Process 4 (= 2 x 2) contiguous tn x tn tiles of c. tn must be <= TE. */
 SKL_XSFMM_NEW
-SKL_FUNC_PRIVATE void skl_gemm_2tm2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
+SKL_FUNC_PRIVATE void skl_gemm_2tn2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
     size_t tn, size_t k, const int8_t *a, size_t csa0, size_t rsa1,
     const int8_t *b, size_t rsb0, size_t csb1, int32_t *c, size_t rsc0,
     size_t rsc1, size_t csc1, bool accum) {
-  /* Avoiding sf.vsettm instructions in the inner loop slightly improves
+  /* Avoiding sf.vsettn instructions in the inner loop slightly improves
    * performance but requires tm == tn. */
   size_t tm = tn;
 
@@ -1852,10 +1852,10 @@ SKL_FUNC void skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i(size_t m, size_t n, size_t k,
   for (; i + 4 * ete <= m; i += 4 * ete) {
     size_t j = 0;
     for (; j + 2 * ete <= n; j += 2 * ete) {
-      skl_gemm_2tm2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
+      skl_gemm_2tn2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
           ete, k, a + i, csa, ete, b + j, rsb, ete, c + i * rsc + j, rsc,
           ete * rsc, ete, accum);
-      skl_gemm_2tm2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
+      skl_gemm_2tn2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
           ete, k, a + i + 2 * ete, csa, ete, b + j, rsb, ete,
           c + (i + 2 * ete) * rsc + j, rsc, ete * rsc, ete, accum);
     }
@@ -1875,7 +1875,7 @@ SKL_FUNC void skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i(size_t m, size_t n, size_t k,
   if (i + 2 * ete <= m) {
     size_t j = 0;
     for (; j + 2 * ete <= n; j += 2 * ete) {
-      skl_gemm_2tm2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
+      skl_gemm_2tn2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
           ete, k, a + i, csa, ete, b + j, rsb, ete, c + i * rsc + j, rsc,
           ete * rsc, ete, accum);
     }
@@ -1950,10 +1950,10 @@ SKL_FUNC void skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
   for (; i + 4 <= m1; i += 4) {
     size_t j = 0;
     for (; j + 2 <= n1; j += 2) {
-      skl_gemm_2tm2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
+      skl_gemm_2tn2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
           ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete, csb1,
           c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
-      skl_gemm_2tm2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
+      skl_gemm_2tn2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
           ete, k, a_pack + (i + 2) * rsa1, ete, rsa1, b_pack + j * csb1, ete,
           csb1, c_pack + (i + 2) * rsc1 + j * csc1, ete, rsc1, csc1, accum);
     }
@@ -1967,7 +1967,7 @@ SKL_FUNC void skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
   if (i + 2 <= m1) {
     size_t j = 0;
     for (; j + 2 <= n1; j += 2) {
-      skl_gemm_2tm2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
+      skl_gemm_2tn2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
           ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete, csb1,
           c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
     }
