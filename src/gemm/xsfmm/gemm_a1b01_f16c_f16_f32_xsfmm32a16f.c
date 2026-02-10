@@ -947,14 +947,16 @@ SKL_FUNC_PRIVATE void skl_gemm_4tm1tn_a1b01_f16pc_f16_f32rcp_xsfmm32a16f(
       tm, tn, k, b, rsb, a, csa0, rsa1, c, rsc0, rsc1, accum, true);
 }
 
-/* Process 4 (= 2 x 2) contiguous tm x tn tiles of c.
- * tm and tn must be <= TE.
- */
+/* Process 4 (= 2 x 2) contiguous tn x tn tiles of c. tn must be <= TE. */
 SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void skl_gemm_2tm2tn_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
-    size_t tm, size_t tn, size_t k, const _Float16 *a, size_t csa0, size_t rsa1,
+    size_t tn, size_t k, const _Float16 *a, size_t csa0, size_t rsa1,
     const _Float16 *b, size_t rsb0, size_t csb1, float *c, size_t rsc0,
     size_t rsc1, size_t csc1, bool accum) {
+  /* Avoiding sf.vsettn instructions in the inner loop slightly improves
+   * performance but requires tm == tn. */
+  size_t tm = tn;
+
   if (tm == 0 || tn == 0) {
     return;
   }
@@ -1036,10 +1038,8 @@ SKL_FUNC_PRIVATE void skl_gemm_2tm2tn_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
                      "sf.vsettk x0, %[k]\n"
 
                      // k == 1
-                     "sf.vsettn x0, %[tm]\n"
                      "vle16.v v0, (%[a0_0])\n"
 
-                     "sf.vsettn x0, %[tn]\n"
                      "vle16.v v16, (%[b0_0])\n"
 
                      "sf.mm.f.f mt0, v0, v16\n"
@@ -1048,10 +1048,8 @@ SKL_FUNC_PRIVATE void skl_gemm_2tm2tn_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
 
                      "sf.mm.f.f mt4, v0, v24\n"
 
-                     "sf.vsettn x0, %[tm]\n"
                      "vle16.v v8, (%[a1_0])\n"
 
-                     "sf.vsettn x0, %[tn]\n"
                      "sf.mm.f.f mt8, v8, v16\n"
                      "sf.mm.f.f mt12, v8, v24\n"
 
@@ -1073,12 +1071,10 @@ SKL_FUNC_PRIVATE void skl_gemm_2tm2tn_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
         "vle16.v v20, (%[b0_1])\n"
         "add %[b0_1], %[b0_1], %[sb]\n"
 
-        "sf.vsettn x0, %[tm]\n"
         "vle16.v v0, (%[a0_0])\n"
         "add %[a0_0], %[a0_0], %[sa]\n"
         "vle16.v v4, (%[a0_1])\n"
         "add %[a0_1], %[a0_1], %[sa]\n"
-        "sf.vsettn x0, %[tn]\n"
 
         "bltu %[k], %[i4], 1f\n"
 
@@ -1091,21 +1087,17 @@ SKL_FUNC_PRIVATE void skl_gemm_2tm2tn_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
 
         "sf.mm.f.f mt0, v0, v16\n"
 
-        "sf.vsettn x0, %[tm]\n"
         "vle16.v v8, (%[a1_0])\n"
         "add %[a1_0], %[a1_0], %[sa]\n"
         "vle16.v v12, (%[a1_1])\n"
         "add %[a1_1], %[a1_1], %[sa]\n"
-        "sf.vsettn x0, %[tn]\n"
 
         "sf.mm.f.f mt4, v0, v24\n"
 
-        "sf.vsettn x0, %[tm]\n"
         "vle16.v v0, (%[a0_0])\n"
         "add %[a0_0], %[a0_0], %[sa]\n"
         "vle16.v v4, (%[a0_1])\n"
         "add %[a0_1], %[a0_1], %[sa]\n"
-        "sf.vsettn x0, %[tn]\n"
 
         "sf.mm.f.f mt8, v8, v16\n"
 
@@ -1125,20 +1117,16 @@ SKL_FUNC_PRIVATE void skl_gemm_2tm2tn_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
 
         "sf.mm.f.f mt0, v0, v16\n"
 
-        "sf.vsettn x0, %[tm]\n"
         "vle16.v v8, (%[a1_0])\n"
         "add %[a1_0], %[a1_0], %[sa]\n"
         "vle16.v v12, (%[a1_1])\n"
-        "sf.vsettn x0, %[tn]\n"
 
         "sf.mm.f.f mt4, v0, v24\n"
 
         "beqz %[k], 2f\n"
 
         // k % 2 == 1
-        "sf.vsettn x0, %[tm]\n"
         "vle16.v v0, (%[a0_0])\n"
-        "sf.vsettn x0, %[tn]\n"
 
         "sf.mm.f.f mt8, v8, v16\n"
 
@@ -1151,9 +1139,7 @@ SKL_FUNC_PRIVATE void skl_gemm_2tm2tn_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
         "sf.vsettk x0, %[k]\n"
         "sf.mm.f.f mt0, v0, v16\n"
 
-        "sf.vsettn x0, %[tm]\n"
         "vle16.v v8, (%[a1_0])\n"
-        "sf.vsettn x0, %[tn]\n"
 
         "sf.mm.f.f mt4, v0, v24\n"
         "sf.mm.f.f mt8, v8, v16\n"
@@ -1233,10 +1219,10 @@ SKL_FUNC void skl_gemm_a1b01_f16c_f16_f32_xsfmm32a16f(
     size_t j = 0;
     for (; j + 2 * ete <= n; j += 2 * ete) {
       skl_gemm_2tm2tn_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
-          ete, ete, k, a + i, csa, ete, b + j, rsb, ete, c + i * rsc + j, rsc,
+          ete, k, a + i, csa, ete, b + j, rsb, ete, c + i * rsc + j, rsc,
           ete * rsc, ete, accum);
       skl_gemm_2tm2tn_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
-          ete, ete, k, a + i + 2 * ete, csa, ete, b + j, rsb, ete,
+          ete, k, a + i + 2 * ete, csa, ete, b + j, rsb, ete,
           c + (i + 2 * ete) * rsc + j, rsc, ete * rsc, ete, accum);
     }
     while (j < n) {
@@ -1256,7 +1242,7 @@ SKL_FUNC void skl_gemm_a1b01_f16c_f16_f32_xsfmm32a16f(
     size_t j = 0;
     for (; j + 2 * ete <= n; j += 2 * ete) {
       skl_gemm_2tm2tn_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
-          ete, ete, k, a + i, csa, ete, b + j, rsb, ete, c + i * rsc + j, rsc,
+          ete, k, a + i, csa, ete, b + j, rsb, ete, c + i * rsc + j, rsc,
           ete * rsc, ete, accum);
     }
     while (j < n) {
@@ -1331,12 +1317,11 @@ SKL_FUNC void skl_gemm_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
     size_t j = 0;
     for (; j + 2 <= n1; j += 2) {
       skl_gemm_2tm2tn_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
-          ete, ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
-          csb1, c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
+          ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete, csb1,
+          c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
       skl_gemm_2tm2tn_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
-          ete, ete, k, a_pack + (i + 2) * rsa1, ete, rsa1, b_pack + j * csb1,
-          ete, csb1, c_pack + (i + 2) * rsc1 + j * csc1, ete, rsc1, csc1,
-          accum);
+          ete, k, a_pack + (i + 2) * rsa1, ete, rsa1, b_pack + j * csb1, ete,
+          csb1, c_pack + (i + 2) * rsc1 + j * csc1, ete, rsc1, csc1, accum);
     }
     if (j < n1) {
       skl_gemm_4tm1tn_a1b01_f16pc_f16_f32rcp_xsfmm32a16f(
@@ -1349,8 +1334,8 @@ SKL_FUNC void skl_gemm_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
     size_t j = 0;
     for (; j + 2 <= n1; j += 2) {
       skl_gemm_2tm2tn_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
-          ete, ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
-          csb1, c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
+          ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete, csb1,
+          c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
     }
     if (j < n1) {
       skl_gemm_2tm1tn_a1b01_f16pc_f16_f32rcp_xsfmm32a16f(
