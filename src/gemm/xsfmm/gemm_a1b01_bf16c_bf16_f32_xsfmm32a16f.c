@@ -948,7 +948,7 @@ SKL_FUNC_PRIVATE void skl_gemm_4tm1tn_a1b01_bf16pc_bf16_f32rcp_xsfmm32a16f(
 
 /* Process 4 (= 2 x 2) contiguous tn x tn tiles of c. tn must be <= TE. */
 SKL_XSFMM_NEW
-SKL_FUNC_PRIVATE void skl_gemm_2tm2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
+SKL_FUNC_PRIVATE void skl_gemm_2tn2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
     size_t tn, size_t k, const __bf16 *a, size_t csa0, size_t rsa1,
     const __bf16 *b, size_t rsb0, size_t csb1, float *c, size_t rsc0,
     size_t rsc1, size_t csc1, bool accum) {
@@ -1220,10 +1220,10 @@ SKL_FUNC void skl_gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f(
   for (; i + 4 * ete <= m; i += 4 * ete) {
     size_t j = 0;
     for (; j + 2 * ete <= n; j += 2 * ete) {
-      skl_gemm_2tm2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
+      skl_gemm_2tn2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
           ete, k, a + i, csa, ete, b + j, rsb, ete, c + i * rsc + j, rsc,
           ete * rsc, ete, accum);
-      skl_gemm_2tm2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
+      skl_gemm_2tn2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
           ete, k, a + i + 2 * ete, csa, ete, b + j, rsb, ete,
           c + (i + 2 * ete) * rsc + j, rsc, ete * rsc, ete, accum);
     }
@@ -1243,7 +1243,7 @@ SKL_FUNC void skl_gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f(
   if (i + 2 * ete <= m) {
     size_t j = 0;
     for (; j + 2 * ete <= n; j += 2 * ete) {
-      skl_gemm_2tm2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
+      skl_gemm_2tn2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
           ete, k, a + i, csa, ete, b + j, rsb, ete, c + i * rsc + j, rsc,
           ete * rsc, ete, accum);
     }
@@ -1321,10 +1321,10 @@ SKL_FUNC void skl_gemm_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
   for (; i + 4 <= m1; i += 4) {
     size_t j = 0;
     for (; j + 2 <= n1; j += 2) {
-      skl_gemm_2tm2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
+      skl_gemm_2tn2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
           ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete, csb1,
           c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
-      skl_gemm_2tm2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
+      skl_gemm_2tn2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
           ete, k, a_pack + (i + 2) * rsa1, ete, rsa1, b_pack + j * csb1, ete,
           csb1, c_pack + (i + 2) * rsc1 + j * csc1, ete, rsc1, csc1, accum);
     }
@@ -1338,7 +1338,7 @@ SKL_FUNC void skl_gemm_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
   if (i + 2 <= m1) {
     size_t j = 0;
     for (; j + 2 <= n1; j += 2) {
-      skl_gemm_2tm2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
+      skl_gemm_2tn2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
           ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete, csb1,
           c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
     }
