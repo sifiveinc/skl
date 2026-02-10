@@ -1124,7 +1124,7 @@ SKL_FUNC_PRIVATE void skl_gemm_2tm2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
 
         "beqz %[k], 2f\n"
 
-        // k % 4 == 1
+        // k % 2 == 1
         "vle16.v v0, (%[a0_0])\n"
 
         "sf.mm.f.f mt8, v8, v16\n"
@@ -1145,7 +1145,7 @@ SKL_FUNC_PRIVATE void skl_gemm_2tm2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
         "sf.mm.f.f mt12, v8, v24\n"
         "j 3f\n"
 
-        "2:\n" // k % 4 == 0
+        "2:\n" // k % 2 == 0
         "sf.mm.f.f mt8, v8, v16\n"
         "sf.mm.f.f mt12, v8, v24\n"
 
