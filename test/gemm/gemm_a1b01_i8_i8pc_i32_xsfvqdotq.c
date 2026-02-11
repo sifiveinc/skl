@@ -152,7 +152,9 @@ int main(void) {
   /* Populate the matrices. */
   skl_test_init_i8(a, ALEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
   skl_test_init_i8(b, BLEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
+  skl_test_init_i8(b_pack, BLEN_PACKED, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
   skl_test_init_i32(c, CLEN, SKL_TEST_MIN_I32, SKL_TEST_MAX_I32);
+
   skl_pack_b_i8_xsfvqdotq(K, N, b, (size_t)RSB, b_pack, (size_t)RSB1);
 
 #if defined(ENABLE_TEST)
