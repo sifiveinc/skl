@@ -202,8 +202,9 @@ int check_error(void) {
 }
 #endif // ENABLE_TEST
 
-#define TEST_LABEL(S) #S ":\n"
-#define PRINT_TEST_NAME(S) printf(TEST_LABEL(S));
+#define PASTE(S) #S
+#define TEST_LABEL(S) PASTE(S)
+#define PRINT_TEST_NAME(S) printf(TEST_LABEL(S) ":\n");
 
 int main(void) {
   int res = EXIT_SUCCESS;
@@ -229,25 +230,9 @@ int main(void) {
   res += check_error();
 #endif // ENABLE_TEST
 
-#if defined(ENABLE_BENCHMARK)
-  /* Warmup run */
-  SKL_TEST_NAME(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA, c, RSC, CSC);
-
-  /* Benchmark matrix matmul. */
-  riscv_fence();
-  uint64_t c0 = riscv_read_mcycle();
-
-  SKL_TEST_NAME(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA, c, RSC, CSC);
-
-  riscv_fence();
-  uint64_t c1 = riscv_read_mcycle();
-  uint64_t cycles = c1 - c0;
-
-  printf("Cycle count: %" PRIu64 "\n", cycles);
-  printf("MACCs / cycle = ");
-  print_float((float)(M * N * K) / (float)cycles);
-  printf("\n");
-#endif // ENABLE_BENCHMARK
+  SKL_BENCHMARK_RUN(TEST_LABEL(SKL_TEST_NAME), M * N * K, SKL_TEST_WARMUP,
+                    SKL_TEST_NAME, M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB,
+                    BETA, c, RSC, CSC);
 
   return res;
 }
