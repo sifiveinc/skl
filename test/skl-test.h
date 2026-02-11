@@ -516,6 +516,10 @@ SKL_TEST_INIT_FUNC(int32_t, i32, INT, unused)
  * If defined, this function will be used to allocate memory for
  * buffers in benchmark mode. If not defined, benchmarks should
  * declare and initialize buffers as static arrays.
+ *
+ * @note The prototype is declared by this macro so that it is not
+ * it can name an arbitrary symbol in a linked translation unit without
+ * modification to the benchmark source.
  */
 #if defined(CUSTOM_ALLOC)
 /**
