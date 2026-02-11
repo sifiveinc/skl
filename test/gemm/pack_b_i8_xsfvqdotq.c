@@ -105,6 +105,8 @@ int check_error(void) {
   /* Compare the reference and test outputs. */
   for (size_t i = 0; i < BLEN_PACKED; ++i) {
     if (test_b_pack[i] != ref_b_pack[i]) {
+      printf("result [%zu] (%d) != reference (%d)\n", i, test_b_pack[i],
+             ref_b_pack[i]);
       return 1;
     }
   }
