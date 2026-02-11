@@ -512,18 +512,33 @@ SKL_TEST_INIT_FUNC(int32_t, i32, INT, unused)
 
 /**
  * @brief Custom memory allocation function
- * @details If defined, this function will be used to allocate memory for
- * buffers in benchmark mode.
+ *
+ * If defined, this function will be used to allocate memory for
+ * buffers in benchmark mode. If not defined, benchmarks should
+ * declare and initialize buffers as static arrays.
  */
 #if defined(CUSTOM_ALLOC)
+/**
+ * @brief Aligned memory allocation function.
+ *
+ * @param alignment Alignment of memory to allocate in bytes
+ * @param size Size of memory to allocate in bytes
+ * @return Pointer to allocated memory
+ */
 void *CUSTOM_ALLOC(size_t alignment, size_t size);
 #endif
 
 /**
  * @brief Custom memory free function
- * @details If defined, this function will be used to free memory allocated
+ *
+ * If defined, this function will be used to free memory allocated
  * by CUSTOM_ALLOC.
  */
 #if defined(CUSTOM_FREE)
+/**
+ * @brief Custom memory free function.
+ *
+ * @param ptr Pointer to memory to free
+ */
 void CUSTOM_FREE(void *ptr);
 #endif
