@@ -224,8 +224,8 @@ int check_error(void) {
 }
 #endif // ENABLE_TEST
 
-#define PASTE(S) #S
-#define TEST_LABEL(S) PASTE(S)
+#define STR(S) #S
+#define TEST_LABEL(S) STR(S)
 #define PRINT_TEST_NAME(S) printf(TEST_LABEL(S) ":\n");
 
 int main(void) {
