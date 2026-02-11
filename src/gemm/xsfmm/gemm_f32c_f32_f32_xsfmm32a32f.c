@@ -5,6 +5,7 @@
 #error This file requires the Xsfmm32a32f extension
 #endif
 
+#include <riscv_vector.h>
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -422,7 +423,7 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_f32_f32_xsfmmbase(
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE void skl_gemm_fused_1tm1tn_f32c_f32_f32_xsfmm32a32f(
     size_t tm, size_t tn, size_t k, const float *a, size_t csa, const float *b,
-    size_t rsb, float *c, size_t rsc, fused_ker_f32_f32_t kernel,
+    size_t rsb, float *c, size_t i1, size_t j1, size_t rsc0, size_t rsc1, size_t csc1, fused_ker_f32_f32_t kernel,
     void *params) {
   if (tm == 0 || tn == 0) {
     return;
@@ -470,7 +471,7 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_1tm1tn_f32c_f32_f32_xsfmm32a32f(
   /* Apply fused kernel. */
   const size_t mt0 = 0;
 
-  kernel(tm, tn, mt0, c, rsc, 1, 0, 0, 0, 0, params);
+  kernel(tm, tn, mt0, c, rsc0, 1, rsc1, csc1, i1, j1, params);
 
   __asm__ volatile("sf.vtdiscard");
 }
@@ -481,7 +482,7 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_1tm1tn_f32c_f32_f32_xsfmm32a32f(
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE void skl_gemm_fused_2tm2tn_f32pc_f32cp_f32rcp_xsfmm32a32f(
     size_t tm, size_t tn, size_t k, const float *a, size_t csa0, size_t rsa1,
-    const float *b, size_t rsb0, size_t csb1, float *c, size_t rsc0,
+    const float *b, size_t rsb0, size_t csb1, float *c, size_t i1, size_t j1, size_t rsc0,
     size_t rsc1, size_t csc1, fused_ker_f32_f32_t kernel, void *params) {
   if (tm == 0 || tn == 0) {
     return;
@@ -579,10 +580,10 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_2tm2tn_f32pc_f32cp_f32rcp_xsfmm32a32f(
   const size_t mt8 = (size_t)(8) << kShiftTile;
   const size_t mt12 = (size_t)(12) << kShiftTile;
 
-  kernel(tm, tn, mt0, c, rsc0, 1, rsc1, csc1, 0, 0, params);
-  kernel(tm, tn, mt4, c, rsc0, 1, rsc1, csc1, 0, 1, params);
-  kernel(tm, tn, mt8, c, rsc0, 1, rsc1, csc1, 1, 0, params);
-  kernel(tm, tn, mt12, c, rsc0, 1, rsc1, csc1, 1, 1, params);
+  kernel(tm, tn, mt0, c, rsc0, 1, rsc1, csc1, i1, j1, params);
+  kernel(tm, tn, mt4, c, rsc0, 1, rsc1, csc1, i1, j1 + 1, params);
+  kernel(tm, tn, mt8, c, rsc0, 1, rsc1, csc1, i1 + 1, j1, params);
+  kernel(tm, tn, mt12, c, rsc0, 1, rsc1, csc1, i1 + 1, j1 + 1, params);
 
   __asm__ volatile("sf.vtdiscard");
 }
@@ -607,7 +608,7 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_f32c_f32_f32_xsfmm32a32f(
     size_t j = 0;
     for (; j < num_processed_by_2tm2tn_n; j += 2 * ete) {
       skl_gemm_fused_2tm2tn_f32pc_f32cp_f32rcp_xsfmm32a32f(
-          ete, ete, k, a + i, csa, ete, b + j, rsb, ete, c + i * rsc + j, rsc,
+          ete, ete, k, a + i, csa, ete, b + j, rsb, ete, c, i, j, rsc,
           ete * rsc, ete, kernel, params);
     }
     while (j < n) {
@@ -617,11 +618,11 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_f32c_f32_f32_xsfmm32a32f(
                        : "r"(n - j)
                        : "vtype", "vl");
       skl_gemm_fused_1tm1tn_f32c_f32_f32_xsfmm32a32f(
-          ete, tn, k, a + i, csa, b + j, rsb, c + i * rsc + j, rsc, kernel,
+          ete, tn, k, a + i, csa, b + j, rsb, c, i, j, rsc, ete * rsc, ete, kernel,
           params);
       skl_gemm_fused_1tm1tn_f32c_f32_f32_xsfmm32a32f(
-          ete, tn, k, a + i + ete, csa, b + j, rsb, c + (i + ete) * rsc + j,
-          rsc, kernel, params);
+          ete, tn, k, a + i + ete, csa, b + j, rsb, c, i + ete, j,
+          rsc, ete * rsc, ete, kernel, params);
       j += tn;
     }
   }
@@ -641,7 +642,7 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_f32c_f32_f32_xsfmm32a32f(
                        : "r"(n - j)
                        : "vtype", "vl");
       skl_gemm_fused_1tm1tn_f32c_f32_f32_xsfmm32a32f(
-          tm, tn, k, a + i, csa, b + j, rsb, c + i * rsc + j, rsc, kernel,
+          tm, tn, k, a + i, csa, b + j, rsb, c, i, j, rsc, ete * rsc, ete, kernel,
           params);
       j += tn;
     }
@@ -671,15 +672,15 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_f32pc_f32cp_f32rcp_xsfmm32a32f(
     for (; j < num_processed_by_2tm2tn_n1; j += 2) {
       skl_gemm_fused_2tm2tn_f32pc_f32cp_f32rcp_xsfmm32a32f(
           ete, ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
-          csb1, c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, kernel, params);
+          csb1, c_pack, i, j, ete, rsc1, csc1, kernel, params);
     }
     while (j < n1) {
       skl_gemm_fused_1tm1tn_f32c_f32_f32_xsfmm32a32f(
           ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete,
-          c_pack + i * rsc1 + j * csc1, ete, kernel, params);
+          c_pack, i, j, ete, rsc1, csc1, kernel, params);
       skl_gemm_fused_1tm1tn_f32c_f32_f32_xsfmm32a32f(
           ete, ete, k, a_pack + (i + 1) * rsa1, ete, b_pack + j * csb1, ete,
-          c_pack + (i + 1) * rsc1 + j * csc1, ete, kernel, params);
+          c_pack, i + 1, j, ete, rsc1, csc1, kernel, params);
       j += 1;
     }
   }
@@ -689,7 +690,7 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_f32pc_f32cp_f32rcp_xsfmm32a32f(
     while (j < n1) {
       skl_gemm_fused_1tm1tn_f32c_f32_f32_xsfmm32a32f(
           ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete,
-          c_pack + i * rsc1 + j * csc1, ete, kernel, params);
+          c_pack, i, j, ete, rsc1, csc1, kernel, params);
       j += 1;
     }
     i += 1;
