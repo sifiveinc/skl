@@ -34,13 +34,14 @@
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>
-#include <riscv_vector.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
+#if defined(ENABLE_TEST)
+#include <string.h> // For memcpy
+#endif
 
 /* The macros below set the matrix strides. */
 #if !defined(RSB)
@@ -67,8 +68,8 @@ enum {
 _Alignas(ALIGN) int8_t b[BLEN];
 _Alignas(ALIGN) int8_t b_pack[BLEN_PACKED];
 #if defined(ENABLE_TEST)
-_Alignas(ALIGN) int8_t b_pack_ref[BLEN_PACKED];
-_Alignas(ALIGN) int8_t b_pack_test[BLEN_PACKED];
+_Alignas(ALIGN) int8_t ref_b_pack[BLEN_PACKED];
+_Alignas(ALIGN) int8_t test_b_pack[BLEN_PACKED];
 #endif // ENABLE_TEST
 
 #if defined(ENABLE_TEST)
@@ -98,12 +99,12 @@ void skl_pack_i8_scalar(size_t m, size_t n, const int8_t *c, size_t rsc,
 
 int check_error(void) {
   /* Compute the reference (scalar) matrix output. */
-  skl_pack_i8_scalar(K, N, b, RSB, CSB, K0, N0, b_pack_ref, RSB0, CSB0,
+  skl_pack_i8_scalar(K, N, b, RSB, CSB, K0, N0, ref_b_pack, RSB0, CSB0,
                      (size_t)RSB1, CSB1);
 
   /* Compare the reference and test outputs. */
   for (size_t i = 0; i < BLEN_PACKED; ++i) {
-    if (b_pack_test[i] != b_pack_ref[i]) {
+    if (test_b_pack[i] != ref_b_pack[i]) {
       return 1;
     }
   }
@@ -111,6 +112,9 @@ int check_error(void) {
   return 0;
 }
 #endif
+
+#define TEST_LABEL(S) #S ":\n"
+#define PRINT_TEST_NAME(S) printf(TEST_LABEL(S));
 
 int main(void) {
   int status = 0;
@@ -121,23 +125,28 @@ int main(void) {
   }
 
   int res = EXIT_SUCCESS;
+
+  PRINT_TEST_NAME(SKL_TEST_NAME);
   printf("K = %u, N = %u\n", K, N);
   printf("RSB = %u, RSB1 = %u\n", RSB, RSB1);
+
+  /* Populate the matrices. */
   skl_test_init_i8(b, BLEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
+  skl_test_init_i8(b_pack, BLEN_PACKED, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
 
 #if defined(ENABLE_TEST)
-  skl_test_init_i8(b_pack_ref, BLEN_PACKED, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
-  memcpy(b_pack_test, b_pack_ref, BLEN_PACKED * sizeof(int8_t));
+  memcpy(ref_b_pack, b_pack, BLEN_PACKED * sizeof(int8_t));
+  memcpy(test_b_pack, b_pack, BLEN_PACKED * sizeof(int8_t));
 
-  skl_pack_b_i8_xsfvqdotq(K, N, b, RSB, b_pack_test, (size_t)RSB1);
+  skl_pack_b_i8_xsfvqdotq(K, N, b, RSB, test_b_pack, (size_t)RSB1);
   res += check_error();
 #endif // ENABLE_TEST
 
 #if defined(ENABLE_BENCHMARK)
-  // warmup.
+  /* Warmup run */
   skl_pack_b_i8_xsfvqdotq(K, N, b, RSB, b_pack, (size_t)RSB1);
 
-  // benchmark.
+  /* Benchmark packing kernel. */
   riscv_fence();
   uint64_t c0 = riscv_read_mcycle();
 
@@ -150,7 +159,7 @@ int main(void) {
   printf("Cycle count: %" PRIu64 "\n", cycles);
   printf("Output matrix size: %u x %u\n", K0 * K1, N);
   printf("Throughput (elements / cycle): ");
-  print_float((float)(K0 * K1 * N) / (float)cycles);
+  print_float((float)(K * N) / (float)cycles);
   printf("\n");
 #endif // ENABLE_BENCHMARK
 
