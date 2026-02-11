@@ -23,8 +23,6 @@ SKL_FUNC void skl_softmax_f32_scalar(float *pDst, const float *pSrc, float beta,
   }
 
   float recip_sum = 1.0f / sum;
-#pragma clang loop vectorize(disable)
-#pragma clang loop unroll(disable)
   for (size_t i = 0; i < n; i++) {
     pDst[i] *= recip_sum;
   }
