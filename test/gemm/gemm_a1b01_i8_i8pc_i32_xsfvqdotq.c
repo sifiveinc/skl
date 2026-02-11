@@ -52,8 +52,6 @@
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>
-#include <riscv_vector.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -129,6 +127,9 @@ int check_error(void) {
 }
 #endif // ENABLE_TEST
 
+#define TEST_LABEL(S) #S ":\n"
+#define PRINT_TEST_NAME(S) printf(TEST_LABEL(S));
+
 int main(void) {
   int status = 0;
   SKL_TEST_REQUIRE(status, RSA >= K);
@@ -141,34 +142,35 @@ int main(void) {
   }
 
   int res = EXIT_SUCCESS;
+
+  PRINT_TEST_NAME(SKL_TEST_NAME);
+  printf("M = %u, N = %u, K = %u\n", M, N, K);
+  printf("ALPHA = %d, BETA = %d\n", ALPHA, BETA);
+  printf("RSA = %u, RSB = %u, RSC = %u\n", RSA, RSB, RSC);
+  printf("RSB1 = %u\n", RSB1);
+
+  /* Populate the matrices. */
   skl_test_init_i8(a, ALEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
   skl_test_init_i8(b, BLEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
   skl_test_init_i32(c, CLEN, SKL_TEST_MIN_I32, SKL_TEST_MAX_I32);
-  printf("M = %u, N = %u, K = %u\n", M, N, K);
-  printf("RSA = %u, RSB = %u, RSC = %u\n", RSA, RSB, RSC);
-  printf("RSB1 = %u\n", RSB1);
-  printf("ALPHA = %d, BETA = %d\n", ALPHA, BETA);
+  skl_pack_b_i8_xsfvqdotq(K, N, b, (size_t)RSB, b_pack, (size_t)RSB1);
 
 #if defined(ENABLE_TEST)
+  /* Make copies of C to write the reference and test outputs to. */
   memcpy(c_ref, c, CLEN * sizeof(int32_t));
   memcpy(c_test, c, CLEN * sizeof(int32_t));
-
-  skl_pack_b_i8_xsfvqdotq(K, N, b, (size_t)RSB, b_pack, (size_t)RSB1);
   skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(M, N, K, a, (size_t)RSA, b_pack,
                                        (size_t)RSB1, c_test, (size_t)RSC,
                                        ACCUM);
-
   res += check_error();
 #endif // ENABLE_TEST
 
 #if defined(ENABLE_BENCHMARK)
-  skl_pack_b_i8_xsfvqdotq(K, N, b, (size_t)RSB, b_pack, (size_t)RSB1);
-
-  // warmup.
+  /* Warmup run */
   skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(M, N, K, a, (size_t)RSA, b_pack,
                                        (size_t)RSB1, c, (size_t)RSC, ACCUM);
 
-  // benchmark.
+  /* Benchmark matrix matmul. */
   riscv_fence();
   uint64_t c0 = riscv_read_mcycle();
 
@@ -178,6 +180,7 @@ int main(void) {
   riscv_fence();
   uint64_t c1 = riscv_read_mcycle();
   uint64_t cycles = c1 - c0;
+
   printf("Cycle count: %" PRIu64 "\n", cycles);
   printf("MACCs / cycle: ");
   print_float((float)(M * N * K) / (float)cycles);
