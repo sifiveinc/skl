@@ -52,13 +52,14 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
   const uint8_t *a1 = a0 + csa;
   const uint8_t *b0 = b;
   const uint8_t *b1 = b0 + rsb;
-  __asm__ volatile("beqz %[k], 4f\n"
+  __asm__ volatile("beqz %[k], 5f\n"
 
                    "sf.vsettnt x0, %[tn], e8, w4\n"
                    "sf.vsettm x0, %[tm]\n"
                    "sf.vsettk x0, %[k]\n"
 
-                   "bltu %[k], %[i4], 1f\n"
+                   "bltu %[k], %[i4], 2f\n"
+                   "beq %[tm], %[tn], 1f\n"
 
                    "0:\n"
                    "addi %[k], %[k], -4\n"
@@ -71,8 +72,8 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
                    "add %[a0], %[a0], %[sa]\n"
                    "vle8.v v6, (%[a1])\n"
                    "add %[a1], %[a1], %[sa]\n"
-
                    "sf.vsettn x0, %[tn]\n"
+
                    "vle8.v v8, (%[b0])\n"
                    "add %[b0], %[b0], %[sb]\n"
                    "vle8.v v10, (%[b1])\n"
@@ -84,12 +85,36 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
 
                    "sf.mm.e4m3.e4m3 mt0, v0, v8\n"
                    "bgeu %[k], %[i4], 0b\n"
-                   "sf.vsettk x0, %[k]\n"
+                   "j 2f\n"
 
                    "1:\n"
-                   "beq %[k], %[i2], 2f\n"
-                   "beq %[k], %[i1], 3f\n"
-                   "beqz %[k], 4f\n"
+                   "addi %[k], %[k], -4\n"
+                   "vle8.v v0, (%[a0])\n"
+                   "add %[a0], %[a0], %[sa]\n"
+                   "vle8.v v2, (%[a1])\n"
+                   "add %[a1], %[a1], %[sa]\n"
+                   "vle8.v v4, (%[a0])\n"
+                   "add %[a0], %[a0], %[sa]\n"
+                   "vle8.v v6, (%[a1])\n"
+                   "add %[a1], %[a1], %[sa]\n"
+
+                   "vle8.v v8, (%[b0])\n"
+                   "add %[b0], %[b0], %[sb]\n"
+                   "vle8.v v10, (%[b1])\n"
+                   "add %[b1], %[b1], %[sb]\n"
+                   "vle8.v v12, (%[b0])\n"
+                   "add %[b0], %[b0], %[sb]\n"
+                   "vle8.v v14, (%[b1])\n"
+                   "add %[b1], %[b1], %[sb]\n"
+
+                   "sf.mm.e4m3.e4m3 mt0, v0, v8\n"
+                   "bgeu %[k], %[i4], 1b\n"
+
+                   "2:\n"
+                   "sf.vsettk x0, %[k]\n"
+                   "beq %[k], %[i2], 3f\n"
+                   "beq %[k], %[i1], 4f\n"
+                   "beqz %[k], 5f\n"
 
                    // k % 4 == 3
                    "sf.vsettn x0, %[tm]\n"
@@ -97,38 +122,38 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
                    "add %[a0], %[a0], %[sa]\n"
                    "vle8.v v2, (%[a1])\n"
                    "vle8.v v4, (%[a0])\n"
-
                    "sf.vsettn x0, %[tn]\n"
+
                    "vle8.v v8, (%[b0])\n"
                    "add %[b0], %[b0], %[sb]\n"
                    "vle8.v v10, (%[b1])\n"
                    "vle8.v v12, (%[b0])\n"
 
                    "sf.mm.e4m3.e4m3 mt0, v0, v8\n"
-                   "j 4f\n"
+                   "j 5f\n"
 
-                   "2:\n" // k % 4 == 2
+                   "3:\n" // k % 4 == 2
                    "sf.vsettn x0, %[tm]\n"
                    "vle8.v v0, (%[a0])\n"
                    "vle8.v v2, (%[a1])\n"
-
                    "sf.vsettn x0, %[tn]\n"
+
                    "vle8.v v8, (%[b0])\n"
                    "vle8.v v10, (%[b1])\n"
 
                    "sf.mm.e4m3.e4m3 mt0, v0, v8\n"
-                   "j 4f\n"
+                   "j 5f\n"
 
-                   "3:\n" // k % 4 == 1
+                   "4:\n" // k % 4 == 1
                    "sf.vsettn x0, %[tm]\n"
                    "vle8.v v0, (%[a0])\n"
-
                    "sf.vsettn x0, %[tn]\n"
+
                    "vle8.v v8, (%[b0])\n"
 
                    "sf.mm.e4m3.e4m3 mt0, v0, v8\n"
 
-                   "4:\n"
+                   "5:\n"
                    : [a0] "+&r"(a0), [a1] "+&r"(a1), [b0] "+&r"(b0),
                      [b1] "+&r"(b1), [k] "+&r"(k)
                    : [sa] "r"(2 * csa * sizeof(uint8_t)),
