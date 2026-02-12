@@ -110,6 +110,198 @@ SKL_FUNC_PRIVATE void skl_gemm_vste_f32_f32_xsfmmbase(
       : "vtype", "vl", "memory");
 }
 
+// Write tile back using vtmv + vse (row-major)
+SKL_XSFMM_IN
+SKL_FUNC_PRIVATE void skl_gemm_vtmv_vse_m2_f32_f32_xsfmmbase(
+    size_t tm, size_t tn, size_t tss, float *c, size_t rsc) {
+  if (tm == 0 || tn == 0) {
+    return;
+  }
+
+  const size_t kRowInc = 1;
+
+  size_t tss_0 = tss;
+  size_t tss_1 = tss_0 + kRowInc;
+  float *c_store_0 = c;
+  float *c_store_1 = c_store_0 + rsc;
+
+  /* Process (tm / 8) * 8 rows. */
+  size_t i = (tm / 8) * 8;
+  __asm__ volatile(
+      "sf.vsettnt x0, %[tn], e32, w1\n"
+
+      "beqz %[i], 2f\n"
+
+      "sf.vtmv.v.t v0, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+
+      "sf.vtmv.v.t v2, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+      "sf.vtmv.v.t v4, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+
+      "sf.vtmv.v.t v6, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+      "sf.vtmv.v.t v8, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+
+      "sf.vtmv.v.t v10, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+      "sf.vtmv.v.t v12, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+
+      "sf.vtmv.v.t v14, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+      "addi %[i], %[i], -8\n"
+
+      "bltu %[i], %[i8], 1f\n"
+
+      "0:\n" // loop body
+      "vse32.v v0, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "sf.vtmv.v.t v0, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+
+      "vse32.v v2, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "sf.vtmv.v.t v2, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+      "vse32.v v4, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "sf.vtmv.v.t v4, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+
+      "vse32.v v6, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "sf.vtmv.v.t v6, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+      "addi %[i], %[i], -8\n"
+
+      "vse32.v v8, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "sf.vtmv.v.t v8, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+
+      "vse32.v v10, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "sf.vtmv.v.t v10, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+      "vse32.v v12, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "sf.vtmv.v.t v12, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+
+      "vse32.v v14, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "sf.vtmv.v.t v14, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+
+      "bgeu %[i], %[i8], 0b\n"
+
+      "1:\n"
+      "vse32.v v0, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "vse32.v v2, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "vse32.v v4, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "vse32.v v6, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "vse32.v v8, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "vse32.v v10, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "vse32.v v12, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "vse32.v v14, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+
+      "2:\n"
+      : [tss_0] "+&r"(tss_0), [tss_1] "+&r"(tss_1),
+        [c_store_0] "+&r"(c_store_0),
+        [c_store_1] "+&r"(c_store_1), [i] "+&r"(i)
+      : [kRowInc] "rI"(2 * kRowInc),
+        [sc] "r"(2 * rsc * sizeof(float)), [tn] "r"(tn), [i8] "r"(8)
+      : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
+        "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20",
+        "v21", "v22", "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30",
+        "v31", "vtype", "vl", "memory");
+
+  /* Process the remaining rows. */
+  i = tm % 8;
+  if (i >= 4) {
+    __asm__ volatile(
+        "sf.vsettnt x0, %[tn], e32, w1\n"
+
+        "sf.vtmv.v.t v0, %[tss_0]\n"
+        "add %[tss_0], %[tss_0], %[kRowInc]\n"
+        "sf.vtmv.v.t v2, %[tss_1]\n"
+        "add %[tss_1], %[tss_1], %[kRowInc]\n"
+        "sf.vtmv.v.t v4, %[tss_0]\n"
+        "add %[tss_0], %[tss_0], %[kRowInc]\n"
+        "sf.vtmv.v.t v6, %[tss_1]\n"
+        "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+        "vse32.v v0, (%[c_store_0])\n"
+        "add %[c_store_0], %[c_store_0], %[sc]\n"
+        "vse32.v v2, (%[c_store_1])\n"
+        "add %[c_store_1], %[c_store_1], %[sc]\n"
+        "vse32.v v4, (%[c_store_0])\n"
+        "add %[c_store_0], %[c_store_0], %[sc]\n"
+        "vse32.v v6, (%[c_store_1])\n"
+        "add %[c_store_1], %[c_store_1], %[sc]\n"
+        : [tss_0] "+&r"(tss_0), [tss_1] "+&r"(tss_1),
+          [c_store_0] "+&r"(c_store_0), [c_store_1] "+&r"(c_store_1)
+        : [kRowInc] "rI"(2 * kRowInc),
+          [sc] "r"(2 * rsc * sizeof(float)), [tn] "r"(tn)
+        : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v16", "v17", "v18",
+          "v19", "v20", "v21", "v22", "v23", "vtype", "vl", "memory");
+    i -= 4;
+  }
+
+  if (i >= 2) {
+    __asm__ volatile(
+        "sf.vsettnt x0, %[tn], e32, w1\n"
+
+        "sf.vtmv.v.t v0, %[tss_0]\n"
+        "add %[tss_0], %[tss_0], %[kRowInc]\n"
+        "sf.vtmv.v.t v2, %[tss_1]\n"
+        "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+        "vse32.v v0, (%[c_store_0])\n"
+        "add %[c_store_0], %[c_store_0], %[sc]\n"
+        "vse32.v v2, (%[c_store_1])\n"
+        "add %[c_store_1], %[c_store_1], %[sc]\n"
+        : [tss_0] "+&r"(tss_0), [tss_1] "+&r"(tss_1),
+          [c_store_0] "+&r"(c_store_0), [c_store_1] "+&r"(c_store_1)
+        : [kRowInc] "rI"(2 * kRowInc),
+          [sc] "r"(2 * rsc * sizeof(float)), [tn] "r"(tn)
+        : "v0", "v1", "v2", "v3", "v16", "v17", "v18", "v19", "vtype", "vl",
+          "memory");
+    i -= 2;
+  }
+
+  if (i >= 1) {
+    __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
+
+                     "sf.vtmv.v.t v0, %[tss_0]\n"
+                     "vse32.v v0, (%[c_store_0])\n"
+                     :
+                     : [tss_0] "r"(tss_0),
+                       [c_store_0] "r"(c_store_0),
+                       [tn] "r"(tn)
+                     : "v0", "v1", "v16", "v17", "vtype", "vl", "memory");
+  }
+}
+
 /* Computes C := alpha * tile + beta * C, where tile is the tm x tn tile
  * specified by tss. tm and tn must be <= TE. This is an optimized
  * implementation when tile rows fit into m2 register groups and csc0 == 1.
