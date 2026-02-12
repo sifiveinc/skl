@@ -60,11 +60,8 @@
 #error Must define BETA
 #endif
 
-#if defined(ENABLE_TEST)
-#include "gemm/scalar/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.h"
-#endif
-
 #include "skl-test.h"
+#include "skl.h"
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -74,8 +71,6 @@
 
 /* Include various int8 GEMM kernels depending on ISA compatibility. */
 #if defined(__riscv_xsfmm32a8i)
-#include "gemm/xsfmm/gemm_a1b01_i8c_i8_i32_xsfmm32a8i.h"
-
 void skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i_wrapper(
     size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
     int32_t alpha, const int8_t *a_pack, size_t rsa0,
@@ -107,8 +102,6 @@ void skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i_wrapper(
 
 /* Include various int8 GEMM kernels depending on ISA compatibility. */
 #if defined(__riscv_xsfvqdotq)
-#include "gemm/xsfvqdotq/gemm_a1b01_i8_i8pc_i32_xsfvqdotq.h"
-
 void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_wrapper(
     size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
     int32_t alpha, const int8_t *a_pack, __attribute__((unused)) size_t rsa0,

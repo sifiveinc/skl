@@ -61,12 +61,11 @@
 #endif
 
 #if defined(ENABLE_TEST)
-#include "gemm/scalar/gemm_f16rcprc_f16rcprc_f32rcprc_scalar.h"
-#include "gemm/scalar/gemm_f64rcprc_f64rcprc_f64rcprc_scalar.h"
 #include <math.h>
 #endif
 
 #include "skl-test.h"
+#include "skl.h"
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -76,8 +75,6 @@
 
 /* Include various FP16 GEMM kernels depending on ISA compatibility. */
 #if defined(__riscv_xsfmm32a16f)
-#include "gemm/xsfmm/gemm_a1b01_f16c_f16_f32_xsfmm32a16f.h"
-
 void skl_gemm_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f_wrapper(
     size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
     float alpha, const _Float16 *a_pack, size_t rsa0,
