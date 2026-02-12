@@ -134,6 +134,7 @@ void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
  * 3) A is 4-byte-aligned and rsa is a multiple 4.
  * If matrices are not allocated in the CLP address space, please use
  * skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq instead.
+ *
  * @note
  * Matrix B_pack must be pre-packed using skl_pack_b_i8_xsfvqdotq(). Matrix A is
  * used directly in row-major format without requiring pre-packing. Performance
