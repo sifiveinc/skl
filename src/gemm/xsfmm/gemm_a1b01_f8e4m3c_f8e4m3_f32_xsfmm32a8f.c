@@ -333,7 +333,8 @@ skl_gemm_1tm2tn_2tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
                      "vle8.v v14, (%[b0_1])\n"
                      "add %[b0_1], %[b0_1], %[sb]\n"
 
-                     "bltu %[k], %[i8], 1f\n"
+                     "bltu %[k], %[i8], 2f\n"
+                     "beq %[tm0], %[tn0], 1f\n"
 
                      "0:\n"
                      "addi %[k], %[k], -4\n"
@@ -371,6 +372,7 @@ skl_gemm_1tm2tn_2tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
                      "sf.vsettn x0, %[tn0]\n"
 
                      "bgeu %[k], %[i8], 0b\n"
+                     "j 2f\n"
 
                      "1:\n"
                      "addi %[k], %[k], -4\n"
@@ -385,9 +387,44 @@ skl_gemm_1tm2tn_2tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
 
                      "sf.mm.e4m3.e4m3 mt0, v0, v8\n"
 
-                     "beq %[k], %[i2], 2f\n"
-                     "beq %[k], %[i1], 3f\n"
-                     "beqz %[k], 4f\n"
+                     "vle8.v v8, (%[b0_0])\n"
+                     "add %[b0_0], %[b0_0], %[sb]\n"
+                     "vle8.v v10, (%[b0_1])\n"
+                     "add %[b0_1], %[b0_1], %[sb]\n"
+                     "vle8.v v12, (%[b0_0])\n"
+                     "add %[b0_0], %[b0_0], %[sb]\n"
+                     "vle8.v v14, (%[b0_1])\n"
+                     "add %[b0_1], %[b0_1], %[sb]\n"
+
+                     "sf.mm.e4m3.e4m3 mt4, v0, v16\n"
+
+                     "vle8.v v0, (%[a0_0])\n"
+                     "add %[a0_0], %[a0_0], %[sa]\n"
+                     "vle8.v v2, (%[a0_1])\n"
+                     "add %[a0_1], %[a0_1], %[sa]\n"
+                     "vle8.v v4, (%[a0_0])\n"
+                     "add %[a0_0], %[a0_0], %[sa]\n"
+                     "vle8.v v6, (%[a0_1])\n"
+                     "add %[a0_1], %[a0_1], %[sa]\n"
+
+                     "bgeu %[k], %[i8], 1b\n"
+
+                     "2:\n"
+                     "addi %[k], %[k], -4\n"
+                     "vle8.v v16, (%[b1_0])\n"
+                     "add %[b1_0], %[b1_0], %[sb]\n"
+                     "vle8.v v18, (%[b1_1])\n"
+                     "add %[b1_1], %[b1_1], %[sb]\n"
+                     "vle8.v v20, (%[b1_0])\n"
+                     "add %[b1_0], %[b1_0], %[sb]\n"
+                     "vle8.v v22, (%[b1_1])\n"
+                     "add %[b1_1], %[b1_1], %[sb]\n"
+
+                     "sf.mm.e4m3.e4m3 mt0, v0, v8\n"
+
+                     "beq %[k], %[i2], 3f\n"
+                     "beq %[k], %[i1], 4f\n"
+                     "beqz %[k], 5f\n"
 
                      // k % 4 == 3
                      "vle8.v v8, (%[b0_0])\n"
@@ -412,9 +449,9 @@ skl_gemm_1tm2tn_2tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
                      "sf.vsettk x0, %[k]\n"
                      "sf.mm.e4m3.e4m3 mt0, v0, v8\n"
                      "sf.mm.e4m3.e4m3 mt4, v0, v16\n"
-                     "j 5f\n"
+                     "j 6f\n"
 
-                     "2:\n" // k % 4 == 2
+                     "3:\n" // k % 4 == 2
                      "vle8.v v8, (%[b0_0])\n"
                      "vle8.v v10, (%[b0_1])\n"
 
@@ -431,9 +468,9 @@ skl_gemm_1tm2tn_2tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
                      "sf.vsettk x0, %[k]\n"
                      "sf.mm.e4m3.e4m3 mt0, v0, v8\n"
                      "sf.mm.e4m3.e4m3 mt4, v0, v16\n"
-                     "j 5f\n"
+                     "j 6f\n"
 
-                     "3:\n" // k % 4 == 1
+                     "4:\n" // k % 4 == 1
                      "vle8.v v8, (%[b0_0])\n"
 
                      "sf.mm.e4m3.e4m3 mt4, v0, v16\n"
@@ -447,12 +484,12 @@ skl_gemm_1tm2tn_2tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
                      "sf.vsettk x0, %[k]\n"
                      "sf.mm.e4m3.e4m3 mt0, v0, v8\n"
                      "sf.mm.e4m3.e4m3 mt4, v0, v16\n"
-                     "j 5f\n"
+                     "j 6f\n"
 
-                     "4:\n" // k % 4 == 0
+                     "5:\n" // k % 4 == 0
                      "sf.mm.e4m3.e4m3 mt4, v0, v16\n"
 
-                     "5:\n"
+                     "6:\n"
                      : [a0_0] "+&r"(a0_0), [a0_1] "+&r"(a0_1),
                        [b0_0] "+&r"(b0_0), [b0_1] "+&r"(b0_1),
                        [b1_0] "+&r"(b1_0), [b1_1] "+&r"(b1_1), [k] "+&r"(k)
@@ -687,7 +724,8 @@ skl_gemm_1tm3tn_3tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
         "vle8.v v14, (%[b0_1])\n"
         "add %[b0_1], %[b0_1], %[sb]\n"
 
-        "bltu %[k], %[i8], 1f\n"
+        "bltu %[k], %[i8], 2f\n"
+        "beq %[tm0], %[tn0], 1f\n"
 
         "0:\n"
         "addi %[k], %[k], -4\n"
@@ -736,6 +774,7 @@ skl_gemm_1tm3tn_3tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
         "sf.vsettn x0, %[tn0]\n"
 
         "bgeu %[k], %[i8], 0b\n"
+        "j 2f\n"
 
         "1:\n"
         "addi %[k], %[k], -4\n"
@@ -761,9 +800,55 @@ skl_gemm_1tm3tn_3tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
 
         "sf.mm.e4m3.e4m3 mt4, v0, v16\n"
 
-        "beq %[k], %[i2], 2f\n"
-        "beq %[k], %[i1], 3f\n"
-        "beqz %[k], 4f\n"
+        "vle8.v v8, (%[b0_0])\n"
+        "add %[b0_0], %[b0_0], %[sb]\n"
+        "vle8.v v10, (%[b0_1])\n"
+        "add %[b0_1], %[b0_1], %[sb]\n"
+        "vle8.v v12, (%[b0_0])\n"
+        "add %[b0_0], %[b0_0], %[sb]\n"
+        "vle8.v v14, (%[b0_1])\n"
+        "add %[b0_1], %[b0_1], %[sb]\n"
+
+        "sf.mm.e4m3.e4m3 mt8, v0, v24\n"
+
+        "vle8.v v0, (%[a0_0])\n"
+        "add %[a0_0], %[a0_0], %[sa]\n"
+        "vle8.v v2, (%[a0_1])\n"
+        "add %[a0_1], %[a0_1], %[sa]\n"
+        "vle8.v v4, (%[a0_0])\n"
+        "add %[a0_0], %[a0_0], %[sa]\n"
+        "vle8.v v6, (%[a0_1])\n"
+        "add %[a0_1], %[a0_1], %[sa]\n"
+
+        "bgeu %[k], %[i8], 1b\n"
+
+        "2:\n"
+        "addi %[k], %[k], -4\n"
+        "vle8.v v16, (%[b1_0])\n"
+        "add %[b1_0], %[b1_0], %[sb]\n"
+        "vle8.v v18, (%[b1_1])\n"
+        "add %[b1_1], %[b1_1], %[sb]\n"
+        "vle8.v v20, (%[b1_0])\n"
+        "add %[b1_0], %[b1_0], %[sb]\n"
+        "vle8.v v22, (%[b1_1])\n"
+        "add %[b1_1], %[b1_1], %[sb]\n"
+
+        "sf.mm.e4m3.e4m3 mt0, v0, v8\n"
+
+        "vle8.v v24, (%[b2_0])\n"
+        "add %[b2_0], %[b2_0], %[sb]\n"
+        "vle8.v v26, (%[b2_1])\n"
+        "add %[b2_1], %[b2_1], %[sb]\n"
+        "vle8.v v28, (%[b2_0])\n"
+        "add %[b2_0], %[b2_0], %[sb]\n"
+        "vle8.v v30, (%[b2_1])\n"
+        "add %[b2_1], %[b2_1], %[sb]\n"
+
+        "sf.mm.e4m3.e4m3 mt4, v0, v16\n"
+
+        "beq %[k], %[i2], 3f\n"
+        "beq %[k], %[i1], 4f\n"
+        "beqz %[k], 5f\n"
 
         // k % 4 == 3
         "vle8.v v8, (%[b0_0])\n"
@@ -795,9 +880,9 @@ skl_gemm_1tm3tn_3tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
 
         "sf.mm.e4m3.e4m3 mt4, v0, v16\n"
         "sf.mm.e4m3.e4m3 mt8, v0, v24\n"
-        "j 5f\n"
+        "j 6f\n"
 
-        "2:\n" // k % 4 == 2
+        "3:\n" // k % 4 == 2
         "vle8.v v8, (%[b0_0])\n"
         "vle8.v v10, (%[b0_1])\n"
 
@@ -819,9 +904,9 @@ skl_gemm_1tm3tn_3tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
 
         "sf.mm.e4m3.e4m3 mt4, v0, v16\n"
         "sf.mm.e4m3.e4m3 mt8, v0, v24\n"
-        "j 5f\n"
+        "j 6f\n"
 
-        "3:\n" // k % 4 == 1
+        "4:\n" // k % 4 == 1
         "vle8.v v8, (%[b0_0])\n"
 
         "sf.mm.e4m3.e4m3 mt8, v0, v24\n"
@@ -839,12 +924,12 @@ skl_gemm_1tm3tn_3tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
 
         "sf.mm.e4m3.e4m3 mt4, v0, v16\n"
         "sf.mm.e4m3.e4m3 mt8, v0, v24\n"
-        "j 5f\n"
+        "j 6f\n"
 
-        "4:\n" // k % 4 == 0
+        "5:\n" // k % 4 == 0
         "sf.mm.e4m3.e4m3 mt8, v0, v24\n"
 
-        "5:\n"
+        "6:\n"
         : [a0_0] "+&r"(a0_0), [a0_1] "+&r"(a0_1), [b0_0] "+&r"(b0_0),
           [b0_1] "+&r"(b0_1), [b1_0] "+&r"(b1_0), [b1_1] "+&r"(b1_1),
           [b2_0] "+&r"(b2_0), [b2_1] "+&r"(b2_1), [k] "+&r"(k)
@@ -1113,7 +1198,8 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
         "vle8.v v14, (%[b0_1])\n"
         "add %[b0_1], %[b0_1], %[sb]\n"
 
-        "bltu %[k], %[i8], 1f\n"
+        "bltu %[k], %[i8], 2f\n"
+        "beq %[tm0], %[tn0], 1f\n"
 
         "0:\n"
         "addi %[k], %[k], -4\n"
@@ -1173,6 +1259,7 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
         "sf.vsettn x0, %[tn0]\n"
 
         "bgeu %[k], %[i8], 0b\n"
+        "j 2f\n"
 
         "1:\n"
         "addi %[k], %[k], -4\n"
@@ -1209,9 +1296,66 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
 
         "sf.mm.e4m3.e4m3 mt8, v0, v8\n"
 
-        "beq %[k], %[i2], 2f\n"
-        "beq %[k], %[i1], 3f\n"
-        "beqz %[k], 4f\n"
+        "vle8.v v8, (%[b0_0])\n"
+        "add %[b0_0], %[b0_0], %[sb]\n"
+        "vle8.v v10, (%[b0_1])\n"
+        "add %[b0_1], %[b0_1], %[sb]\n"
+        "vle8.v v12, (%[b0_0])\n"
+        "add %[b0_0], %[b0_0], %[sb]\n"
+        "vle8.v v14, (%[b0_1])\n"
+        "add %[b0_1], %[b0_1], %[sb]\n"
+
+        "sf.mm.e4m3.e4m3 mt12, v0, v16\n"
+
+        "vle8.v v0, (%[a0_0])\n"
+        "add %[a0_0], %[a0_0], %[sa]\n"
+        "vle8.v v2, (%[a0_1])\n"
+        "add %[a0_1], %[a0_1], %[sa]\n"
+        "vle8.v v4, (%[a0_0])\n"
+        "add %[a0_0], %[a0_0], %[sa]\n"
+        "vle8.v v6, (%[a0_1])\n"
+        "add %[a0_1], %[a0_1], %[sa]\n"
+
+        "bgeu %[k], %[i8], 1b\n"
+
+        "2:\n"
+        "addi %[k], %[k], -4\n"
+        "vle8.v v16, (%[b1_0])\n"
+        "add %[b1_0], %[b1_0], %[sb]\n"
+        "vle8.v v18, (%[b1_1])\n"
+        "add %[b1_1], %[b1_1], %[sb]\n"
+        "vle8.v v20, (%[b1_0])\n"
+        "add %[b1_0], %[b1_0], %[sb]\n"
+        "vle8.v v22, (%[b1_1])\n"
+        "add %[b1_1], %[b1_1], %[sb]\n"
+
+        "sf.mm.e4m3.e4m3 mt0, v0, v8\n"
+
+        "vle8.v v8, (%[b2_0])\n"
+        "add %[b2_0], %[b2_0], %[sb]\n"
+        "vle8.v v10, (%[b2_1])\n"
+        "add %[b2_1], %[b2_1], %[sb]\n"
+        "vle8.v v12, (%[b2_0])\n"
+        "add %[b2_0], %[b2_0], %[sb]\n"
+        "vle8.v v14, (%[b2_1])\n"
+        "add %[b2_1], %[b2_1], %[sb]\n"
+
+        "sf.mm.e4m3.e4m3 mt4, v0, v16\n"
+
+        "vle8.v v16, (%[b3_0])\n"
+        "add %[b3_0], %[b3_0], %[sb]\n"
+        "vle8.v v18, (%[b3_1])\n"
+        "add %[b3_1], %[b3_1], %[sb]\n"
+        "vle8.v v20, (%[b3_0])\n"
+        "add %[b3_0], %[b3_0], %[sb]\n"
+        "vle8.v v22, (%[b3_1])\n"
+        "add %[b3_1], %[b3_1], %[sb]\n"
+
+        "sf.mm.e4m3.e4m3 mt8, v0, v8\n"
+
+        "beq %[k], %[i2], 3f\n"
+        "beq %[k], %[i1], 4f\n"
+        "beqz %[k], 5f\n"
 
         // k % 4 == 3
         "vle8.v v8, (%[b0_0])\n"
@@ -1250,9 +1394,9 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
 
         "sf.mm.e4m3.e4m3 mt8, v0, v8\n"
         "sf.mm.e4m3.e4m3 mt12, v0, v16\n"
-        "j 5f\n"
+        "j 6f\n"
 
-        "2:\n" // k % 4 == 2
+        "3:\n" // k % 4 == 2
         "vle8.v v8, (%[b0_0])\n"
         "vle8.v v10, (%[b0_1])\n"
 
@@ -1279,9 +1423,9 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
 
         "sf.mm.e4m3.e4m3 mt8, v0, v8\n"
         "sf.mm.e4m3.e4m3 mt12, v0, v16\n"
-        "j 5f\n"
+        "j 6f\n"
 
-        "3:\n" // k % 4 == 1
+        "4:\n" // k % 4 == 1
         "vle8.v v8, (%[b0_0])\n"
 
         "sf.mm.e4m3.e4m3 mt12, v0, v16\n"
@@ -1303,12 +1447,12 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
 
         "sf.mm.e4m3.e4m3 mt8, v0, v8\n"
         "sf.mm.e4m3.e4m3 mt12, v0, v16\n"
-        "j 5f\n"
+        "j 6f\n"
 
-        "4:\n" // k % 4 == 0
+        "5:\n" // k % 4 == 0
         "sf.mm.e4m3.e4m3 mt12, v0, v16\n"
 
-        "5:\n"
+        "6:\n"
         : [a0_0] "+&r"(a0_0), [a0_1] "+&r"(a0_1), [b0_0] "+&r"(b0_0),
           [b0_1] "+&r"(b0_1), [b1_0] "+&r"(b1_0), [b1_1] "+&r"(b1_1),
           [b2_0] "+&r"(b2_0), [b2_1] "+&r"(b2_1), [b3_0] "+&r"(b3_0),
