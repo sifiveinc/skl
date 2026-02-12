@@ -239,7 +239,9 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm2tn_2tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
                      "vle16.v v12, (%[b0_1])\n"
                      "add %[b0_1], %[b0_1], %[sb]\n"
 
-                     "bltu %[k], %[i4], 1f\n"
+                     "bltu %[k], %[i4], 2f\n"
+
+                     "beq %[tm0], %[tn0], 1f\n"
 
                      "0:\n"
                      "addi %[k], %[k], -2\n"
@@ -257,14 +259,13 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm2tn_2tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
 
                      "sf.mm.f.f mt4, v0, v16\n"
 
-                     "sf.vsettn x0, %[tm0]\n"
                      "vle16.v v0, (%[a0_0])\n"
                      "add %[a0_0], %[a0_0], %[sa]\n"
                      "vle16.v v4, (%[a0_1])\n"
                      "add %[a0_1], %[a0_1], %[sa]\n"
-                     "sf.vsettn x0, %[tn0]\n"
 
                      "bgeu %[k], %[i4], 0b\n"
+                     "j 2f\n"
 
                      "1:\n"
                      "addi %[k], %[k], -2\n"
@@ -275,7 +276,30 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm2tn_2tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
 
                      "sf.mm.f.f mt0, v0, v8\n"
 
-                     "beqz %[k], 2f\n"
+                     "vle16.v v8, (%[b0_0])\n"
+                     "add %[b0_0], %[b0_0], %[sb]\n"
+                     "vle16.v v12, (%[b0_1])\n"
+                     "add %[b0_1], %[b0_1], %[sb]\n"
+
+                     "sf.mm.f.f mt4, v0, v16\n"
+
+                     "vle16.v v0, (%[a0_0])\n"
+                     "add %[a0_0], %[a0_0], %[sa]\n"
+                     "vle16.v v4, (%[a0_1])\n"
+                     "add %[a0_1], %[a0_1], %[sa]\n"
+
+                     "bgeu %[k], %[i4], 1b\n"
+
+                     "2:\n"
+                     "addi %[k], %[k], -2\n"
+                     "vle16.v v16, (%[b1_0])\n"
+                     "add %[b1_0], %[b1_0], %[sb]\n"
+                     "vle16.v v20, (%[b1_1])\n"
+                     "add %[b1_1], %[b1_1], %[sb]\n"
+
+                     "sf.mm.f.f mt0, v0, v8\n"
+
+                     "beqz %[k], 3f\n"
 
                      // k % 2 == 1
                      "vle16.v v8, (%[b0_0])\n"
@@ -291,12 +315,12 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm2tn_2tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
                      "sf.vsettk x0, %[k]\n"
                      "sf.mm.f.f mt0, v0, v8\n"
                      "sf.mm.f.f mt4, v0, v16\n"
-                     "j 3f\n"
+                     "j 4f\n"
 
-                     "2:\n" // k % 2 == 0
+                     "3:\n" // k % 2 == 0
                      "sf.mm.f.f mt4, v0, v16\n"
 
-                     "3:\n"
+                     "4:\n"
                      : [a0_0] "+&r"(a0_0), [a0_1] "+&r"(a0_1),
                        [b0_0] "+&r"(b0_0), [b0_1] "+&r"(b0_1),
                        [b1_0] "+&r"(b1_0), [b1_1] "+&r"(b1_1), [k] "+&r"(k)
@@ -465,7 +489,9 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm3tn_3tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
         "vle16.v v12, (%[b0_1])\n"
         "add %[b0_1], %[b0_1], %[sb]\n"
 
-        "bltu %[k], %[i4], 1f\n"
+        "bltu %[k], %[i4], 2f\n"
+
+        "beq %[tm0], %[tn0], 1f\n"
 
         "0:\n"
         "addi %[k], %[k], -2\n"
@@ -498,6 +524,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm3tn_3tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
         "sf.vsettn x0, %[tn0]\n"
 
         "bgeu %[k], %[i4], 0b\n"
+        "j 2f\n"
 
         "1:\n"
         "addi %[k], %[k], -2\n"
@@ -515,7 +542,37 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm3tn_3tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
 
         "sf.mm.f.f mt4, v0, v16\n"
 
-        "beqz %[k], 2f\n"
+        "vle16.v v8, (%[b0_0])\n"
+        "add %[b0_0], %[b0_0], %[sb]\n"
+        "vle16.v v12, (%[b0_1])\n"
+        "add %[b0_1], %[b0_1], %[sb]\n"
+
+        "sf.mm.f.f mt8, v0, v24\n"
+
+        "vle16.v v0, (%[a0_0])\n"
+        "add %[a0_0], %[a0_0], %[sa]\n"
+        "vle16.v v4, (%[a0_1])\n"
+        "add %[a0_1], %[a0_1], %[sa]\n"
+
+        "bgeu %[k], %[i4], 1b\n"
+
+        "2:\n"
+        "addi %[k], %[k], -2\n"
+        "vle16.v v16, (%[b1_0])\n"
+        "add %[b1_0], %[b1_0], %[sb]\n"
+        "vle16.v v20, (%[b1_1])\n"
+        "add %[b1_1], %[b1_1], %[sb]\n"
+
+        "sf.mm.f.f mt0, v0, v8\n"
+
+        "vle16.v v24, (%[b2_0])\n"
+        "add %[b2_0], %[b2_0], %[sb]\n"
+        "vle16.v v28, (%[b2_1])\n"
+        "add %[b2_1], %[b2_1], %[sb]\n"
+
+        "sf.mm.f.f mt4, v0, v16\n"
+
+        "beqz %[k], 3f\n"
 
         // k % 2 == 1
         "vle16.v v8, (%[b0_0])\n"
@@ -535,12 +592,12 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm3tn_3tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
 
         "sf.mm.f.f mt4, v0, v16\n"
         "sf.mm.f.f mt8, v0, v24\n"
-        "j 3f\n"
+        "j 4f\n"
 
-        "2:\n" // k % 2 == 0
+        "3:\n" // k % 2 == 0
         "sf.mm.f.f mt8, v0, v24\n"
 
-        "3:\n"
+        "4:\n"
         : [a0_0] "+&r"(a0_0), [a0_1] "+&r"(a0_1), [b0_0] "+&r"(b0_0),
           [b0_1] "+&r"(b0_1), [b1_0] "+&r"(b1_0), [b1_1] "+&r"(b1_1),
           [b2_0] "+&r"(b2_0), [b2_1] "+&r"(b2_1), [k] "+&r"(k)
@@ -730,7 +787,9 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm4tn_4tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
         "vle16.v v12, (%[b0_1])\n"
         "add %[b0_1], %[b0_1], %[sb]\n"
 
-        "bltu %[k], %[i4], 1f\n"
+        "bltu %[k], %[i4], 2f\n"
+
+        "beq %[tm0], %[tn0], 1f\n"
 
         "0:\n"
         "addi %[k], %[k], -2\n"
@@ -770,6 +829,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm4tn_4tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
         "sf.vsettn x0, %[tn0]\n"
 
         "bgeu %[k], %[i4], 0b\n"
+        "j 2f\n"
 
         "1:\n"
         "addi %[k], %[k], -2\n"
@@ -794,7 +854,44 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm4tn_4tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
 
         "sf.mm.f.f mt8, v0, v8\n"
 
-        "beqz %[k], 2f\n"
+        "vle16.v v8, (%[b0_0])\n"
+        "add %[b0_0], %[b0_0], %[sb]\n"
+        "vle16.v v12, (%[b0_1])\n"
+        "add %[b0_1], %[b0_1], %[sb]\n"
+
+        "sf.mm.f.f mt12, v0, v16\n"
+
+        "vle16.v v0, (%[a0_0])\n"
+        "add %[a0_0], %[a0_0], %[sa]\n"
+        "vle16.v v4, (%[a0_1])\n"
+        "add %[a0_1], %[a0_1], %[sa]\n"
+
+        "bgeu %[k], %[i4], 1b\n"
+
+        "2:\n"
+        "addi %[k], %[k], -2\n"
+        "vle16.v v16, (%[b1_0])\n"
+        "add %[b1_0], %[b1_0], %[sb]\n"
+        "vle16.v v20, (%[b1_1])\n"
+        "add %[b1_1], %[b1_1], %[sb]\n"
+
+        "sf.mm.f.f mt0, v0, v8\n"
+
+        "vle16.v v8, (%[b2_0])\n"
+        "add %[b2_0], %[b2_0], %[sb]\n"
+        "vle16.v v12, (%[b2_1])\n"
+        "add %[b2_1], %[b2_1], %[sb]\n"
+
+        "sf.mm.f.f mt4, v0, v16\n"
+
+        "vle16.v v16, (%[b3_0])\n"
+        "add %[b3_0], %[b3_0], %[sb]\n"
+        "vle16.v v20, (%[b3_1])\n"
+        "add %[b3_1], %[b3_1], %[sb]\n"
+
+        "sf.mm.f.f mt8, v0, v8\n"
+
+        "beqz %[k], 3f\n"
 
         // k % 2 == 1
         "vle16.v v8, (%[b0_0])\n"
@@ -818,12 +915,12 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm4tn_4tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
 
         "sf.mm.f.f mt8, v0, v8\n"
         "sf.mm.f.f mt12, v0, v16\n"
-        "j 3f\n"
+        "j 4f\n"
 
-        "2:\n" // k % 2 == 0
+        "3:\n" // k % 2 == 0
         "sf.mm.f.f mt12, v0, v16\n"
 
-        "3:\n"
+        "4:\n"
         : [a0_0] "+&r"(a0_0), [a0_1] "+&r"(a0_1), [b0_0] "+&r"(b0_0),
           [b0_1] "+&r"(b0_1), [b1_0] "+&r"(b1_0), [b1_1] "+&r"(b1_1),
           [b2_0] "+&r"(b2_0), [b2_1] "+&r"(b2_1), [b3_0] "+&r"(b3_0),
