@@ -79,6 +79,37 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m8_f32_f32_xsfmmbase(
   }
 }
 
+// Write tile back to memory (row-major)
+SKL_XSFMM_IN
+SKL_FUNC_PRIVATE void skl_gemm_vste_f32_f32_xsfmmbase(
+    size_t tm, size_t tn, size_t tss, float *c, size_t rsc) {
+  if (tm == 0 || tn == 0) {
+    return;
+  }
+
+  const size_t kRowInc = 1;
+
+  /* Store tile to memory. */
+  size_t tss_store = tss;
+  float *c_store = c;
+  size_t tss_end = tss + tm * kRowInc;
+
+  __asm__ volatile(
+      "sf.vsettnt x0, %[tn], e32, w1\n"
+
+      "0:\n"
+      "sf.vste32 %[tss], (%[c])\n"
+      "add %[tss], %[tss], %[kRowInc]\n"
+      "add %[c], %[c], %[sc]\n"
+      "bltu %[tss], %[tss_end], 0b\n"
+
+      "sf.vtdiscard"
+      : [tss] "+&r"(tss_store), [c] "+&r"(c_store)
+      : [kRowInc] "rI"(kRowInc), [sc] "r"(rsc * sizeof(float)), [tm] "r"(tm),
+        [tn] "r"(tn), [tss_end] "r"(tss_end)
+      : "vtype", "vl", "memory");
+}
+
 /* Computes C := alpha * tile + beta * C, where tile is the tm x tn tile
  * specified by tss. tm and tn must be <= TE. This is an optimized
  * implementation when tile rows fit into m2 register groups and csc0 == 1.
