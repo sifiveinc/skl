@@ -517,7 +517,7 @@ SKL_TEST_INIT_FUNC(int32_t, i32, INT, unused)
  * buffers in benchmark mode. If not defined, benchmarks should
  * declare and initialize buffers as static arrays.
  *
- * @note The prototype is declared by this macro so that it is not
+ * @note The prototype is declared by this macro so that
  * it can name an arbitrary symbol in a linked translation unit without
  * modification to the benchmark source.
  */
@@ -538,7 +538,7 @@ void *CUSTOM_ALLOC(size_t alignment, size_t size);
  * If defined, this function will be used to free memory allocated
  * by CUSTOM_ALLOC.
  */
-#if defined(CUSTOM_FREE)
+#if defined(CUSTOM_FREE) && defined(CUSTOM_ALLOC)
 /**
  * @brief Custom memory free function.
  *
