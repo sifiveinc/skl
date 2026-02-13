@@ -139,7 +139,7 @@ int main(void) {
 #endif // ENABLE_TEST
 
   SKL_BENCHMARK_RUN(TEST_LABEL(SKL_TEST_NAME), K * N, SKL_TEST_WARMUP,
-                    SKL_TEST_NAME, K, N, b, RSB, b_pack_test, (size_t)RSB1);
+                    SKL_TEST_NAME, K, N, b, RSB, b_pack, (size_t)RSB1);
 
   return res;
 }
