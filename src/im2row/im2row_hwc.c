@@ -41,6 +41,9 @@ next(size_t const *dims, size_t *indices, size_t ndims) {
  * @brief Helper function to extract data from a single spatial position (HWC
  * layout)
  *
+ * @param dst Destination buffer
+ * @param in_batch_tile_bytes Input tensor data as byte array (HWC layout)
+ * @param element_size Size in bytes of the input tensor's primitive data type
  * @param in_h Input height coordinate
  * @param in_w Input width coordinate
  * @param in_c Input channel offset
@@ -48,19 +51,16 @@ next(size_t const *dims, size_t *indices, size_t ndims) {
  * @param input_width Width of input tensor
  * @param input_width_x_channel Pre-computed input_width * input_channel
  * @param input_channel Number of input channels
- * @param in_batch_tile_bytes Input tensor data as byte array (HWC layout)
- * @param dst Destination buffer
  * @param zero_byte Padding byte value
  * @param copy_bytes Number of bytes to copy
- * @param element_size Size in bytes of the input tensor's primitive data type
  */
 SKL_FUNC_PRIVATE __attribute__((always_inline)) inline void
-extract_spatial_position_hwc(int32_t in_h, int32_t in_w, int32_t in_c,
-                             size_t input_height, size_t input_width,
-                             size_t input_width_x_channel, size_t input_channel,
-                             const char *in_batch_tile_bytes, char *dst,
-                             int zero_byte, size_t copy_bytes,
-                             size_t element_size) {
+extract_spatial_position_hwc(char *dst, const char *in_batch_tile_bytes,
+                             size_t element_size, int32_t in_h, int32_t in_w,
+                             int32_t in_c, size_t input_height,
+                             size_t input_width, size_t input_width_x_channel,
+                             size_t input_channel, int zero_byte,
+                             size_t copy_bytes) {
   if ((in_h >= 0) && (in_h < (int32_t)input_height) && (in_w >= 0) &&
       (in_w < (int32_t)input_width)) {
     const size_t src_byte_offset =
@@ -73,43 +73,13 @@ extract_spatial_position_hwc(int32_t in_h, int32_t in_w, int32_t in_c,
   }
 }
 
-/**
- * @brief Generic patch extraction with element-by-element processing
- *
- * Extracts a convolution patch from input tensor and converts it to a matrix
- * row. Processes elements individually with full bounds checking and padding
- * support.
- *
- * @param in_w_origin Left coordinate of patch in input tensor
- * @param in_h_origin Top coordinate of patch in input tensor
- * @param input_height Height of input tensor
- * @param input_width Width of input tensor
- * @param input_channel Number of input channels
- * @param filter_height Height of convolution filter
- * @param filter_width Width of convolution filter
- * @param dilation_width_factor Width dilation factor for dilated convolution
- * @param dilation_height_factor Height dilation factor for dilated convolution
- * @param in_batch_tile Pointer to the start of input tensor for current batch
- * (NHWC layout)
- * @param im2row_tile Output matrix row buffer (void* for generic type support)
- * @param zero_byte Byte value used for out-of-bounds padding
- * @param patch_begin_coord Starting coordinates [h, w, c] within the patch
- * @param patch_elements Number of elements to extract from patch
- * @param element_size Size in bytes of the input tensor's primitive data type
- * (e.g., sizeof(float))
- *
- * @note Uses element-by-element processing with memcpy/memset for type safety
- * @note Supports arbitrary patch starting coordinates and partial extraction
- * @note Requires HWC layout: channels are contiguous in memory for optimal
- * performance
- */
 SKL_FUNC void skl_im2row_generic_hwc(
+    void *im2row_tile, const void *in_batch_tile, size_t element_size,
     int32_t in_w_origin, int32_t in_h_origin, size_t input_height,
     size_t input_width, size_t input_channel, size_t filter_height,
     size_t filter_width, size_t dilation_width_factor,
-    size_t dilation_height_factor, const void *in_batch_tile, void *im2row_tile,
-    int zero_byte, const size_t patch_begin_coord[3], size_t patch_elements,
-    size_t element_size) {
+    size_t dilation_height_factor, int zero_byte,
+    const size_t patch_begin_coord[3], size_t patch_elements) {
   const size_t patch_dims[3] = {filter_height, filter_width, input_channel};
 
   size_t current_indices[3];
@@ -132,71 +102,24 @@ SKL_FUNC void skl_im2row_generic_hwc(
     const int32_t in_c = (int32_t)current_indices[2];
 
     extract_spatial_position_hwc(
+        im2row_tile_bytes + dst_byte_offset, in_batch_tile_bytes, element_size,
         in_h, in_w, in_c, input_height, input_width, input_width_x_channel,
-        input_channel, in_batch_tile_bytes, im2row_tile_bytes + dst_byte_offset,
-        zero_byte, element_size, element_size);
+        input_channel, zero_byte, element_size);
     dst_byte_offset += element_size;
     iteration++;
   } while (next(&patch_dims[0], &current_indices[0], 3) == 0 &&
            iteration < patch_elements);
 }
 
-/**
- * @brief Optimized patch extraction with bulk memory operations
- *
- * Extracts a convolution patch from input tensor using optimized bulk copying.
- * Uses three-phase processing (head, middle, tail) to maximize memcpy
- * efficiency while maintaining support for partial patches and arbitrary
- * starting coordinates.
- *
- * @param in_w_origin Left coordinate of patch in input tensor
- * @param in_h_origin Top coordinate of patch in input tensor
- * @param input_height Height of input tensor
- * @param input_width Width of input tensor
- * @param input_channel Number of input channels
- * @param filter_height Height of convolution filter
- * @param filter_width Width of convolution filter
- * @param dilation_width_factor Width dilation factor for dilated convolution
- * @param dilation_height_factor Height dilation factor for dilated convolution
- * @param in_batch_tile Pointer to the start of input tensor for current batch
- * (NHWC layout)
- * @param im2row_tile Output matrix row buffer (void* for generic type support)
- * @param zero_byte Byte value used for out-of-bounds padding
- * @param patch_begin_coord Starting coordinates [h, w, c] within the patch
- * @param patch_elements Number of elements to extract from patch
- * @param element_size Size in bytes of the input tensor's primitive data type
- * (e.g., sizeof(float))
- *
- * @note Optimized for channel-contiguous memory layout
- * @note Uses bulk memcpy operations when possible for better performance
- * @note Head: partial channel at start, Middle: full channels, Tail: partial
- * channel at end
- *
- * @par Usage Examples:
- * @code
- * // Float32 convolution (HWC layout)
- * extract_patch_to_row_hwc(in_w_origin, in_h_origin, input_height, input_width,
- *                          input_channel, filter_height, filter_width,
- *                          dilation_width, dilation_height, in_batch_tile,
- *                          im2row_tile, 0, patch_begin_coord,
- *                          k_len, sizeof(float));
- *
- * // Int8 quantized convolution (HWC layout)
- * extract_patch_to_row_hwc(in_w_origin, in_h_origin, input_height, input_width,
- *                          input_channel, filter_height, filter_width,
- *                          dilation_width, dilation_height, in_batch_tile,
- *                          im2row_tile, 0, patch_begin_coord,
- *                          k_len, sizeof(int8_t));
- * @endcode
- */
-SKL_FUNC void skl_im2row_hwc(int32_t in_w_origin, int32_t in_h_origin,
-                             size_t input_height, size_t input_width,
-                             size_t input_channel, size_t filter_height,
-                             size_t filter_width, size_t dilation_width_factor,
-                             size_t dilation_height_factor,
-                             const void *in_batch_tile, void *im2row_tile,
-                             int zero_byte, const size_t patch_begin_coord[3],
-                             size_t patch_elements, size_t element_size) {
+SKL_FUNC void skl_im2row_hwc(void *im2row_tile, const void *in_batch_tile,
+                             size_t element_size, int32_t in_w_origin,
+                             int32_t in_h_origin, size_t input_height,
+                             size_t input_width, size_t input_channel,
+                             size_t filter_height, size_t filter_width,
+                             size_t dilation_width_factor,
+                             size_t dilation_height_factor, int zero_byte,
+                             const size_t patch_begin_coord[3],
+                             size_t patch_elements) {
   const size_t patch_dims[3] = {filter_height, filter_width, input_channel};
 
   // NOLINTBEGIN(readability-avoid-nested-conditional-operator)
@@ -233,10 +156,10 @@ SKL_FUNC void skl_im2row_hwc(int32_t in_w_origin, int32_t in_h_origin,
 
     char *dst = im2row_tile_bytes + dst_byte_offset;
     const size_t head_bytes = head * element_size;
-    extract_spatial_position_hwc(in_h, in_w, in_c, input_height, input_width,
+    extract_spatial_position_hwc(dst, in_batch_tile_bytes, element_size, in_h,
+                                 in_w, in_c, input_height, input_width,
                                  input_width_x_channel, input_channel,
-                                 in_batch_tile_bytes, dst, zero_byte,
-                                 head_bytes, element_size);
+                                 zero_byte, head_bytes);
     dst_byte_offset += head_bytes;
     is_end = next(&patch_dims[0], &current_indices[0], 2);
   }
@@ -250,10 +173,10 @@ SKL_FUNC void skl_im2row_hwc(int32_t in_w_origin, int32_t in_h_origin,
         in_w_origin + (int32_t)(dilation_width_factor * current_indices[1]);
 
     char *dst = im2row_tile_bytes + dst_byte_offset;
-    extract_spatial_position_hwc(in_h, in_w, 0, input_height, input_width,
+    extract_spatial_position_hwc(dst, in_batch_tile_bytes, element_size, in_h,
+                                 in_w, 0, input_height, input_width,
                                  input_width_x_channel, input_channel,
-                                 in_batch_tile_bytes, dst, zero_byte,
-                                 chunk_bytes, element_size);
+                                 zero_byte, chunk_bytes);
     dst_byte_offset += chunk_bytes;
     is_end = next(&patch_dims[0], &current_indices[0], 2);
     iteration++;
@@ -267,9 +190,9 @@ SKL_FUNC void skl_im2row_hwc(int32_t in_w_origin, int32_t in_h_origin,
 
     char *dst = im2row_tile_bytes + dst_byte_offset;
     const size_t tail_bytes = tail * element_size;
-    extract_spatial_position_hwc(in_h, in_w, 0, input_height, input_width,
+    extract_spatial_position_hwc(dst, in_batch_tile_bytes, element_size, in_h,
+                                 in_w, 0, input_height, input_width,
                                  input_width_x_channel, input_channel,
-                                 in_batch_tile_bytes, dst, zero_byte,
-                                 tail_bytes, element_size);
+                                 zero_byte, tail_bytes);
   }
 }
