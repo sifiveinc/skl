@@ -49,12 +49,13 @@ static inline void print_float(float x) {
 }
 
 /**
- * @brief Output performance results in throughput. (Default)
+ * @brief Output performance results in throughput as elements/cycle. (Default)
  *
- * @param name The name of the function.
+ * @param name The name of the function being benchmarked.
  * @param cycles The number of cycles of execution.
  * @param insts The number of instructions executed.
- * @param num_elems The number of elements (application-specific)
+ * @param num_elems The number of elements used in the benchmark
+ * (application-specific).
  */
 static inline void report_perf_epc(const char *name, uint64_t cycles,
                                    uint64_t insts, size_t num_elems) {
@@ -74,7 +75,8 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
  * @param name The name of the function being benchmarked.
  * @param cycles The number of cycles of execution.
  * @param insts The number of instructions executed.
- * @param num_elems The number of elements used in the benchmark (application-specific).
+ * @param num_maccs The number of multiply-accumulate ops used in the benchmark
+ * (application-specific).
  */
 static inline void report_perf_mpc(const char *name, uint64_t cycles,
                                    uint64_t insts, size_t num_maccs) {
