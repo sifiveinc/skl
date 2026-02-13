@@ -537,6 +537,10 @@ void *CUSTOM_ALLOC(size_t alignment, size_t size);
  *
  * If defined, this function will be used to free memory allocated
  * by CUSTOM_ALLOC.
+ *
+ * @note The prototype is declared by this macro so that
+ * it can name an arbitrary symbol in a linked translation unit without
+ * modification to the benchmark source.
  */
 #if defined(CUSTOM_FREE) && defined(CUSTOM_ALLOC)
 /**
