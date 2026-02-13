@@ -59,7 +59,7 @@ extract_spatial_position_hwc(char *dst, const char *in_batch_tile_bytes,
                              size_t element_size, int32_t in_h, int32_t in_w,
                              int32_t in_c, size_t input_height,
                              size_t input_width, size_t input_width_x_channel,
-                             size_t input_channel, int zero_byte,
+                             size_t input_channel, unsigned char zero_byte,
                              size_t copy_bytes) {
   if ((in_h >= 0) && (in_h < (int32_t)input_height) && (in_w >= 0) &&
       (in_w < (int32_t)input_width)) {
@@ -69,7 +69,7 @@ extract_spatial_position_hwc(char *dst, const char *in_batch_tile_bytes,
     const char *src = in_batch_tile_bytes + src_byte_offset;
     memcpy(dst, src, copy_bytes);
   } else {
-    memset(dst, zero_byte, copy_bytes);
+    memset(dst, (int)zero_byte, copy_bytes);
   }
 }
 
@@ -78,7 +78,7 @@ SKL_FUNC void skl_im2row_generic_hwc(
     int32_t in_w_origin, int32_t in_h_origin, size_t input_height,
     size_t input_width, size_t input_channel, size_t filter_height,
     size_t filter_width, size_t dilation_width_factor,
-    size_t dilation_height_factor, int zero_byte,
+    size_t dilation_height_factor, unsigned char zero_byte,
     const size_t patch_begin_coord[3], size_t patch_elements) {
   const size_t patch_dims[3] = {filter_height, filter_width, input_channel};
 
@@ -111,15 +111,14 @@ SKL_FUNC void skl_im2row_generic_hwc(
            iteration < patch_elements);
 }
 
-SKL_FUNC void skl_im2row_hwc(void *im2row_tile, const void *in_batch_tile,
-                             size_t element_size, int32_t in_w_origin,
-                             int32_t in_h_origin, size_t input_height,
-                             size_t input_width, size_t input_channel,
-                             size_t filter_height, size_t filter_width,
-                             size_t dilation_width_factor,
-                             size_t dilation_height_factor, int zero_byte,
-                             const size_t patch_begin_coord[3],
-                             size_t patch_elements) {
+SKL_FUNC void
+skl_im2row_hwc(void *im2row_tile, const void *in_batch_tile,
+               size_t element_size, int32_t in_w_origin, int32_t in_h_origin,
+               size_t input_height, size_t input_width, size_t input_channel,
+               size_t filter_height, size_t filter_width,
+               size_t dilation_width_factor, size_t dilation_height_factor,
+               unsigned char zero_byte, const size_t patch_begin_coord[3],
+               size_t patch_elements) {
   const size_t patch_dims[3] = {filter_height, filter_width, input_channel};
 
   // NOLINTBEGIN(readability-avoid-nested-conditional-operator)

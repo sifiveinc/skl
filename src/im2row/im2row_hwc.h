@@ -61,15 +61,13 @@ extern "C" {
  * @note Requires HWC layout: channels are contiguous in memory for optimal
  * performance
  */
-void skl_im2row_generic_hwc(void *im2row_tile, const void *in_batch_tile,
-                            size_t element_size, int32_t in_w_origin,
-                            int32_t in_h_origin, size_t input_height,
-                            size_t input_width, size_t input_channel,
-                            size_t filter_height, size_t filter_width,
-                            size_t dilation_width_factor,
-                            size_t dilation_height_factor, int zero_byte,
-                            const size_t patch_begin_coord[3],
-                            size_t patch_elements);
+void skl_im2row_generic_hwc(
+    void *im2row_tile, const void *in_batch_tile, size_t element_size,
+    int32_t in_w_origin, int32_t in_h_origin, size_t input_height,
+    size_t input_width, size_t input_channel, size_t filter_height,
+    size_t filter_width, size_t dilation_width_factor,
+    size_t dilation_height_factor, unsigned char zero_byte,
+    const size_t patch_begin_coord[3], size_t patch_elements);
 
 /**
  * @brief Optimized patch extraction with bulk memory operations
@@ -125,7 +123,7 @@ void skl_im2row_hwc(void *im2row_tile, const void *in_batch_tile,
                     size_t input_width, size_t input_channel,
                     size_t filter_height, size_t filter_width,
                     size_t dilation_width_factor, size_t dilation_height_factor,
-                    int zero_byte, const size_t patch_begin_coord[3],
+                    unsigned char zero_byte, const size_t patch_begin_coord[3],
                     size_t patch_elements);
 
 #ifdef __cplusplus
