@@ -153,6 +153,56 @@ void init_random_f8e4m3(uint8_t *arr, size_t len) {
 }
 
 #if defined(ENABLE_TEST)
+/**
+ * @brief Scalar OFP8 E4M3 matrix-matrix multiplication with float32
+ * accumulator.
+ *
+ * @param m - Number of rows in matrices A and C.
+ * @param n - Number of columns in matrices B and C.
+ * @param k - Number of columns in A and rows in B (inner dimension).
+ * @param alpha - Scalar multiplier for A * B product.
+ * @param a - Pointer to matrix A.
+ * @param rsa - Row stride of matrix A in elements.
+ * @param csa - Column stride of matrix A in elements.
+ * @param b - Pointer to matrix B.
+ * @param rsb - Row stride of matrix B in elements.
+ * @param csb - Column stride of matrix B in elements.
+ * @param beta - Scalar multiplier for matrix C.
+ * @param c - Pointer to matrix C.
+ * @param rsc - Row stride of matrix C in elements.
+ * @param csc - Column stride of matrix C in elements.
+ *
+ * Computes `C = alpha * A * B + beta * C` for matrices A, B, and C.
+ * This generic GEMM function defines the semantics of all optimized OFP8 E4M3
+ * GEMM kernels with FP32 accumulators in SKL.
+ *
+ * The entries of A and B are 8-bit floating point numbers in E4M3 format,
+ * type-punned as 8-bit unsigned integers.
+ *
+ * Matrices may be in row-major or column-major order, depending on the strides.
+ * For row-major matrices, the column stride is 1, and the row stride is the
+ * leading dimension. For column-major matrices, the reverse is true.
+ *
+ * @note
+ * This function is for API documentation purposes only, and should not be used
+ * for performance applications.
+ */
+static inline void skl_gemm_f8e4m3rc_f8e4m3rc_f32rc_scalar(
+    size_t m, size_t n, size_t k, float alpha, const uint8_t *a, size_t rsa,
+    size_t csa, const uint8_t *b, size_t rsb, size_t csb, float beta, float *c,
+    size_t rsc, size_t csc) {
+  for (size_t ii = 0; ii < m; ii++) {
+    for (size_t jj = 0; jj < n; jj++) {
+      float acc = 0;
+      for (size_t kk = 0; kk < k; kk++) {
+        acc += skl_cvt_f8e4m3_f32(a[ii * rsa + kk * csa]) *
+               skl_cvt_f8e4m3_f32(b[kk * rsb + jj * csb]);
+      }
+      c[ii * rsc + jj * csc] = beta * c[ii * rsc + jj * csc] + alpha * acc;
+    }
+  }
+}
+
 /* Check result after executing test and reference functions.
  *
  * Compares the test_c and ref_c matrices based on a bound derived from
