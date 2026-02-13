@@ -41,7 +41,6 @@ set(SKL_SCALAR_SRCS
   src/gemm/scalar/gemm_f32rcprc_f32rcprc_f32rcprc_scalar.c
   src/gemm/scalar/gemm_f64rcprc_f64rcprc_f64rcprc_scalar.c
   src/gemm/scalar/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.c
-  src/im2row/im2row_hwc.c
   src/im2row/im2row_hwc_scalar.c
   src/logistic/logistic_f16_scalar.c
   src/logistic/logistic_f32_scalar.c
@@ -82,6 +81,7 @@ set(SKL_ZVE32X_SRCS
   src/gemm/rvv/gemm_i8_i8_i32_zve32x_x390.c
   src/gemm/xsfvqdotq/pack_b_xsfvqdotq.c
   src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_zve32x.c
+  src/im2row/im2row_hwc_zve32x.c
   src/transpose/rvv/transpose_e8_zve32x.c
   src/transpose/rvv/transpose_e16_zve32x.c
   src/transpose/rvv/transpose_e32_zve32x.c

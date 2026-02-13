@@ -13,7 +13,10 @@
 #include <stdint.h>
 
 #include "./conv2d_nhwc_f32.h"
-#include "im2row/im2row_hwc.h"
+
+#if defined(__riscv_zve32x)
+#include "im2row/im2row_hwc_zve32x.h"
+#endif
 
 #if defined(__riscv_zve32f)
 #include "gemm/rvv/gemm_f32_f32_f32_zve32f_x390.h"
@@ -102,10 +105,10 @@ void conv2d_io_nhwc_filter_hwio_im2row_gemm_f32_f32_f32_zve32f_x390(
 
     float *row_tile = gemm_input + output_row_offset;
 
-    skl_im2row_hwc(row_tile, in_batch_tile, sizeof(float), in_w_origin,
-                   in_h_origin, input_height, input_width, input_channel,
-                   filter_height, filter_width, dilation_width, dilation_height,
-                   0, patch_begin_coord, k_len);
+    skl_im2row_hwc_zve32x(row_tile, in_batch_tile, sizeof(float), in_w_origin,
+                          in_h_origin, input_height, input_width, input_channel,
+                          filter_height, filter_width, dilation_width,
+                          dilation_height, 0, patch_begin_coord, k_len);
 
     output_row_offset += k_len;
   }

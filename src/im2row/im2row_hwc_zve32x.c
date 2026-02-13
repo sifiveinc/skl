@@ -1,21 +1,25 @@
 // Copyright 2025 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+#if !defined(__riscv_zve32x)
+#error This file requires the Zve32x extension
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
+#include <string.h> // TODO(pattyl): Remove it and add rvv memcpy and memset
 
 #include "./im2row_utils.h"
 
 #include "skl-common.h"
 
-SKL_FUNC void
-skl_im2row_hwc(void *out, const void *in_batch, size_t element_size,
-               int32_t in_w_origin, int32_t in_h_origin, size_t input_height,
-               size_t input_width, size_t input_channel, size_t filter_height,
-               size_t filter_width, size_t dilation_width_factor,
-               size_t dilation_height_factor, unsigned char zero_byte,
-               const size_t patch_begin_coord[3], size_t patch_elements) {
+SKL_FUNC void skl_im2row_hwc_zve32x(
+    void *out, const void *in_batch, size_t element_size, int32_t in_w_origin,
+    int32_t in_h_origin, size_t input_height, size_t input_width,
+    size_t input_channel, size_t filter_height, size_t filter_width,
+    size_t dilation_width_factor, size_t dilation_height_factor,
+    unsigned char zero_byte, const size_t patch_begin_coord[3],
+    size_t patch_elements) {
   const size_t patch_dims[3] = {filter_height, filter_width, input_channel};
 
   // NOLINTBEGIN(readability-avoid-nested-conditional-operator)

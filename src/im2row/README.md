@@ -13,7 +13,7 @@ A straightforward implementation that processes elements individually:
 - **Dilation support**: Implements dilated convolution patterns
 - **Generic type support**: Works with any primitive data type via `void*` and `element_size`
 
-### `skl_im2row_hwc()`
+### `skl_im2row_hwc_zve32x()`
 An optimized implementation that leverages bulk memory operations:
 - **Bulk memory operations**: Uses `memcpy` for efficient channel-wise data movement
 - **HWC layout optimization**: Exploits channel-contiguous memory layout in HWC tensors

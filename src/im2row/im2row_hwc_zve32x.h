@@ -24,6 +24,10 @@
  * contiguous
  */
 
+#if !defined(__riscv_zve32x)
+#error This file requires the Zve32x extension
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -66,27 +70,29 @@ extern "C" {
  * @par Usage Examples:
  * @code
  * // Float32 convolution (HWC layout)
- * skl_im2row_hwc(out, in_batch, sizeof(float),
- *                in_w_origin, in_h_origin, input_height, input_width,
- *                input_channel, filter_height, filter_width,
- *                dilation_width, dilation_height,
- *                0, patch_begin_coord, k_len);
+ * skl_im2row_hwc_zve32x(out, in_batch, sizeof(float),
+ *                       in_w_origin, in_h_origin, input_height, input_width,
+ *                       input_channel, filter_height, filter_width,
+ *                       dilation_width, dilation_height,
+ *                       0, patch_begin_coord, k_len);
  *
  * // Int8 quantized convolution (HWC layout)
- * skl_im2row_hwc(out, in_batch, sizeof(int8_t),
- *                in_w_origin, in_h_origin, input_height, input_width,
- *                input_channel, filter_height, filter_width,
- *                dilation_width, dilation_height,
- *                0, patch_begin_coord, k_len);
+ * skl_im2row_hwc_zve32x(out, in_batch, sizeof(int8_t),
+ *                       in_w_origin, in_h_origin, input_height, input_width,
+ *                       input_channel, filter_height, filter_width,
+ *                       dilation_width, dilation_height,
+ *                       0, patch_begin_coord, k_len);
  * @endcode
  */
-void skl_im2row_hwc(void *out, const void *in_batch, size_t element_size,
-                    int32_t in_w_origin, int32_t in_h_origin,
-                    size_t input_height, size_t input_width,
-                    size_t input_channel, size_t filter_height,
-                    size_t filter_width, size_t dilation_width_factor,
-                    size_t dilation_height_factor, unsigned char zero_byte,
-                    const size_t patch_begin_coord[3], size_t patch_elements);
+void skl_im2row_hwc_zve32x(void *out, const void *in_batch, size_t element_size,
+                           int32_t in_w_origin, int32_t in_h_origin,
+                           size_t input_height, size_t input_width,
+                           size_t input_channel, size_t filter_height,
+                           size_t filter_width, size_t dilation_width_factor,
+                           size_t dilation_height_factor,
+                           unsigned char zero_byte,
+                           const size_t patch_begin_coord[3],
+                           size_t patch_elements);
 
 #ifdef __cplusplus
 }

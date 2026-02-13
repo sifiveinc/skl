@@ -240,6 +240,10 @@
  * Im2Row Kernels
  */
 
-#include "../src/im2row/im2row_hwc.h"
+#include "../src/im2row/im2row_hwc_scalar.h"
+
+#if defined(__riscv_zve32x)
+#include "../src/im2row/im2row_hwc_zve32x.h"
+#endif
 
 // IWYU pragma: end_exports
