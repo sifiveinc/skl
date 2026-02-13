@@ -53,8 +53,6 @@
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>
-#include <riscv_vector.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -99,8 +97,8 @@ _Alignas(ALIGN) int8_t b[BLEN];
 _Alignas(ALIGN) int8_t b_pack[BLEN_PACKED];
 _Alignas(ALIGN) int32_t c[CLEN];
 #if defined(ENABLE_TEST)
-_Alignas(ALIGN) int32_t c_ref[CLEN];
-_Alignas(ALIGN) int32_t c_test[CLEN];
+_Alignas(ALIGN) int32_t ref_c[CLEN];
+_Alignas(ALIGN) int32_t test_c[CLEN];
 #endif // ENABLE_TEST
 
 #if defined(ENABLE_TEST)
@@ -111,16 +109,16 @@ _Alignas(ALIGN) int32_t c_test[CLEN];
 int check_error(void) {
   /* Compute the reference (scalar) matrix output. */
   skl_gemm_i8rc_i8rc_i32rc_scalar(M, N, K, ALPHA, a, (size_t)RSA, (size_t)CSA,
-                                  b, (size_t)RSB, (size_t)CSB, BETA, c_ref,
+                                  b, (size_t)RSB, (size_t)CSB, BETA, ref_c,
                                   (size_t)RSC, (size_t)CSC);
 
   /* Compare the reference and test outputs. */
   for (size_t i = 0; i < M; ++i) {
     for (size_t j = 0; j < RSC; ++j) {
       size_t idx = i * RSC + j * CSC;
-      if (c_test[idx] != c_ref[idx]) {
-        printf("result [%zu, %zu] (%d) != reference (%d)\n", i, j, c_test[idx],
-               c_ref[idx]);
+      if (test_c[idx] != ref_c[idx]) {
+        printf("result [%zu, %zu] (%d) != reference (%d)\n", i, j, test_c[idx],
+               ref_c[idx]);
         return 1;
       }
     }
@@ -129,6 +127,9 @@ int check_error(void) {
   return 0;
 }
 #endif // ENABLE_TEST
+
+#define TEST_LABEL(S) #S ":\n"
+#define PRINT_TEST_NAME(S) printf(TEST_LABEL(S));
 
 int main(void) {
   int status = 0;
@@ -142,23 +143,28 @@ int main(void) {
   }
 
   int res = EXIT_SUCCESS;
-  skl_test_init_i8(a, ALEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
-  skl_test_init_i8(b, BLEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
-  skl_test_init_i32(c, CLEN, SKL_TEST_MIN_I32, SKL_TEST_MAX_I32);
+
+  PRINT_TEST_NAME(SKL_TEST_NAME);
   printf("M = %u, N = %u, K = %u\n", M, N, K);
+  printf("ALPHA = %d, BETA = %d\n", ALPHA, BETA);
   printf("RSA = %u, RSB = %u, RSC = %u\n", RSA, RSB, RSC);
   printf("RSB1 = %u\n", RSB1);
-  printf("ALPHA = %d, BETA = %d\n", ALPHA, BETA);
 
-#if defined(ENABLE_TEST)
-  memcpy(c_ref, c, CLEN * sizeof(int32_t));
-  memcpy(c_test, c, CLEN * sizeof(int32_t));
+  /* Populate the matrices. */
+  skl_test_init_i8(a, ALEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
+  skl_test_init_i8(b, BLEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
+  skl_test_init_i8(b_pack, BLEN_PACKED, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
+  skl_test_init_i32(c, CLEN, SKL_TEST_MIN_I32, SKL_TEST_MAX_I32);
 
   skl_pack_b_i8_xsfvqdotq(K, N, b, (size_t)RSB, b_pack, (size_t)RSB1);
-  skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(M, N, K, a, (size_t)RSA, b_pack,
-                                       (size_t)RSB1, c_test, (size_t)RSC,
-                                       ACCUM);
 
+#if defined(ENABLE_TEST)
+  /* Make copies of C to write the reference and test outputs to. */
+  memcpy(ref_c, c, CLEN * sizeof(int32_t));
+  memcpy(test_c, c, CLEN * sizeof(int32_t));
+  skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(M, N, K, a, (size_t)RSA, b_pack,
+                                       (size_t)RSB1, test_c, (size_t)RSC,
+                                       ACCUM);
   res += check_error();
 #endif // ENABLE_TEST
 
