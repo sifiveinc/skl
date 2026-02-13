@@ -133,7 +133,7 @@ enum {
   BLEN = ((K - 1) * RSB + (N - 1) * CSB + 1),
 };
 
-#if defined(CUSTOM_ALLOC)
+#if defined(SKL_TEST_MALLOC)
 float *a;
 float *b;
 float *c;
@@ -216,10 +216,10 @@ int check_error(void) {
 int main(void) {
   int res = EXIT_SUCCESS;
 
-#if defined(CUSTOM_ALLOC)
-  a = (float *)CUSTOM_ALLOC(ALIGN, ALEN * sizeof(float));
-  b = (float *)CUSTOM_ALLOC(ALIGN, BLEN * sizeof(float));
-  c = (float *)CUSTOM_ALLOC(ALIGN, CLEN * sizeof(float));
+#if defined(SKL_TEST_MALLOC)
+  a = (float *)SKL_TEST_MALLOC(ALIGN, ALEN * sizeof(float));
+  b = (float *)SKL_TEST_MALLOC(ALIGN, BLEN * sizeof(float));
+  c = (float *)SKL_TEST_MALLOC(ALIGN, CLEN * sizeof(float));
 #endif
 
   PRINT_TEST_NAME(SKL_TEST_NAME);
@@ -264,10 +264,10 @@ int main(void) {
   printf("\n");
 #endif // ENABLE_BENCHMARK
 
-#if defined(CUSTOM_ALLOC) && defined(CUSTOM_FREE)
-  CUSTOM_FREE(a);
-  CUSTOM_FREE(b);
-  CUSTOM_FREE(c);
+#if defined(SKL_TEST_MALLOC) && defined(SKL_TEST_FREE)
+  SKL_TEST_FREE(a);
+  SKL_TEST_FREE(b);
+  SKL_TEST_FREE(c);
 #endif
 
   return res;

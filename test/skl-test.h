@@ -521,7 +521,7 @@ SKL_TEST_INIT_FUNC(int32_t, i32, INT, unused)
  * it can name an arbitrary symbol in a linked translation unit without
  * modification to the benchmark source.
  */
-#if defined(CUSTOM_ALLOC)
+#if defined(SKL_TEST_MALLOC)
 /**
  * @brief Aligned memory allocation function.
  *
@@ -529,24 +529,24 @@ SKL_TEST_INIT_FUNC(int32_t, i32, INT, unused)
  * @param size Size of memory to allocate in bytes
  * @return Pointer to allocated memory
  */
-void *CUSTOM_ALLOC(size_t alignment, size_t size);
+void *SKL_TEST_MALLOC(size_t alignment, size_t size);
 #endif
 
 /**
  * @brief Custom memory free function
  *
  * If defined, this function will be used to free memory allocated
- * by CUSTOM_ALLOC.
+ * by SKL_TEST_MALLOC.
  *
  * @note The prototype is declared by this macro so that
  * it can name an arbitrary symbol in a linked translation unit without
  * modification to the benchmark source.
  */
-#if defined(CUSTOM_FREE) && defined(CUSTOM_ALLOC)
+#if defined(SKL_TEST_FREE) && defined(SKL_TEST_MALLOC)
 /**
  * @brief Custom memory free function.
  *
  * @param ptr Pointer to memory to free
  */
-void CUSTOM_FREE(void *ptr);
+void SKL_TEST_FREE(void *ptr);
 #endif
