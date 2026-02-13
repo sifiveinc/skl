@@ -113,10 +113,6 @@ int check_error(void) {
 }
 #endif
 
-#define STR(S) #S
-#define TEST_LABEL(S) STR(S)
-#define PRINT_TEST_NAME(S) printf(TEST_LABEL(S) ":\n");
-
 int main(void) {
   int status = 0;
   SKL_TEST_REQUIRE(status, RSB >= N);
@@ -138,8 +134,8 @@ int main(void) {
   res += check_error();
 #endif // ENABLE_TEST
 
-  SKL_BENCHMARK_RUN(TEST_LABEL(SKL_TEST_NAME), K * N, SKL_TEST_WARMUP,
-                    SKL_TEST_NAME, K, N, b, RSB, b_pack, (size_t)RSB1);
+  SKL_BENCHMARK_RUN(skl_test_name, K * N, SKL_TEST_WARMUP, SKL_TEST_NAME, K, N,
+                    b, RSB, b_pack, (size_t)RSB1);
 
   return res;
 }

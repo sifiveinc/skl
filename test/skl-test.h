@@ -11,6 +11,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* Extract the test name from SKL_TEST_NAME as a string. */
+#define SKL_TEST_NAME_STR(NAME) #NAME
+#define DECL_SKL_TEST_NAME(NAME)                                               \
+  const char *skl_test_name = SKL_TEST_NAME_STR(NAME)
+DECL_SKL_TEST_NAME(SKL_TEST_NAME);
+
 #if __riscv_xlen == 32
 #define RISCV_READ_COUNTER_FUNC(COUNTER)                                       \
   static inline uint64_t riscv_read_m##COUNTER(void) {                         \

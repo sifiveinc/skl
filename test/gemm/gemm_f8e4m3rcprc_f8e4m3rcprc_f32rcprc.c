@@ -245,14 +245,10 @@ int check_error(void) {
 }
 #endif // ENABLE_TEST
 
-#define STR(S) #S
-#define TEST_LABEL(S) STR(S)
-#define PRINT_TEST_NAME(S) printf(TEST_LABEL(S) ":\n");
-
 int main(void) {
   int res = EXIT_SUCCESS;
 
-  PRINT_TEST_NAME(SKL_TEST_NAME);
+  printf("%s:\n", skl_test_name);
   printf("M0 = %u, N0 = %u, K0 = %u\n", M0, N0, K0);
   printf("M1 = %u, N1 = %u, K1 = %u\n", M1, N1, K1);
   printf("ALPHA = %f, BETA = %f\n", ALPHA, BETA);
@@ -278,11 +274,11 @@ int main(void) {
   res += check_error();
 #endif // ENABLE_TEST
 
-  SKL_BENCHMARK_RUN(TEST_LABEL(SKL_TEST_NAME), M0 * N0 * K0 * M1 * N1 * K1,
-                    SKL_TEST_WARMUP, SKL_TEST_NAME, M0, N0, K0, M1, N1, K1,
-                    ALPHA, a, RSA0, CSA0, (size_t)RSA1, (size_t)CSA1, b, RSB0,
-                    CSB0, (size_t)RSB1, (size_t)CSB1, BETA, c, RSC0, CSC0,
-                    (size_t)RSC1, (size_t)CSC1);
+  SKL_BENCHMARK_RUN(skl_test_name, M0 * N0 * K0 * M1 * N1 * K1, SKL_TEST_WARMUP,
+                    SKL_TEST_NAME, M0, N0, K0, M1, N1, K1, ALPHA, a, RSA0, CSA0,
+                    (size_t)RSA1, (size_t)CSA1, b, RSB0, CSB0, (size_t)RSB1,
+                    (size_t)CSB1, BETA, c, RSC0, CSC0, (size_t)RSC1,
+                    (size_t)CSC1);
 
   return res;
 }
