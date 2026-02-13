@@ -76,6 +76,7 @@
 // in int8_t
 #define SKL_TEST_RAND_MAX_I8 126
 
+#define SKL_TEST_PERF_REPORT report_perf_mpc
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>

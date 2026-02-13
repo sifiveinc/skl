@@ -68,6 +68,23 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
   printf(" insts / element  (%" PRIu64 " insts)\n", insts);
 }
 
+/**
+ * @brief Output performance results in throughput as MACCs/cycle.
+ *
+ * @param name The name of the function.
+ * @param cycles The number of cycles of execution.
+ * @param insts The number of instructions executed.
+ * @param num_elems The number of elements (application-specific)
+ */
+static inline void report_perf_mpc(const char *name, uint64_t cycles,
+                                   uint64_t insts, size_t num_maccs) {
+  float mpc = (float)num_maccs / (float)cycles;
+  printf("\n%15s : ", name);
+  print_float(mpc);
+  printf(" MACCs / cycle (%" PRIu64 " cycles)\n", cycles);
+  printf("%15s : %" PRIu64 " insts\n", name, insts);
+}
+
 /** @brief Determine whether to execute a warmup iteration.
  *
  * Used by most SKL benchmarks as a default. Can be overridden by defining
