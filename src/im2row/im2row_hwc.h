@@ -61,13 +61,14 @@ extern "C" {
  * @note Requires HWC layout: channels are contiguous in memory for optimal
  * performance
  */
-void extract_patch_to_row_generic_hwc(
-    int32_t in_w_origin, int32_t in_h_origin, size_t input_height,
-    size_t input_width, size_t input_channel, size_t filter_height,
-    size_t filter_width, size_t dilation_width_factor,
-    size_t dilation_height_factor, const void *in_batch_tile, void *im2row_tile,
-    int zero_byte, const size_t patch_begin_coord[3], size_t patch_elements,
-    size_t element_size);
+void skl_im2row_generic_hwc(int32_t in_w_origin, int32_t in_h_origin,
+                            size_t input_height, size_t input_width,
+                            size_t input_channel, size_t filter_height,
+                            size_t filter_width, size_t dilation_width_factor,
+                            size_t dilation_height_factor,
+                            const void *in_batch_tile, void *im2row_tile,
+                            int zero_byte, const size_t patch_begin_coord[3],
+                            size_t patch_elements, size_t element_size);
 
 /**
  * @brief Optimized patch extraction with bulk memory operations
@@ -103,28 +104,28 @@ void extract_patch_to_row_generic_hwc(
  * @par Usage Examples:
  * @code
  * // Float32 convolution (HWC layout)
- * extract_patch_to_row_hwc(in_w_origin, in_h_origin, input_height, input_width,
- *                          input_channel, filter_height, filter_width,
- *                          dilation_width, dilation_height, in_batch_tile,
- *                          im2row_tile, 0, patch_begin_coord,
- *                          k_len, sizeof(float));
+ * skl_im2row_hwc(in_w_origin, in_h_origin, input_height, input_width,
+ *                input_channel, filter_height, filter_width,
+ *                dilation_width, dilation_height, in_batch_tile,
+ *                im2row_tile, 0, patch_begin_coord,
+ *                k_len, sizeof(float));
  *
  * // Int8 quantized convolution (HWC layout)
- * extract_patch_to_row_hwc(in_w_origin, in_h_origin, input_height, input_width,
- *                          input_channel, filter_height, filter_width,
- *                          dilation_width, dilation_height, in_batch_tile,
- *                          im2row_tile, 0, patch_begin_coord,
- *                          k_len, sizeof(int8_t));
+ * skl_im2row_hwc(in_w_origin, in_h_origin, input_height, input_width,
+ *                input_channel, filter_height, filter_width,
+ *                dilation_width, dilation_height, in_batch_tile,
+ *                im2row_tile, 0, patch_begin_coord,
+ *                k_len, sizeof(int8_t));
  * @endcode
  */
-void extract_patch_to_row_hwc(int32_t in_w_origin, int32_t in_h_origin,
-                              size_t input_height, size_t input_width,
-                              size_t input_channel, size_t filter_height,
-                              size_t filter_width, size_t dilation_width_factor,
-                              size_t dilation_height_factor,
-                              const void *in_batch_tile, void *im2row_tile,
-                              int zero_byte, const size_t patch_begin_coord[3],
-                              size_t patch_elements, size_t element_size);
+void skl_im2row_hwc(int32_t in_w_origin, int32_t in_h_origin,
+                    size_t input_height, size_t input_width,
+                    size_t input_channel, size_t filter_height,
+                    size_t filter_width, size_t dilation_width_factor,
+                    size_t dilation_height_factor, const void *in_batch_tile,
+                    void *im2row_tile, int zero_byte,
+                    const size_t patch_begin_coord[3], size_t patch_elements,
+                    size_t element_size);
 
 #ifdef __cplusplus
 }

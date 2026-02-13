@@ -102,7 +102,7 @@ void conv2d_io_nhwc_filter_hwio_im2row_gemm_f32_f32_f32_zve32f_x390(
 
     float *im2row_tile = im2row + output_row_offset;
 
-    extract_patch_to_row_hwc(
+    skl_im2row_hwc(
         in_w_origin, in_h_origin, input_height, input_width, input_channel,
         filter_height, filter_width, dilation_width, dilation_height,
         in_batch_tile, im2row_tile, 0, patch_begin_coord, k_len, sizeof(float));

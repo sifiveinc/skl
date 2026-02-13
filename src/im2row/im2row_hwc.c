@@ -103,7 +103,7 @@ extract_spatial_position_hwc(int32_t in_h, int32_t in_w, int32_t in_c,
  * @note Requires HWC layout: channels are contiguous in memory for optimal
  * performance
  */
-SKL_FUNC void extract_patch_to_row_generic_hwc(
+SKL_FUNC void skl_im2row_generic_hwc(
     int32_t in_w_origin, int32_t in_h_origin, size_t input_height,
     size_t input_width, size_t input_channel, size_t filter_height,
     size_t filter_width, size_t dilation_width_factor,
@@ -189,13 +189,14 @@ SKL_FUNC void extract_patch_to_row_generic_hwc(
  *                          k_len, sizeof(int8_t));
  * @endcode
  */
-SKL_FUNC void extract_patch_to_row_hwc(
-    int32_t in_w_origin, int32_t in_h_origin, size_t input_height,
-    size_t input_width, size_t input_channel, size_t filter_height,
-    size_t filter_width, size_t dilation_width_factor,
-    size_t dilation_height_factor, const void *in_batch_tile, void *im2row_tile,
-    int zero_byte, const size_t patch_begin_coord[3], size_t patch_elements,
-    size_t element_size) {
+SKL_FUNC void skl_im2row_hwc(int32_t in_w_origin, int32_t in_h_origin,
+                             size_t input_height, size_t input_width,
+                             size_t input_channel, size_t filter_height,
+                             size_t filter_width, size_t dilation_width_factor,
+                             size_t dilation_height_factor,
+                             const void *in_batch_tile, void *im2row_tile,
+                             int zero_byte, const size_t patch_begin_coord[3],
+                             size_t patch_elements, size_t element_size) {
   const size_t patch_dims[3] = {filter_height, filter_width, input_channel};
 
   // NOLINTBEGIN(readability-avoid-nested-conditional-operator)

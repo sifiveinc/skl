@@ -4,7 +4,7 @@ The `im2row` directory contains functions for converting HWC layout convolution 
 
 ## Kernel List
 
-### `extract_patch_to_row_generic_hwc()`
+### `skl_im2row_generic_hwc()`
 A straightforward implementation that processes elements individually:
 - **Element-by-element processing**: Iterates through each element in the patch
 - **HWC layout optimization**: Designed specifically for Height-Width-Channels tensor layout
@@ -13,7 +13,7 @@ A straightforward implementation that processes elements individually:
 - **Dilation support**: Implements dilated convolution patterns
 - **Generic type support**: Works with any primitive data type via `void*` and `element_size`
 
-### `extract_patch_to_row_hwc()`
+### `skl_im2row_hwc()`
 An optimized implementation that leverages bulk memory operations:
 - **Bulk memory operations**: Uses `memcpy` for efficient channel-wise data movement
 - **HWC layout optimization**: Exploits channel-contiguous memory layout in HWC tensors
