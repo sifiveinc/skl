@@ -25,7 +25,6 @@ For general convolutions (any filter size, stride, dilation):
 - `conv2d_nhwc_f32.c`: Convolution function implementations
 - `conv2d_nhwc_f32.h`: API declarations with detailed documentation
 - `conv2d_utils.h`: Utility functions for convolution analysis and automatic transformation selection
-- `im2row_hwc.h`: HWC-optimized im2row preprocessing functions
 - `README.md`: This documentation
 
 ## Convolution to GEMM Transformation
@@ -109,30 +108,6 @@ conv2d_io_nhwc_filter_hwio_f32_scalar()
 ```
 - **Scalar reference**: Naive implementation for correctness verification
 - **Nested loops**: Direct convolution computation without optimization
-
-### Im2Row Preprocessing
-
-The `im2row_hwc.h` header provides two functions for converting HWC layout convolution patches into matrix rows:
-
-#### `extract_patch_to_row_generic_hwc()`
-A straightforward implementation that processes elements individually:
-- **Element-by-element processing**: Iterates through each element in the patch
-- **HWC layout optimization**: Designed specifically for Height-Width-Channels tensor layout
-- **Flexible patch extraction**: Supports arbitrary starting coordinates and patch sizes
-- **Bounds checking**: Handles zero-padding for out-of-bounds accesses beyond tensor boundaries
-- **Dilation support**: Implements dilated convolution patterns
-- **Generic type support**: Works with any primitive data type via `void*` and `element_size`
-
-#### `extract_patch_to_row_hwc()`
-An optimized implementation that leverages bulk memory operations:
-- **Bulk memory operations**: Uses `memcpy` for efficient channel-wise data movement
-- **HWC layout optimization**: Exploits channel-contiguous memory layout in HWC tensors
-- **Three-phase processing**: Handles head, middle (full channels), and tail portions separately
-- **Memory efficiency**: Minimizes function call overhead through bulk operations
-- **Channel optimization**: Optimized for contiguous channel data in HWC layout
-- **Generic type support**: Same as generic version, works with any primitive data type via `void*` and `element_size`
-
-> **Note**: See `im2row_hwc.h` for detailed API documentation with complete function signatures, parameter descriptions, and usage examples.
 
 ### GEMM Kernel Integration
 

@@ -236,4 +236,10 @@
 #include "../src/gelu/gelu_f32_zve32f.h"
 #endif
 
+/*
+ * Im2Row Kernels
+ */
+
+#include "../src/im2row/im2row_hwc.h"
+
 // IWYU pragma: end_exports

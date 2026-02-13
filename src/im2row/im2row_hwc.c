@@ -1,36 +1,11 @@
 // Copyright 2025 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-#pragma once
-
-/**
- * @file im2row_hwc.h
- * @brief Im2Row functions for HWC layout convolution patches into matrix rows
- *
- * This header provides generic data type support for im2row preprocessing
- * specifically for HWC (Height, Width, Channels) tensor layout, enabling
- * efficient convolution-to-GEMM transformation for any primitive type.
- * All functions use void pointers and byte-based addressing for type
- * flexibility.
- *
- * @note Im2row preprocessing is only required when:
- *       - Any stride > 1, OR
- *       - Any filter dimension > 1, OR
- *       - Any dilation > 1
- *       For 1x1 filters with stride=1 and dilation=1, direct GEMM is more
- * efficient.
- *
- * @note Input tensor layout: HWC (Height, Width, Channels) - channels are
- * contiguous
- */
-
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "skl-common.h"
 
 /**
  * @brief Increment multi-dimensional indices with carry propagation
@@ -40,8 +15,8 @@ extern "C" {
  * @param ndims Number of dimensions
  * @return 0 if increment successful, non-zero if all dimensions exhausted
  */
-__attribute__((always_inline)) inline int next(size_t const *dims,
-                                               size_t *indices, size_t ndims) {
+SKL_FUNC_PRIVATE __attribute__((always_inline)) inline int
+next(size_t const *dims, size_t *indices, size_t ndims) {
   int is_end = 0;
   size_t carry = 1;
   for (int32_t i = (int32_t)ndims - 1; i >= 0; --i) {
@@ -79,11 +54,13 @@ __attribute__((always_inline)) inline int next(size_t const *dims,
  * @param copy_bytes Number of bytes to copy
  * @param element_size Size in bytes of the input tensor's primitive data type
  */
-__attribute__((always_inline)) inline void extract_spatial_position_hwc(
-    int32_t in_h, int32_t in_w, int32_t in_c, size_t input_height,
-    size_t input_width, size_t input_width_x_channel, size_t input_channel,
-    const char *in_batch_tile_bytes, char *dst, int zero_byte,
-    size_t copy_bytes, size_t element_size) {
+SKL_FUNC_PRIVATE __attribute__((always_inline)) inline void
+extract_spatial_position_hwc(int32_t in_h, int32_t in_w, int32_t in_c,
+                             size_t input_height, size_t input_width,
+                             size_t input_width_x_channel, size_t input_channel,
+                             const char *in_batch_tile_bytes, char *dst,
+                             int zero_byte, size_t copy_bytes,
+                             size_t element_size) {
   if ((in_h >= 0) && (in_h < (int32_t)input_height) && (in_w >= 0) &&
       (in_w < (int32_t)input_width)) {
     const size_t src_byte_offset =
@@ -126,7 +103,7 @@ __attribute__((always_inline)) inline void extract_spatial_position_hwc(
  * @note Requires HWC layout: channels are contiguous in memory for optimal
  * performance
  */
-__attribute__((always_inline)) inline void extract_patch_to_row_generic_hwc(
+SKL_FUNC void extract_patch_to_row_generic_hwc(
     int32_t in_w_origin, int32_t in_h_origin, size_t input_height,
     size_t input_width, size_t input_channel, size_t filter_height,
     size_t filter_width, size_t dilation_width_factor,
@@ -152,7 +129,7 @@ __attribute__((always_inline)) inline void extract_patch_to_row_generic_hwc(
         in_h_origin + (int32_t)(dilation_height_factor * current_indices[0]);
     const int32_t in_w =
         in_w_origin + (int32_t)(dilation_width_factor * current_indices[1]);
-    const int32_t in_c = current_indices[2];
+    const int32_t in_c = (int32_t)current_indices[2];
 
     extract_spatial_position_hwc(
         in_h, in_w, in_c, input_height, input_width, input_width_x_channel,
@@ -212,7 +189,7 @@ __attribute__((always_inline)) inline void extract_patch_to_row_generic_hwc(
  *                          k_len, sizeof(int8_t));
  * @endcode
  */
-__attribute__((always_inline)) inline void extract_patch_to_row_hwc(
+SKL_FUNC void extract_patch_to_row_hwc(
     int32_t in_w_origin, int32_t in_h_origin, size_t input_height,
     size_t input_width, size_t input_channel, size_t filter_height,
     size_t filter_width, size_t dilation_width_factor,
@@ -221,12 +198,15 @@ __attribute__((always_inline)) inline void extract_patch_to_row_hwc(
     size_t element_size) {
   const size_t patch_dims[3] = {filter_height, filter_width, input_channel};
 
+  // NOLINTBEGIN(readability-avoid-nested-conditional-operator)
   const size_t head =
       patch_begin_coord[2]
           ? ((patch_elements < (patch_dims[2] - patch_begin_coord[2]))
                  ? patch_elements
                  : (patch_dims[2] - patch_begin_coord[2]))
           : 0;
+  // NOLINTEND(readability-avoid-nested-conditional-operator)
+
   const size_t tail = (patch_elements - head) % patch_dims[2];
   const size_t multiples = (patch_elements - head - tail) / patch_dims[2];
 
@@ -248,7 +228,7 @@ __attribute__((always_inline)) inline void extract_patch_to_row_hwc(
         in_h_origin + (int32_t)(dilation_height_factor * patch_begin_coord[0]);
     const int32_t in_w =
         in_w_origin + (int32_t)(dilation_width_factor * patch_begin_coord[1]);
-    const int32_t in_c = patch_begin_coord[2];
+    const int32_t in_c = (int32_t)patch_begin_coord[2];
 
     char *dst = im2row_tile_bytes + dst_byte_offset;
     const size_t head_bytes = head * element_size;
@@ -292,7 +272,3 @@ __attribute__((always_inline)) inline void extract_patch_to_row_hwc(
                                  tail_bytes, element_size);
   }
 }
-
-#ifdef __cplusplus
-}
-#endif
