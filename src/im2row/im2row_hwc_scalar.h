@@ -32,12 +32,11 @@ extern "C" {
 #endif
 
 /**
- * @brief Optimized patch extraction with bulk memory operations
+ * @brief Generic patch extraction with element-by-element processing
  *
- * Extracts a convolution patch from input tensor using optimized bulk copying.
- * Uses three-phase processing (head, middle, tail) to maximize memcpy
- * efficiency while maintaining support for partial patches and arbitrary
- * starting coordinates.
+ * Extracts a convolution patch from input tensor and converts it to a matrix
+ * row. Processes elements individually with full bounds checking and padding
+ * support.
  *
  * @param out Point to the buffer which stores a row of output matrix (void* for
  * generic type support)
@@ -58,35 +57,18 @@ extern "C" {
  * @param patch_begin_coord Starting coordinates [h, w, c] within the patch
  * @param patch_elements Number of elements to extract from patch
  *
- * @note Optimized for channel-contiguous memory layout
- * @note Uses bulk memcpy operations when possible for better performance
- * @note Head: partial channel at start, Middle: full channels, Tail: partial
- * channel at end
- *
- * @par Usage Examples:
- * @code
- * // Float32 convolution (HWC layout)
- * skl_im2row_hwc(out, in_batch, sizeof(float),
- *                in_w_origin, in_h_origin, input_height, input_width,
- *                input_channel, filter_height, filter_width,
- *                dilation_width, dilation_height,
- *                0, patch_begin_coord, k_len);
- *
- * // Int8 quantized convolution (HWC layout)
- * skl_im2row_hwc(out, in_batch, sizeof(int8_t),
- *                in_w_origin, in_h_origin, input_height, input_width,
- *                input_channel, filter_height, filter_width,
- *                dilation_width, dilation_height,
- *                0, patch_begin_coord, k_len);
- * @endcode
+ * @note Uses element-by-element processing with memcpy/memset for type safety
+ * @note Supports arbitrary patch starting coordinates and partial extraction
+ * @note Requires HWC layout: channels are contiguous in memory for optimal
+ * performance
  */
-void skl_im2row_hwc(void *out, const void *in_batch, size_t element_size,
-                    int32_t in_w_origin, int32_t in_h_origin,
-                    size_t input_height, size_t input_width,
-                    size_t input_channel, size_t filter_height,
-                    size_t filter_width, size_t dilation_width_factor,
-                    size_t dilation_height_factor, unsigned char zero_byte,
-                    const size_t patch_begin_coord[3], size_t patch_elements);
+void skl_im2row_generic_hwc(
+    void *out, const void *in_batch, size_t element_size, int32_t in_w_origin,
+    int32_t in_h_origin, size_t input_height, size_t input_width,
+    size_t input_channel, size_t filter_height, size_t filter_width,
+    size_t dilation_width_factor, size_t dilation_height_factor,
+    unsigned char zero_byte, const size_t patch_begin_coord[3],
+    size_t patch_elements);
 
 #ifdef __cplusplus
 }
