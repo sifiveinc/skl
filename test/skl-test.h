@@ -92,6 +92,9 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
  */
 #if !defined(SKL_TEST_PERF_REPORT)
 #define SKL_TEST_PERF_REPORT report_perf_epc
+#else
+void SKL_TEST_PERF_REPORT(const char *name, uint64_t cycles, uint64_t insts,
+                          size_t num_elems);
 #endif
 
 /**
