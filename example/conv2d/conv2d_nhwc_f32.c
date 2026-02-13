@@ -73,7 +73,7 @@ void conv2d_io_nhwc_filter_hwio_f32_f32_f32_scalar(
 }
 
 void conv2d_io_nhwc_filter_hwio_im2row_gemm_f32_f32_f32_zve32f_x390(
-    float *output, float *im2row, const float *input, const float *filter,
+    float *output, float *gemm_input, const float *input, const float *filter,
     size_t batches, size_t input_height, size_t input_width,
     size_t input_channel, size_t filter_height, size_t filter_width,
     size_t output_height, size_t output_width, size_t output_channel,
@@ -100,20 +100,19 @@ void conv2d_io_nhwc_filter_hwio_im2row_gemm_f32_f32_f32_zve32f_x390(
     const size_t in_offset = batch * input_height * input_width * input_channel;
     const float *in_batch_tile = input + in_offset;
 
-    float *im2row_tile = im2row + output_row_offset;
+    float *row_tile = gemm_input + output_row_offset;
 
-    skl_im2row_hwc(
-        im2row_tile, in_batch_tile, sizeof(float),
-        in_w_origin, in_h_origin, input_height, input_width, input_channel,
-        filter_height, filter_width, dilation_width, dilation_height,
-        0, patch_begin_coord, k_len);
+    skl_im2row_hwc(row_tile, in_batch_tile, sizeof(float), in_w_origin,
+                   in_h_origin, input_height, input_width, input_channel,
+                   filter_height, filter_width, dilation_width, dilation_height,
+                   0, patch_begin_coord, k_len);
 
     output_row_offset += k_len;
   }
 
-  skl_gemm_f32_f32_f32_zve32f_x390(m_len, n_len, k_len, 1 /* alpha */, im2row,
-                                   k_len /* rsa */, filter, n_len /* rsb */,
-                                   0 /* beta */, output, n_len /* rsc */);
+  skl_gemm_f32_f32_f32_zve32f_x390(
+      m_len, n_len, k_len, 1 /* alpha */, gemm_input, k_len /* rsa */, filter,
+      n_len /* rsb */, 0 /* beta */, output, n_len /* rsc */);
 }
 
 void conv2d_1x1_direct_gemm_f32_f32_f32_zve32f_x390(

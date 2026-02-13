@@ -68,8 +68,9 @@ void conv2d_io_nhwc_filter_hwio_f32_f32_f32_scalar(
  *
  * @param output Output tensor buffer [batches, output_height, output_width,
  * output_channel]
- * @param im2row Im2Row tensor buffer [batches * output_height * output_width,
- * filter_height * filter_width * input_channel]
+ * @param gemm_input The output tensor buffer [batches * output_height *
+ * output_width, filter_height * filter_width * input_channel] of im2row
+ * routine.
  * @param input Input tensor buffer [batches, input_height, input_width,
  * input_channel]
  * @param filter Filter tensor buffer [filter_height, filter_width,
@@ -96,7 +97,7 @@ void conv2d_io_nhwc_filter_hwio_f32_f32_f32_scalar(
  * @note Uses skl_gemm_f32_f32_f32_zve32f_x390 RISC-V Vector kernel
  */
 void conv2d_io_nhwc_filter_hwio_im2row_gemm_f32_f32_f32_zve32f_x390(
-    float *output, float *im2row, const float *input, const float *filter,
+    float *output, float *gemm_input, const float *input, const float *filter,
     size_t batches, size_t input_height, size_t input_width,
     size_t input_channel, size_t filter_height, size_t filter_width,
     size_t output_height, size_t output_width, size_t output_channel,
@@ -107,8 +108,7 @@ void conv2d_io_nhwc_filter_hwio_im2row_gemm_f32_f32_f32_zve32f_x390(
  * @brief Direct GEMM implementation for 1x1 convolution
  *
  * Optimized implementation for 1x1 filters with stride=1 and dilation=1.
- * Treats convolution as direct matrix multiplication without im2row
- * preprocessing.
+ * Treats convolution as direct matrix multiplication.
  *
  * @param output Output tensor buffer [batches, output_height, output_width,
  * output_channel]
