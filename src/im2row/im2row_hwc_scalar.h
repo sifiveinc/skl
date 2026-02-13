@@ -4,7 +4,7 @@
 #pragma once
 
 /**
- * @file im2row_hwc.h
+ * @file im2row_hwc_scalar.h
  * @brief Im2Row functions for HWC layout convolution patches into matrix rows
  *
  * This header provides generic data type support for im2row preprocessing
