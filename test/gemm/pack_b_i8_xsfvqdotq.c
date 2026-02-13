@@ -33,7 +33,7 @@
 
 #define SKL_TEST_PERF_REPORT report_perf_mpc
 #include "skl-test.h"
-#include "skl.h"
+#include "skl.h" // NOLINT(misc-include-cleaner)
 #include <inttypes.h>
 #include <riscv_vector.h>
 #include <stdbool.h>
