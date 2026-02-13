@@ -82,6 +82,9 @@ set(SKL_ZVE32X_SRCS
   src/gemm/xsfvqdotq/pack_b_xsfvqdotq.c
   src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_zve32x.c
   src/im2row/im2row_hwc_zve32x.c
+  src/im2row/im2row_e8_zve32x.c
+  src/im2row/im2row_e16_zve32x.c
+  src/im2row/im2row_e32_zve32x.c
   src/transpose/rvv/transpose_e8_zve32x.c
   src/transpose/rvv/transpose_e16_zve32x.c
   src/transpose/rvv/transpose_e32_zve32x.c
@@ -372,7 +375,7 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test(skl_transpose_e16_zve32x transpose/transpose_e16.c "")
     skl_add_test(skl_transpose_e32_zve32x transpose/transpose_e32.c "")
     skl_add_test(skl_pack_b_i8_xsfvqdotq gemm/pack_b_i8_xsfvqdotq.c "-DK=126;-DN=128")
-    skl_add_test(skl_im2row_hwc_zve32x im2row/im2row_hwc.c "")
+    skl_add_test(skl_im2row_hwc_e32_zve32x im2row/im2row_hwc_e32.c "")
   endif()
   if(RISCV_ZVFH)
     skl_add_test(skl_depthwise_conv2d_f16_f16_f16_zvfh depthwise_conv2d/depthwise_conv2d_f16_f16_f16.c "")
