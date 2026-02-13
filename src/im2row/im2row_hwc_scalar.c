@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "./im2row_utils.h"
 
@@ -41,7 +42,7 @@ SKL_FUNC void skl_im2row_generic_hwc(
     skl_im2row_hwc_slice_patch(out_bytes + dst_byte_offset, in_batch_bytes,
                                element_size, in_h, in_w, in_c, input_height,
                                input_width, input_width_stride, input_channel,
-                               zero_byte, element_size);
+                               zero_byte, element_size, memcpy, memset);
     dst_byte_offset += element_size;
     iteration++;
   } while (skl_im2row_patch_element_next(&patch_dims[0], &current_indices[0],

@@ -5,7 +5,8 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
+
+#include "skl-common.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,9 +20,8 @@ extern "C" {
  * @param ndims Number of dimensions
  * @return 0 if increment successful, non-zero if all dimensions exhausted
  */
-__attribute__((always_inline)) inline int
-skl_im2row_patch_element_next(size_t const *dims, size_t *indices,
-                              size_t ndims) {
+SKL_FUNC_UTIL int skl_im2row_patch_element_next(size_t const *dims,
+                                                size_t *indices, size_t ndims) {
   int is_end = 0;
   size_t carry = 1;
   for (int32_t i = (int32_t)ndims - 1; i >= 0; --i) {
@@ -59,21 +59,20 @@ skl_im2row_patch_element_next(size_t const *dims, size_t *indices,
  * @param zero_byte Padding byte value
  * @param copy_bytes Number of bytes to copy
  */
-__attribute__((always_inline)) inline void
-skl_im2row_hwc_slice_patch(char *out, const char *in_batch, size_t element_size,
-                           int32_t in_h, int32_t in_w, int32_t in_c,
-                           size_t input_height, size_t input_width,
-                           size_t input_width_stride, size_t input_channel,
-                           unsigned char zero_byte, size_t copy_bytes) {
+SKL_FUNC_UTIL void skl_im2row_hwc_slice_patch(
+    char *out, const char *in_batch, size_t element_size, int32_t in_h,
+    int32_t in_w, int32_t in_c, size_t input_height, size_t input_width,
+    size_t input_width_stride, size_t input_channel, unsigned char zero_byte,
+    size_t copy_bytes, skl_memcpy memcpy_f, skl_memset memset_f) {
   if ((in_h >= 0) && (in_h < (int32_t)input_height) && (in_w >= 0) &&
       (in_w < (int32_t)input_width)) {
     const size_t src_byte_offset =
         (in_h * input_width_stride + in_w * input_channel + in_c) *
         element_size;
     const char *src = in_batch + src_byte_offset;
-    memcpy(out, src, copy_bytes);
+    memcpy_f(out, src, copy_bytes);
   } else {
-    memset(out, (int)zero_byte, copy_bytes);
+    memset_f(out, (int)zero_byte, copy_bytes);
   }
 }
 

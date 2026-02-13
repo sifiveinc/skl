@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "./im2row_utils.h"
 
@@ -52,9 +53,10 @@ skl_im2row_hwc(void *out, const void *in_batch, size_t element_size,
 
     char *dst = out_bytes + dst_byte_offset;
     const size_t head_bytes = head * element_size;
-    skl_im2row_hwc_slice_patch(
-        dst, in_batch_bytes, element_size, in_h, in_w, in_c, input_height,
-        input_width, input_width_stride, input_channel, zero_byte, head_bytes);
+    skl_im2row_hwc_slice_patch(dst, in_batch_bytes, element_size, in_h, in_w,
+                               in_c, input_height, input_width,
+                               input_width_stride, input_channel, zero_byte,
+                               head_bytes, memcpy, memset);
     dst_byte_offset += head_bytes;
     is_end =
         skl_im2row_patch_element_next(&patch_dims[0], &current_indices[0], 2);
@@ -71,7 +73,8 @@ skl_im2row_hwc(void *out, const void *in_batch, size_t element_size,
     char *dst = out_bytes + dst_byte_offset;
     skl_im2row_hwc_slice_patch(dst, in_batch_bytes, element_size, in_h, in_w, 0,
                                input_height, input_width, input_width_stride,
-                               input_channel, zero_byte, chunk_bytes);
+                               input_channel, zero_byte, chunk_bytes, memcpy,
+                               memset);
     dst_byte_offset += chunk_bytes;
     is_end =
         skl_im2row_patch_element_next(&patch_dims[0], &current_indices[0], 2);
@@ -88,6 +91,7 @@ skl_im2row_hwc(void *out, const void *in_batch, size_t element_size,
     const size_t tail_bytes = tail * element_size;
     skl_im2row_hwc_slice_patch(dst, in_batch_bytes, element_size, in_h, in_w, 0,
                                input_height, input_width, input_width_stride,
-                               input_channel, zero_byte, tail_bytes);
+                               input_channel, zero_byte, tail_bytes, memcpy,
+                               memset);
   }
 }

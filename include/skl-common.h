@@ -106,3 +106,6 @@
 SKL_FUNC_UTIL void skl_instruction_schedule_barrier(void) {
   __asm__ volatile("" ::: "memory");
 }
+
+typedef void *(skl_memcpy)(void *dest, const void *src, size_t n);
+typedef void *(skl_memset)(void *str, int c, size_t n);
