@@ -16,7 +16,8 @@
  * @return 0 if increment successful, non-zero if all dimensions exhausted
  */
 SKL_FUNC_PRIVATE __attribute__((always_inline)) inline int
-next(size_t const *dims, size_t *indices, size_t ndims) {
+skl_im2row_patch_element_next(size_t const *dims, size_t *indices,
+                              size_t ndims) {
   int is_end = 0;
   size_t carry = 1;
   for (int32_t i = (int32_t)ndims - 1; i >= 0; --i) {
@@ -44,27 +45,26 @@ next(size_t const *dims, size_t *indices, size_t ndims) {
  * @param out Destination buffer
  * @param in_batch Input tensor data as byte array (HWC layout)
  * @param element_size Size in bytes of the input tensor's primitive data type
- * @param in_h Input height coordinate
- * @param in_w Input width coordinate
- * @param in_c Input channel offset
+ * @param in_h Input height coordinate of the slice
+ * @param in_w Input width coordinate of the slice
+ * @param in_c Input channel offset of the slice
  * @param input_height Height of input tensor
  * @param input_width Width of input tensor
- * @param input_width_x_channel Pre-computed input_width * input_channel
+ * @param input_width_stride Width's stride of input tensor
  * @param input_channel Number of input channels
  * @param zero_byte Padding byte value
  * @param copy_bytes Number of bytes to copy
  */
 SKL_FUNC_PRIVATE __attribute__((always_inline)) inline void
-extract_spatial_position_hwc(char *out, const char *in_batch,
-                             size_t element_size, int32_t in_h, int32_t in_w,
-                             int32_t in_c, size_t input_height,
-                             size_t input_width, size_t input_width_x_channel,
-                             size_t input_channel, unsigned char zero_byte,
-                             size_t copy_bytes) {
+skl_im2row_hwc_slice_patch(char *out, const char *in_batch, size_t element_size,
+                           int32_t in_h, int32_t in_w, int32_t in_c,
+                           size_t input_height, size_t input_width,
+                           size_t input_width_stride, size_t input_channel,
+                           unsigned char zero_byte, size_t copy_bytes) {
   if ((in_h >= 0) && (in_h < (int32_t)input_height) && (in_w >= 0) &&
       (in_w < (int32_t)input_width)) {
     const size_t src_byte_offset =
-        (in_h * input_width_x_channel + in_w * input_channel + in_c) *
+        (in_h * input_width_stride + in_w * input_channel + in_c) *
         element_size;
     const char *src = in_batch + src_byte_offset;
     memcpy(out, src, copy_bytes);
@@ -89,7 +89,7 @@ SKL_FUNC void skl_im2row_generic_hwc(
   char *out_bytes = (char *)out;
 
   // Pre-compute common factors
-  const size_t input_width_x_channel = input_width * input_channel;
+  const size_t input_width_stride = input_width * input_channel;
 
   size_t dst_byte_offset = 0;
 
@@ -101,13 +101,14 @@ SKL_FUNC void skl_im2row_generic_hwc(
         in_w_origin + (int32_t)(dilation_width_factor * current_indices[1]);
     const int32_t in_c = (int32_t)current_indices[2];
 
-    extract_spatial_position_hwc(out_bytes + dst_byte_offset, in_batch_bytes,
-                                 element_size, in_h, in_w, in_c, input_height,
-                                 input_width, input_width_x_channel,
-                                 input_channel, zero_byte, element_size);
+    skl_im2row_hwc_slice_patch(out_bytes + dst_byte_offset, in_batch_bytes,
+                               element_size, in_h, in_w, in_c, input_height,
+                               input_width, input_width_stride, input_channel,
+                               zero_byte, element_size);
     dst_byte_offset += element_size;
     iteration++;
-  } while (next(&patch_dims[0], &current_indices[0], 3) == 0 &&
+  } while (skl_im2row_patch_element_next(&patch_dims[0], &current_indices[0],
+                                         3) == 0 &&
            iteration < patch_elements);
 }
 
@@ -139,7 +140,7 @@ skl_im2row_hwc(void *out, const void *in_batch, size_t element_size,
   char *out_bytes = (char *)out;
 
   // Pre-compute common factors
-  const size_t input_width_x_channel = input_width * input_channel;
+  const size_t input_width_stride = input_width * input_channel;
 
   int is_end = 0;
 
@@ -154,12 +155,12 @@ skl_im2row_hwc(void *out, const void *in_batch, size_t element_size,
 
     char *dst = out_bytes + dst_byte_offset;
     const size_t head_bytes = head * element_size;
-    extract_spatial_position_hwc(dst, in_batch_bytes, element_size, in_h, in_w,
-                                 in_c, input_height, input_width,
-                                 input_width_x_channel, input_channel,
-                                 zero_byte, head_bytes);
+    skl_im2row_hwc_slice_patch(
+        dst, in_batch_bytes, element_size, in_h, in_w, in_c, input_height,
+        input_width, input_width_stride, input_channel, zero_byte, head_bytes);
     dst_byte_offset += head_bytes;
-    is_end = next(&patch_dims[0], &current_indices[0], 2);
+    is_end =
+        skl_im2row_patch_element_next(&patch_dims[0], &current_indices[0], 2);
   }
 
   size_t iteration = 0;
@@ -171,12 +172,12 @@ skl_im2row_hwc(void *out, const void *in_batch, size_t element_size,
         in_w_origin + (int32_t)(dilation_width_factor * current_indices[1]);
 
     char *dst = out_bytes + dst_byte_offset;
-    extract_spatial_position_hwc(dst, in_batch_bytes, element_size, in_h, in_w,
-                                 0, input_height, input_width,
-                                 input_width_x_channel, input_channel,
-                                 zero_byte, chunk_bytes);
+    skl_im2row_hwc_slice_patch(dst, in_batch_bytes, element_size, in_h, in_w, 0,
+                               input_height, input_width, input_width_stride,
+                               input_channel, zero_byte, chunk_bytes);
     dst_byte_offset += chunk_bytes;
-    is_end = next(&patch_dims[0], &current_indices[0], 2);
+    is_end =
+        skl_im2row_patch_element_next(&patch_dims[0], &current_indices[0], 2);
     iteration++;
   }
 
@@ -188,9 +189,8 @@ skl_im2row_hwc(void *out, const void *in_batch, size_t element_size,
 
     char *dst = out_bytes + dst_byte_offset;
     const size_t tail_bytes = tail * element_size;
-    extract_spatial_position_hwc(dst, in_batch_bytes, element_size, in_h, in_w,
-                                 0, input_height, input_width,
-                                 input_width_x_channel, input_channel,
-                                 zero_byte, tail_bytes);
+    skl_im2row_hwc_slice_patch(dst, in_batch_bytes, element_size, in_h, in_w, 0,
+                               input_height, input_width, input_width_stride,
+                               input_channel, zero_byte, tail_bytes);
   }
 }
