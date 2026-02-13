@@ -113,6 +113,10 @@ int check_error(void) {
 }
 #endif
 
+#define STR(S) #S
+#define TEST_LABEL(S) STR(S)
+#define PRINT_TEST_NAME(S) printf(TEST_LABEL(S) ":\n");
+
 int main(void) {
   int status = 0;
   SKL_TEST_REQUIRE(status, RSB >= N);
@@ -134,26 +138,8 @@ int main(void) {
   res += check_error();
 #endif // ENABLE_TEST
 
-#if defined(ENABLE_BENCHMARK)
-  // warmup.
-  skl_pack_b_i8_xsfvqdotq(K, N, b, RSB, b_pack, (size_t)RSB1);
-
-  // benchmark.
-  riscv_fence();
-  uint64_t c0 = riscv_read_mcycle();
-
-  skl_pack_b_i8_xsfvqdotq(K, N, b, RSB, b_pack, (size_t)RSB1);
-
-  riscv_fence();
-  uint64_t c1 = riscv_read_mcycle();
-  uint64_t cycles = c1 - c0;
-
-  printf("Cycle count: %" PRIu64 "\n", cycles);
-  printf("Output matrix size: %u x %u\n", K0 * K1, N);
-  printf("Throughput (elements / cycle): ");
-  print_float((float)(K0 * K1 * N) / (float)cycles);
-  printf("\n");
-#endif // ENABLE_BENCHMARK
+  SKL_BENCHMARK_RUN(TEST_LABEL(SKL_TEST_NAME), K * N, SKL_TEST_WARMUP,
+                    SKL_TEST_NAME, K, N, b, RSB, b_pack_test, (size_t)RSB1);
 
   return res;
 }
