@@ -133,9 +133,17 @@ enum {
   ALEN = ((M - 1) * RSA + (K - 1) * CSA + 1),
   BLEN = ((K - 1) * RSB + (N - 1) * CSB + 1),
 };
+
+#if defined(SKL_TEST_MALLOC)
+float *a;
+float *b;
+float *c;
+#else
 _Alignas(ALIGN) float a[ALEN];
 _Alignas(ALIGN) float b[BLEN];
 _Alignas(ALIGN) float c[CLEN];
+#endif
+
 #if defined(ENABLE_TEST)
 double a_wide[ALEN];
 double b_wide[BLEN];
@@ -206,12 +214,19 @@ int check_error(void) {
 int main(void) {
   int res = EXIT_SUCCESS;
 
+#if defined(SKL_TEST_MALLOC)
+  a = (float *)SKL_TEST_MALLOC(ALIGN, ALEN * sizeof(float));
+  b = (float *)SKL_TEST_MALLOC(ALIGN, BLEN * sizeof(float));
+  c = (float *)SKL_TEST_MALLOC(ALIGN, CLEN * sizeof(float));
+#endif
+
   printf("%s:\n", skl_test_name);
   printf("M = %u, N = %u, K = %u\n", M, N, K);
   printf("ALPHA = %f, BETA = %f\n", ALPHA, BETA);
   printf("RSA = %u, CSA = %u\n", RSA, CSA);
   printf("RSB = %u, CSB = %u\n", RSB, CSB);
   printf("RSC = %u, CSC = %u\n", RSC, CSC);
+  printf("a = %p, b = %p, c = %p\n", (void *)a, (void *)b, (void *)c);
 
   /* Populate the matrices. */
   skl_test_init_f32(a, ALEN, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32);
@@ -229,6 +244,12 @@ int main(void) {
 
   SKL_BENCHMARK_RUN(skl_test_name, M * N * K, SKL_TEST_WARMUP, SKL_TEST_NAME, M,
                     N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA, c, RSC, CSC);
+
+#if defined(SKL_TEST_MALLOC) && defined(SKL_TEST_FREE)
+  SKL_TEST_FREE(a);
+  SKL_TEST_FREE(b);
+  SKL_TEST_FREE(c);
+#endif
 
   return res;
 }

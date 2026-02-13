@@ -537,3 +537,44 @@ SKL_TEST_INIT_FUNC(int32_t, i32, INT, unused)
 #undef SKL_TEST_INIT_FUNC
 #undef SKL_TEST_INIT_RANDOM_IMPL_FLOAT
 #undef SKL_TEST_INIT_RANDOM_IMPL_INT
+
+/**
+ * @brief Custom memory allocation function
+ *
+ * If defined, benchmarks should use this function to allocate buffers.
+ * If not defined, benchmarks should declare and initialize buffers as static
+ * arrays.
+ *
+ * @note The prototype is declared by this macro so that
+ * it can name an arbitrary symbol in a linked translation unit without
+ * modification to the benchmark source.
+ */
+#if defined(SKL_TEST_MALLOC)
+/**
+ * @brief Aligned memory allocation function.
+ *
+ * @param alignment Alignment of memory to allocate in bytes
+ * @param size Size of memory to allocate in bytes
+ * @return Pointer to allocated memory
+ */
+void *SKL_TEST_MALLOC(size_t alignment, size_t size);
+#endif
+
+/**
+ * @brief Custom memory free function
+ *
+ * If defined, this function will be used to free memory allocated
+ * by SKL_TEST_MALLOC.
+ *
+ * @note The prototype is declared by this macro so that
+ * it can name an arbitrary symbol in a linked translation unit without
+ * modification to the benchmark source.
+ */
+#if defined(SKL_TEST_FREE) && defined(SKL_TEST_MALLOC)
+/**
+ * @brief Custom memory free function.
+ *
+ * @param ptr Pointer to memory to free
+ */
+void SKL_TEST_FREE(void *ptr);
+#endif
