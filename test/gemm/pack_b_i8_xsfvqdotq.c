@@ -31,8 +31,9 @@
 #error Must define N
 #endif
 
+#define SKL_TEST_PERF_REPORT report_perf_mpc
 #include "skl-test.h"
-#include "skl.h"
+#include "skl.h" // NOLINT(misc-include-cleaner)
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -144,26 +145,8 @@ int main(void) {
   res += check_error();
 #endif // ENABLE_TEST
 
-#if defined(ENABLE_BENCHMARK)
-  /* Warmup run */
-  skl_pack_b_i8_xsfvqdotq(K, N, b, RSB, b_pack, (size_t)RSB1);
-
-  /* Benchmark packing kernel. */
-  riscv_fence();
-  uint64_t c0 = riscv_read_mcycle();
-
-  skl_pack_b_i8_xsfvqdotq(K, N, b, RSB, b_pack, (size_t)RSB1);
-
-  riscv_fence();
-  uint64_t c1 = riscv_read_mcycle();
-  uint64_t cycles = c1 - c0;
-
-  printf("Cycle count: %" PRIu64 "\n", cycles);
-  printf("Output matrix size: %u x %u\n", K0 * K1, N);
-  printf("Throughput (elements / cycle): ");
-  print_float((float)(K * N) / (float)cycles);
-  printf("\n");
-#endif // ENABLE_BENCHMARK
+  SKL_BENCHMARK_RUN(skl_test_name, K * N, SKL_TEST_WARMUP, SKL_TEST_NAME, K, N,
+                    b, RSB, b_pack, (size_t)RSB1);
 
   return res;
 }

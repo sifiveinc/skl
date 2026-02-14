@@ -43,6 +43,7 @@
 #include <math.h>
 #endif
 
+#define SKL_TEST_PERF_REPORT report_perf_mpc
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>
@@ -165,13 +166,10 @@ int check_error(void) {
 }
 #endif // ENABLE_TEST
 
-#define TEST_LABEL(S) #S ":\n"
-#define PRINT_TEST_NAME(S) printf(TEST_LABEL(S));
-
 int main(void) {
   int res = EXIT_SUCCESS;
 
-  PRINT_TEST_NAME(SKL_TEST_NAME);
+  printf("%s:\n", skl_test_name);
   printf("M = %u, N = %u, K = %u\n", M, N, K);
   printf("ALPHA = %f, BETA = %f\n", ALPHA, BETA);
   printf("RSA = %u, CSA = %u\n", RSA, CSA);
@@ -192,25 +190,8 @@ int main(void) {
   res += check_error();
 #endif // ENABLE_TEST
 
-#if defined(ENABLE_BENCHMARK)
-  /* Warmup run */
-  SKL_TEST_NAME(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA, c, RSC, CSC);
-
-  /* Benchmark matrix matmul. */
-  riscv_fence();
-  uint64_t c0 = riscv_read_mcycle();
-
-  SKL_TEST_NAME(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA, c, RSC, CSC);
-
-  riscv_fence();
-  uint64_t c1 = riscv_read_mcycle();
-  uint64_t cycles = c1 - c0;
-
-  printf("Cycle count: %" PRIu64 "\n", cycles);
-  printf("MACCs / cycle = ");
-  print_float((float)(M * N * K) / (float)cycles);
-  printf("\n");
-#endif // ENABLE_BENCHMARK
+  SKL_BENCHMARK_RUN(skl_test_name, M * N * K, SKL_TEST_WARMUP, SKL_TEST_NAME, M,
+                    N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA, c, RSC, CSC);
 
   return res;
 }

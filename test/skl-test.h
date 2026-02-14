@@ -11,6 +11,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* Extract the test name from SKL_TEST_NAME as a string. */
+#define SKL_TEST_NAME_STR(NAME) #NAME
+#define DECL_SKL_TEST_NAME(NAME)                                               \
+  static const char *skl_test_name = SKL_TEST_NAME_STR(NAME)
+DECL_SKL_TEST_NAME(SKL_TEST_NAME);
+
 #if __riscv_xlen == 32
 #define RISCV_READ_COUNTER_FUNC(COUNTER)                                       \
   static inline uint64_t riscv_read_m##COUNTER(void) {                         \
@@ -49,12 +55,13 @@ static inline void print_float(float x) {
 }
 
 /**
- * @brief Output performance results in throughput. (Default)
+ * @brief Output performance results in throughput as elements/cycle. (Default)
  *
- * @param name The name of the function.
+ * @param name The name of the function being benchmarked.
  * @param cycles The number of cycles of execution.
  * @param insts The number of instructions executed.
- * @param num_elems The number of elements (application-specific)
+ * @param num_elems The number of elements used in the benchmark
+ * (application-specific).
  */
 static inline void report_perf_epc(const char *name, uint64_t cycles,
                                    uint64_t insts, size_t num_elems) {
@@ -66,6 +73,24 @@ static inline void report_perf_epc(const char *name, uint64_t cycles,
   printf("%15s : ", name);
   print_float(ipe);
   printf(" insts / element  (%" PRIu64 " insts)\n", insts);
+}
+
+/**
+ * @brief Output performance results in throughput as MACCs/cycle.
+ *
+ * @param name The name of the function being benchmarked.
+ * @param cycles The number of cycles of execution.
+ * @param insts The number of instructions executed.
+ * @param num_maccs The number of multiply-accumulate ops used in the benchmark
+ * (application-specific).
+ */
+static inline void report_perf_mpc(const char *name, uint64_t cycles,
+                                   uint64_t insts, size_t num_maccs) {
+  float mpc = (float)num_maccs / (float)cycles;
+  printf("\n%15s : ", name);
+  print_float(mpc);
+  printf(" MACCs / cycle (%" PRIu64 " cycles)\n", cycles);
+  printf("%15s : %" PRIu64 " insts\n", name, insts);
 }
 
 /** @brief Determine whether to execute a warmup iteration.

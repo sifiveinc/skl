@@ -49,6 +49,7 @@
 #error Must define BETA
 #endif
 
+#define SKL_TEST_PERF_REPORT report_perf_mpc
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>
@@ -167,27 +168,10 @@ int main(void) {
   res += check_error();
 #endif // ENABLE_TEST
 
-#if defined(ENABLE_BENCHMARK)
-  /* Warmup run */
-  skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(M, N, K, a, (size_t)RSA, b_pack,
-                                       (size_t)RSB1, c, (size_t)RSC, ACCUM);
-
-  /* Benchmark matrix matmul. */
-  riscv_fence();
-  uint64_t c0 = riscv_read_mcycle();
-
-  skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(M, N, K, a, (size_t)RSA, b_pack,
-                                       (size_t)RSB1, c, (size_t)RSC, ACCUM);
-
-  riscv_fence();
-  uint64_t c1 = riscv_read_mcycle();
-  uint64_t cycles = c1 - c0;
-
-  printf("Cycle count: %" PRIu64 "\n", cycles);
-  printf("MACCs / cycle: ");
-  print_float((float)(M * N * K) / (float)cycles);
-  printf("\n");
-#endif // ENABLE_BENCHMARK
+  SKL_BENCHMARK_RUN("skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq", M * N * K,
+                    SKL_TEST_WARMUP, skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq, M, N,
+                    K, a, (size_t)RSA, b_pack, (size_t)RSB1, c, (size_t)RSC,
+                    ACCUM);
 
   return res;
 }
