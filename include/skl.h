@@ -14,14 +14,12 @@
 #include "../src/gemm/scalar/gemm_f16rc_f16rc_f32rc_scalar.h"
 #include "../src/gemm/scalar/gemm_f32rc_f32rc_f32rc_scalar.h"
 #include "../src/gemm/scalar/gemm_f64rc_f64rc_f64rc_scalar.h"
-#include "../src/gemm/scalar/gemm_f8e4m3rc_f8e4m3rc_f32rc_scalar.h"
 #include "../src/gemm/scalar/gemm_i8rc_i8rc_i32rc_scalar.h"
 
 #include "../src/gemm/scalar/gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar.h"
 #include "../src/gemm/scalar/gemm_f16rcprc_f16rcprc_f32rcprc_scalar.h"
 #include "../src/gemm/scalar/gemm_f32rcprc_f32rcprc_f32rcprc_scalar.h"
 #include "../src/gemm/scalar/gemm_f64rcprc_f64rcprc_f64rcprc_scalar.h"
-#include "../src/gemm/scalar/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_scalar.h"
 #include "../src/gemm/scalar/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.h"
 
 #if defined(__riscv_zve32x)
