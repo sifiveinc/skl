@@ -702,10 +702,10 @@ enum {
 
 #if defined(TEST_INIT_MODE) && TEST_INIT_MODE == STATIC
 #define SKL_TEST_STATIC_DATA(NAME) NAME##_data
-#define SKL_STATIC_TEST_DATA_LEN(NAME) sizeof(NAME##_data)
+#define SKL_TEST_STATIC_DATA_LEN(NAME) sizeof(NAME##_data)
 #else
 #define SKL_TEST_STATIC_DATA(NAME) NULL
-#define SKL_STATIC_TEST_DATA_LEN(NAME) 0
+#define SKL_TEST_STATIC_DATA_LEN(NAME) 0
 #endif
 
 #define SKL_TEST_INIT(BUF, LEN, TYPE, MIN, MAX, IMPL_TYPE, FRAC_TYPE)          \
@@ -714,7 +714,7 @@ enum {
     const size_t len = (LEN);                                                  \
     if (TEST_INIT_MODE == STATIC) {                                            \
       size_t avl = len;                                                        \
-      const size_t buf_len = SKL_STATIC_TEST_DATA_LEN(BUF);                    \
+      const size_t buf_len = SKL_TEST_STATIC_DATA_LEN(BUF);                    \
       while (avl > 0) {                                                        \
         size_t vl = avl > buf_len ? buf_len : avl;                             \
         memcpy(buf, SKL_TEST_STATIC_DATA(BUF), vl * sizeof(TYPE));             \
