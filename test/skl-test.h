@@ -752,32 +752,37 @@ enum {
 #define SKL_TEST_STATIC_DATA_LEN(NAME) 0
 #endif
 
+#if defined(TEST_INIT_MODE) && TEST_INIT_MODE == STATIC
 #define SKL_TEST_INIT(BUF, LEN, TYPE, MIN, MAX, IMPL_TYPE, FRAC_TYPE)          \
   {                                                                            \
     TYPE *buf = (BUF);                                                         \
     const size_t len = (LEN);                                                  \
-    if (TEST_INIT_MODE == STATIC) {                                            \
-      size_t avl = len;                                                        \
-      const size_t buf_len = SKL_TEST_STATIC_DATA_LEN(BUF);                    \
-      while (avl > 0) {                                                        \
-        size_t vl = avl > buf_len ? buf_len : avl;                             \
-        memcpy(buf, SKL_TEST_STATIC_DATA(BUF), vl * sizeof(TYPE));             \
-        avl -= vl;                                                             \
-        buf += vl;                                                             \
-      }                                                                        \
-    } else {                                                                   \
-      const TYPE min = (MIN);                                                  \
-      const TYPE max = (MAX);                                                  \
-      const TYPE step = (max - min) / len;                                     \
-      for (size_t i = 0; i < len; i++) {                                       \
-        if (TEST_INIT_MODE == RANDOM) {                                        \
-          SKL_TEST_INIT_RANDOM_IMPL_##IMPL_TYPE(TYPE, FRAC_TYPE);              \
-        } else {                                                               \
-          buf[i] = (TYPE)(min + step * i);                                     \
-        }                                                                      \
+    size_t avl = len;                                                          \
+    const size_t buf_len = SKL_TEST_STATIC_DATA_LEN(BUF);                      \
+    while (avl > 0) {                                                          \
+      size_t vl = avl > buf_len ? buf_len : avl;                               \
+      memcpy(buf, SKL_TEST_STATIC_DATA(BUF), vl * sizeof(TYPE));               \
+      avl -= vl;                                                               \
+      buf += vl;                                                               \
+    }                                                                          \
+  }
+#else
+#define SKL_TEST_INIT(BUF, LEN, TYPE, MIN, MAX, IMPL_TYPE, FRAC_TYPE)          \
+  {                                                                            \
+    TYPE *buf = (BUF);                                                         \
+    const size_t len = (LEN);                                                  \
+    const TYPE min = (MIN);                                                    \
+    const TYPE max = (MAX);                                                    \
+    const TYPE step = (max - min) / len;                                       \
+    for (size_t i = 0; i < len; i++) {                                         \
+      if (TEST_INIT_MODE == RANDOM) {                                          \
+        SKL_TEST_INIT_RANDOM_IMPL_##IMPL_TYPE(TYPE, FRAC_TYPE);                \
+      } else {                                                                 \
+        buf[i] = (TYPE)(min + step * i);                                       \
       }                                                                        \
     }                                                                          \
   }
+#endif
 
 #define SKL_TEST_INIT_RANDOM_IMPL_FLOAT(TYPE, FRAC_TYPE)                       \
   FRAC_TYPE frac = (FRAC_TYPE)rand() / (FRAC_TYPE)RAND_MAX;                    \
