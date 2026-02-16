@@ -612,10 +612,14 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
  * Benchmarks will typically use SEQ to reduce overhead from random number
  * generation. Tests will typically use RANDOM though some will likely use SEQ
  * to test specific ranges of interest. More modes may be added in the future.
+ *
+ * In STATIC mode, the input data is initialized with static values from
+ * pre-defined arrays in data.h. Each
  */
 enum {
-  SEQ,   ///< Initialize with equally-spaced values from min to max
-  RANDOM ///< Initialize with random values
+  SEQ,    ///< Initialize with equally-spaced values from min to max
+  RANDOM, ///< Initialize with random values
+  STATIC  ///< Initialize with static values from arrays in data.h
 };
 
 /**
@@ -740,12 +744,50 @@ enum {
     }                                                                          \
   }
 
+#if defined(TEST_INIT_MODE) && TEST_INIT_MODE == STATIC
+#define SKL_TEST_STATIC_DATA(NAME) NAME##_data
+#else
+#define SKL_TEST_STATIC_DATA(NAME) NULL
+#endif
+
+#define SKL_TEST_INIT(BUF, LEN, TYPE, MIN, MAX, IMPL_TYPE, FRAC_TYPE)          \
+  {                                                                            \
+    const size_t len = (LEN);                                                  \
+    if (TEST_INIT_MODE == STATIC) {                                            \
+      memcpy(BUF, SKL_TEST_STATIC_DATA(BUF), len * sizeof(TYPE));              \
+    } else {                                                                   \
+      const TYPE min = (MIN);                                                  \
+      const TYPE max = (MAX);                                                  \
+      const TYPE step = (max - min) / len;                                     \
+      TYPE *buf = (BUF);                                                       \
+      for (size_t i = 0; i < len; i++) {                                       \
+        if (TEST_INIT_MODE == RANDOM) {                                        \
+          SKL_TEST_INIT_RANDOM_IMPL_##IMPL_TYPE(TYPE, FRAC_TYPE);              \
+        } else {                                                               \
+          buf[i] = (TYPE)(min + step * i);                                     \
+        }                                                                      \
+      }                                                                        \
+    }                                                                          \
+  }
+
 #define SKL_TEST_INIT_RANDOM_IMPL_FLOAT(TYPE, FRAC_TYPE)                       \
   FRAC_TYPE frac = (FRAC_TYPE)rand() / (FRAC_TYPE)RAND_MAX;                    \
   buf[i] = (TYPE)(frac * (max - min) + min);
 
 #define SKL_TEST_INIT_RANDOM_IMPL_INT(TYPE, UNUSED)                            \
   buf[i] = (TYPE)rand() % (max - min + 1) + min;
+
+#define SKL_TEST_INIT_F16(BUF, LEN)                                            \
+  SKL_TEST_INIT(BUF, LEN, _Float16, SKL_TEST_MIN_F16, SKL_TEST_MAX_F16, FLOAT, \
+                float)
+
+#define SKL_TEST_INIT_F32(BUF, LEN)                                            \
+  SKL_TEST_INIT(BUF, LEN, float, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32, FLOAT,    \
+                float)
+
+#define SKL_TEST_INIT_F64(BUF, LEN)                                            \
+  SKL_TEST_INIT(BUF, LEN, double, SKL_TEST_MIN_F64, SKL_TEST_MAX_F64, FLOAT,   \
+                double)
 
 /**
  * @brief Buffer initialization modes
@@ -802,10 +844,6 @@ SKL_TEST_INIT_FUNC(int8_t, i8, INT, unused)
 SKL_TEST_INIT_FUNC(int32_t, i32, INT, unused)
 
 /** @} */ // end of test_init group
-
-#undef SKL_TEST_INIT_FUNC
-#undef SKL_TEST_INIT_RANDOM_IMPL_FLOAT
-#undef SKL_TEST_INIT_RANDOM_IMPL_INT
 
 /**
  * @brief Custom memory allocation function
