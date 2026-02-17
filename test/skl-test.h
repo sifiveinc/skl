@@ -807,6 +807,8 @@ enum {
 #define TEST_INIT_MODE RANDOM
 #endif
 
+/** @} */ // end of test_init group
+
 /**
  * @defgroup test_init Test/Benchmark Data Initialization Functions
  * @brief Functions for initializing buffers with random or sequential data
