@@ -752,6 +752,34 @@ enum {
 #define SKL_TEST_STATIC_DATA_LEN(NAME) 0
 #endif
 
+#define SKL_TEST_INIT_RANDOM_IMPL_FLOAT(TYPE, FRAC_TYPE)                       \
+  FRAC_TYPE frac = (FRAC_TYPE)rand() / (FRAC_TYPE)RAND_MAX;                    \
+  buf[i] = (TYPE)(frac * (max - min) + min);
+
+#define SKL_TEST_INIT_RANDOM_IMPL_INT(TYPE, UNUSED)                            \
+  buf[i] = (TYPE)rand() % (max - min + 1) + min;
+
+/**
+ * @brief Macro to initialize a buffer in a SKL test/benchmark.
+ *
+ * Bevehior is determined by TEST_INIT_MODE macro:
+ * - RANDOM: Initialize with random values between min and max
+ * - STATIC: Copy values from existing array NAME_data to buf
+ * - SEQ: Initialize with equally-spaced values from min to max
+ *
+ * @note For STATIC mode, the array NAME_data must be defined elsewhere, but
+ * need not have the same length as the buffer being initialized. The data will
+ * be repeated as necessary to fill the buffer.
+ *
+ * @param BUF - The buffer to initialize
+ * @param LEN - The length of the buffer
+ * @param TYPE - The data type of the buffer
+ * @param MIN - The minimum value to use for initialization
+ * @param MAX - The maximum value to use for initialization
+ * @param IMPL_TYPE - Either FLOAT or INT to select implementation
+ * @param FRAC_TYPE - Fractional type for floating point intermediates(float or
+ * double)
+ */
 #if defined(TEST_INIT_MODE) && TEST_INIT_MODE == STATIC
 #define SKL_TEST_INIT(BUF, LEN, TYPE, MIN, MAX, IMPL_TYPE, FRAC_TYPE)          \
   {                                                                            \
@@ -784,13 +812,20 @@ enum {
   }
 #endif
 
-#define SKL_TEST_INIT_RANDOM_IMPL_FLOAT(TYPE, FRAC_TYPE)                       \
-  FRAC_TYPE frac = (FRAC_TYPE)rand() / (FRAC_TYPE)RAND_MAX;                    \
-  buf[i] = (TYPE)(frac * (max - min) + min);
-
-#define SKL_TEST_INIT_RANDOM_IMPL_INT(TYPE, UNUSED)                            \
-  buf[i] = (TYPE)rand() % (max - min + 1) + min;
-
+/**
+ * @defgroup test_init Test/Benchmark Data Initialization Macros
+ *
+ * These macros are intended to be the standard way to initialize data buffers
+ * in SKL tests and benchmarks. They will displace the direct use of
+ * skl_test_init functions (deprecated).
+ *
+ * All macros in this group share a common interface and behavior:
+ * - @param BUF Output buffer to fill with values
+ * - @param LEN Number of elements to generate
+ * All macros are wrappers around SKL_TEST_INIT, which has more detailed
+ * documentation.
+ * @{
+ */
 #define SKL_TEST_INIT_F16(BUF, LEN)                                            \
   SKL_TEST_INIT(BUF, LEN, _Float16, SKL_TEST_MIN_F16, SKL_TEST_MAX_F16, FLOAT, \
                 float)
