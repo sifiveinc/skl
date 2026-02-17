@@ -43,6 +43,10 @@
 #include <math.h>
 #endif
 
+#if defined(TEST_INIT_MODE) && TEST_INIT_MODE == STATIC
+#include "data.h" // NOLINT(misc-include-cleaner)
+#endif
+
 #define SKL_TEST_PERF_REPORT report_perf_mpc
 #include "skl-test.h"
 #include "skl.h"
@@ -135,13 +139,13 @@ enum {
 };
 
 #if defined(SKL_TEST_MALLOC)
-float *a;
-float *b;
-float *c;
+float *a_f32;
+float *b_f32;
+float *c_f32;
 #else
-_Alignas(ALIGN) float a[ALEN];
-_Alignas(ALIGN) float b[BLEN];
-_Alignas(ALIGN) float c[CLEN];
+_Alignas(ALIGN) float a_f32[ALEN];
+_Alignas(ALIGN) float b_f32[BLEN];
+_Alignas(ALIGN) float c_f32[CLEN];
 #endif
 
 #if defined(ENABLE_TEST)
@@ -159,8 +163,8 @@ double bound[CLEN];
  * first incorrect output matrix element. */
 int check_error(void) {
   /* Compute the reference (scalar) matrix output. */
-  skl_gemm_f32rc_f32rc_f32rc_scalar(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB,
-                                    BETA, ref_c, RSC, CSC);
+  skl_gemm_f32rc_f32rc_f32rc_scalar(M, N, K, ALPHA, a_f32, RSA, CSA, b_f32, RSB,
+                                    CSB, BETA, ref_c, RSC, CSC);
 
   //
   // Compute the error bound array for comparing test vs reference results.
@@ -179,13 +183,13 @@ int check_error(void) {
   // bound using the triangle inequality to get the final comparison threshold.
   //
   for (size_t i = 0; i < ALEN; ++i) {
-    a_wide[i] = fabsf(a[i]);
+    a_wide[i] = fabsf(a_f32[i]);
   }
   for (size_t i = 0; i < BLEN; ++i) {
-    b_wide[i] = fabsf(b[i]);
+    b_wide[i] = fabsf(b_f32[i]);
   }
   for (size_t i = 0; i < CLEN; ++i) {
-    bound[i] = fabs((double)c[i]);
+    bound[i] = fabs((double)c_f32[i]);
   }
   const int P = 24; // 23 bits of mantissa for float32 accumulator
   const double u = ldexp(1.0, -P); // Maximum relative roundoff error
@@ -215,9 +219,9 @@ int main(void) {
   int res = EXIT_SUCCESS;
 
 #if defined(SKL_TEST_MALLOC)
-  a = (float *)SKL_TEST_MALLOC(ALIGN, ALEN * sizeof(float));
-  b = (float *)SKL_TEST_MALLOC(ALIGN, BLEN * sizeof(float));
-  c = (float *)SKL_TEST_MALLOC(ALIGN, CLEN * sizeof(float));
+  a_f32 = (float *)SKL_TEST_MALLOC(ALIGN, ALEN * sizeof(float));
+  b_f32 = (float *)SKL_TEST_MALLOC(ALIGN, BLEN * sizeof(float));
+  c_f32 = (float *)SKL_TEST_MALLOC(ALIGN, CLEN * sizeof(float));
 #endif
 
   printf("%s:\n", skl_test_name);
@@ -226,29 +230,31 @@ int main(void) {
   printf("RSA = %u, CSA = %u\n", RSA, CSA);
   printf("RSB = %u, CSB = %u\n", RSB, CSB);
   printf("RSC = %u, CSC = %u\n", RSC, CSC);
-  printf("a = %p, b = %p, c = %p\n", (void *)a, (void *)b, (void *)c);
+  printf("a = %p, b = %p, c = %p\n", (void *)a_f32, (void *)b_f32,
+         (void *)c_f32);
 
   /* Populate the matrices. */
-  SKL_TEST_INIT_F32(a, ALEN);
-  SKL_TEST_INIT_F32(b, BLEN);
-  SKL_TEST_INIT_F32(c, CLEN);
+  SKL_TEST_INIT_F32(a_f32, ALEN);
+  SKL_TEST_INIT_F32(b_f32, BLEN);
+  SKL_TEST_INIT_F32(c_f32, CLEN);
 
 #if defined(ENABLE_TEST)
   /* Make copies of C to write the reference and test outputs to. */
-  memcpy(ref_c, c, CLEN * sizeof(float));
-  memcpy(test_c, c, CLEN * sizeof(float));
-  SKL_TEST_NAME(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA, test_c, RSC,
-                CSC);
+  memcpy(ref_c, c_f32, CLEN * sizeof(float));
+  memcpy(test_c, c_f32, CLEN * sizeof(float));
+  SKL_TEST_NAME(M, N, K, ALPHA, a_f32, RSA, CSA, b_f32, RSB, CSB, BETA, test_c,
+                RSC, CSC);
   res += check_error();
 #endif // ENABLE_TEST
 
   SKL_BENCHMARK_RUN(skl_test_name, M * N * K, SKL_TEST_WARMUP, SKL_TEST_NAME, M,
-                    N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA, c, RSC, CSC);
+                    N, K, ALPHA, a_f32, RSA, CSA, b_f32, RSB, CSB, BETA, c_f32,
+                    RSC, CSC);
 
 #if defined(SKL_TEST_MALLOC) && defined(SKL_TEST_FREE)
-  SKL_TEST_FREE(a);
-  SKL_TEST_FREE(b);
-  SKL_TEST_FREE(c);
+  SKL_TEST_FREE(a_f32);
+  SKL_TEST_FREE(b_f32);
+  SKL_TEST_FREE(c_f32);
 #endif
 
   return res;
