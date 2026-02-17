@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <assert.h>
 #include <float.h>
 #include <inttypes.h>
 #include <math.h>
@@ -734,6 +735,7 @@ enum {
 #define SKL_TEST_INIT_FUNC(TYPE, SUFFIX, IMPL_TYPE, FRAC_TYPE)                 \
   static inline void skl_test_init_##SUFFIX(TYPE *buf, size_t len, TYPE min,   \
                                             TYPE max) {                        \
+    assert(TEST_INIT_MODE == RANDOM || TEST_INIT_MODE == SEQ);                 \
     const TYPE step = (max - min) / len;                                       \
     for (size_t i = 0; i < len; i++) {                                         \
       if (TEST_INIT_MODE == RANDOM) {                                          \
