@@ -104,8 +104,8 @@ int main(void) {
 
 #define RUN(FUNCTION, NAME)                                                    \
   memset(output, 0, SLEN * sizeof(*output));                                   \
-  SKL_BENCHMARK_RUN(NAME, M *N, SKL_TEST_WARMUP, FUNCTION, output, RSS, input, \
-                    RSA, BETA, M, N);                                          \
+  SKL_BENCHMARK_RUN(NAME, (M * N), SKL_TEST_WARMUP, FUNCTION, output, RSS,     \
+                    input, RSA, BETA, M, N);                                   \
   CHECK_RESULT(FUNCTION, NAME);
 
   // Run subset of functions depending on ISA compatibility
