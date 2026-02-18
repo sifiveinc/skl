@@ -615,12 +615,12 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
  * to test specific ranges of interest. More modes may be added in the future.
  *
  * In STATIC mode, the input data is initialized with static values from
- * pre-defined arrays in data.h. Each
+ * pre-defined arrays in SKL_TEST_DATA_HEADER.
  */
 enum {
   SEQ,    ///< Initialize with equally-spaced values from min to max
   RANDOM, ///< Initialize with random values
-  STATIC  ///< Initialize with static values from arrays in data.h
+  STATIC  ///< Initialize with static values from SKL_TEST_DATA_HEADER
 };
 
 /**
