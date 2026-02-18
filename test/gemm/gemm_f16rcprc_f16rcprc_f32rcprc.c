@@ -64,7 +64,10 @@
 #include <math.h>
 #endif
 
+#ifndef SKL_TEST_PERF_REPORT
 #define SKL_TEST_PERF_REPORT report_perf_mpc
+#endif
+
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>
