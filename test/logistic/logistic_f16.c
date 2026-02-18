@@ -19,6 +19,12 @@
 #include <stdio.h>
 #include <string.h>
 
+#if defined(RUN_ALL)
+#define RUN_SCALAR 1
+#define RUN_RVV 1
+#define RUN_XSFVFEXP16E 1
+#endif
+
 #if defined(ENABLE_TEST)
 static inline void scalar_logistic_f16(_Float16 *out, const _Float16 *in,
                                        size_t n) {
@@ -47,10 +53,6 @@ __attribute__((aligned(ALIGN))) _Float16 ref_output[NUM_ELEMS];
 
 int main(void) {
   int ret = 0; // return value
-#if defined(ENABLE_BENCHMARK)
-  // Cycle and instruction counts
-  uint64_t c0, c1, i0, i1; // NOLINT(readability-isolate-declaration)
-#endif
   printf("Measuring %d-element logistic:\n", NUM_ELEMS);
   skl_test_init_f16(input, NUM_ELEMS, SKL_TEST_MIN_F16, SKL_TEST_MAX_F16);
 
@@ -58,17 +60,6 @@ int main(void) {
   memset(ref_output, 0, NUM_ELEMS * sizeof(*ref_output));
   scalar_logistic_f16(ref_output, input,
                       NUM_ELEMS); // Use scalar output as reference
-#endif
-
-#if defined(ENABLE_BENCHMARK)
-#define MEASURE_PERF(FUNCTION, NAME)                                           \
-  /* Measure 2nd run after caches warmed */                                    \
-  c0 = riscv_read_mcycle(), i0 = riscv_read_minstret();                        \
-  FUNCTION(output, input, NUM_ELEMS);                                          \
-  c1 = riscv_read_mcycle(), i1 = riscv_read_minstret();                        \
-  report_perf_epc(NAME, c1 - c0, i1 - i0, NUM_ELEMS);
-#else
-#define MEASURE_PERF(FUNCTION, NAME)
 #endif
 
 #if defined(ENABLE_TEST)
@@ -80,8 +71,8 @@ int main(void) {
 
 #define RUN(FUNCTION, NAME, TOL)                                               \
   memset(output, 0, NUM_ELEMS * sizeof(*output));                              \
-  FUNCTION(output, input, NUM_ELEMS);                                          \
-  MEASURE_PERF(FUNCTION, NAME);                                                \
+  SKL_BENCHMARK_RUN(NAME, NUM_ELEMS, SKL_TEST_WARMUP, FUNCTION, output, input, \
+                    NUM_ELEMS);                                                \
   CHECK_RESULT(FUNCTION, NAME, TOL);
 
 #if defined(__riscv_zvfh) && defined(RUN_RVV)
