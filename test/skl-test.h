@@ -748,7 +748,7 @@ enum {
 
 #if defined(TEST_INIT_MODE) && TEST_INIT_MODE == STATIC
 #define SKL_TEST_STATIC_DATA(NAME) NAME##_data
-#define SKL_TEST_STATIC_DATA_LEN(NAME) sizeof(NAME##_data)
+#define SKL_TEST_STATIC_DATA_LEN(NAME) NAME##_len
 #else
 #define SKL_TEST_STATIC_DATA(NAME) NULL
 #define SKL_TEST_STATIC_DATA_LEN(NAME) 0
@@ -935,4 +935,12 @@ void *SKL_TEST_MALLOC(size_t alignment, size_t size);
  * @param ptr Pointer to memory to free
  */
 void SKL_TEST_FREE(void *ptr);
+#endif
+
+#if TEST_INIT_MODE == STATIC
+#if !defined(SKL_TEST_DATA_HEADER)
+#error "SKL_TEST_DATA_HEADER must be defined when TEST_INIT_MODE == STATIC"
+#else
+#include SKL_TEST_DATA_HEADER
+#endif
 #endif
