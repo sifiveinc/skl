@@ -940,7 +940,7 @@ void *SKL_TEST_MALLOC(size_t alignment, size_t size);
 void SKL_TEST_FREE(void *ptr);
 #endif
 
-#if TEST_INIT_MODE == STATIC
+#if defined(TEST_INIT_MODE) && TEST_INIT_MODE == STATIC
 #if !defined(SKL_TEST_DATA_HEADER)
 #error "SKL_TEST_DATA_HEADER must be defined when TEST_INIT_MODE == STATIC"
 #else
