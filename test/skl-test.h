@@ -764,14 +764,15 @@ enum {
 /**
  * @brief Macro to initialize a buffer in a SKL test/benchmark.
  *
- * Bevehior is determined by TEST_INIT_MODE macro:
+ * Behavior is determined by TEST_INIT_MODE macro:
  * - RANDOM: Initialize with random values between min and max
  * - STATIC: Copy values from existing array NAME_data to buf
  * - SEQ: Initialize with equally-spaced values from min to max
  *
- * @note For STATIC mode, the array NAME_data must be defined elsewhere, but
- * need not have the same length as the buffer being initialized. The data will
- * be repeated as necessary to fill the buffer.
+ * @note For STATIC mode, the array NAME_data must be defined in the header file
+ * specified by SKL_TEST_DATA_HEADER, but need not have the same length as the
+ * buffer being initialized. The data will be repeated as necessary to fill the
+ * buffer.
  *
  * @param BUF - The buffer to initialize
  * @param LEN - The length of the buffer
@@ -815,7 +816,7 @@ enum {
 #endif
 
 /**
- * @defgroup test_init Test/Benchmark Data Initialization Macros
+ * @defgroup test_init_macros Test/Benchmark Data Initialization Macros
  *
  * These macros are intended to be the standard way to initialize data buffers
  * in SKL tests and benchmarks. They will displace the direct use of
@@ -840,7 +841,7 @@ enum {
   SKL_TEST_INIT(BUF, LEN, double, SKL_TEST_MIN_F64, SKL_TEST_MAX_F64, FLOAT,   \
                 double)
 
-/** @} */ // end of test_init group
+/** @} */ // end of test_init_macros group
 
 /**
  * @brief Buffer initialization modes
