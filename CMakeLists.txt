@@ -383,6 +383,8 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   skl_add_test(softmax_f16 softmax/softmax_f16.c "-DRUN_ALL;-DBETA=0.5")
   skl_add_test(softmax_bf16 softmax/softmax_bf16.c "-DRUN_ALL;-DBETA=0.5")
   skl_add_test(softmax_f32 softmax/softmax_f32.c "-DRUN_ALL;-DBETA=0.5")
+  skl_add_test(softmax_2d_f32 softmax/softmax_2d_f32.c
+    "-DRUN_ALL;-DM=64;-DN=128;-DBETA=0.5")
   if (RISCV_ZVE32F)
     skl_add_test(skl_depthwise_conv2d_f32_f32_f32_zve32f depthwise_conv2d/depthwise_conv2d_f32_f32_f32.c "")
     skl_add_test(exp_f32 exp/exp_f32.c "-DRUN_ZVE32F;-DRUN_VFEXPA;-DRUN_VFEXP")

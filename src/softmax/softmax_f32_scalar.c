@@ -27,3 +27,12 @@ SKL_FUNC void skl_softmax_f32_scalar(float *pDst, const float *pSrc, float beta,
     pDst[i] *= recip_sum;
   }
 }
+
+SKL_FUNC void skl_softmax_2d_f32_scalar(float *s, const size_t rss,
+                                        const float *a, const size_t rsa,
+                                        const float beta, const size_t m,
+                                        const size_t n) {
+  for (size_t i = 0; i < m; ++i) {
+    skl_softmax_f32_scalar(s + i * rss, a + i * rsa, beta, n);
+  }
+}
