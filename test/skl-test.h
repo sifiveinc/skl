@@ -840,6 +840,8 @@ enum {
   SKL_TEST_INIT(BUF, LEN, double, SKL_TEST_MIN_F64, SKL_TEST_MAX_F64, FLOAT,   \
                 double)
 
+/** @} */ // end of test_init group
+
 /**
  * @brief Buffer initialization modes
  * @details Determines the behavior of skl_test_init functions when not in
