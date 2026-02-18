@@ -488,10 +488,71 @@ static inline float skl_abs_error_ulp_bf16(__bf16 x, __bf16 r) {
   return skl_abs_error_ulp(x, r, FLT_MIN_EXP, 8);
 }
 
+/**
+ * @brief Print a short error message.
+ *
+ * @param name Name of the test
+ * @param err The maximum error measured for this test
+ */
 static inline void skl_print_max_error(const char *name, float err) {
   printf("%15s : maximum error ", name);
   print_float(err);
   printf(" ulp\n");
+}
+
+/**
+ * @brief Determine maximum error for float data
+ *
+ * @param res Array of test result values
+ * @param ref Array of test reference values
+ * @param len Length of result and reference arrays
+ * @returns The maximum error found
+ *
+ * This function calculates and returns the absolute error in ulps
+ * between res[i] and ref[i] for i in [0, len).
+ */
+static inline float skl_error_ulp_f32(const float *res, const float *ref,
+                                      size_t len) {
+  float max = 0;
+  for (size_t i = 0; i < len; i++) {
+    float err = skl_abs_error_ulp_f32(res[i], ref[i]);
+    if (err > max) {
+      max = err;
+    }
+  }
+  return max;
+}
+
+/**
+ * @brief Determine maximum error for _Float16 data
+ * @details @copydetails skl_check_ulp_f32
+ */
+static inline float skl_error_ulp_f16(const _Float16 *res, const _Float16 *ref,
+                                      size_t len) {
+  float max = 0;
+  for (size_t i = 0; i < len; i++) {
+    float err = skl_abs_error_ulp_f16(res[i], ref[i]);
+    if (err > max) {
+      max = err;
+    }
+  }
+  return max;
+}
+
+/**
+ * @brief Determine maximum error for __bf16 data
+ * @details @copydetails skl_check_error_ulp_f32
+ */
+static inline float skl_error_ulp_bf16(const __bf16 *res, const __bf16 *ref,
+                                       size_t len) {
+  float max = 0;
+  for (size_t i = 0; i < len; i++) {
+    float err = skl_abs_error_ulp_bf16(res[i], ref[i]);
+    if (err > max) {
+      max = err;
+    }
+  }
+  return max;
 }
 
 /**
@@ -509,36 +570,25 @@ static inline void skl_print_max_error(const char *name, float err) {
  * then returns 0 if the maximum is less than or equal to the given
  * tolerance or non-zero if greater.
  */
-static inline int skl_check_error_ulp_f32(const char *name, const float *res,
-                                          const float *ref, float tol,
-                                          size_t len) {
-  float max = 0;
-  for (size_t i = 0; i < len; i++) {
-    float err = skl_abs_error_ulp_f32(res[i], ref[i]);
-    if (err > max) {
-      max = err;
-    }
-  }
-  skl_print_max_error(name, max);
-  return max > tol;
+static inline float skl_check_error_ulp_f32(const char *name, const float *res,
+                                            const float *ref, float tol,
+                                            size_t len) {
+  float err = skl_error_ulp_f32(res, ref, len);
+  skl_print_max_error(name, err);
+  return err > tol;
 }
 
 /**
  * @brief Check maximum error for _Float16 data
  * @details @copydetails skl_check_error_ulp_f32
  */
-static inline int skl_check_error_ulp_f16(const char *name, const _Float16 *res,
-                                          const _Float16 *ref, float tol,
-                                          size_t len) {
-  float max = 0;
-  for (size_t i = 0; i < len; i++) {
-    float err = skl_abs_error_ulp_f16(res[i], ref[i]);
-    if (err > max) {
-      max = err;
-    }
-  }
-  skl_print_max_error(name, max);
-  return max > tol;
+static inline float skl_check_error_ulp_f16(const char *name,
+                                            const _Float16 *res,
+                                            const _Float16 *ref, float tol,
+                                            size_t len) {
+  float err = skl_error_ulp_f16(res, ref, len);
+  skl_print_max_error(name, err);
+  return err > tol;
 }
 
 /**
@@ -548,15 +598,9 @@ static inline int skl_check_error_ulp_f16(const char *name, const _Float16 *res,
 static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
                                            const __bf16 *ref, float tol,
                                            size_t len) {
-  float max = 0;
-  for (size_t i = 0; i < len; i++) {
-    float err = skl_abs_error_ulp_bf16(res[i], ref[i]);
-    if (err > max) {
-      max = err;
-    }
-  }
-  skl_print_max_error(name, max);
-  return max > tol;
+  float err = skl_error_ulp_bf16(res, ref, len);
+  skl_print_max_error(name, err);
+  return err > tol;
 }
 
 /**
