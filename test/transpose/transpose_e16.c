@@ -76,23 +76,8 @@ int main(void) {
   res += check_error();
 #endif // ENABLE_TEST
 
-#if defined(ENABLE_BENCHMARK)
-  /* Warmup run */
-  SKL_TEST_NAME(M, N, (uint16_t *)a, RSA, (uint16_t *)at, RSAT);
-
-  /* Benchmark matrix transpose. */
-  riscv_fence();
-  uint64_t c0 = riscv_read_mcycle();
-
-  SKL_TEST_NAME(M, N, (uint16_t *)a, RSA, (uint16_t *)at, RSAT);
-
-  riscv_fence();
-  uint64_t c1 = riscv_read_mcycle();
-  uint64_t cycles = c1 - c0;
-
-  printf("Cycle count: %" PRIu64 "\n", cycles);
-  printf("\n");
-#endif // ENABLE_BENCHMARK
+  SKL_BENCHMARK_RUN(skl_test_name, M * N, SKL_TEST_WARMUP, SKL_TEST_NAME, M, N,
+                    (uint16_t *)a, RSA, (uint16_t *)at, RSAT);
 
   return res;
 }
