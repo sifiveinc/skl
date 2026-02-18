@@ -67,19 +67,6 @@ int main(void) {
   printf("Measuring %d-element softmax:\n\n", NUM_ELEMS);
   skl_test_init_f16(input, NUM_ELEMS, SKL_TEST_MIN_F16, SKL_TEST_MAX_F16);
 
-#if defined(ENABLE_BENCHMARK)
-  // cycle and instruction counters
-  uint64_t c0, c1, i0, i1; // NOLINT(readability-isolate-declaration)
-#define MEASURE_PERF(FUNCTION, NAME)                                           \
-  /* Measure 2nd run after caches warmed */                                    \
-  c0 = riscv_read_mcycle(), i0 = riscv_read_minstret();                        \
-  FUNCTION(output, input, BETA, NUM_ELEMS);                                    \
-  c1 = riscv_read_mcycle(), i1 = riscv_read_minstret();                        \
-  report_perf_epc(NAME, c1 - c0, i1 - i0, NUM_ELEMS);
-#else
-#define MEASURE_PERF(FUNCTION, NAME)
-#endif
-
 #if defined(ENABLE_TEST)
   memset(ref_output, 0, NUM_ELEMS * sizeof(*ref_output));
   reference_softmax_f16(ref_output, input, BETA, workspace, NUM_ELEMS);
@@ -91,8 +78,8 @@ int main(void) {
 
 #define RUN(FUNCTION, NAME)                                                    \
   memset(output, 0, NUM_ELEMS * sizeof(*output));                              \
-  FUNCTION(output, input, BETA, NUM_ELEMS);                                    \
-  MEASURE_PERF(FUNCTION, NAME);                                                \
+  SKL_BENCHMARK_RUN(NAME, NUM_ELEMS, SKL_TEST_WARMUP, FUNCTION, output, input, \
+                    BETA, NUM_ELEMS);                                          \
   CHECK_RESULT(FUNCTION, NAME);
 
   // Run subset of functions depending on ISA compatibility
