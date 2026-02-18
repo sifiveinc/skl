@@ -616,12 +616,13 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
  *
  * In STATIC mode, the input data is initialized with static values from
  * pre-defined arrays in SKL_TEST_DATA_HEADER.
+ *
+ * @note These are defined as preprocessor macros (not just enum constants)
+ * to allow their use in preprocessor conditionals.
  */
-enum {
-  SEQ,    ///< Initialize with equally-spaced values from min to max
-  RANDOM, ///< Initialize with random values
-  STATIC  ///< Initialize with static values from SKL_TEST_DATA_HEADER
-};
+#define SEQ 0    ///< Initialize with equally-spaced values from min to max
+#define RANDOM 1 ///< Initialize with random values
+#define STATIC 2 ///< Initialize with static values from SKL_TEST_DATA_HEADER
 
 /**
  * @defgroup test_ranges Test/Benchmark Value Range Configuration
