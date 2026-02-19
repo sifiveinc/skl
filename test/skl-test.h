@@ -781,7 +781,7 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
  * @param MIN - The minimum value to use for initialization (ignored in STATIC)
  * @param MAX - The maximum value to use for initialization (ignored in STATIC)
  * @param IMPL_TYPE - Either FLOAT or INT to select implementation
- * @param FRAC_TYPE - Fractional type for floating point intermediates(float or
+ * @param FRAC_TYPE - Fractional type for floating point intermediates (float or
  * double)
  */
 #if defined(TEST_INIT_MODE) && TEST_INIT_MODE == STATIC
