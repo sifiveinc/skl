@@ -900,7 +900,6 @@ SKL_TEST_INIT_FUNC(int32_t, i32, INT, unused)
 
 /** @} */ // end of test_init group
 
-
 /**
  * @brief Custom memory allocation function
  *
