@@ -13,6 +13,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(SKL_TEST_LOG_LEVEL) && SKL_TEST_LOG_LEVEL >= 1
+#define SKL_TEST_LOG(...) printf(__VA_ARGS__)
+#else
+#define SKL_TEST_LOG(...) ((void)0)
+#endif
+
 /* Extract the test name from SKL_TEST_NAME as a string. */
 #define SKL_TEST_NAME_STR(NAME) #NAME
 #define DECL_SKL_TEST_NAME(NAME)                                               \
@@ -785,6 +791,10 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
     const size_t len = (LEN);                                                  \
     size_t avl = len;                                                          \
     const size_t buf_len = SKL_TEST_STATIC_DATA_LEN(BUF);                      \
+    SKL_TEST_LOG("Initializing buffer %s (%p - len %zu) with static data (%p " \
+                 "- len %zu)\n",                                               \
+                 #BUF, (void *)buf, len, (void *)SKL_TEST_STATIC_DATA(BUF),    \
+                 buf_len);                                                     \
     while (avl > 0) {                                                          \
       size_t vl = avl > buf_len ? buf_len : avl;                               \
       memcpy(buf, SKL_TEST_STATIC_DATA(BUF), vl * sizeof(TYPE));               \
@@ -800,6 +810,10 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
     const TYPE min = (SKL_TEST_MIN_##MSUFFIX);                                 \
     const TYPE max = (SKL_TEST_MAX_##MSUFFIX);                                 \
     const TYPE step = (max - min) / len;                                       \
+    SKL_TEST_LOG("Initializing buffer %s (%p - len %zu) with min %f, max %f "  \
+                 "(mode %d)\n",                                                \
+                 #BUF, (void *)buf, len, (double)min, (double)max,             \
+                 TEST_INIT_MODE);                                              \
     for (size_t i = 0; i < len; i++) {                                         \
       if (TEST_INIT_MODE == RANDOM) {                                          \
         SKL_TEST_INIT_RANDOM_IMPL_##IMPL_TYPE(TYPE, FRAC_TYPE);                \
