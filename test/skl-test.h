@@ -767,10 +767,10 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
  *
  * Behavior is determined by TEST_INIT_MODE macro:
  * - RANDOM: Initialize with random values between min and max
- * - STATIC: Copy values from existing array NAME_data to buf
+ * - STATIC: Copy values from existing array BUF_data to buf
  * - SEQ: Initialize with equally-spaced values from min to max
  *
- * @note For STATIC mode, the array NAME_data must be defined in the header file
+ * @note For STATIC mode, the array BUF_data must be defined in the header file
  * specified by SKL_TEST_DATA_HEADER, but need not have the same length as the
  * buffer being initialized. The data will be repeated as necessary to fill the
  * buffer.
