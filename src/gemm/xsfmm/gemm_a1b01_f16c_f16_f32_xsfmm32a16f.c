@@ -51,13 +51,14 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
   const _Float16 *a1 = a0 + csa;
   const _Float16 *b0 = b;
   const _Float16 *b1 = b0 + rsb;
-  __asm__ volatile("beqz %[k], 2f\n"
+  __asm__ volatile("beqz %[k], 3f\n"
 
                    "sf.vsettnt x0, %[tn], e16, w2\n"
                    "sf.vsettm x0, %[tm]\n"
                    "sf.vsettk x0, %[k]\n"
 
-                   "bltu %[k], %[i2], 1f\n"
+                   "bltu %[k], %[i2], 2f\n"
+                   "beq %[tm], %[tn], 1f\n"
 
                    "0:\n"
                    "addi %[k], %[k], -2\n"
@@ -75,10 +76,26 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
 
                    "sf.mm.f.f mt0, v0, v8\n"
                    "bgeu %[k], %[i2], 0b\n"
-                   "sf.vsettk x0, %[k]\n"
+                   "j 2f\n"
 
                    "1:\n"
-                   "beqz %[k], 2f\n"
+                   "addi %[k], %[k], -2\n"
+                   "vle16.v v0, (%[a0])\n"
+                   "add %[a0], %[a0], %[sa]\n"
+                   "vle16.v v4, (%[a1])\n"
+                   "add %[a1], %[a1], %[sa]\n"
+
+                   "vle16.v v8, (%[b0])\n"
+                   "add %[b0], %[b0], %[sb]\n"
+                   "vle16.v v12, (%[b1])\n"
+                   "add %[b1], %[b1], %[sb]\n"
+
+                   "sf.mm.f.f mt0, v0, v8\n"
+                   "bgeu %[k], %[i2], 1b\n"
+
+                   "2:\n"
+                   "sf.vsettk x0, %[k]\n"
+                   "beqz %[k], 3f\n"
 
                    // k % 2 == 1
                    "sf.vsettn x0, %[tm]\n"
@@ -89,7 +106,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
 
                    "sf.mm.f.f mt0, v0, v8\n"
 
-                   "2:\n"
+                   "3:\n"
                    : [a0] "+&r"(a0), [a1] "+&r"(a1), [b0] "+&r"(b0),
                      [b1] "+&r"(b1), [k] "+&r"(k)
                    : [sa] "r"(2 * csa * sizeof(_Float16)),
