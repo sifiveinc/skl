@@ -747,13 +747,8 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
     }                                                                          \
   }
 
-#if defined(TEST_INIT_MODE) && TEST_INIT_MODE == STATIC
 #define SKL_TEST_STATIC_DATA(NAME) NAME##_data
 #define SKL_TEST_STATIC_DATA_LEN(NAME) NAME##_len
-#else
-#define SKL_TEST_STATIC_DATA(NAME) NULL
-#define SKL_TEST_STATIC_DATA_LEN(NAME) 0
-#endif
 
 #define SKL_TEST_INIT_RANDOM_IMPL_FLOAT(TYPE, FRAC_TYPE)                       \
   FRAC_TYPE frac = (FRAC_TYPE)rand() / (FRAC_TYPE)RAND_MAX;                    \
