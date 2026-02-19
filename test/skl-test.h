@@ -778,8 +778,8 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
  * @param BUF - The buffer to initialize
  * @param LEN - The length of the buffer
  * @param TYPE - The data type of the buffer
- * @param MIN - The minimum value to use for initialization
- * @param MAX - The maximum value to use for initialization
+ * @param MIN - The minimum value to use for initialization (ignored in STATIC)
+ * @param MAX - The maximum value to use for initialization (ignored in STATIC)
  * @param IMPL_TYPE - Either FLOAT or INT to select implementation
  * @param FRAC_TYPE - Fractional type for floating point intermediates(float or
  * double)
@@ -899,6 +899,7 @@ SKL_TEST_INIT_FUNC(int8_t, i8, INT, unused)
 SKL_TEST_INIT_FUNC(int32_t, i32, INT, unused)
 
 /** @} */ // end of test_init group
+
 
 /**
  * @brief Custom memory allocation function
