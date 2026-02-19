@@ -86,21 +86,6 @@ int main(void) {
   printf("Measuring [%dx%d] softmax:\n\n", M, N);
   skl_test_init_f32(input, ALEN, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32);
 
-#if defined(ENABLE_BENCHMARK)
-  // cycle and instruction counters
-  uint64_t c0, c1, i0, i1; // NOLINT(readability-isolate-declaration)
-#define MEASURE_PERF(FUNCTION, NAME)                                           \
-  /* Measure 2nd run after caches warmed */                                    \
-  riscv_fence();                                                               \
-  c0 = riscv_read_mcycle(), i0 = riscv_read_minstret();                        \
-  FUNCTION(output, RSS, input, RSA, BETA, M, N);                               \
-  riscv_fence();                                                               \
-  c1 = riscv_read_mcycle(), i1 = riscv_read_minstret();                        \
-  report_perf_epc(NAME, c1 - c0, i1 - i0, (size_t)M * N);
-#else
-#define MEASURE_PERF(FUNCTION, NAME)
-#endif
-
 #if defined(ENABLE_TEST)
   memset(ref_output, 0, SLEN * sizeof(*ref_output));
   reference_softmax_2d_f32(ref_output, RSS, input, RSA, BETA, M, N, workspace);
@@ -119,8 +104,8 @@ int main(void) {
 
 #define RUN(FUNCTION, NAME)                                                    \
   memset(output, 0, SLEN * sizeof(*output));                                   \
-  FUNCTION(output, RSS, input, RSA, BETA, M, N);                               \
-  MEASURE_PERF(FUNCTION, NAME);                                                \
+  SKL_BENCHMARK_RUN(NAME, (M * N), SKL_TEST_WARMUP, FUNCTION, output, RSS,     \
+                    input, RSA, BETA, M, N);                                   \
   CHECK_RESULT(FUNCTION, NAME);
 
   // Run subset of functions depending on ISA compatibility
