@@ -586,8 +586,21 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
     }
     return;
   }
+  size_t count = 64 * 256;
   for (ii = 0; (ii + 4) <= m; ii = ii + 4) {
     for (jj = 0; jj < n; jj = jj + jj_vl) {
+      if (sizeof(float) * count >= 64 * 1024 && ii + 16 < m) {
+        __asm__ volatile(
+            "" ::[a00] "f"(a[(ii + 0) * rsa]), [a01] "f"(a[(ii + 1) * rsa]),
+            [a02] "f"(a[(ii + 2) * rsa]), [a03] "f"(a[(ii + 3) * rsa]),
+            [a04] "f"(a[(ii + 4) * rsa]), [a05] "f"(a[(ii + 5) * rsa]),
+            [a06] "f"(a[(ii + 6) * rsa]), [a07] "f"(a[(ii + 7) * rsa]),
+            [a08] "f"(a[(ii + 8) * rsa]), [a09] "f"(a[(ii + 9) * rsa]),
+            [a10] "f"(a[(ii + 10) * rsa]), [a11] "f"(a[(ii + 11) * rsa]),
+            [a12] "f"(a[(ii + 12) * rsa]), [a13] "f"(a[(ii + 13) * rsa]),
+            [a14] "f"(a[(ii + 14) * rsa]), [a15] "f"(a[(ii + 15) * rsa]));
+        count = 0;
+      }
       for (kk_peel = 0; ((kk_peel + 1) <= k) && (kk_peel < (0 + (1 * 1)));
            kk_peel = kk_peel + 1) {
         __asm__ volatile(
@@ -672,6 +685,7 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
             [c_store_1] "r"(c + (((ii + 2) * rsc) + ((jj + 0) * 1))),
             [c_store_2] "r"(c + (((ii + 3) * rsc) + ((jj + 0) * 1)))
           : "vtype", "vl", "memory");
+      count += 4 * k;
     }
   }
   for (ii0 = ii; (ii0 + 1) <= m; ii0 = ii0 + 1) {
