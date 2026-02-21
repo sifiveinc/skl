@@ -105,7 +105,7 @@ set(SKL_XSFMM32A16F_SRCS
 )
 
 set(SKL_XSFMM32A32F_SRCS
-  src/gemm/xsfmm/gemm_a1b01_f32c_f32_f32_xsfmm32a32f.c
+  src/gemm/xsfmm/gemm_f32c_f32_f32_xsfmm32a32f.c
 )
 
 set(SKL_XSFVFBFA_SRCS
