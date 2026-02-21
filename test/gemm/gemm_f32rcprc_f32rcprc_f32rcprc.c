@@ -101,8 +101,8 @@ void skl_gemm_f32pc_f32cp_f32rcp_xsfmm32a32f_wrapper(
     exit(status);
   }
   skl_gemm_f32pc_f32cp_f32rcp_xsfmm32a32f(m1, n1, k0 * k1, alpha, a_pack, rsa1,
-                                                b_pack, csb1, beta, c_pack, rsc1,
-                                                csc1);
+                                          b_pack, csb1, beta, c_pack, rsc1,
+                                          csc1);
 }
 #endif
 
