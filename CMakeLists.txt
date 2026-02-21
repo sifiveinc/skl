@@ -423,9 +423,9 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
       "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
   endif()
   if(RISCV_XSFMM32A32F)
-    skl_add_test(skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f_wrapper gemm/gemm_f32rc_f32rc_f32rc.c
+    skl_add_test(skl_gemm_f32c_f32_f32_xsfmm32a32f_wrapper gemm/gemm_f32rc_f32rc_f32rc.c
       "-DRSA=1;-DCSA=128;-DM=128;-DM=128;-DN=128;-DK=32;-DALPHA=1.f;-DBETA=0.f")
-    skl_add_test(skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f_wrapper gemm/gemm_f32rcprc_f32rcprc_f32rcprc.c
+    skl_add_test(skl_gemm_f32pc_f32cp_f32rcp_xsfmm32a32f_wrapper gemm/gemm_f32rcprc_f32rcprc_f32rcprc.c
       "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
   endif()
   if(RISCV_XSFMM)
