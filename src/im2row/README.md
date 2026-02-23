@@ -107,6 +107,34 @@ TAIL:   Copy partial channels from last spatial position (if needed)
 - **Optimized (`hwc_zve32x`)**: Copies full channel groups → fewer, larger memcpy calls
 - **Type-safe (`e8/e16/e32`)**: Same optimization, with compile-time type checking
 
+## Channel Partitioning Support
+
+The im2row kernels support **channel partitioning**, allowing extraction of patches from a subset of input channels. This is useful for:
+- **Grouped convolutions**: Process channel groups independently
+- **Memory-constrained scenarios**: Process channels in batches
+
+### Key Parameters for Channel Partitioning
+
+- **`in_c_origin`**: Starting channel coordinate in the input tensor
+- **`patch_channel`**: Number of channels to extract in the patch
+- **`input_width_stride`**: Stride in elements for width dimension
+- **`input_height_stride`**: Stride in elements for height dimension
+
+### Example: Grouped Convolution
+
+```
+Full input tensor: [H, W, 12 channels]
+Group 1: Extract channels 0-3   → in_c_origin=0,  patch_channel=4
+Group 2: Extract channels 4-7   → in_c_origin=4,  patch_channel=4
+Group 3: Extract channels 8-11  → in_c_origin=8,  patch_channel=4
+
+For standard HWC layout:
+  input_width_stride = total_input_channels (e.g., 12)
+  input_height_stride = input_width × total_input_channels
+```
+
+This allows processing each group independently while sharing the same input tensor memory.
+
 ## Kernel List
 
 ### Scalar Implementations
@@ -116,12 +144,13 @@ Generic patch extraction with element-by-element processing for any primitive da
 
 ```c
 void skl_im2row_generic_hwc(
-    void *out, const void *in_batch, size_t element_size, int32_t in_w_origin,
-    int32_t in_h_origin, size_t input_height, size_t input_width,
-    size_t input_channel, size_t filter_height, size_t filter_width,
-    size_t dilation_width_factor, size_t dilation_height_factor,
-    unsigned char zero_byte, const size_t patch_begin_coord[3],
-    size_t patch_elements);
+    void *out, const void *in_batch, size_t element_size, int32_t in_h_origin,
+    int32_t in_w_origin, int32_t in_c_origin, size_t input_height,
+    size_t input_width, size_t filter_height, size_t filter_width,
+    size_t patch_channel, size_t dilation_height_factor,
+    size_t dilation_width_factor, size_t input_height_stride,
+    size_t input_width_stride, unsigned char zero_byte,
+    const size_t patch_begin_coord[3], size_t patch_elements);
 ```
 
 ### RVV Implementations
@@ -130,49 +159,45 @@ void skl_im2row_generic_hwc(
 Optimized patch extraction with bulk memory operations for any primitive data type.
 
 ```c
-void skl_im2row_hwc_zve32x(void *out, const void *in_batch, size_t element_size,
-                           int32_t in_w_origin, int32_t in_h_origin,
-                           size_t input_height, size_t input_width,
-                           size_t input_channel, size_t filter_height,
-                           size_t filter_width, size_t dilation_width_factor,
-                           size_t dilation_height_factor,
-                           unsigned char zero_byte,
-                           const size_t patch_begin_coord[3],
-                           size_t patch_elements);
+void skl_im2row_hwc_zve32x(
+    void *out, const void *in_batch, size_t element_size, int32_t in_h_origin,
+    int32_t in_w_origin, int32_t in_c_origin, size_t input_height,
+    size_t input_width, size_t filter_height, size_t filter_width,
+    size_t patch_channel, size_t dilation_height_factor,
+    size_t dilation_width_factor, size_t input_height_stride,
+    size_t input_width_stride, unsigned char zero_byte,
+    const size_t patch_begin_coord[3], size_t patch_elements);
 ```
 
 #### **`skl_im2row_hwc_e8_zve32x`**, **`skl_im2row_hwc_e16_zve32x`**, **`skl_im2row_hwc_e32_zve32x`**
 Type-safe versions of `skl_im2row_hwc_zve32x` for 8-bit, 16-bit, and 32-bit element types respectively.
 
 ```c
-void skl_im2row_hwc_e8_zve32x(uint8_t *out, const uint8_t *in_batch,
-                              int32_t in_w_origin, int32_t in_h_origin,
-                              size_t input_height, size_t input_width,
-                              size_t input_channel, size_t filter_height,
-                              size_t filter_width, size_t dilation_width_factor,
-                              size_t dilation_height_factor,
-                              unsigned char zero_byte,
-                              const size_t patch_begin_coord[3],
-                              size_t patch_elements);
+void skl_im2row_hwc_e8_zve32x(
+    uint8_t *out, const uint8_t *in_batch, int32_t in_h_origin,
+    int32_t in_w_origin, int32_t in_c_origin, size_t input_height,
+    size_t input_width, size_t filter_height, size_t filter_width,
+    size_t patch_channel, size_t dilation_height_factor,
+    size_t dilation_width_factor, size_t input_height_stride,
+    size_t input_width_stride, unsigned char zero_byte,
+    const size_t patch_begin_coord[3], size_t patch_elements);
 
-void skl_im2row_hwc_e16_zve32x(uint16_t *out, const uint16_t *in_batch,
-                               int32_t in_w_origin, int32_t in_h_origin,
-                               size_t input_height, size_t input_width,
-                               size_t input_channel, size_t filter_height,
-                               size_t filter_width, size_t dilation_width_factor,
-                               size_t dilation_height_factor,
-                               unsigned char zero_byte,
-                               const size_t patch_begin_coord[3],
-                               size_t patch_elements);
+void skl_im2row_hwc_e16_zve32x(
+    uint16_t *out, const uint16_t *in_batch, int32_t in_h_origin,
+    int32_t in_w_origin, int32_t in_c_origin, size_t input_height,
+    size_t input_width, size_t filter_height, size_t filter_width,
+    size_t patch_channel, size_t dilation_height_factor,
+    size_t dilation_width_factor, size_t input_height_stride,
+    size_t input_width_stride, unsigned char zero_byte,
+    const size_t patch_begin_coord[3], size_t patch_elements);
 
-void skl_im2row_hwc_e32_zve32x(uint32_t *out, const uint32_t *in_batch,
-                               int32_t in_w_origin, int32_t in_h_origin,
-                               size_t input_height, size_t input_width,
-                               size_t input_channel, size_t filter_height,
-                               size_t filter_width, size_t dilation_width_factor,
-                               size_t dilation_height_factor,
-                               unsigned char zero_byte,
-                               const size_t patch_begin_coord[3],
-                               size_t patch_elements);
+void skl_im2row_hwc_e32_zve32x(
+    uint32_t *out, const uint32_t *in_batch, int32_t in_h_origin,
+    int32_t in_w_origin, int32_t in_c_origin, size_t input_height,
+    size_t input_width, size_t filter_height, size_t filter_width,
+    size_t patch_channel, size_t dilation_height_factor,
+    size_t dilation_width_factor, size_t input_height_stride,
+    size_t input_width_stride, unsigned char zero_byte,
+    const size_t patch_begin_coord[3], size_t patch_elements);
 ```
 

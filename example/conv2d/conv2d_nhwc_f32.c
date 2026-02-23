@@ -90,25 +90,31 @@ void conv2d_io_nhwc_filter_hwio_im2row_gemm_f32_f32_f32_zve32f_x390(
 
   const size_t patch_begin_coord[3] = {0, 0, 0};
 
+  const size_t input_width_stride = input_channel;
+  const size_t input_height_stride = input_channel * input_width;
+  const size_t input_batch_stride = input_height * input_width * input_channel;
+
   for (size_t m = 0; m < m_len; ++m) {
     size_t batch = (m / (output_width * output_height)) % batches;
     size_t out_h = (m / output_width) % output_height;
     size_t out_w = m % output_width;
 
-    const int32_t in_w_origin =
-        (int32_t)(out_w * stride_width) - (int32_t)padding_width;
     const int32_t in_h_origin =
         (int32_t)(out_h * stride_height) - (int32_t)padding_height;
+    const int32_t in_w_origin =
+        (int32_t)(out_w * stride_width) - (int32_t)padding_width;
+    const int32_t in_c_origin = 0;
 
-    const size_t in_offset = batch * input_height * input_width * input_channel;
+    const size_t in_offset = batch * input_batch_stride;
     const float *in_batch_tile = input + in_offset;
 
     float *row_tile = gemm_input + output_row_offset;
 
-    skl_im2row_hwc_zve32x(row_tile, in_batch_tile, sizeof(float), in_w_origin,
-                          in_h_origin, input_height, input_width, input_channel,
-                          filter_height, filter_width, dilation_width,
-                          dilation_height, 0, patch_begin_coord, k_len);
+    skl_im2row_hwc_zve32x(
+        row_tile, in_batch_tile, sizeof(float), in_h_origin, in_w_origin,
+        in_c_origin, input_height, input_width, filter_height, filter_width,
+        input_channel /* patch_channel */, dilation_height, dilation_width,
+        input_height_stride, input_width_stride, 0, patch_begin_coord, k_len);
 
     output_row_offset += k_len;
   }

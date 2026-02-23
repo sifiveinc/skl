@@ -51,15 +51,14 @@ float ref_im2row_output[IM2ROW_OUTPUT_LEN],
 #endif // ENABLE_TEST
 
 #if defined(ENABLE_TEST)
-typedef void (*im2row_hwc)(void *out, const void *in_batch, size_t element_size,
-                           int32_t in_w_origin, int32_t in_h_origin,
-                           size_t input_height, size_t input_width,
-                           size_t input_channel, size_t filter_height,
-                           size_t filter_width, size_t dilation_width_factor,
-                           size_t dilation_height_factor,
-                           unsigned char zero_byte,
-                           const size_t patch_begin_coord[3],
-                           size_t patch_elements);
+typedef void (*im2row_hwc)(
+    void *out, const void *in_batch, size_t element_size, int32_t in_h_origin,
+    int32_t in_w_origin, int32_t in_c_origin, size_t input_height,
+    size_t input_width, size_t filter_height, size_t filter_width,
+    size_t patch_channel, size_t dilation_height_factor,
+    size_t dilation_width_factor, size_t input_height_stride,
+    size_t input_width_stride, unsigned char zero_byte,
+    const size_t patch_begin_coord[3], size_t patch_elements);
 
 void skl_im2row_hwc_f32_wrapper(float *output, const float *input,
                                 size_t batches, size_t input_height,
@@ -77,37 +76,43 @@ void skl_im2row_hwc_f32_wrapper(float *output, const float *input,
 
   const size_t patch_begin_coord[3] = {0, 0, 0};
 
+  const size_t input_width_stride = input_channel;
+  const size_t input_height_stride = input_channel * input_width;
+  const size_t input_batch_stride = input_height * input_width * input_channel;
   for (size_t m = 0; m < m_len; ++m) {
     size_t batch = (m / (output_width * output_height)) % batches;
     size_t out_h = (m / output_width) % output_height;
     size_t out_w = m % output_width;
 
-    const int32_t in_w_origin =
-        (int32_t)(out_w * stride_width) - (int32_t)padding_width;
     const int32_t in_h_origin =
         (int32_t)(out_h * stride_height) - (int32_t)padding_height;
+    const int32_t in_w_origin =
+        (int32_t)(out_w * stride_width) - (int32_t)padding_width;
+    const int32_t in_c_origin = 0;
 
-    const size_t in_offset = batch * input_height * input_width * input_channel;
+    const size_t in_offset = batch * input_batch_stride;
     const float *in_batch_tile = input + in_offset;
 
     float *row_tile = output + output_row_offset;
 
-    im2row_f(row_tile, in_batch_tile, sizeof(float), in_w_origin, in_h_origin,
-             input_height, input_width, input_channel, filter_height,
-             filter_width, dilation_width, dilation_height, 0,
-             patch_begin_coord, k_len);
+    im2row_f(row_tile, in_batch_tile, sizeof(float), in_h_origin, in_w_origin,
+             in_c_origin, input_height, input_width, filter_height,
+             filter_width, input_channel /* patch_channel */, dilation_height,
+             dilation_width, input_height_stride, input_width_stride,
+             0 /* zero value */, patch_begin_coord, k_len);
 
     output_row_offset += k_len;
   }
 }
 
 typedef void (*im2row_hwc_e32)(
-    uint32_t *out, const uint32_t *in_batch, int32_t in_w_origin,
-    int32_t in_h_origin, size_t input_height, size_t input_width,
-    size_t input_channel, size_t filter_height, size_t filter_width,
-    size_t dilation_width_factor, size_t dilation_height_factor,
-    unsigned char zero_byte, const size_t patch_begin_coord[3],
-    size_t patch_elements);
+    uint32_t *out, const uint32_t *in_batch, int32_t in_h_origin,
+    int32_t in_w_origin, int32_t in_c_origin, size_t input_height,
+    size_t input_width, size_t filter_height, size_t filter_width,
+    size_t patch_channel, size_t dilation_height_factor,
+    size_t dilation_width_factor, size_t input_height_stride,
+    size_t input_width_stride, unsigned char zero_byte,
+    const size_t patch_begin_coord[3], size_t patch_elements);
 
 void skl_im2row_hwc_f32_typed_wrapper(
     float *output, const float *input, size_t batches, size_t input_height,
@@ -123,25 +128,31 @@ void skl_im2row_hwc_f32_typed_wrapper(
 
   const size_t patch_begin_coord[3] = {0, 0, 0};
 
+  const size_t input_width_stride = input_channel;
+  const size_t input_height_stride = input_channel * input_width;
+  const size_t input_batch_stride = input_height * input_width * input_channel;
+
   for (size_t m = 0; m < m_len; ++m) {
     size_t batch = (m / (output_width * output_height)) % batches;
     size_t out_h = (m / output_width) % output_height;
     size_t out_w = m % output_width;
 
-    const int32_t in_w_origin =
-        (int32_t)(out_w * stride_width) - (int32_t)padding_width;
     const int32_t in_h_origin =
         (int32_t)(out_h * stride_height) - (int32_t)padding_height;
+    const int32_t in_w_origin =
+        (int32_t)(out_w * stride_width) - (int32_t)padding_width;
+    const int32_t in_c_origin = 0;
 
-    const size_t in_offset = batch * input_height * input_width * input_channel;
+    const size_t in_offset = batch * input_batch_stride;
     const float *in_batch_tile = input + in_offset;
 
     float *row_tile = output + output_row_offset;
 
-    im2row_f((uint32_t *)row_tile, (uint32_t *)in_batch_tile, in_w_origin,
-             in_h_origin, input_height, input_width, input_channel,
-             filter_height, filter_width, dilation_width, dilation_height, 0,
-             patch_begin_coord, k_len);
+    im2row_f((uint32_t *)row_tile, (uint32_t *)in_batch_tile, in_h_origin,
+             in_w_origin, in_c_origin, input_height, input_width, filter_height,
+             filter_width, input_channel /* patch_channel */, dilation_height,
+             dilation_width, input_height_stride, input_width_stride,
+             0 /* zero value */, patch_begin_coord, k_len);
 
     output_row_offset += k_len;
   }

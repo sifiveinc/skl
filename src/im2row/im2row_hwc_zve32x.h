@@ -49,15 +49,18 @@ extern "C" {
  * (NHWC layout)
  * @param element_size Size in bytes of the input tensor's primitive data type
  * (e.g., sizeof(float))
- * @param in_w_origin Left coordinate of patch in input tensor
  * @param in_h_origin Top coordinate of patch in input tensor
+ * @param in_w_origin Left coordinate of patch in input tensor
+ * @param in_c_origin Channel cooridnate of patch in input tensor
  * @param input_height Height of input tensor
  * @param input_width Width of input tensor
- * @param input_channel Number of input channels
  * @param filter_height Height of convolution filter
  * @param filter_width Width of convolution filter
- * @param dilation_width_factor Width dilation factor for dilated convolution
+ * @param patch_channel Number of patch channels
  * @param dilation_height_factor Height dilation factor for dilated convolution
+ * @param dilation_width_factor Width dilation factor for dilated convolution
+ * @param input_height_stride Height's stride of input tensor
+ * @param input_width_stride Width's stride of input tensor
  * @param zero_byte Byte value used for out-of-bounds padding
  * @param patch_begin_coord Starting coordinates [h, w, c] within the patch
  * @param patch_elements Number of elements to extract from patch
@@ -71,28 +74,31 @@ extern "C" {
  * @code
  * // Float32 convolution (HWC layout)
  * skl_im2row_hwc_zve32x(out, in_batch, sizeof(float),
- *                       in_w_origin, in_h_origin, input_height, input_width,
- *                       input_channel, filter_height, filter_width,
- *                       dilation_width, dilation_height,
+ *                       in_h_origin, in_w_origin, in_c_origin,
+ *                       input_height, input_width,
+ *                       filter_height, filter_width, patch_channel,
+ *                       dilation_height, dilation_width,
+ *                       input_height_stride, input_width_stride,
  *                       0, patch_begin_coord, k_len);
  *
  * // Int8 quantized convolution (HWC layout)
  * skl_im2row_hwc_zve32x(out, in_batch, sizeof(int8_t),
- *                       in_w_origin, in_h_origin, input_height, input_width,
- *                       input_channel, filter_height, filter_width,
- *                       dilation_width, dilation_height,
+ *                       in_h_origin, in_w_origin, in_c_origin,
+ *                       input_height, input_width,
+ *                       filter_height, filter_width, patch_channel,
+ *                       dilation_height, dilation_width,
+ *                       input_height_stride, input_width_stride,
  *                       0, patch_begin_coord, k_len);
  * @endcode
  */
-void skl_im2row_hwc_zve32x(void *out, const void *in_batch, size_t element_size,
-                           int32_t in_w_origin, int32_t in_h_origin,
-                           size_t input_height, size_t input_width,
-                           size_t input_channel, size_t filter_height,
-                           size_t filter_width, size_t dilation_width_factor,
-                           size_t dilation_height_factor,
-                           unsigned char zero_byte,
-                           const size_t patch_begin_coord[3],
-                           size_t patch_elements);
+void skl_im2row_hwc_zve32x(
+    void *out, const void *in_batch, size_t element_size, int32_t in_h_origin,
+    int32_t in_w_origin, int32_t in_c_origin, size_t input_height,
+    size_t input_width, size_t filter_height, size_t filter_width,
+    size_t patch_channel, size_t dilation_height_factor,
+    size_t dilation_width_factor, size_t input_height_stride,
+    size_t input_width_stride, unsigned char zero_byte,
+    const size_t patch_begin_coord[3], size_t patch_elements);
 
 #ifdef __cplusplus
 }
