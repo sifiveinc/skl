@@ -25,11 +25,7 @@
 #define SATURATION_TEST_MODE 3 // 1: no saturation, 2: saturation, 3: both
 #endif
 
-#if defined(ENABLE_TEST)
-#include "skl-common.h"
-#endif
 #include "skl-test.h"
-
 #include "skl.h"
 
 #if defined(ENABLE_TEST)
