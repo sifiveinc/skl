@@ -73,13 +73,6 @@ static int check_error(const char *name, const _Float16 *res,
 
 int main(void) {
   int ret = 0; // return value
-#if defined(ENABLE_BENCHMARK)
-  // Cycle and instruction counts
-  uint64_t c0;
-  uint64_t c1;
-  uint64_t i0;
-  uint64_t i1;
-#endif
   printf("Measuring depthwise_conv2d: [%d, %d, %d] x [%d, %d, %d, %d] -> "
          "[%d, %d, %d]\n",
          INPUT_HEIGHT, INPUT_WIDTH, INPUT_CHANNEL, FILTER_HEIGHT, FILTER_WIDTH,
@@ -128,21 +121,6 @@ int main(void) {
                   DWCONV2D_GENERAL_ARGS);
 #endif
 
-#if defined(ENABLE_BENCHMARK)
-#define MEASURE_PERF(FUNCTION, NAME, ...)                                      \
-  /* Measure 2nd run after caches warmed */                                    \
-  riscv_fence();                                                               \
-  c0 = riscv_read_mcycle(), i0 = riscv_read_minstret();                        \
-  DWCONV2D_KERNEL(FUNCTION, output, __VA_ARGS__);                              \
-  riscv_fence();                                                               \
-  c1 = riscv_read_mcycle(), i1 = riscv_read_minstret();                        \
-  report_perf_epc(NAME, c1 - c0, i1 - i0,                                      \
-                  (size_t)OUTPUT_HEIGHT * (size_t)OUTPUT_WIDTH *               \
-                      (size_t)OUTPUT_CHANNEL);
-#else
-#define MEASURE_PERF(FUNCTION, NAME, ...)
-#endif
-
 #if defined(ENABLE_TEST)
 #define CHECK_RESULT(FUNCTION, NAME)                                           \
   ret += check_error(NAME, output, ref_output,                                 \
@@ -155,8 +133,10 @@ int main(void) {
 
 #define RUN(FUNCTION, NAME, ...)                                               \
   memset(output, 0, sizeof output);                                            \
-  DWCONV2D_KERNEL(FUNCTION, output, __VA_ARGS__);                              \
-  MEASURE_PERF(FUNCTION, NAME, __VA_ARGS__);                                   \
+  SKL_BENCHMARK_RUN(                                                           \
+      NAME,                                                                    \
+      (size_t)OUTPUT_HEIGHT *(size_t)OUTPUT_WIDTH *(size_t)OUTPUT_CHANNEL,     \
+      SKL_TEST_WARMUP, FUNCTION, output, input, filter, __VA_ARGS__);          \
   CHECK_RESULT(FUNCTION, NAME);
 
 #if defined(__riscv_zvfh)
