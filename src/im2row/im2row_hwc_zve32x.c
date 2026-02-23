@@ -23,17 +23,19 @@ SKL_FUNC void skl_im2row_hwc_zve32x(
     const size_t patch_begin_coord[3], size_t patch_elements) {
   const size_t patch_dims[3] = {filter_height, filter_width, patch_channel};
 
+  const size_t patch_dim2 = patch_dims[2];
+  const size_t patch_begin_coord2 = patch_begin_coord[2];
+
   // NOLINTBEGIN(readability-avoid-nested-conditional-operator)
   const size_t head =
-      patch_begin_coord[2]
-          ? ((patch_elements < (patch_dims[2] - patch_begin_coord[2]))
-                 ? patch_elements
-                 : (patch_dims[2] - patch_begin_coord[2]))
-          : 0;
+      patch_begin_coord2 ? ((patch_elements < (patch_dim2 - patch_begin_coord2))
+                                ? patch_elements
+                                : (patch_dim2 - patch_begin_coord2))
+                         : 0;
   // NOLINTEND(readability-avoid-nested-conditional-operator)
 
-  const size_t tail = (patch_elements - head) % patch_dims[2];
-  const size_t multiples = (patch_elements - head - tail) / patch_dims[2];
+  const size_t tail = (patch_elements - head) % patch_dim2;
+  const size_t multiples = (patch_elements - head - tail) / patch_dim2;
 
   size_t current_indices[2];
   current_indices[0] = patch_begin_coord[0];
@@ -52,7 +54,7 @@ SKL_FUNC void skl_im2row_hwc_zve32x(
         in_h_origin + (int32_t)(dilation_height_factor * patch_begin_coord[0]);
     const int32_t in_w =
         in_w_origin + (int32_t)(dilation_width_factor * patch_begin_coord[1]);
-    const int32_t in_c = (int32_t)patch_begin_coord[2];
+    const int32_t in_c = (int32_t)patch_begin_coord2;
 
     char *dst = out_bytes + dst_byte_offset;
     const size_t head_bytes = head * element_size;
@@ -66,7 +68,7 @@ SKL_FUNC void skl_im2row_hwc_zve32x(
   }
 
   size_t iteration = 0;
-  const size_t chunk_bytes = patch_dims[2] * element_size;
+  const size_t chunk_bytes = patch_dim2 * element_size;
   while (is_end == 0 && iteration < multiples) {
     const int32_t in_h =
         in_h_origin + (int32_t)(dilation_height_factor * current_indices[0]);
