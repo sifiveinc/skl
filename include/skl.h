@@ -243,9 +243,9 @@
 #include "../src/im2row/im2row_hwc_scalar.h"
 
 #if defined(__riscv_zve32x)
-#include "../src/im2row/im2row_e8_zve32x.h"
 #include "../src/im2row/im2row_e16_zve32x.h"
 #include "../src/im2row/im2row_e32_zve32x.h"
+#include "../src/im2row/im2row_e8_zve32x.h"
 #endif
 
 // IWYU pragma: end_exports
