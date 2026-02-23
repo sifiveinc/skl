@@ -201,3 +201,43 @@ void skl_im2row_hwc_e32_zve32x(
     const size_t patch_begin_coord[3], size_t patch_elements);
 ```
 
+### Specialized Kernels for Non-Dilated Convolutions
+
+#### **`skl_im2row_d1_full_patch_hwc_zve32x`**
+Optimized full patch extraction specialized for non-dilated convolutions (dilation_factor=1). Extracts complete patches only (no partial patch support).
+
+```c
+void skl_im2row_d1_full_patch_hwc_zve32x(
+    void *out, const void *in_batch, size_t element_size, int32_t in_h_origin,
+    int32_t in_w_origin, size_t input_height, size_t input_width,
+    size_t input_channel, size_t filter_height, size_t filter_width,
+    size_t input_height_stride, size_t input_width_stride,
+    unsigned char zero_byte);
+```
+
+#### **`skl_im2row_d1_full_patch_hwc_e8_zve32x`**, **`skl_im2row_d1_full_patch_hwc_e16_zve32x`**, **`skl_im2row_d1_full_patch_hwc_e32_zve32x`**
+Type-safe versions of `skl_im2row_d1_full_patch_hwc_zve32x` for 8-bit, 16-bit, and 32-bit element types respectively.
+
+```c
+void skl_im2row_d1_full_patch_hwc_e8_zve32x(
+    uint8_t *out, const uint8_t *in_batch, int32_t in_h_origin,
+    int32_t in_w_origin, size_t input_height, size_t input_width,
+    size_t input_channel, size_t filter_height, size_t filter_width,
+    size_t input_height_stride, size_t input_width_stride,
+    unsigned char zero_byte);
+
+void skl_im2row_d1_full_patch_hwc_e16_zve32x(
+    uint16_t *out, const uint16_t *in_batch, int32_t in_h_origin,
+    int32_t in_w_origin, size_t input_height, size_t input_width,
+    size_t input_channel, size_t filter_height, size_t filter_width,
+    size_t input_height_stride, size_t input_width_stride,
+    unsigned char zero_byte);
+
+void skl_im2row_d1_full_patch_hwc_e32_zve32x(
+    uint32_t *out, const uint32_t *in_batch, int32_t in_h_origin,
+    int32_t in_w_origin, size_t input_height, size_t input_width,
+    size_t input_channel, size_t filter_height, size_t filter_width,
+    size_t input_height_stride, size_t input_width_stride,
+    unsigned char zero_byte);
+```
+

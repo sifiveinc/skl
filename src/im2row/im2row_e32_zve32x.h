@@ -77,6 +77,39 @@ void skl_im2row_hwc_e32_zve32x(
     size_t input_width_stride, unsigned char zero_byte,
     const size_t patch_begin_coord[3], size_t patch_elements);
 
+/**
+ * @brief Optimized full patch extraction for non-dilated convolutions
+ *
+ * Extracts a complete convolution patch from input tensor using optimized bulk
+ * copying. Specialized for non-dilated convolutions (dilation_factor=1) and
+ * full patch extraction. Uses efficient bulk memory operations and padding
+ * strategies.
+ *
+ * @param out Point to the buffer which stores a row of output matrix
+ * @param in_batch Point to the start of input tensor for current batch
+ * (NHWC layout)
+ * @param in_h_origin Top coordinate of patch in input tensor
+ * @param in_w_origin Left coordinate of patch in input tensor
+ * @param input_height Height of input tensor
+ * @param input_width Width of input tensor
+ * @param input_channel Number of input channels
+ * @param filter_height Height of convolution filter
+ * @param filter_width Width of convolution filter
+ * @param input_height_stride Height's stride of input tensor
+ * @param input_width_stride Width's stride of input tensor
+ * @param zero_byte Byte value used for out-of-bounds padding
+ *
+ * @note Optimized for dilation_factor=1 (no dilation)
+ * @note Extracts complete patches only (no partial patch support)
+ * @note Uses bulk memcpy operations for better performance
+ */
+void skl_im2row_d1_full_patch_hwc_e32_zve32x(
+    uint32_t *out, const uint32_t *in_batch, int32_t in_h_origin,
+    int32_t in_w_origin, size_t input_height, size_t input_width,
+    size_t input_channel, size_t filter_height, size_t filter_width,
+    size_t input_height_stride, size_t input_width_stride,
+    unsigned char zero_byte);
+
 #ifdef __cplusplus
 }
 #endif

@@ -158,7 +158,54 @@ void skl_im2row_hwc_f32_typed_wrapper(
   }
 }
 
-int check_error(void) {
+typedef void (*im2row_d1_full_patch_hwc_e32)(
+    uint32_t *out, const uint32_t *in_batch, int32_t in_h_origin,
+    int32_t in_w_origin, size_t input_height, size_t input_width,
+    size_t input_channel, size_t filter_height, size_t filter_width,
+    size_t input_height_stride, size_t input_width_stride,
+    unsigned char zero_byte);
+
+void skl_im2row_d1_full_patch_hwc_f32_typed_wrapper(
+    float *output, const float *input, size_t batches, size_t input_height,
+    size_t input_width, size_t input_channel, size_t filter_height,
+    size_t filter_width, size_t output_height, size_t output_width,
+    size_t padding_width, size_t padding_height, size_t stride_width,
+    size_t stride_height, im2row_d1_full_patch_hwc_e32 im2row_f) {
+  const size_t m_len = batches * output_height * output_width;
+  const size_t k_len = filter_height * filter_width * input_channel;
+
+  size_t output_row_offset = 0;
+
+  const size_t input_width_stride = input_channel;
+  const size_t input_height_stride = input_channel * input_width;
+  const size_t input_batch_stride = input_height * input_width * input_channel;
+
+  for (size_t m = 0; m < m_len; ++m) {
+    size_t batch = (m / (output_width * output_height)) % batches;
+    size_t out_h = (m / output_width) % output_height;
+    size_t out_w = m % output_width;
+
+    const int32_t in_h_origin =
+        (int32_t)(out_h * stride_height) - (int32_t)padding_height;
+    const int32_t in_w_origin =
+        (int32_t)(out_w * stride_width) - (int32_t)padding_width;
+
+    const size_t in_offset = batch * input_batch_stride;
+    const float *in_batch_tile = input + in_offset;
+
+    float *row_tile = output + output_row_offset;
+
+    im2row_f((uint32_t *)row_tile, (uint32_t *)in_batch_tile, in_h_origin,
+             in_w_origin, input_height, input_width,
+             input_channel /* patch_channel */, filter_height, filter_width,
+             input_height_stride, input_width_stride, 0 /* zero value */);
+
+    output_row_offset += k_len;
+  }
+}
+
+int check_error(char *func_name) {
+  printf("Check Func %s:\n", func_name);
   /* Compute the reference (scalar) matrix output. */
   skl_im2row_hwc_f32_wrapper(
       ref_im2row_output, input, BATCH, INPUT_HEIGHT, INPUT_WIDTH, INPUT_CHANNEL,
@@ -202,9 +249,23 @@ int main(void) {
       test_im2row_output, input, BATCH, INPUT_HEIGHT, INPUT_WIDTH,
       INPUT_CHANNEL, FILTER_HEIGHT, FILTER_WIDTH, OUTPUT_HEIGHT, OUTPUT_WIDTH,
       PADDING_WIDTH, PADDING_HEIGHT, STRIDE_WIDTH, STRIDE_HEIGHT,
-      DILATION_WIDTH, DILATION_HEIGHT, SKL_TEST_NAME);
+      DILATION_WIDTH, DILATION_HEIGHT, skl_im2row_hwc_e32_zve32x);
 
-  res += check_error();
+  res += check_error("skl_im2row_hwc_e32_zve32x");
+
+  if ((size_t)DILATION_WIDTH == 1 && (size_t)DILATION_HEIGHT == 1) {
+    /* Make copies of A^T to write the reference and test outputs to. */
+    memcpy(ref_im2row_output, im2row_output, IM2ROW_OUTPUT_LEN * sizeof(float));
+    memcpy(test_im2row_output, im2row_output,
+           IM2ROW_OUTPUT_LEN * sizeof(float));
+    skl_im2row_d1_full_patch_hwc_f32_typed_wrapper(
+        test_im2row_output, input, BATCH, INPUT_HEIGHT, INPUT_WIDTH,
+        INPUT_CHANNEL, FILTER_HEIGHT, FILTER_WIDTH, OUTPUT_HEIGHT, OUTPUT_WIDTH,
+        PADDING_WIDTH, PADDING_HEIGHT, STRIDE_WIDTH, STRIDE_HEIGHT,
+        skl_im2row_d1_full_patch_hwc_e32_zve32x);
+
+    res += check_error("skl_im2row_d1_full_patch_hwc_e32_zve32x");
+  }
 #endif // ENABLE_TEST
 
 #if defined(ENABLE_BENCHMARK)
