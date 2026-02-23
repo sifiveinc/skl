@@ -50,7 +50,6 @@ float ref_im2row_output[IM2ROW_OUTPUT_LEN],
     test_im2row_output[IM2ROW_OUTPUT_LEN];
 #endif // ENABLE_TEST
 
-#if defined(ENABLE_TEST)
 typedef void (*im2row_hwc)(
     void *out, const void *in_batch, size_t element_size, int32_t in_h_origin,
     int32_t in_w_origin, int32_t in_c_origin, size_t input_height,
@@ -204,14 +203,9 @@ void skl_im2row_d1_full_patch_hwc_f32_typed_wrapper(
   }
 }
 
-int check_error(char *func_name) {
+#if defined(ENABLE_TEST)
+int check_error_float(char *func_name) {
   printf("Check Func %s:\n", func_name);
-  /* Compute the reference (scalar) matrix output. */
-  skl_im2row_hwc_f32_wrapper(
-      ref_im2row_output, input, BATCH, INPUT_HEIGHT, INPUT_WIDTH, INPUT_CHANNEL,
-      FILTER_HEIGHT, FILTER_WIDTH, OUTPUT_HEIGHT, OUTPUT_WIDTH, PADDING_WIDTH,
-      PADDING_HEIGHT, STRIDE_WIDTH, STRIDE_HEIGHT, DILATION_WIDTH,
-      DILATION_HEIGHT, skl_im2row_generic_hwc);
 
   /* Compare the reference and test outputs. */
   for (size_t i = 0; i < M; ++i) {
@@ -231,6 +225,32 @@ int check_error(char *func_name) {
 #define TEST_LABEL(S) #S ":\n"
 #define PRINT_TEST_NAME(S) printf(TEST_LABEL(S));
 
+#if defined(ENABLE_TEST)
+#define GENERATE_GOLDEN(DATA_TYPE)                                             \
+  memcpy(ref_im2row_output, im2row_output,                                     \
+         IM2ROW_OUTPUT_LEN * sizeof(DATA_TYPE));                               \
+  skl_im2row_hwc_f32_wrapper(                                                  \
+      ref_im2row_output, input, BATCH, INPUT_HEIGHT, INPUT_WIDTH,              \
+      INPUT_CHANNEL, FILTER_HEIGHT, FILTER_WIDTH, OUTPUT_HEIGHT, OUTPUT_WIDTH, \
+      PADDING_WIDTH, PADDING_HEIGHT, STRIDE_WIDTH, STRIDE_HEIGHT,              \
+      DILATION_WIDTH, DILATION_HEIGHT, skl_im2row_generic_hwc);
+#else
+#define GENERATE_GOLDEN(DATA_TYPE)
+#endif
+
+#if defined(ENABLE_TEST)
+#define CHECK_RESULT(NAME, DATA_TYPE) res += check_error_##DATA_TYPE(#NAME);
+#else
+#define CHECK_RESULT(NAME, DATA_TYPE)
+#endif
+
+#define RUN(NAME, FUNCTION, DATA_TYPE, ...)                                    \
+  memcpy(test_im2row_output, im2row_output,                                    \
+         IM2ROW_OUTPUT_LEN * sizeof(DATA_TYPE));                               \
+  SKL_BENCHMARK_RUN(#NAME, IM2ROW_OUTPUT_LEN, SKL_TEST_WARMUP, FUNCTION,       \
+                    __VA_ARGS__, NAME);                                        \
+  CHECK_RESULT(NAME, DATA_TYPE);
+
 int main(void) {
   int res = EXIT_SUCCESS;
 
@@ -241,58 +261,21 @@ int main(void) {
   skl_test_init_f32(im2row_output, IM2ROW_OUTPUT_LEN, SKL_TEST_MIN_F32,
                     SKL_TEST_MAX_F32);
 
-#if defined(ENABLE_TEST)
-  /* Make copies of A^T to write the reference and test outputs to. */
-  memcpy(ref_im2row_output, im2row_output, IM2ROW_OUTPUT_LEN * sizeof(float));
-  memcpy(test_im2row_output, im2row_output, IM2ROW_OUTPUT_LEN * sizeof(float));
-  skl_im2row_hwc_f32_typed_wrapper(
+  GENERATE_GOLDEN(float);
+
+  RUN(skl_im2row_hwc_e32_zve32x, skl_im2row_hwc_f32_typed_wrapper, float,
       test_im2row_output, input, BATCH, INPUT_HEIGHT, INPUT_WIDTH,
       INPUT_CHANNEL, FILTER_HEIGHT, FILTER_WIDTH, OUTPUT_HEIGHT, OUTPUT_WIDTH,
       PADDING_WIDTH, PADDING_HEIGHT, STRIDE_WIDTH, STRIDE_HEIGHT,
-      DILATION_WIDTH, DILATION_HEIGHT, skl_im2row_hwc_e32_zve32x);
-
-  res += check_error("skl_im2row_hwc_e32_zve32x");
+      DILATION_WIDTH, DILATION_HEIGHT);
 
   if ((size_t)DILATION_WIDTH == 1 && (size_t)DILATION_HEIGHT == 1) {
-    /* Make copies of A^T to write the reference and test outputs to. */
-    memcpy(ref_im2row_output, im2row_output, IM2ROW_OUTPUT_LEN * sizeof(float));
-    memcpy(test_im2row_output, im2row_output,
-           IM2ROW_OUTPUT_LEN * sizeof(float));
-    skl_im2row_d1_full_patch_hwc_f32_typed_wrapper(
+    RUN(skl_im2row_d1_full_patch_hwc_e32_zve32x,
+        skl_im2row_d1_full_patch_hwc_f32_typed_wrapper, float,
         test_im2row_output, input, BATCH, INPUT_HEIGHT, INPUT_WIDTH,
         INPUT_CHANNEL, FILTER_HEIGHT, FILTER_WIDTH, OUTPUT_HEIGHT, OUTPUT_WIDTH,
-        PADDING_WIDTH, PADDING_HEIGHT, STRIDE_WIDTH, STRIDE_HEIGHT,
-        skl_im2row_d1_full_patch_hwc_e32_zve32x);
-
-    res += check_error("skl_im2row_d1_full_patch_hwc_e32_zve32x");
+        PADDING_WIDTH, PADDING_HEIGHT, STRIDE_WIDTH, STRIDE_HEIGHT);
   }
-#endif // ENABLE_TEST
-
-#if defined(ENABLE_BENCHMARK)
-  /* Warmup run */
-  skl_im2row_hwc_f32_typed_wrapper(
-      im2row_output, input, BATCH, INPUT_HEIGHT, INPUT_WIDTH, INPUT_CHANNEL,
-      FILTER_HEIGHT, FILTER_WIDTH, OUTPUT_HEIGHT, OUTPUT_WIDTH, PADDING_WIDTH,
-      PADDING_HEIGHT, STRIDE_WIDTH, STRIDE_HEIGHT, DILATION_WIDTH,
-      DILATION_HEIGHT, SKL_TEST_NAME);
-
-  /* Benchmark im2row. */
-  riscv_fence();
-  uint64_t c0 = riscv_read_mcycle();
-
-  skl_im2row_hwc_f32_typed_wrapper(
-      im2row_output, input, BATCH, INPUT_HEIGHT, INPUT_WIDTH, INPUT_CHANNEL,
-      FILTER_HEIGHT, FILTER_WIDTH, OUTPUT_HEIGHT, OUTPUT_WIDTH, PADDING_WIDTH,
-      PADDING_HEIGHT, STRIDE_WIDTH, STRIDE_HEIGHT, DILATION_WIDTH,
-      DILATION_HEIGHT, SKL_TEST_NAME);
-
-  riscv_fence();
-  uint64_t c1 = riscv_read_mcycle();
-  uint64_t cycles = c1 - c0;
-
-  printf("Cycle count: %" PRIu64 "\n", cycles);
-  printf("\n");
-#endif // ENABLE_BENCHMARK
 
   return res;
 }
