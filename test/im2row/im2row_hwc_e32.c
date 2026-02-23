@@ -44,10 +44,10 @@ enum {
 
 _Alignas(ALIGN) float input[INPUT_LEN];
 _Alignas(ALIGN) float im2row_output[IM2ROW_OUTPUT_LEN];
+_Alignas(ALIGN) float test_im2row_output[IM2ROW_OUTPUT_LEN];
 
 #if defined(ENABLE_TEST)
-float ref_im2row_output[IM2ROW_OUTPUT_LEN],
-    test_im2row_output[IM2ROW_OUTPUT_LEN];
+float ref_im2row_output[IM2ROW_OUTPUT_LEN];
 #endif // ENABLE_TEST
 
 typedef void (*im2row_hwc)(
