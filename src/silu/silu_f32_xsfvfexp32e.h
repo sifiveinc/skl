@@ -22,6 +22,9 @@ extern "C" {
  *
  * Computes the SiLU function as defined by:
  * silu(x) = x / (1 + e^(-x))
+
+ * @note
+ * The result for x == -infty is NaN.
  */
 void skl_silu_513u_f32_xsfvfexp32e(float *out, const float *in, size_t n);
 

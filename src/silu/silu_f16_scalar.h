@@ -18,6 +18,9 @@ extern "C" {
  *
  * Computes the SiLU function as defined by:
  * silu(x) = x / (1 + e^(-x))
+
+ * @note
+ * The result for x == -infty is NaN.
  *
  * @note
  * This function is for API documentation purposes only, and should not be used
