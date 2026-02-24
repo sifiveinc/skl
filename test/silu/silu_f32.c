@@ -9,12 +9,8 @@
 #define NUM_ELEMS 1024
 #endif
 
-#if defined(ENABLE_BENCHMARK)
 #include "skl-test.h"
-#endif
-
 #include "skl.h"
-
 #include <inttypes.h>
 #if defined(ENABLE_TEST)
 #include <math.h>
