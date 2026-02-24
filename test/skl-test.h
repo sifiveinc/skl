@@ -773,14 +773,13 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
  * @param BUF - The buffer to initialize
  * @param LEN - The length of the buffer
  * @param TYPE - The data type of the buffer
- * @param MIN - The minimum value to use for initialization (ignored in STATIC)
- * @param MAX - The maximum value to use for initialization (ignored in STATIC)
+ * @param MSUFFIX - The macro suffix for the data type (e.g., F16, F32, I8)
  * @param IMPL_TYPE - Either FLOAT or INT to select implementation
  * @param FRAC_TYPE - Fractional type for floating point intermediates (float or
  * double)
  */
 #if defined(TEST_INIT_MODE) && TEST_INIT_MODE == STATIC
-#define SKL_TEST_INIT(BUF, LEN, TYPE, MIN, MAX, IMPL_TYPE, FRAC_TYPE)          \
+#define SKL_TEST_INIT(BUF, LEN, TYPE, MSUFFIX, IMPL_TYPE, FRAC_TYPE)           \
   {                                                                            \
     TYPE *buf = (BUF);                                                         \
     const size_t len = (LEN);                                                  \
@@ -794,12 +793,12 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
     }                                                                          \
   }
 #else
-#define SKL_TEST_INIT(BUF, LEN, TYPE, MIN, MAX, IMPL_TYPE, FRAC_TYPE)          \
+#define SKL_TEST_INIT(BUF, LEN, TYPE, MSUFFIX, IMPL_TYPE, FRAC_TYPE)           \
   {                                                                            \
     TYPE *buf = (BUF);                                                         \
     const size_t len = (LEN);                                                  \
-    const TYPE min = (MIN);                                                    \
-    const TYPE max = (MAX);                                                    \
+    const TYPE min = (SKL_TEST_MIN_##MSUFFIX);                                 \
+    const TYPE max = (SKL_TEST_MAX_##MSUFFIX);                                 \
     const TYPE step = (max - min) / len;                                       \
     for (size_t i = 0; i < len; i++) {                                         \
       if (TEST_INIT_MODE == RANDOM) {                                          \
@@ -826,16 +825,13 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
  * @{
  */
 #define SKL_TEST_INIT_F16(BUF, LEN)                                            \
-  SKL_TEST_INIT(BUF, LEN, _Float16, SKL_TEST_MIN_F16, SKL_TEST_MAX_F16, FLOAT, \
-                float)
+  SKL_TEST_INIT(BUF, LEN, _Float16, F16, FLOAT, float)
 
 #define SKL_TEST_INIT_F32(BUF, LEN)                                            \
-  SKL_TEST_INIT(BUF, LEN, float, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32, FLOAT,    \
-                float)
+  SKL_TEST_INIT(BUF, LEN, float, F32, FLOAT, float)
 
 #define SKL_TEST_INIT_F64(BUF, LEN)                                            \
-  SKL_TEST_INIT(BUF, LEN, double, SKL_TEST_MIN_F64, SKL_TEST_MAX_F64, FLOAT,   \
-                double)
+  SKL_TEST_INIT(BUF, LEN, double, F64, FLOAT, double)
 
 /** @} */ // end of test_init_macros group
 
