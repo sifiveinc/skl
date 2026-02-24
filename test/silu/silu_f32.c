@@ -33,7 +33,7 @@
 #endif
 
 #if defined(ENABLE_TEST)
-static inline void scalar_silu_f32(float *out, const float *in, size_t n) {
+static inline void reference_silu_f32(float *out, const float *in, size_t n) {
   for (size_t i = 0; i < n; ++i) {
     out[i] = (float)(in[i] / (1 + exp(-(double)in[i])));
   }
@@ -77,8 +77,7 @@ int main(void) {
 #if defined(ENABLE_TEST)
   float *ref_output = (float *)ref_output_bits;
   memset(ref_output, 0, NUM_ELEMS * sizeof(*ref_output));
-  scalar_silu_f32(ref_output, input,
-                  NUM_ELEMS); // Use scalar output as reference
+  reference_silu_f32(ref_output, input, NUM_ELEMS);
 #endif
 
 #if defined(ENABLE_TEST)

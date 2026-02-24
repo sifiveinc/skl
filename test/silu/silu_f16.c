@@ -31,8 +31,8 @@
 #endif
 
 #if defined(ENABLE_TEST)
-static inline void scalar_silu_f16(_Float16 *out, const _Float16 *in,
-                                   size_t n) {
+static inline void reference_silu_f16(_Float16 *out, const _Float16 *in,
+                                      size_t n) {
   for (size_t i = 0; i < n; ++i) {
     out[i] = (_Float16)(in[i] / (1 + exp(-(double)in[i])));
   }
@@ -76,8 +76,7 @@ int main(void) {
 #if defined(ENABLE_TEST)
   _Float16 *ref_output = (_Float16 *)ref_output_bits;
   memset(ref_output, 0, NUM_ELEMS * sizeof(*ref_output));
-  scalar_silu_f16(ref_output, input,
-                  NUM_ELEMS); // Use scalar output as reference
+  reference_silu_f16(ref_output, input, NUM_ELEMS);
 #endif
 
 #if defined(ENABLE_TEST)
