@@ -214,7 +214,7 @@ int check_error(void) {
 }
 #endif // ENABLE_TEST
 
-int main(void) {
+int gemm_f32rc_f32rc_f32rc_main(void) {
   int res = EXIT_SUCCESS;
 
 #if defined(SKL_TEST_MALLOC)
@@ -256,3 +256,7 @@ int main(void) {
 
   return res;
 }
+
+#if defined(SKL_TEST_MAIN)
+int main(void) { return gemm_f32rc_f32rc_f32rc_main(); }
+#endif
