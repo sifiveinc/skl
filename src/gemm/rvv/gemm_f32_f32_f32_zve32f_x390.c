@@ -608,105 +608,467 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
       vfloat32m1_t acc32 = __riscv_vget_v_f32m4_f32m1(acc3, 2);
       vfloat32m1_t acc33 = __riscv_vget_v_f32m4_f32m1(acc3, 3);
 
-      for (kk_peel = 0; ((kk_peel + 1) <= k) && (kk_peel < (0 + (1 * 1)));
-           kk_peel = kk_peel + 1) {
-        size_t vl_max;
+      vfloat32m1_t a00 = __riscv_vundefined_f32m1();
+      vfloat32m1_t a10 = __riscv_vundefined_f32m1();
+      vfloat32m1_t a20 = __riscv_vundefined_f32m1();
+      vfloat32m1_t a30 = __riscv_vundefined_f32m1();
+      vfloat32m1_t a01 = __riscv_vundefined_f32m1();
+      vfloat32m1_t a11 = __riscv_vundefined_f32m1();
+      vfloat32m1_t a21 = __riscv_vundefined_f32m1();
+      vfloat32m1_t a31 = __riscv_vundefined_f32m1();
+
+      size_t vl_max;
+      if (k > 1) {
         __asm__ volatile(
             "\n\t"
             "vsetvli zero, %[jj_vl_m4], e32, m4, ta, ma \n\t"
             "vle32.v v4, (%[b_load]) \n\t"
             "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
-            "vlse32.v v8, (%[a_load]), zero \n\t"
-            "vlse32.v v9, (%[a_load_0]), zero \n\t"
-            "vlse32.v v10, (%[a_load_1]), zero \n\t"
-            "vlse32.v v11, (%[a_load_2]), zero \n\t"
+            "vlse32.v %[a00], (%[a_load_00]), zero \n\t"
+            "vlse32.v %[a10], (%[a_load_10]), zero \n\t"
+            "vlse32.v %[a20], (%[a_load_20]), zero \n\t"
+            "vlse32.v %[a30], (%[a_load_30]), zero \n\t"
             "vsetvli zero, %[jj_vl_m1_0], e32, m1, ta, ma \n\t"
-            "vfmul.vv %[acc00], v4, v8 \n\t"
-            "vfmul.vv %[acc10], v4, v9 \n\t"
-            "vfmul.vv %[acc20], v4, v10 \n\t"
-            "vfmul.vv %[acc30], v4, v11 \n\t"
+            "vfmul.vv %[acc00], v4, %[a00] \n\t"
+            "vfmul.vv %[acc10], v4, %[a10] \n\t"
+            "vfmul.vv %[acc20], v4, %[a20] \n\t"
+            "vfmul.vv %[acc30], v4, %[a30] \n\t"
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a01], (%[a_load_01]), zero \n\t"
             "vsetvli zero, %[jj_vl_m1_1], e32, m1, ta, ma \n\t"
-            "vfmul.vv %[acc01], v5, v8 \n\t"
-            "vfmul.vv %[acc11], v5, v9 \n\t"
-            "vfmul.vv %[acc21], v5, v10 \n\t"
-            "vfmul.vv %[acc31], v5, v11 \n\t"
+            "vfmul.vv %[acc01], v5, %[a00] \n\t"
+            "vfmul.vv %[acc11], v5, %[a10] \n\t"
+            "vfmul.vv %[acc21], v5, %[a20] \n\t"
+            "vfmul.vv %[acc31], v5, %[a30] \n\t"
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a11], (%[a_load_11]), zero \n\t"
             "vsetvli zero, %[jj_vl_m1_2], e32, m1, ta, ma \n\t"
-            "vfmul.vv %[acc02], v6, v8 \n\t"
-            "vfmul.vv %[acc12], v6, v9 \n\t"
-            "vfmul.vv %[acc22], v6, v10 \n\t"
-            "vfmul.vv %[acc32], v6, v11 \n\t"
+            "vfmul.vv %[acc02], v6, %[a00] \n\t"
+            "vfmul.vv %[acc12], v6, %[a10] \n\t"
+            "vfmul.vv %[acc22], v6, %[a20] \n\t"
+            "vfmul.vv %[acc32], v6, %[a30] \n\t"
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a21], (%[a_load_21]), zero \n\t"
             "vsetvli zero, %[jj_vl_m1_3], e32, m1, ta, ma \n\t"
-            "vfmul.vv %[acc03], v7, v8 \n\t"
-            "vfmul.vv %[acc13], v7, v9 \n\t"
-            "vfmul.vv %[acc23], v7, v10 \n\t"
-            "vfmul.vv %[acc33], v7, v11 \n\t"
-            :
-            [vl_max] "=r"(vl_max), [acc00] "+&vr"(acc00), [acc01] "+&vr"(acc01),
-            [acc02] "+&vr"(acc02), [acc03] "+&vr"(acc03), [acc10] "+&vr"(acc10),
-            [acc11] "+&vr"(acc11), [acc12] "+&vr"(acc12), [acc13] "+&vr"(acc13),
-            [acc20] "+&vr"(acc20), [acc21] "+&vr"(acc21), [acc22] "+&vr"(acc22),
-            [acc23] "+&vr"(acc23), [acc30] "+&vr"(acc30), [acc31] "+&vr"(acc31),
-            [acc32] "+&vr"(acc32), [acc33] "+vr"(acc33)
-            : [a_load] "r"(a + (((ii + 0) * rsa) + ((kk_peel + 0) * 1))),
-              [a_load_0] "r"(a + (((ii + 1) * rsa) + ((kk_peel + 0) * 1))),
-              [a_load_1] "r"(a + (((ii + 2) * rsa) + ((kk_peel + 0) * 1))),
-              [a_load_2] "r"(a + (((ii + 3) * rsa) + ((kk_peel + 0) * 1))),
-              [jj_vl_m4] "r"(jj_vl), [jj_vl_m1_0] "r"(jj_vl_m1_0),
-              [jj_vl_m1_1] "r"(jj_vl_m1_1), [jj_vl_m1_2] "r"(jj_vl_m1_2),
-              [jj_vl_m1_3] "r"(jj_vl_m1_3),
-              [b_load] "r"(b + (((kk_peel + 0) * rsb) + ((jj + 0) * 1)))
-            : "vtype", "vl", "memory", "v4", "v5", "v6", "v7", "v8", "v9",
-              "v10", "v11");
+            "vfmul.vv %[acc03], v7, %[a00] \n\t"
+            "vfmul.vv %[acc13], v7, %[a10] \n\t"
+            "vfmul.vv %[acc23], v7, %[a20] \n\t"
+            "vfmul.vv %[acc33], v7, %[a30] \n\t"
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a31], (%[a_load_31]), zero \n\t"
+            // clang-format off
+          :
+          [vl_max] "=&r"(vl_max),
+          [acc00] "=vr"(acc00),
+          [acc01] "=vr"(acc01),
+          [acc02] "=vr"(acc02),
+          [acc03] "=vr"(acc03),
+          [acc10] "=vr"(acc10),
+          [acc11] "=vr"(acc11),
+          [acc12] "=vr"(acc12),
+          [acc13] "=vr"(acc13),
+          [acc20] "=vr"(acc20),
+          [acc21] "=vr"(acc21),
+          [acc22] "=vr"(acc22),
+          [acc23] "=vr"(acc23),
+          [acc30] "=vr"(acc30),
+          [acc31] "=vr"(acc31),
+          [acc32] "=vr"(acc32),
+          [acc33] "=vr"(acc33),
+          [a00] "=vr"(a00),
+          [a10] "=vr"(a10),
+          [a20] "=vr"(a20),
+          [a30] "=vr"(a30),
+          [a01] "=vr"(a01),
+          [a11] "=vr"(a11),
+          [a21] "=vr"(a21),
+          [a31] "=vr"(a31)
+          :
+          [a_load_00] "r"(a + (ii + 0) * rsa + 0),
+          [a_load_10] "r"(a + (ii + 1) * rsa + 0),
+          [a_load_20] "r"(a + (ii + 2) * rsa + 0),
+          [a_load_30] "r"(a + (ii + 3) * rsa + 0),
+          [a_load_01] "r"(a + (ii + 0) * rsa + 1),
+          [a_load_11] "r"(a + (ii + 1) * rsa + 1),
+          [a_load_21] "r"(a + (ii + 2) * rsa + 1),
+          [a_load_31] "r"(a + (ii + 3) * rsa + 1),
+          [b_load] "r"(b + jj),
+          [jj_vl_m4] "r"(jj_vl),
+          [jj_vl_m1_0] "r"(jj_vl_m1_0),
+          [jj_vl_m1_1] "r"(jj_vl_m1_1),
+          [jj_vl_m1_2] "r"(jj_vl_m1_2),
+          [jj_vl_m1_3] "r"(jj_vl_m1_3)
+          :
+          "vtype", "vl", "memory", "v4", "v5", "v6", "v7"
+            // clang-format on
+        );
+      } else {
+        // k == 1: mul but skip next iteration loads
+        __asm__ volatile(
+            "\n\t"
+            "vsetvli zero, %[jj_vl_m4], e32, m4, ta, ma \n\t"
+            "vle32.v v4, (%[b_load]) \n\t"
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a00], (%[a_load_00]), zero \n\t"
+            "vlse32.v %[a10], (%[a_load_10]), zero \n\t"
+            "vlse32.v %[a20], (%[a_load_20]), zero \n\t"
+            "vlse32.v %[a30], (%[a_load_30]), zero \n\t"
+            "vsetvli zero, %[jj_vl_m1_0], e32, m1, ta, ma \n\t"
+            "vfmul.vv %[acc00], v4, %[a00] \n\t"
+            "vfmul.vv %[acc10], v4, %[a10] \n\t"
+            "vfmul.vv %[acc20], v4, %[a20] \n\t"
+            "vfmul.vv %[acc30], v4, %[a30] \n\t"
+            "vsetvli zero, %[jj_vl_m1_1], e32, m1, ta, ma \n\t"
+            "vfmul.vv %[acc01], v5, %[a00] \n\t"
+            "vfmul.vv %[acc11], v5, %[a10] \n\t"
+            "vfmul.vv %[acc21], v5, %[a20] \n\t"
+            "vfmul.vv %[acc31], v5, %[a30] \n\t"
+            "vsetvli zero, %[jj_vl_m1_2], e32, m1, ta, ma \n\t"
+            "vfmul.vv %[acc02], v6, %[a00] \n\t"
+            "vfmul.vv %[acc12], v6, %[a10] \n\t"
+            "vfmul.vv %[acc22], v6, %[a20] \n\t"
+            "vfmul.vv %[acc32], v6, %[a30] \n\t"
+            "vsetvli zero, %[jj_vl_m1_3], e32, m1, ta, ma \n\t"
+            "vfmul.vv %[acc03], v7, %[a00] \n\t"
+            "vfmul.vv %[acc13], v7, %[a10] \n\t"
+            "vfmul.vv %[acc23], v7, %[a20] \n\t"
+            "vfmul.vv %[acc33], v7, %[a30] \n\t"
+            // clang-format off
+          :
+          [vl_max] "=&r"(vl_max),
+          [acc00] "=vr"(acc00),
+          [acc01] "=vr"(acc01),
+          [acc02] "=vr"(acc02),
+          [acc03] "=vr"(acc03),
+          [acc10] "=vr"(acc10),
+          [acc11] "=vr"(acc11),
+          [acc12] "=vr"(acc12),
+          [acc13] "=vr"(acc13),
+          [acc20] "=vr"(acc20),
+          [acc21] "=vr"(acc21),
+          [acc22] "=vr"(acc22),
+          [acc23] "=vr"(acc23),
+          [acc30] "=vr"(acc30),
+          [acc31] "=vr"(acc31),
+          [acc32] "=vr"(acc32),
+          [acc33] "=vr"(acc33),
+          [a00] "=vr"(a00),
+          [a10] "=vr"(a10),
+          [a20] "=vr"(a20),
+          [a30] "=vr"(a30)
+          :
+          [a_load_00] "r"(a + (ii + 0) * rsa + 0),
+          [a_load_10] "r"(a + (ii + 1) * rsa + 0),
+          [a_load_20] "r"(a + (ii + 2) * rsa + 0),
+          [a_load_30] "r"(a + (ii + 3) * rsa + 0),
+          [b_load] "r"(b + jj),
+          [jj_vl_m4] "r"(jj_vl),
+          [jj_vl_m1_0] "r"(jj_vl_m1_0),
+          [jj_vl_m1_1] "r"(jj_vl_m1_1),
+          [jj_vl_m1_2] "r"(jj_vl_m1_2),
+          [jj_vl_m1_3] "r"(jj_vl_m1_3)
+          :
+          "vtype", "vl", "memory", "v4", "v5", "v6", "v7"
+            // clang-format on
+        );
       }
-      for (kk = kk_peel; (kk + 1) <= k; kk = kk + 1) {
-        size_t vl_max;
+
+      for (kk = 1; (kk + 2 + 1) <= k; kk = kk + 2) {
         __asm__ volatile(
             "\n\t"
             "vsetvli zero, %[jj_vl_m4], e32, m4, ta, ma \n\t"
             "vle32.v v4, (%[b_load_0]) \n\t"
+
             "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
-            "vlse32.v v8, (%[a_load_3]), zero \n\t"
-            "vlse32.v v9, (%[a_load_4]), zero \n\t"
-            "vlse32.v v10, (%[a_load_5]), zero \n\t"
-            "vlse32.v v11, (%[a_load_6]), zero \n\t"
+            "vlse32.v %[a00], (%[a_load_01]), zero \n\t"
             "vsetvli zero, %[jj_vl_m1_0], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc00], v8, v4 \n\t"
-            "vfmacc.vv %[acc10], v9, v4 \n\t"
-            "vfmacc.vv %[acc20], v10, v4 \n\t"
-            "vfmacc.vv %[acc30], v11, v4 \n\t"
+            "vfmacc.vv %[acc00], %[a01], v4 \n\t"
+            "vfmacc.vv %[acc10], %[a11], v4 \n\t"
+            "vfmacc.vv %[acc20], %[a21], v4 \n\t"
+            "vfmacc.vv %[acc30], %[a31], v4 \n\t"
+
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a10], (%[a_load_11]), zero \n\t"
             "vsetvli zero, %[jj_vl_m1_1], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc01], v8, v5 \n\t"
-            "vfmacc.vv %[acc11], v9, v5 \n\t"
-            "vfmacc.vv %[acc21], v10, v5 \n\t"
-            "vfmacc.vv %[acc31], v11, v5 \n\t"
+            "vfmacc.vv %[acc01], %[a01], v5 \n\t"
+            "vfmacc.vv %[acc11], %[a11], v5 \n\t"
+            "vfmacc.vv %[acc21], %[a21], v5 \n\t"
+            "vfmacc.vv %[acc31], %[a31], v5 \n\t"
+
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a20], (%[a_load_21]), zero \n\t"
             "vsetvli zero, %[jj_vl_m1_2], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc02], v8, v6 \n\t"
-            "vfmacc.vv %[acc12], v9, v6 \n\t"
-            "vfmacc.vv %[acc22], v10, v6 \n\t"
-            "vfmacc.vv %[acc32], v11, v6 \n\t"
+            "vfmacc.vv %[acc02], %[a01], v6 \n\t"
+            "vfmacc.vv %[acc12], %[a11], v6 \n\t"
+            "vfmacc.vv %[acc22], %[a21], v6 \n\t"
+            "vfmacc.vv %[acc32], %[a31], v6 \n\t"
+
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a30], (%[a_load_31]), zero \n\t"
             "vsetvli zero, %[jj_vl_m1_3], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc03], v8, v7 \n\t"
-            "vfmacc.vv %[acc13], v9, v7 \n\t"
-            "vfmacc.vv %[acc23], v10, v7 \n\t"
-            "vfmacc.vv %[acc33], v11, v7 \n\t"
+            "vfmacc.vv %[acc03], %[a01], v7 \n\t"
+            "vfmacc.vv %[acc13], %[a11], v7 \n\t"
+            "vfmacc.vv %[acc23], %[a21], v7 \n\t"
+            "vfmacc.vv %[acc33], %[a31], v7 \n\t"
+
+            // Next iteration start
+            "vsetvli zero, %[jj_vl_m4], e32, m4, ta, ma \n\t"
+            "vle32.v v4, (%[b_load_1]) \n\t"
+
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a01], (%[a_load_02]), zero \n\t"
+            "vsetvli zero, %[jj_vl_m1_0], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc00], %[a00], v4 \n\t"
+            "vfmacc.vv %[acc10], %[a10], v4 \n\t"
+            "vfmacc.vv %[acc20], %[a20], v4 \n\t"
+            "vfmacc.vv %[acc30], %[a30], v4 \n\t"
+
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a11], (%[a_load_12]), zero \n\t"
+            "vsetvli zero, %[jj_vl_m1_1], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc01], %[a00], v5 \n\t"
+            "vfmacc.vv %[acc11], %[a10], v5 \n\t"
+            "vfmacc.vv %[acc21], %[a20], v5 \n\t"
+            "vfmacc.vv %[acc31], %[a30], v5 \n\t"
+
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a21], (%[a_load_22]), zero \n\t"
+            "vsetvli zero, %[jj_vl_m1_2], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc02], %[a00], v6 \n\t"
+            "vfmacc.vv %[acc12], %[a10], v6 \n\t"
+            "vfmacc.vv %[acc22], %[a20], v6 \n\t"
+            "vfmacc.vv %[acc32], %[a30], v6 \n\t"
+
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a31], (%[a_load_32]), zero \n\t"
+            "vsetvli zero, %[jj_vl_m1_3], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc03], %[a00], v7 \n\t"
+            "vfmacc.vv %[acc13], %[a10], v7 \n\t"
+            "vfmacc.vv %[acc23], %[a20], v7 \n\t"
+            "vfmacc.vv %[acc33], %[a30], v7 \n\t"
+            // clang-format off
             :
-            [vl_max] "=r"(vl_max), [acc00] "+&vr"(acc00), [acc01] "+&vr"(acc01),
-            [acc02] "+&vr"(acc02), [acc03] "+&vr"(acc03), [acc10] "+&vr"(acc10),
-            [acc11] "+&vr"(acc11), [acc12] "+&vr"(acc12), [acc13] "+&vr"(acc13),
-            [acc20] "+&vr"(acc20), [acc21] "+&vr"(acc21), [acc22] "+&vr"(acc22),
-            [acc23] "+&vr"(acc23), [acc30] "+&vr"(acc30), [acc31] "+&vr"(acc31),
-            [acc32] "+&vr"(acc32), [acc33] "+vr"(acc33)
-            : [a_load_3] "r"(a + (((ii + 0) * rsa) + ((kk + 0) * 1))),
-              [a_load_4] "r"(a + (((ii + 1) * rsa) + ((kk + 0) * 1))),
-              [a_load_5] "r"(a + (((ii + 2) * rsa) + ((kk + 0) * 1))),
-              [a_load_6] "r"(a + (((ii + 3) * rsa) + ((kk + 0) * 1))),
-              [jj_vl_m4] "r"(n - jj), [jj_vl_m1_0] "r"(jj_vl_m1_0),
-              [jj_vl_m1_1] "r"(jj_vl_m1_1), [jj_vl_m1_2] "r"(jj_vl_m1_2),
-              [jj_vl_m1_3] "r"(jj_vl_m1_3),
-              [b_load_0] "r"(b + (((kk + 0) * rsb) + ((jj + 0) * 1)))
-            : "vtype", "vl", "memory", "v4", "v5", "v6", "v7", "v8", "v9",
-              "v10", "v11");
+            [vl_max] "=&r"(vl_max),
+            [acc00] "+&vr"(acc00),
+            [acc01] "+&vr"(acc01),
+            [acc02] "+&vr"(acc02),
+            [acc03] "+&vr"(acc03),
+            [acc10] "+&vr"(acc10),
+            [acc11] "+&vr"(acc11),
+            [acc12] "+&vr"(acc12),
+            [acc13] "+&vr"(acc13),
+            [acc20] "+&vr"(acc20),
+            [acc21] "+&vr"(acc21),
+            [acc22] "+&vr"(acc22),
+            [acc23] "+&vr"(acc23),
+            [acc30] "+&vr"(acc30),
+            [acc31] "+&vr"(acc31),
+            [acc32] "+&vr"(acc32),
+            [acc33] "+&vr"(acc33),
+            [a00] "=&vr"(a00),
+            [a10] "=&vr"(a10),
+            [a20] "=&vr"(a20),
+            [a30] "=&vr"(a30),
+            [a01] "+&vr"(a01),
+            [a11] "+&vr"(a11),
+            [a21] "+&vr"(a21),
+            [a31] "+&vr"(a31)
+            :
+            [a_load_01] "r"(a + (ii + 0) * rsa + kk + 1),
+            [a_load_11] "r"(a + (ii + 1) * rsa + kk + 1),
+            [a_load_21] "r"(a + (ii + 2) * rsa + kk + 1),
+            [a_load_31] "r"(a + (ii + 3) * rsa + kk + 1),
+            [a_load_02] "r"(a + (ii + 0) * rsa + kk + 2),
+            [a_load_12] "r"(a + (ii + 1) * rsa + kk + 2),
+            [a_load_22] "r"(a + (ii + 2) * rsa + kk + 2),
+            [a_load_32] "r"(a + (ii + 3) * rsa + kk + 2),
+            [b_load_0] "r"(b + (kk + 0) * rsb + jj),
+            [b_load_1] "r"(b + (kk + 1) * rsb + jj),
+            [jj_vl_m4] "r"(jj_vl),
+            [jj_vl_m1_0] "r"(jj_vl_m1_0),
+            [jj_vl_m1_1] "r"(jj_vl_m1_1),
+            [jj_vl_m1_2] "r"(jj_vl_m1_2),
+            [jj_vl_m1_3] "r"(jj_vl_m1_3)
+            :
+            "vtype", "vl", "memory", "v4", "v5", "v6", "v7"
+            // clang-format on
+        );
       }
+
+      if (k % 2 == 1 && k > 1) {
+        // 2 iterations of k remain.
+        __asm__ volatile(
+            "\n\t"
+            "vsetvli zero, %[jj_vl_m4], e32, m4, ta, ma \n\t"
+            "vle32.v v4, (%[b_load_0]) \n\t"
+
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a00], (%[a_load_01]), zero \n\t"
+            "vsetvli zero, %[jj_vl_m1_0], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc00], %[a01], v4 \n\t"
+            "vfmacc.vv %[acc10], %[a11], v4 \n\t"
+            "vfmacc.vv %[acc20], %[a21], v4 \n\t"
+            "vfmacc.vv %[acc30], %[a31], v4 \n\t"
+
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a10], (%[a_load_11]), zero \n\t"
+            "vsetvli zero, %[jj_vl_m1_1], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc01], %[a01], v5 \n\t"
+            "vfmacc.vv %[acc11], %[a11], v5 \n\t"
+            "vfmacc.vv %[acc21], %[a21], v5 \n\t"
+            "vfmacc.vv %[acc31], %[a31], v5 \n\t"
+
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a20], (%[a_load_21]), zero \n\t"
+            "vsetvli zero, %[jj_vl_m1_2], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc02], %[a01], v6 \n\t"
+            "vfmacc.vv %[acc12], %[a11], v6 \n\t"
+            "vfmacc.vv %[acc22], %[a21], v6 \n\t"
+            "vfmacc.vv %[acc32], %[a31], v6 \n\t"
+
+            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vlse32.v %[a30], (%[a_load_31]), zero \n\t"
+            "vsetvli zero, %[jj_vl_m1_3], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc03], %[a01], v7 \n\t"
+            "vfmacc.vv %[acc13], %[a11], v7 \n\t"
+            "vfmacc.vv %[acc23], %[a21], v7 \n\t"
+            "vfmacc.vv %[acc33], %[a31], v7 \n\t"
+
+            // Last iteration start
+            "vsetvli zero, %[jj_vl_m4], e32, m4, ta, ma \n\t"
+            "vle32.v v4, (%[b_load_1]) \n\t"
+
+            "vsetvli zero, %[jj_vl_m1_0], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc00], %[a00], v4 \n\t"
+            "vfmacc.vv %[acc10], %[a10], v4 \n\t"
+            "vfmacc.vv %[acc20], %[a20], v4 \n\t"
+            "vfmacc.vv %[acc30], %[a30], v4 \n\t"
+
+            "vsetvli zero, %[jj_vl_m1_1], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc01], %[a00], v5 \n\t"
+            "vfmacc.vv %[acc11], %[a10], v5 \n\t"
+            "vfmacc.vv %[acc21], %[a20], v5 \n\t"
+            "vfmacc.vv %[acc31], %[a30], v5 \n\t"
+
+            "vsetvli zero, %[jj_vl_m1_2], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc02], %[a00], v6 \n\t"
+            "vfmacc.vv %[acc12], %[a10], v6 \n\t"
+            "vfmacc.vv %[acc22], %[a20], v6 \n\t"
+            "vfmacc.vv %[acc32], %[a30], v6 \n\t"
+
+            "vsetvli zero, %[jj_vl_m1_3], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc03], %[a00], v7 \n\t"
+            "vfmacc.vv %[acc13], %[a10], v7 \n\t"
+            "vfmacc.vv %[acc23], %[a20], v7 \n\t"
+            "vfmacc.vv %[acc33], %[a30], v7 \n\t"
+            :
+            // clang-format off
+            [vl_max] "=&r"(vl_max),
+            [acc00] "+&vr"(acc00),
+            [acc01] "+&vr"(acc01),
+            [acc02] "+&vr"(acc02),
+            [acc03] "+&vr"(acc03),
+            [acc10] "+&vr"(acc10),
+            [acc11] "+&vr"(acc11),
+            [acc12] "+&vr"(acc12),
+            [acc13] "+&vr"(acc13),
+            [acc20] "+&vr"(acc20),
+            [acc21] "+&vr"(acc21),
+            [acc22] "+&vr"(acc22),
+            [acc23] "+&vr"(acc23),
+            [acc30] "+&vr"(acc30),
+            [acc31] "+&vr"(acc31),
+            [acc32] "+&vr"(acc32),
+            [acc33] "+&vr"(acc33),
+            [a00] "=&vr"(a00),
+            [a10] "=&vr"(a10),
+            [a20] "=&vr"(a20),
+            [a30] "=&vr"(a30),
+            [a01] "+&vr"(a01),
+            [a11] "+&vr"(a11),
+            [a21] "+&vr"(a21),
+            [a31] "+&vr"(a31)
+            :
+            [a_load_01] "r"(a + (ii + 0) * rsa + kk + 1),
+            [a_load_11] "r"(a + (ii + 1) * rsa + kk + 1),
+            [a_load_21] "r"(a + (ii + 2) * rsa + kk + 1),
+            [a_load_31] "r"(a + (ii + 3) * rsa + kk + 1),
+            [jj_vl_m4] "r"(jj_vl),
+            [jj_vl_m1_0] "r"(jj_vl_m1_0),
+            [jj_vl_m1_1] "r"(jj_vl_m1_1),
+            [jj_vl_m1_2] "r"(jj_vl_m1_2),
+            [jj_vl_m1_3] "r"(jj_vl_m1_3),
+            [b_load_0] "r"(b + (kk + 0) * rsb + jj),
+            [b_load_1] "r"(b + (kk + 1) * rsb + jj)
+            :
+            "vtype", "vl", "memory", "v4", "v5", "v6", "v7"
+            // clang-format on
+        );
+      } else if (k % 2 == 0) {
+        // Only 1 iteration remains. A loads already done.
+        __asm__ volatile(
+            "\n\t"
+            "vsetvli zero, %[jj_vl_m4], e32, m4, ta, ma \n\t"
+            "vle32.v v4, (%[b_load_0]) \n\t"
+
+            "vsetvli zero, %[jj_vl_m1_0], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc00], %[a01], v4 \n\t"
+            "vfmacc.vv %[acc10], %[a11], v4 \n\t"
+            "vfmacc.vv %[acc20], %[a21], v4 \n\t"
+            "vfmacc.vv %[acc30], %[a31], v4 \n\t"
+
+            "vsetvli zero, %[jj_vl_m1_1], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc01], %[a01], v5 \n\t"
+            "vfmacc.vv %[acc11], %[a11], v5 \n\t"
+            "vfmacc.vv %[acc21], %[a21], v5 \n\t"
+            "vfmacc.vv %[acc31], %[a31], v5 \n\t"
+
+            "vsetvli zero, %[jj_vl_m1_2], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc02], %[a01], v6 \n\t"
+            "vfmacc.vv %[acc12], %[a11], v6 \n\t"
+            "vfmacc.vv %[acc22], %[a21], v6 \n\t"
+            "vfmacc.vv %[acc32], %[a31], v6 \n\t"
+
+            "vsetvli zero, %[jj_vl_m1_3], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc03], %[a01], v7 \n\t"
+            "vfmacc.vv %[acc13], %[a11], v7 \n\t"
+            "vfmacc.vv %[acc23], %[a21], v7 \n\t"
+            "vfmacc.vv %[acc33], %[a31], v7 \n\t"
+            :
+            // clang-format off
+            [acc00] "+&vr"(acc00),
+            [acc01] "+&vr"(acc01),
+            [acc02] "+&vr"(acc02),
+            [acc03] "+&vr"(acc03),
+            [acc10] "+&vr"(acc10),
+            [acc11] "+&vr"(acc11),
+            [acc12] "+&vr"(acc12),
+            [acc13] "+&vr"(acc13),
+            [acc20] "+&vr"(acc20),
+            [acc21] "+&vr"(acc21),
+            [acc22] "+&vr"(acc22),
+            [acc23] "+&vr"(acc23),
+            [acc30] "+&vr"(acc30),
+            [acc31] "+&vr"(acc31),
+            [acc32] "+&vr"(acc32),
+            [acc33] "+vr"(acc33)
+            :
+            [jj_vl_m4] "r"(jj_vl),
+            [jj_vl_m1_0] "r"(jj_vl_m1_0),
+            [jj_vl_m1_1] "r"(jj_vl_m1_1),
+            [jj_vl_m1_2] "r"(jj_vl_m1_2),
+            [jj_vl_m1_3] "r"(jj_vl_m1_3),
+            [b_load_0] "r"(b + (kk + 0) * rsb + jj),
+            [a01] "vr"(a01),
+            [a11] "vr"(a11),
+            [a21] "vr"(a21),
+            [a31] "vr"(a31)
+            :
+            "vtype", "vl", "memory", "v4", "v5", "v6", "v7"
+            // clang-format on
+        );
+      }
+
       acc0 = __riscv_vset_v_f32m1_f32m4(acc0, 0, acc00);
       acc0 = __riscv_vset_v_f32m1_f32m4(acc0, 1, acc01);
       acc0 = __riscv_vset_v_f32m1_f32m4(acc0, 2, acc02);
