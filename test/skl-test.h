@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <assert.h>
 #include <float.h>
 #include <inttypes.h>
 #include <math.h>
@@ -612,11 +613,16 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
  * Benchmarks will typically use SEQ to reduce overhead from random number
  * generation. Tests will typically use RANDOM though some will likely use SEQ
  * to test specific ranges of interest. More modes may be added in the future.
+ *
+ * In STATIC mode, the input data is initialized with static values from
+ * pre-defined arrays in SKL_TEST_DATA_HEADER.
+ *
+ * @note These are defined as preprocessor macros (not just enum constants)
+ * to allow their use in preprocessor conditionals.
  */
-enum {
-  SEQ,   ///< Initialize with equally-spaced values from min to max
-  RANDOM ///< Initialize with random values
-};
+#define SEQ 0    ///< Initialize with equally-spaced values from min to max
+#define RANDOM 1 ///< Initialize with random values
+#define STATIC 2 ///< Initialize with static values from SKL_TEST_DATA_HEADER
 
 /**
  * @defgroup test_ranges Test/Benchmark Value Range Configuration
@@ -730,6 +736,7 @@ enum {
 #define SKL_TEST_INIT_FUNC(TYPE, SUFFIX, IMPL_TYPE, FRAC_TYPE)                 \
   static inline void skl_test_init_##SUFFIX(TYPE *buf, size_t len, TYPE min,   \
                                             TYPE max) {                        \
+    assert(TEST_INIT_MODE == RANDOM || TEST_INIT_MODE == SEQ);                 \
     const TYPE step = (max - min) / len;                                       \
     for (size_t i = 0; i < len; i++) {                                         \
       if (TEST_INIT_MODE == RANDOM) {                                          \
@@ -740,12 +747,93 @@ enum {
     }                                                                          \
   }
 
+#define SKL_TEST_STATIC_DATA(NAME) NAME##_data
+#define SKL_TEST_STATIC_DATA_LEN(NAME) NAME##_len
+
 #define SKL_TEST_INIT_RANDOM_IMPL_FLOAT(TYPE, FRAC_TYPE)                       \
   FRAC_TYPE frac = (FRAC_TYPE)rand() / (FRAC_TYPE)RAND_MAX;                    \
   buf[i] = (TYPE)(frac * (max - min) + min);
 
 #define SKL_TEST_INIT_RANDOM_IMPL_INT(TYPE, UNUSED)                            \
   buf[i] = (TYPE)rand() % (max - min + 1) + min;
+
+/**
+ * @brief Macro to initialize a buffer in a SKL test/benchmark.
+ *
+ * Behavior is determined by TEST_INIT_MODE macro:
+ * - RANDOM: Initialize with random values between min and max
+ * - STATIC: Copy values from existing array BUF_data to buf
+ * - SEQ: Initialize with equally-spaced values from min to max
+ *
+ * @note For STATIC mode, the array BUF_data must be defined in the header file
+ * specified by SKL_TEST_DATA_HEADER, but need not have the same length as the
+ * buffer being initialized. The data will be repeated as necessary to fill the
+ * buffer.
+ *
+ * @param BUF - The buffer to initialize
+ * @param LEN - The length of the buffer
+ * @param TYPE - The data type of the buffer
+ * @param MSUFFIX - The macro suffix for the data type (e.g., F16, F32, I8)
+ * @param IMPL_TYPE - Either FLOAT or INT to select implementation
+ * @param FRAC_TYPE - Fractional type for floating point intermediates (float or
+ * double)
+ */
+#if defined(TEST_INIT_MODE) && TEST_INIT_MODE == STATIC
+#define SKL_TEST_INIT(BUF, LEN, TYPE, MSUFFIX, IMPL_TYPE, FRAC_TYPE)           \
+  {                                                                            \
+    TYPE *buf = (BUF);                                                         \
+    const size_t len = (LEN);                                                  \
+    size_t avl = len;                                                          \
+    const size_t buf_len = SKL_TEST_STATIC_DATA_LEN(BUF);                      \
+    while (avl > 0) {                                                          \
+      size_t vl = avl > buf_len ? buf_len : avl;                               \
+      memcpy(buf, SKL_TEST_STATIC_DATA(BUF), vl * sizeof(TYPE));               \
+      avl -= vl;                                                               \
+      buf += vl;                                                               \
+    }                                                                          \
+  }
+#else
+#define SKL_TEST_INIT(BUF, LEN, TYPE, MSUFFIX, IMPL_TYPE, FRAC_TYPE)           \
+  {                                                                            \
+    TYPE *buf = (BUF);                                                         \
+    const size_t len = (LEN);                                                  \
+    const TYPE min = (SKL_TEST_MIN_##MSUFFIX);                                 \
+    const TYPE max = (SKL_TEST_MAX_##MSUFFIX);                                 \
+    const TYPE step = (max - min) / len;                                       \
+    for (size_t i = 0; i < len; i++) {                                         \
+      if (TEST_INIT_MODE == RANDOM) {                                          \
+        SKL_TEST_INIT_RANDOM_IMPL_##IMPL_TYPE(TYPE, FRAC_TYPE);                \
+      } else {                                                                 \
+        buf[i] = (TYPE)(min + step * i);                                       \
+      }                                                                        \
+    }                                                                          \
+  }
+#endif
+
+/**
+ * @defgroup test_init_macros Test/Benchmark Data Initialization Macros
+ *
+ * These macros are intended to be the standard way to initialize data buffers
+ * in SKL tests and benchmarks. They will displace the direct use of
+ * skl_test_init functions (deprecated).
+ *
+ * All macros in this group share a common interface and behavior:
+ * - @param BUF Output buffer to fill with values
+ * - @param LEN Number of elements to generate
+ * All macros are wrappers around SKL_TEST_INIT, which has more detailed
+ * documentation.
+ * @{
+ */
+#define SKL_TEST_INIT_F16(BUF, LEN)                                            \
+  SKL_TEST_INIT(BUF, LEN, _Float16, F16, FLOAT, float)
+
+#define SKL_TEST_INIT_F32(BUF, LEN)                                            \
+  SKL_TEST_INIT(BUF, LEN, float, F32, FLOAT, float)
+
+#define SKL_TEST_INIT_F64(BUF, LEN)                                            \
+  SKL_TEST_INIT(BUF, LEN, double, F64, FLOAT, double)
+
+/** @} */ // end of test_init_macros group
 
 /**
  * @brief Buffer initialization modes
@@ -803,10 +891,6 @@ SKL_TEST_INIT_FUNC(int32_t, i32, INT, unused)
 
 /** @} */ // end of test_init group
 
-#undef SKL_TEST_INIT_FUNC
-#undef SKL_TEST_INIT_RANDOM_IMPL_FLOAT
-#undef SKL_TEST_INIT_RANDOM_IMPL_INT
-
 /**
  * @brief Custom memory allocation function
  *
@@ -846,4 +930,12 @@ void *SKL_TEST_MALLOC(size_t alignment, size_t size);
  * @param ptr Pointer to memory to free
  */
 void SKL_TEST_FREE(void *ptr);
+#endif
+
+#if defined(TEST_INIT_MODE) && TEST_INIT_MODE == STATIC
+#if !defined(SKL_TEST_DATA_HEADER)
+#error "SKL_TEST_DATA_HEADER must be defined when TEST_INIT_MODE == STATIC"
+#else
+#include SKL_TEST_DATA_HEADER
+#endif
 #endif
