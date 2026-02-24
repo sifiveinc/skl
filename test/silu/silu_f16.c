@@ -67,21 +67,6 @@ static void init_random(_Float16 *arr, size_t len) {
 #endif
 }
 
-#if defined(ENABLE_TEST)
-static int check_error(const char *name, const int16_t *res, const int16_t *ref,
-                       uint32_t tol, size_t len) {
-  uint32_t max = 0;
-  for (size_t i = 0; i < len; i++) {
-    uint32_t err = abs(res[i] - ref[i]);
-    if (err > max) {
-      max = err;
-    }
-  }
-  printf("%15s : maximum error %" PRIu32 " ulp\n", name, max);
-  return max > tol;
-}
-#endif
-
 int main(void) {
   int ret = 0; // return value
   printf("Measuring %d-element silu:\n", NUM_ELEMS);
@@ -97,7 +82,7 @@ int main(void) {
 
 #if defined(ENABLE_TEST)
 #define CHECK_RESULT(FUNCTION, NAME, TOL)                                      \
-  ret += check_error(NAME, output_bits, ref_output_bits, TOL, NUM_ELEMS);
+  ret += skl_check_error_ulp_f16(NAME, output, ref_output, TOL, NUM_ELEMS);
 #else
 #define CHECK_RESULT(FUNCTION, NAME, TOL)
 #endif
