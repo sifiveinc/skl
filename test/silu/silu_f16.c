@@ -84,10 +84,6 @@ static int check_error(const char *name, const int16_t *res, const int16_t *ref,
 
 int main(void) {
   int ret = 0; // return value
-#if defined(ENABLE_BENCHMARK)
-  // Cycle and instruction counts
-  uint64_t c0, c1, i0, i1; // NOLINT(readability-isolate-declaration)
-#endif
   printf("Measuring %d-element silu:\n", NUM_ELEMS);
 
   _Float16 *output = (_Float16 *)output_bits;
@@ -99,19 +95,6 @@ int main(void) {
                   NUM_ELEMS); // Use scalar output as reference
 #endif
 
-#if defined(ENABLE_BENCHMARK)
-#define MEASURE_PERF(FUNCTION, NAME)                                           \
-  /* Measure 2nd run after caches warmed */                                    \
-  riscv_fence();                                                               \
-  c0 = riscv_read_mcycle(), i0 = riscv_read_minstret();                        \
-  FUNCTION(output, input, NUM_ELEMS);                                          \
-  riscv_fence();                                                               \
-  c1 = riscv_read_mcycle(), i1 = riscv_read_minstret();                        \
-  report_perf_epc(NAME, c1 - c0, i1 - i0, NUM_ELEMS);
-#else
-#define MEASURE_PERF(FUNCTION, NAME)
-#endif
-
 #if defined(ENABLE_TEST)
 #define CHECK_RESULT(FUNCTION, NAME, TOL)                                      \
   ret += check_error(NAME, output_bits, ref_output_bits, TOL, NUM_ELEMS);
@@ -121,8 +104,8 @@ int main(void) {
 
 #define RUN(FUNCTION, NAME, TOL)                                               \
   memset(output, 0, NUM_ELEMS * sizeof(*output));                              \
-  FUNCTION(output, input, NUM_ELEMS);                                          \
-  MEASURE_PERF(FUNCTION, NAME);                                                \
+  SKL_BENCHMARK_RUN(NAME, NUM_ELEMS, SKL_TEST_WARMUP, FUNCTION, output, input, \
+                    NUM_ELEMS);                                                \
   CHECK_RESULT(FUNCTION, NAME, TOL);
 
 #if defined(__riscv_zvfh) && defined(RUN_ZVFH)
