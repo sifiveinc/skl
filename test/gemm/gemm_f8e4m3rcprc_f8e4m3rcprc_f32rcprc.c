@@ -61,7 +61,6 @@
 #endif
 
 #if defined(ENABLE_TEST)
-#include "skl-common.h"
 #include <math.h>
 #endif
 

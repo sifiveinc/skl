@@ -26,10 +26,6 @@
 #define SATURATION_TEST_MODE 3 // 1: no saturation, 2: saturation, 3: both
 #endif
 
-#if defined(ENABLE_TEST)
-#include "skl-common.h"
-#endif
-
 // Use the range [-512, 512] for testing this extension
 // NOTE: must define before including skl-test.h
 #if defined(SKL_TEST_RAND_MIN_F32) && defined(SKL_TEST_RAND_MAX_F32)

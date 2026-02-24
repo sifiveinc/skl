@@ -13,10 +13,6 @@
 #define NUM_ELEMS 1024 // Default input length
 #endif
 
-#if defined(ENABLE_TEST)
-#include "skl-common.h"
-#endif
-
 #include "skl-test.h"
 #include "skl.h"
 
