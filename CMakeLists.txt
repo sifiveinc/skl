@@ -304,7 +304,12 @@ function(skl_add_test TEST_NAME TEST_SRC OPTS)
     ${SKL_TEST_COMPILE_OPTIONS}
     ${OPTS}
   )
-  target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_TEST_NAME=${TEST_NAME})
+  target_compile_definitions(
+    test-${TEST_NAME}
+    PRIVATE
+      SKL_TEST_NAME=${TEST_NAME}
+      SKL_TEST_MAIN
+  )
   if (SKL_BUILD_TESTS)
     target_compile_definitions(test-${TEST_NAME} PRIVATE ENABLE_TEST)
   endif()
