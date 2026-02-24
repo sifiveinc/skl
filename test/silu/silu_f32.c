@@ -47,9 +47,9 @@ __attribute__((aligned(ALIGN))) int32_t ref_output_bits[NUM_ELEMS];
 
 static void init_random(float *arr, size_t len) {
 #if defined(ENABLE_TEST)
-  /* If testing, fill in an array with random floats in [-100, 100] */
-  const float min = -100;
-  const float max = 100;
+  /* If testing, fill in an array with random floats in [-200, 200] */
+  const float min = -200;
+  const float max = 200;
   float frac;
   for (size_t i = 0; i < len; i++) {
     if (i == 0) {
