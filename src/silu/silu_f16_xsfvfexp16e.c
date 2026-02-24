@@ -11,7 +11,7 @@
 #include <sifive_vector.h>
 #include <stddef.h>
 
-SKL_FUNC void skl_silu_30u_f16_xsfvfexp16e(_Float16 *out, const _Float16 *in,
+SKL_FUNC void skl_silu_31u_f16_xsfvfexp16e(_Float16 *out, const _Float16 *in,
                                            size_t n) {
   size_t vl;
   size_t vlmax = __riscv_vsetvlmax_e16m8();

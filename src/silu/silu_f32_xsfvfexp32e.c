@@ -11,8 +11,8 @@
 #include <sifive_vector.h>
 #include <stddef.h>
 
-SKL_FUNC void skl_silu_513u_f32_xsfvfexp32e(float *out, const float *in,
-                                            size_t n) {
+SKL_FUNC void skl_silu_52u_f32_xsfvfexp32e(float *out, const float *in,
+                                           size_t n) {
   size_t vl;
   size_t vlmax = __riscv_vsetvlmax_e32m8();
   const vfloat32m8_t one = __riscv_vfmv_v_f_f32m8(1, vlmax);
@@ -31,7 +31,9 @@ SKL_FUNC void skl_silu_513u_f32_xsfvfexp32e(float *out, const float *in,
     const vfloat32m8_t d = __riscv_vfadd_vf_f32m8(ex, 1, vl);
     vfloat32m8_t r = __riscv_vfrec7_v_f32m8(d, vl);
     vfloat32m8_t t = __riscv_vfnmsub_vv_f32m8(d, r, one, vl); // 1 - x * r
-    r = __riscv_vfmadd_vv_f32m8(r, t, r, vl); // r + r * (1 - x * r)
+    r = __riscv_vfmadd_vv_f32m8(r, t, r, vl);    // r + r * (1 - x * r)
+    t = __riscv_vfnmsub_vv_f32m8(d, r, one, vl); // 1 - x * r
+    r = __riscv_vfmadd_vv_f32m8(r, t, r, vl);    // r + r * (1 - x * r)
 
     /* 3. Calculate quotient */
     const vbool4_t m = __riscv_vmflt_vf_f32m8_b4(vx, 0, vl);

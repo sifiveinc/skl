@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Xsfvfexp32e-based 513-ULP FP32 Sigmoid Linear Unit.
+ * @brief Xsfvfexp32e-based 52-ULP FP32 Sigmoid Linear Unit.
  *
  * @param out - Array of output elements.
  * @param in - Array of input elements.
@@ -26,7 +26,7 @@ extern "C" {
  * @note
  * The result for x == -infty is NaN.
  */
-void skl_silu_513u_f32_xsfvfexp32e(float *out, const float *in, size_t n);
+void skl_silu_52u_f32_xsfvfexp32e(float *out, const float *in, size_t n);
 
 #ifdef __cplusplus
 } // extern "C"

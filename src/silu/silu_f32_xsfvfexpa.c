@@ -13,7 +13,7 @@
 SKL_FUNC_PRIVATE vfloat32m8_t skl_leftexp_xsfvfexpa_f32m8(vfloat32m8_t x,
                                                           size_t vl);
 
-SKL_FUNC void skl_silu_50u_f32_xsfvfexpa(float *out, const float *in,
+SKL_FUNC void skl_silu_52u_f32_xsfvfexpa(float *out, const float *in,
                                          size_t n) {
   size_t vl;
   for (size_t i = 0; i < n; i += vl) {

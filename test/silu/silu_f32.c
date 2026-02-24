@@ -127,19 +127,19 @@ int main(void) {
   CHECK_RESULT(FUNCTION, NAME, TOL);
 
 #if defined(__riscv_zve32f) && defined(RUN_RVV)
-  RUN(skl_silu_50u_f32_zve32f, "zve32f", 50);
+  RUN(skl_silu_52u_f32_zve32f, "zve32f", 52);
 #endif
 
 #if defined(__riscv_xsfvfexpa) && defined(RUN_XSFVFEXPA)
-  RUN(skl_silu_50u_f32_xsfvfexpa, "xsfvfexpa", 50);
+  RUN(skl_silu_52u_f32_xsfvfexpa, "xsfvfexpa", 52);
 #endif
 
 #if defined(__riscv_xsfvfexp32e) && defined(RUN_XSFVFEXP32E)
-  RUN(skl_silu_513u_f32_xsfvfexp32e, "xsfvfexp32e", 513);
+  RUN(skl_silu_52u_f32_xsfvfexp32e, "xsfvfexp32e", 52);
 #endif
 
 #if defined(RUN_SCALAR)
-  RUN(skl_silu_50u_f32_scalar, "scalar", 50)
+  RUN(skl_silu_52u_f32_scalar, "scalar", 52)
 #endif
 
 #if !(defined(RUN_RVV) || defined(RUN_SCALAR) || defined(RUN_XSFVFEXPA) ||     \

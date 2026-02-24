@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Xsfvfexp16e-based 30-ULP FP16 Sigmoid Linear Unit.
+ * @brief Xsfvfexp16e-based 31-ULP FP16 Sigmoid Linear Unit.
  *
  * @param out - Array of output elements.
  * @param in - Array of input elements.
@@ -26,7 +26,7 @@ extern "C" {
  * @note
  * The result for x == -infty is NaN.
  */
-void skl_silu_30u_f16_xsfvfexp16e(_Float16 *out, const _Float16 *in, size_t n);
+void skl_silu_31u_f16_xsfvfexp16e(_Float16 *out, const _Float16 *in, size_t n);
 
 #ifdef __cplusplus
 } // extern "C"

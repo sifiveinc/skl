@@ -130,7 +130,7 @@ int main(void) {
 #endif
 
 #if defined(__riscv_xsfvfexp16e) && defined(RUN_XSFVFEXP16E)
-  RUN(skl_silu_30u_f16_xsfvfexp16e, "xsfvfexp16e", 30);
+  RUN(skl_silu_31u_f16_xsfvfexp16e, "xsfvfexp16e", 31);
 #endif
 
 #if defined(__riscv_xsfvfexpa) && defined(__riscv_zvfh) &&                     \
