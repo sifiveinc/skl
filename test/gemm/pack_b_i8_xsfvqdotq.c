@@ -137,8 +137,8 @@ int main(void) {
   printf("RSB = %u, RSB1 = %u\n", RSB, RSB1);
 
   /* Populate the matrices. */
-  skl_test_init_i8(b, BLEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
-  skl_test_init_i8(b_pack, BLEN_PACKED, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
+  SKL_TEST_INIT_I8(b, BLEN);
+  SKL_TEST_INIT_I8(b_pack, BLEN_PACKED);
 
 #if defined(ENABLE_TEST)
   memcpy(ref_b_pack, b_pack, BLEN_PACKED * sizeof(int8_t));
