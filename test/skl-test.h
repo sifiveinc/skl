@@ -833,6 +833,12 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
 #define SKL_TEST_INIT_F64(BUF, LEN)                                            \
   SKL_TEST_INIT(BUF, LEN, double, F64, FLOAT, double)
 
+#define SKL_TEST_INIT_I8(BUF, LEN)                                             \
+  SKL_TEST_INIT(BUF, LEN, int8_t, I8, INT, unused)
+
+#define SKL_TEST_INIT_I32(BUF, LEN)                                            \
+  SKL_TEST_INIT(BUF, LEN, int32_t, I32, INT, unused)
+
 /** @} */ // end of test_init_macros group
 
 /**
