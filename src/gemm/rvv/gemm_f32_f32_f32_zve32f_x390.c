@@ -561,7 +561,6 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
   vfloat32m4_t c00;
   vfloat32m4_t c01;
   vfloat32m4_t c02;
-  vfloat32m4_t c03;
   float a0;
   vfloat32m4_t acc;
   vfloat32m4_t c0;
@@ -578,44 +577,28 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
     }
     return;
   }
-  for (ii = 0; (ii + 4) <= m; ii = ii + 4) {
+  for (ii = 0; (ii + 3) <= m; ii = ii + 3) {
     for (jj = 0; jj < n; jj = jj + jj_vl) {
       jj_vl = __riscv_vsetvl_e32m4(n - jj);
-      size_t jj_vl_m1_0 = __riscv_vsetvl_e32m1(jj_vl);
-      size_t jj_vl_m1_1 = __riscv_vsetvl_e32m1(jj_vl - jj_vl_m1_0);
-      size_t jj_vl_m1_2 = __riscv_vsetvl_e32m1(jj_vl - jj_vl_m1_0 - jj_vl_m1_1);
-      size_t jj_vl_m1_3 =
-          __riscv_vsetvl_e32m1(jj_vl - jj_vl_m1_0 - jj_vl_m1_1 - jj_vl_m1_2);
+      size_t jj_vl_m2_0 = __riscv_vsetvl_e32m2(jj_vl);
+      size_t jj_vl_m2_1 = __riscv_vsetvl_e32m2(jj_vl - jj_vl_m2_0);
 
       vfloat32m4_t acc0 = __riscv_vundefined_f32m4();
-      vfloat32m1_t acc00 = __riscv_vget_v_f32m4_f32m1(acc0, 0);
-      vfloat32m1_t acc01 = __riscv_vget_v_f32m4_f32m1(acc0, 1);
-      vfloat32m1_t acc02 = __riscv_vget_v_f32m4_f32m1(acc0, 2);
-      vfloat32m1_t acc03 = __riscv_vget_v_f32m4_f32m1(acc0, 3);
+      vfloat32m2_t acc00 = __riscv_vget_v_f32m4_f32m2(acc0, 0);
+      vfloat32m2_t acc02 = __riscv_vget_v_f32m4_f32m2(acc0, 1);
       vfloat32m4_t acc1 = __riscv_vundefined_f32m4();
-      vfloat32m1_t acc10 = __riscv_vget_v_f32m4_f32m1(acc1, 0);
-      vfloat32m1_t acc11 = __riscv_vget_v_f32m4_f32m1(acc1, 1);
-      vfloat32m1_t acc12 = __riscv_vget_v_f32m4_f32m1(acc1, 2);
-      vfloat32m1_t acc13 = __riscv_vget_v_f32m4_f32m1(acc1, 3);
+      vfloat32m2_t acc10 = __riscv_vget_v_f32m4_f32m2(acc1, 0);
+      vfloat32m2_t acc12 = __riscv_vget_v_f32m4_f32m2(acc1, 1);
       vfloat32m4_t acc2 = __riscv_vundefined_f32m4();
-      vfloat32m1_t acc20 = __riscv_vget_v_f32m4_f32m1(acc2, 0);
-      vfloat32m1_t acc21 = __riscv_vget_v_f32m4_f32m1(acc2, 1);
-      vfloat32m1_t acc22 = __riscv_vget_v_f32m4_f32m1(acc2, 2);
-      vfloat32m1_t acc23 = __riscv_vget_v_f32m4_f32m1(acc2, 3);
-      vfloat32m4_t acc3 = __riscv_vundefined_f32m4();
-      vfloat32m1_t acc30 = __riscv_vget_v_f32m4_f32m1(acc3, 0);
-      vfloat32m1_t acc31 = __riscv_vget_v_f32m4_f32m1(acc3, 1);
-      vfloat32m1_t acc32 = __riscv_vget_v_f32m4_f32m1(acc3, 2);
-      vfloat32m1_t acc33 = __riscv_vget_v_f32m4_f32m1(acc3, 3);
+      vfloat32m2_t acc20 = __riscv_vget_v_f32m4_f32m2(acc2, 0);
+      vfloat32m2_t acc22 = __riscv_vget_v_f32m4_f32m2(acc2, 1);
 
-      vfloat32m1_t a00 = __riscv_vundefined_f32m1();
-      vfloat32m1_t a10 = __riscv_vundefined_f32m1();
-      vfloat32m1_t a20 = __riscv_vundefined_f32m1();
-      vfloat32m1_t a30 = __riscv_vundefined_f32m1();
-      vfloat32m1_t a01 = __riscv_vundefined_f32m1();
-      vfloat32m1_t a11 = __riscv_vundefined_f32m1();
-      vfloat32m1_t a21 = __riscv_vundefined_f32m1();
-      vfloat32m1_t a31 = __riscv_vundefined_f32m1();
+      vfloat32m2_t a00 = __riscv_vundefined_f32m2();
+      vfloat32m2_t a10 = __riscv_vundefined_f32m2();
+      vfloat32m2_t a20 = __riscv_vundefined_f32m2();
+      vfloat32m2_t a01 = __riscv_vundefined_f32m2();
+      vfloat32m2_t a11 = __riscv_vundefined_f32m2();
+      vfloat32m2_t a21 = __riscv_vundefined_f32m2();
 
       size_t vl_max;
       if (k > 1) {
@@ -623,81 +606,45 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
             "\n\t"
             "vsetvli zero, %[jj_vl_m4], e32, m4, ta, ma \n\t"
             "vle32.v v4, (%[b_load]) \n\t"
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vsetvli %[vl_max], zero, e32, m2, ta, ma \n\t"
             "vlse32.v %[a00], (%[a_load_00]), zero \n\t"
             "vlse32.v %[a10], (%[a_load_10]), zero \n\t"
             "vlse32.v %[a20], (%[a_load_20]), zero \n\t"
-            "vlse32.v %[a30], (%[a_load_30]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_0], e32, m1, ta, ma \n\t"
             "vfmul.vv %[acc00], v4, %[a00] \n\t"
             "vfmul.vv %[acc10], v4, %[a10] \n\t"
-            "vfmul.vv %[acc20], v4, %[a20] \n\t"
-            "vfmul.vv %[acc30], v4, %[a30] \n\t"
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
             "vlse32.v %[a01], (%[a_load_01]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_1], e32, m1, ta, ma \n\t"
-            "vfmul.vv %[acc01], v5, %[a00] \n\t"
-            "vfmul.vv %[acc11], v5, %[a10] \n\t"
-            "vfmul.vv %[acc21], v5, %[a20] \n\t"
-            "vfmul.vv %[acc31], v5, %[a30] \n\t"
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
-            "vlse32.v %[a11], (%[a_load_11]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_2], e32, m1, ta, ma \n\t"
+            "vfmul.vv %[acc20], v4, %[a20] \n\t"
             "vfmul.vv %[acc02], v6, %[a00] \n\t"
+            "vlse32.v %[a11], (%[a_load_11]), zero \n\t"
             "vfmul.vv %[acc12], v6, %[a10] \n\t"
             "vfmul.vv %[acc22], v6, %[a20] \n\t"
-            "vfmul.vv %[acc32], v6, %[a30] \n\t"
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
             "vlse32.v %[a21], (%[a_load_21]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_3], e32, m1, ta, ma \n\t"
-            "vfmul.vv %[acc03], v7, %[a00] \n\t"
-            "vfmul.vv %[acc13], v7, %[a10] \n\t"
-            "vfmul.vv %[acc23], v7, %[a20] \n\t"
-            "vfmul.vv %[acc33], v7, %[a30] \n\t"
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
-            "vlse32.v %[a31], (%[a_load_31]), zero \n\t"
             // clang-format off
           :
           [vl_max] "=&r"(vl_max),
           [acc00] "=vr"(acc00),
-          [acc01] "=vr"(acc01),
           [acc02] "=vr"(acc02),
-          [acc03] "=vr"(acc03),
           [acc10] "=vr"(acc10),
-          [acc11] "=vr"(acc11),
           [acc12] "=vr"(acc12),
-          [acc13] "=vr"(acc13),
           [acc20] "=vr"(acc20),
-          [acc21] "=vr"(acc21),
           [acc22] "=vr"(acc22),
-          [acc23] "=vr"(acc23),
-          [acc30] "=vr"(acc30),
-          [acc31] "=vr"(acc31),
-          [acc32] "=vr"(acc32),
-          [acc33] "=vr"(acc33),
           [a00] "=vr"(a00),
           [a10] "=vr"(a10),
           [a20] "=vr"(a20),
-          [a30] "=vr"(a30),
           [a01] "=vr"(a01),
           [a11] "=vr"(a11),
-          [a21] "=vr"(a21),
-          [a31] "=vr"(a31)
+          [a21] "=vr"(a21)
           :
           [a_load_00] "r"(a + (ii + 0) * rsa + 0),
           [a_load_10] "r"(a + (ii + 1) * rsa + 0),
           [a_load_20] "r"(a + (ii + 2) * rsa + 0),
-          [a_load_30] "r"(a + (ii + 3) * rsa + 0),
           [a_load_01] "r"(a + (ii + 0) * rsa + 1),
           [a_load_11] "r"(a + (ii + 1) * rsa + 1),
           [a_load_21] "r"(a + (ii + 2) * rsa + 1),
-          [a_load_31] "r"(a + (ii + 3) * rsa + 1),
           [b_load] "r"(b + jj),
           [jj_vl_m4] "r"(jj_vl),
-          [jj_vl_m1_0] "r"(jj_vl_m1_0),
-          [jj_vl_m1_1] "r"(jj_vl_m1_1),
-          [jj_vl_m1_2] "r"(jj_vl_m1_2),
-          [jj_vl_m1_3] "r"(jj_vl_m1_3)
+          [jj_vl_m2_0] "r"(jj_vl_m2_0),
+          [jj_vl_m2_1] "r"(jj_vl_m2_1)
           :
           "vtype", "vl", "memory", "v4", "v5", "v6", "v7"
             // clang-format on
@@ -708,65 +655,38 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
             "\n\t"
             "vsetvli zero, %[jj_vl_m4], e32, m4, ta, ma \n\t"
             "vle32.v v4, (%[b_load]) \n\t"
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vsetvli %[vl_max], zero, e32, m2, ta, ma \n\t"
             "vlse32.v %[a00], (%[a_load_00]), zero \n\t"
             "vlse32.v %[a10], (%[a_load_10]), zero \n\t"
             "vlse32.v %[a20], (%[a_load_20]), zero \n\t"
-            "vlse32.v %[a30], (%[a_load_30]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_0], e32, m1, ta, ma \n\t"
+            "vsetvli zero, %[jj_vl_m2_0], e32, m2, ta, ma \n\t"
             "vfmul.vv %[acc00], v4, %[a00] \n\t"
             "vfmul.vv %[acc10], v4, %[a10] \n\t"
             "vfmul.vv %[acc20], v4, %[a20] \n\t"
-            "vfmul.vv %[acc30], v4, %[a30] \n\t"
-            "vsetvli zero, %[jj_vl_m1_1], e32, m1, ta, ma \n\t"
-            "vfmul.vv %[acc01], v5, %[a00] \n\t"
-            "vfmul.vv %[acc11], v5, %[a10] \n\t"
-            "vfmul.vv %[acc21], v5, %[a20] \n\t"
-            "vfmul.vv %[acc31], v5, %[a30] \n\t"
-            "vsetvli zero, %[jj_vl_m1_2], e32, m1, ta, ma \n\t"
+            "vsetvli zero, %[jj_vl_m2_1], e32, m2, ta, ma \n\t"
             "vfmul.vv %[acc02], v6, %[a00] \n\t"
             "vfmul.vv %[acc12], v6, %[a10] \n\t"
             "vfmul.vv %[acc22], v6, %[a20] \n\t"
-            "vfmul.vv %[acc32], v6, %[a30] \n\t"
-            "vsetvli zero, %[jj_vl_m1_3], e32, m1, ta, ma \n\t"
-            "vfmul.vv %[acc03], v7, %[a00] \n\t"
-            "vfmul.vv %[acc13], v7, %[a10] \n\t"
-            "vfmul.vv %[acc23], v7, %[a20] \n\t"
-            "vfmul.vv %[acc33], v7, %[a30] \n\t"
             // clang-format off
           :
           [vl_max] "=&r"(vl_max),
           [acc00] "=vr"(acc00),
-          [acc01] "=vr"(acc01),
           [acc02] "=vr"(acc02),
-          [acc03] "=vr"(acc03),
           [acc10] "=vr"(acc10),
-          [acc11] "=vr"(acc11),
           [acc12] "=vr"(acc12),
-          [acc13] "=vr"(acc13),
           [acc20] "=vr"(acc20),
-          [acc21] "=vr"(acc21),
           [acc22] "=vr"(acc22),
-          [acc23] "=vr"(acc23),
-          [acc30] "=vr"(acc30),
-          [acc31] "=vr"(acc31),
-          [acc32] "=vr"(acc32),
-          [acc33] "=vr"(acc33),
           [a00] "=vr"(a00),
           [a10] "=vr"(a10),
-          [a20] "=vr"(a20),
-          [a30] "=vr"(a30)
+          [a20] "=vr"(a20)
           :
           [a_load_00] "r"(a + (ii + 0) * rsa + 0),
           [a_load_10] "r"(a + (ii + 1) * rsa + 0),
           [a_load_20] "r"(a + (ii + 2) * rsa + 0),
-          [a_load_30] "r"(a + (ii + 3) * rsa + 0),
           [b_load] "r"(b + jj),
           [jj_vl_m4] "r"(jj_vl),
-          [jj_vl_m1_0] "r"(jj_vl_m1_0),
-          [jj_vl_m1_1] "r"(jj_vl_m1_1),
-          [jj_vl_m1_2] "r"(jj_vl_m1_2),
-          [jj_vl_m1_3] "r"(jj_vl_m1_3)
+          [jj_vl_m2_0] "r"(jj_vl_m2_0),
+          [jj_vl_m2_1] "r"(jj_vl_m2_1)
           :
           "vtype", "vl", "memory", "v4", "v5", "v6", "v7"
             // clang-format on
@@ -779,116 +699,58 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
             "vsetvli zero, %[jj_vl_m4], e32, m4, ta, ma \n\t"
             "vle32.v v4, (%[b_load_0]) \n\t"
 
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vsetvli %[vl_max], zero, e32, m2, ta, ma \n\t"
             "vlse32.v %[a00], (%[a_load_01]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_0], e32, m1, ta, ma \n\t"
             "vfmacc.vv %[acc00], %[a01], v4 \n\t"
-            "vfmacc.vv %[acc10], %[a11], v4 \n\t"
-            "vfmacc.vv %[acc20], %[a21], v4 \n\t"
-            "vfmacc.vv %[acc30], %[a31], v4 \n\t"
-
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
-            "vlse32.v %[a10], (%[a_load_11]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_1], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc01], %[a01], v5 \n\t"
-            "vfmacc.vv %[acc11], %[a11], v5 \n\t"
-            "vfmacc.vv %[acc21], %[a21], v5 \n\t"
-            "vfmacc.vv %[acc31], %[a31], v5 \n\t"
-
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
-            "vlse32.v %[a20], (%[a_load_21]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_2], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc02], %[a01], v6 \n\t"
             "vfmacc.vv %[acc12], %[a11], v6 \n\t"
+            "vlse32.v %[a10], (%[a_load_11]), zero \n\t"
+            "vfmacc.vv %[acc10], %[a11], v4 \n\t"
             "vfmacc.vv %[acc22], %[a21], v6 \n\t"
-            "vfmacc.vv %[acc32], %[a31], v6 \n\t"
-
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
-            "vlse32.v %[a30], (%[a_load_31]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_3], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc03], %[a01], v7 \n\t"
-            "vfmacc.vv %[acc13], %[a11], v7 \n\t"
-            "vfmacc.vv %[acc23], %[a21], v7 \n\t"
-            "vfmacc.vv %[acc33], %[a31], v7 \n\t"
+            "vlse32.v %[a20], (%[a_load_21]), zero \n\t"
+            "vfmacc.vv %[acc20], %[a21], v4 \n\t"
+            "vfmacc.vv %[acc02], %[a01], v6 \n\t"
 
             // Next iteration start
             "vsetvli zero, %[jj_vl_m4], e32, m4, ta, ma \n\t"
             "vle32.v v4, (%[b_load_1]) \n\t"
 
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vsetvli %[vl_max], zero, e32, m2, ta, ma \n\t"
             "vlse32.v %[a01], (%[a_load_02]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_0], e32, m1, ta, ma \n\t"
             "vfmacc.vv %[acc00], %[a00], v4 \n\t"
-            "vfmacc.vv %[acc10], %[a10], v4 \n\t"
-            "vfmacc.vv %[acc20], %[a20], v4 \n\t"
-            "vfmacc.vv %[acc30], %[a30], v4 \n\t"
-
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
-            "vlse32.v %[a11], (%[a_load_12]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_1], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc01], %[a00], v5 \n\t"
-            "vfmacc.vv %[acc11], %[a10], v5 \n\t"
-            "vfmacc.vv %[acc21], %[a20], v5 \n\t"
-            "vfmacc.vv %[acc31], %[a30], v5 \n\t"
-
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
-            "vlse32.v %[a21], (%[a_load_22]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_2], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc02], %[a00], v6 \n\t"
             "vfmacc.vv %[acc12], %[a10], v6 \n\t"
+            "vlse32.v %[a11], (%[a_load_12]), zero \n\t"
+            "vfmacc.vv %[acc10], %[a10], v4 \n\t"
             "vfmacc.vv %[acc22], %[a20], v6 \n\t"
-            "vfmacc.vv %[acc32], %[a30], v6 \n\t"
-
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
-            "vlse32.v %[a31], (%[a_load_32]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_3], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc03], %[a00], v7 \n\t"
-            "vfmacc.vv %[acc13], %[a10], v7 \n\t"
-            "vfmacc.vv %[acc23], %[a20], v7 \n\t"
-            "vfmacc.vv %[acc33], %[a30], v7 \n\t"
+            "vlse32.v %[a21], (%[a_load_22]), zero \n\t"
+            "vfmacc.vv %[acc20], %[a20], v4 \n\t"
+            "vfmacc.vv %[acc02], %[a00], v6 \n\t"
             // clang-format off
             :
             [vl_max] "=&r"(vl_max),
             [acc00] "+&vr"(acc00),
-            [acc01] "+&vr"(acc01),
             [acc02] "+&vr"(acc02),
-            [acc03] "+&vr"(acc03),
             [acc10] "+&vr"(acc10),
-            [acc11] "+&vr"(acc11),
             [acc12] "+&vr"(acc12),
-            [acc13] "+&vr"(acc13),
             [acc20] "+&vr"(acc20),
-            [acc21] "+&vr"(acc21),
             [acc22] "+&vr"(acc22),
-            [acc23] "+&vr"(acc23),
-            [acc30] "+&vr"(acc30),
-            [acc31] "+&vr"(acc31),
-            [acc32] "+&vr"(acc32),
-            [acc33] "+&vr"(acc33),
             [a00] "=&vr"(a00),
             [a10] "=&vr"(a10),
             [a20] "=&vr"(a20),
-            [a30] "=&vr"(a30),
             [a01] "+&vr"(a01),
             [a11] "+&vr"(a11),
-            [a21] "+&vr"(a21),
-            [a31] "+&vr"(a31)
+            [a21] "+&vr"(a21)
             :
             [a_load_01] "r"(a + (ii + 0) * rsa + kk + 1),
             [a_load_11] "r"(a + (ii + 1) * rsa + kk + 1),
             [a_load_21] "r"(a + (ii + 2) * rsa + kk + 1),
-            [a_load_31] "r"(a + (ii + 3) * rsa + kk + 1),
             [a_load_02] "r"(a + (ii + 0) * rsa + kk + 2),
             [a_load_12] "r"(a + (ii + 1) * rsa + kk + 2),
             [a_load_22] "r"(a + (ii + 2) * rsa + kk + 2),
-            [a_load_32] "r"(a + (ii + 3) * rsa + kk + 2),
             [b_load_0] "r"(b + (kk + 0) * rsb + jj),
             [b_load_1] "r"(b + (kk + 1) * rsb + jj),
             [jj_vl_m4] "r"(jj_vl),
-            [jj_vl_m1_0] "r"(jj_vl_m1_0),
-            [jj_vl_m1_1] "r"(jj_vl_m1_1),
-            [jj_vl_m1_2] "r"(jj_vl_m1_2),
-            [jj_vl_m1_3] "r"(jj_vl_m1_3)
+            [jj_vl_m2_0] "r"(jj_vl_m2_0),
+            [jj_vl_m2_1] "r"(jj_vl_m2_1)
             :
             "vtype", "vl", "memory", "v4", "v5", "v6", "v7"
             // clang-format on
@@ -902,102 +764,50 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
             "vsetvli zero, %[jj_vl_m4], e32, m4, ta, ma \n\t"
             "vle32.v v4, (%[b_load_0]) \n\t"
 
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
+            "vsetvli %[vl_max], zero, e32, m2, ta, ma \n\t"
             "vlse32.v %[a00], (%[a_load_01]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_0], e32, m1, ta, ma \n\t"
             "vfmacc.vv %[acc00], %[a01], v4 \n\t"
             "vfmacc.vv %[acc10], %[a11], v4 \n\t"
-            "vfmacc.vv %[acc20], %[a21], v4 \n\t"
-            "vfmacc.vv %[acc30], %[a31], v4 \n\t"
-
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
             "vlse32.v %[a10], (%[a_load_11]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_1], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc01], %[a01], v5 \n\t"
-            "vfmacc.vv %[acc11], %[a11], v5 \n\t"
-            "vfmacc.vv %[acc21], %[a21], v5 \n\t"
-            "vfmacc.vv %[acc31], %[a31], v5 \n\t"
-
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
-            "vlse32.v %[a20], (%[a_load_21]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_2], e32, m1, ta, ma \n\t"
+            "vfmacc.vv %[acc20], %[a21], v4 \n\t"
             "vfmacc.vv %[acc02], %[a01], v6 \n\t"
+            "vlse32.v %[a20], (%[a_load_21]), zero \n\t"
             "vfmacc.vv %[acc12], %[a11], v6 \n\t"
             "vfmacc.vv %[acc22], %[a21], v6 \n\t"
-            "vfmacc.vv %[acc32], %[a31], v6 \n\t"
-
-            "vsetvli %[vl_max], zero, e32, m1, ta, ma \n\t"
-            "vlse32.v %[a30], (%[a_load_31]), zero \n\t"
-            "vsetvli zero, %[jj_vl_m1_3], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc03], %[a01], v7 \n\t"
-            "vfmacc.vv %[acc13], %[a11], v7 \n\t"
-            "vfmacc.vv %[acc23], %[a21], v7 \n\t"
-            "vfmacc.vv %[acc33], %[a31], v7 \n\t"
 
             // Last iteration start
             "vsetvli zero, %[jj_vl_m4], e32, m4, ta, ma \n\t"
             "vle32.v v4, (%[b_load_1]) \n\t"
 
-            "vsetvli zero, %[jj_vl_m1_0], e32, m1, ta, ma \n\t"
+            "vsetvli zero, %[jj_vl_m2_0], e32, m2, ta, ma \n\t"
             "vfmacc.vv %[acc00], %[a00], v4 \n\t"
             "vfmacc.vv %[acc10], %[a10], v4 \n\t"
             "vfmacc.vv %[acc20], %[a20], v4 \n\t"
-            "vfmacc.vv %[acc30], %[a30], v4 \n\t"
-
-            "vsetvli zero, %[jj_vl_m1_1], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc01], %[a00], v5 \n\t"
-            "vfmacc.vv %[acc11], %[a10], v5 \n\t"
-            "vfmacc.vv %[acc21], %[a20], v5 \n\t"
-            "vfmacc.vv %[acc31], %[a30], v5 \n\t"
-
-            "vsetvli zero, %[jj_vl_m1_2], e32, m1, ta, ma \n\t"
             "vfmacc.vv %[acc02], %[a00], v6 \n\t"
             "vfmacc.vv %[acc12], %[a10], v6 \n\t"
             "vfmacc.vv %[acc22], %[a20], v6 \n\t"
-            "vfmacc.vv %[acc32], %[a30], v6 \n\t"
-
-            "vsetvli zero, %[jj_vl_m1_3], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc03], %[a00], v7 \n\t"
-            "vfmacc.vv %[acc13], %[a10], v7 \n\t"
-            "vfmacc.vv %[acc23], %[a20], v7 \n\t"
-            "vfmacc.vv %[acc33], %[a30], v7 \n\t"
             :
             // clang-format off
             [vl_max] "=&r"(vl_max),
             [acc00] "+&vr"(acc00),
-            [acc01] "+&vr"(acc01),
             [acc02] "+&vr"(acc02),
-            [acc03] "+&vr"(acc03),
             [acc10] "+&vr"(acc10),
-            [acc11] "+&vr"(acc11),
             [acc12] "+&vr"(acc12),
-            [acc13] "+&vr"(acc13),
             [acc20] "+&vr"(acc20),
-            [acc21] "+&vr"(acc21),
             [acc22] "+&vr"(acc22),
-            [acc23] "+&vr"(acc23),
-            [acc30] "+&vr"(acc30),
-            [acc31] "+&vr"(acc31),
-            [acc32] "+&vr"(acc32),
-            [acc33] "+&vr"(acc33),
             [a00] "=&vr"(a00),
             [a10] "=&vr"(a10),
             [a20] "=&vr"(a20),
-            [a30] "=&vr"(a30),
             [a01] "+&vr"(a01),
             [a11] "+&vr"(a11),
-            [a21] "+&vr"(a21),
-            [a31] "+&vr"(a31)
+            [a21] "+&vr"(a21)
             :
             [a_load_01] "r"(a + (ii + 0) * rsa + kk + 1),
             [a_load_11] "r"(a + (ii + 1) * rsa + kk + 1),
             [a_load_21] "r"(a + (ii + 2) * rsa + kk + 1),
-            [a_load_31] "r"(a + (ii + 3) * rsa + kk + 1),
             [jj_vl_m4] "r"(jj_vl),
-            [jj_vl_m1_0] "r"(jj_vl_m1_0),
-            [jj_vl_m1_1] "r"(jj_vl_m1_1),
-            [jj_vl_m1_2] "r"(jj_vl_m1_2),
-            [jj_vl_m1_3] "r"(jj_vl_m1_3),
+            [jj_vl_m2_0] "r"(jj_vl_m2_0),
+            [jj_vl_m2_1] "r"(jj_vl_m2_1),
             [b_load_0] "r"(b + (kk + 0) * rsb + jj),
             [b_load_1] "r"(b + (kk + 1) * rsb + jj)
             :
@@ -1011,87 +821,47 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
             "vsetvli zero, %[jj_vl_m4], e32, m4, ta, ma \n\t"
             "vle32.v v4, (%[b_load_0]) \n\t"
 
-            "vsetvli zero, %[jj_vl_m1_0], e32, m1, ta, ma \n\t"
+            "vsetvli zero, %[jj_vl_m2_0], e32, m2, ta, ma \n\t"
             "vfmacc.vv %[acc00], %[a01], v4 \n\t"
             "vfmacc.vv %[acc10], %[a11], v4 \n\t"
             "vfmacc.vv %[acc20], %[a21], v4 \n\t"
-            "vfmacc.vv %[acc30], %[a31], v4 \n\t"
-
-            "vsetvli zero, %[jj_vl_m1_1], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc01], %[a01], v5 \n\t"
-            "vfmacc.vv %[acc11], %[a11], v5 \n\t"
-            "vfmacc.vv %[acc21], %[a21], v5 \n\t"
-            "vfmacc.vv %[acc31], %[a31], v5 \n\t"
-
-            "vsetvli zero, %[jj_vl_m1_2], e32, m1, ta, ma \n\t"
             "vfmacc.vv %[acc02], %[a01], v6 \n\t"
             "vfmacc.vv %[acc12], %[a11], v6 \n\t"
             "vfmacc.vv %[acc22], %[a21], v6 \n\t"
-            "vfmacc.vv %[acc32], %[a31], v6 \n\t"
-
-            "vsetvli zero, %[jj_vl_m1_3], e32, m1, ta, ma \n\t"
-            "vfmacc.vv %[acc03], %[a01], v7 \n\t"
-            "vfmacc.vv %[acc13], %[a11], v7 \n\t"
-            "vfmacc.vv %[acc23], %[a21], v7 \n\t"
-            "vfmacc.vv %[acc33], %[a31], v7 \n\t"
             :
             // clang-format off
             [acc00] "+&vr"(acc00),
-            [acc01] "+&vr"(acc01),
             [acc02] "+&vr"(acc02),
-            [acc03] "+&vr"(acc03),
             [acc10] "+&vr"(acc10),
-            [acc11] "+&vr"(acc11),
             [acc12] "+&vr"(acc12),
-            [acc13] "+&vr"(acc13),
             [acc20] "+&vr"(acc20),
-            [acc21] "+&vr"(acc21),
-            [acc22] "+&vr"(acc22),
-            [acc23] "+&vr"(acc23),
-            [acc30] "+&vr"(acc30),
-            [acc31] "+&vr"(acc31),
-            [acc32] "+&vr"(acc32),
-            [acc33] "+vr"(acc33)
+            [acc22] "+&vr"(acc22)
             :
             [jj_vl_m4] "r"(jj_vl),
-            [jj_vl_m1_0] "r"(jj_vl_m1_0),
-            [jj_vl_m1_1] "r"(jj_vl_m1_1),
-            [jj_vl_m1_2] "r"(jj_vl_m1_2),
-            [jj_vl_m1_3] "r"(jj_vl_m1_3),
+            [jj_vl_m2_0] "r"(jj_vl_m2_0),
+            [jj_vl_m2_1] "r"(jj_vl_m2_1),
             [b_load_0] "r"(b + (kk + 0) * rsb + jj),
             [a01] "vr"(a01),
             [a11] "vr"(a11),
-            [a21] "vr"(a21),
-            [a31] "vr"(a31)
+            [a21] "vr"(a21)
             :
             "vtype", "vl", "memory", "v4", "v5", "v6", "v7"
             // clang-format on
         );
       }
 
-      acc0 = __riscv_vset_v_f32m1_f32m4(acc0, 0, acc00);
-      acc0 = __riscv_vset_v_f32m1_f32m4(acc0, 1, acc01);
-      acc0 = __riscv_vset_v_f32m1_f32m4(acc0, 2, acc02);
-      acc0 = __riscv_vset_v_f32m1_f32m4(acc0, 3, acc03);
-      acc1 = __riscv_vset_v_f32m1_f32m4(acc1, 0, acc10);
-      acc1 = __riscv_vset_v_f32m1_f32m4(acc1, 1, acc11);
-      acc1 = __riscv_vset_v_f32m1_f32m4(acc1, 2, acc12);
-      acc1 = __riscv_vset_v_f32m1_f32m4(acc1, 3, acc13);
-      acc2 = __riscv_vset_v_f32m1_f32m4(acc2, 0, acc20);
-      acc2 = __riscv_vset_v_f32m1_f32m4(acc2, 1, acc21);
-      acc2 = __riscv_vset_v_f32m1_f32m4(acc2, 2, acc22);
-      acc2 = __riscv_vset_v_f32m1_f32m4(acc2, 3, acc23);
-      acc3 = __riscv_vset_v_f32m1_f32m4(acc3, 0, acc30);
-      acc3 = __riscv_vset_v_f32m1_f32m4(acc3, 1, acc31);
-      acc3 = __riscv_vset_v_f32m1_f32m4(acc3, 2, acc32);
-      acc3 = __riscv_vset_v_f32m1_f32m4(acc3, 3, acc33);
+      acc0 = __riscv_vset_v_f32m2_f32m4(acc0, 0, acc00);
+      acc0 = __riscv_vset_v_f32m2_f32m4(acc0, 1, acc02);
+      acc1 = __riscv_vset_v_f32m2_f32m4(acc1, 0, acc10);
+      acc1 = __riscv_vset_v_f32m2_f32m4(acc1, 1, acc12);
+      acc2 = __riscv_vset_v_f32m2_f32m4(acc2, 0, acc20);
+      acc2 = __riscv_vset_v_f32m2_f32m4(acc2, 1, acc22);
       __asm__ volatile(
           "\n\t"
           "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m4, ta, ma \n\t"
           "vle32.v %[c00], (%[c_load]) \n\t"
           "vle32.v %[c01], (%[c_load_0]) \n\t"
           "vle32.v %[c02], (%[c_load_1]) \n\t"
-          "vle32.v %[c03], (%[c_load_2]) \n\t"
           "vfmul.vf %[c00], %[c00], %[beta0] \n\t"
           "vfmacc.vf %[c00], %[alpha0], %[acc0] \n\t"
           "vse32.v %[c00], (%[c_store]) \n\t"
@@ -1101,22 +871,17 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
           "vfmul.vf %[c02], %[c02], %[beta0] \n\t"
           "vfmacc.vf %[c02], %[alpha0], %[acc2] \n\t"
           "vse32.v %[c02], (%[c_store_1]) \n\t"
-          "vfmul.vf %[c03], %[c03], %[beta0] \n\t"
-          "vfmacc.vf %[c03], %[alpha0], %[acc3] \n\t"
-          "vse32.v %[c03], (%[c_store_2]) \n\t"
           : [jj_vl_out] "=&r"(jj_vl), [c00] "=&vr"(c00), [c01] "=&vr"(c01),
-            [c02] "=&vr"(c02), [c03] "=&vr"(c03)
+            [c02] "=&vr"(c02)
           : [jj_vl_in] "r"(n - jj),
             [c_load] "r"(c + (((ii + 0) * rsc) + ((jj + 0) * 1))),
             [c_load_0] "r"(c + (((ii + 1) * rsc) + ((jj + 0) * 1))),
             [c_load_1] "r"(c + (((ii + 2) * rsc) + ((jj + 0) * 1))),
-            [c_load_2] "r"(c + (((ii + 3) * rsc) + ((jj + 0) * 1))),
             [beta0] "f"(beta0), [alpha0] "f"(alpha0), [acc0] "vr"(acc0),
-            [acc1] "vr"(acc1), [acc2] "vr"(acc2), [acc3] "vr"(acc3),
+            [acc1] "vr"(acc1), [acc2] "vr"(acc2),
             [c_store] "r"(c + (((ii + 0) * rsc) + ((jj + 0) * 1))),
             [c_store_0] "r"(c + (((ii + 1) * rsc) + ((jj + 0) * 1))),
-            [c_store_1] "r"(c + (((ii + 2) * rsc) + ((jj + 0) * 1))),
-            [c_store_2] "r"(c + (((ii + 3) * rsc) + ((jj + 0) * 1)))
+            [c_store_1] "r"(c + (((ii + 2) * rsc) + ((jj + 0) * 1)))
           : "vtype", "vl", "memory");
     }
   }
