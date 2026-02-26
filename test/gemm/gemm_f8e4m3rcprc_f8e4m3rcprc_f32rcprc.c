@@ -330,9 +330,9 @@ int main(void) {
          CSC1);
 
   /* Populate the matrices. */
-  skl_test_init_i8((int8_t *)a, ALEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
-  skl_test_init_i8((int8_t *)b, BLEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
-  skl_test_init_f32(c, CLEN, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32);
+  SKL_TEST_INIT_I8((int8_t *)a, ALEN);
+  SKL_TEST_INIT_I8((int8_t *)b, BLEN);
+  SKL_TEST_INIT_F32(c, CLEN);
 
 #if defined(ENABLE_TEST)
   /* Make copies of C to write the reference and test outputs to. */
