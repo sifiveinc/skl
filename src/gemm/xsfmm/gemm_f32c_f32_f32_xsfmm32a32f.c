@@ -409,11 +409,17 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m2_f32_f32r_xsfmmbase(
  * the names of alpha-beta scaling functions include the input type of the
  * corresponding GEMM even though they do not depend on it.
  */
+// NOLINTBEGIN(misc-no-recursion)
 SKL_XSFMM_IN
-SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_f32_f32_xsfmmbase(
-    bool trans, size_t tm, size_t tn, size_t tss, float *c, size_t row1,
-    size_t col1, size_t rsc0, size_t csc0, size_t rsc1, size_t csc1,
-    void *params) {
+SKL_FUNC_PRIVATE
+void skl_gemm_alpha_beta_scaling_f32_f32_xsfmmbase(bool trans, size_t tm,
+                                                   size_t tn, size_t tss,
+                                                   float *c, size_t row1,
+                                                   size_t col1, size_t rsc0,
+                                                   size_t csc0, size_t rsc1,
+                                                   size_t csc1, void *params)
+// NOLINTEND(misc-no-recursion)
+{
   if (trans == true) {
     skl_gemm_alpha_beta_scaling_f32_f32_xsfmmbase(
         false, tm, tn, tss, c, row1, col1, csc0, rsc0, rsc1, csc1, params);
@@ -616,8 +622,10 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_2tm1tn_f32pc_f32_f32rcprc_xsfmm32a32f(
     return;
   }
 
+  // NOLINTBEGIN(readability-suspicious-call-argument)
   skl_gemm_k_loop_1tm2tn_f32c_f32cp_f32_xsfmm32a32f(tn, tm, k, b, rsb, a, csa0,
                                                     rsa1);
+  // NOLINTEND(readability-suspicious-call-argument)
 
   /* Apply fused kernel. */
   const size_t kShiftTile = 27;
@@ -761,8 +769,10 @@ skl_gemm_fused_3tm1tn_f32pc_f32_f32rcprc_xsfmm32a32f(
     return;
   }
 
+  // NOLINTBEGIN(readability-suspicious-call-argument)
   skl_gemm_k_loop_1tm3tn_f32c_f32cp_f32rcprc_xsfmm32a32f(tn, tm, k, b, rsb, a,
                                                          csa0, rsa1);
+  // NOLINTEND(readability-suspicious-call-argument)
 
   /* Apply fused kernel. */
   const size_t kShiftTile = 27;
@@ -921,8 +931,10 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_4tm1tn_f32pc_f32_f32rcprc_xsfmm32a32f(
     return;
   }
 
+  // NOLINTBEGIN(readability-suspicious-call-argument)
   skl_gemm_k_loop_1tm4tn_f32c_f32cp_f32rcprc_xsfmm32a32f(tn, tm, k, b, rsb, a,
                                                          csa0, rsa1);
+  // NOLINTEND(readability-suspicious-call-argument)
 
   /* Apply fused kernel. */
   const size_t kShiftTile = 27;
