@@ -180,9 +180,9 @@ int gemm_f16rc_f16rc_f16rc_main(void) {
   printf("RSC = %u, CSC = %u\n", RSC, CSC);
 
   /* Populate the matrices. */
-  skl_test_init_f16(a, ALEN, SKL_TEST_MIN_F16, SKL_TEST_MAX_F16);
-  skl_test_init_f16(b, BLEN, SKL_TEST_MIN_F16, SKL_TEST_MAX_F16);
-  skl_test_init_f16(c, CLEN, SKL_TEST_MIN_F16, SKL_TEST_MAX_F16);
+  SKL_TEST_INIT_F16(a, ALEN);
+  SKL_TEST_INIT_F16(b, BLEN);
+  SKL_TEST_INIT_F16(c, CLEN);
 
 #if defined(ENABLE_TEST)
   /* Make copies of C to write the reference and test outputs to. */

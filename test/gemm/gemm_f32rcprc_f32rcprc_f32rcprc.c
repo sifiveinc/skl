@@ -252,9 +252,9 @@ int gemm_f32rcprc_f32rcprc_f32rcprc_main(void) {
          CSC1);
 
   /* Populate the matrices. */
-  skl_test_init_f32(a, ALEN, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32);
-  skl_test_init_f32(b, BLEN, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32);
-  skl_test_init_f32(c, CLEN, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32);
+  SKL_TEST_INIT_F32(a, ALEN);
+  SKL_TEST_INIT_F32(b, BLEN);
+  SKL_TEST_INIT_F32(c, CLEN);
 
 #if defined(ENABLE_TEST)
   /* Make copies of C to write the reference and test outputs to. */
