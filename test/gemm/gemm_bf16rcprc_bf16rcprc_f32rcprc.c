@@ -252,9 +252,9 @@ int main(void) {
          CSC1);
 
   /* Populate the matrices. */
-  skl_test_init_bf16(a, ALEN, SKL_TEST_MIN_BF16, SKL_TEST_MAX_BF16);
-  skl_test_init_bf16(b, BLEN, SKL_TEST_MIN_BF16, SKL_TEST_MAX_BF16);
-  skl_test_init_f32(c, CLEN, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32);
+  SKL_TEST_INIT_BF16(a, ALEN);
+  SKL_TEST_INIT_BF16(b, BLEN);
+  SKL_TEST_INIT_F32(c, CLEN);
 
 #if defined(ENABLE_TEST)
   /* Make copies of C to write the reference and test outputs to. */

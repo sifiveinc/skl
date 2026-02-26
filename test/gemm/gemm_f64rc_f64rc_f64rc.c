@@ -182,9 +182,9 @@ int main(void) {
   printf("RSC = %u, CSC = %u\n", RSC, CSC);
 
   /* Populate the matrices. */
-  skl_test_init_f64(a, ALEN, SKL_TEST_MIN_F64, SKL_TEST_MAX_F64);
-  skl_test_init_f64(b, BLEN, SKL_TEST_MIN_F64, SKL_TEST_MAX_F64);
-  skl_test_init_f64(c, CLEN, SKL_TEST_MIN_F64, SKL_TEST_MAX_F64);
+  SKL_TEST_INIT_F64(a, ALEN);
+  SKL_TEST_INIT_F64(b, BLEN);
+  SKL_TEST_INIT_F64(c, CLEN);
 
 #if defined(ENABLE_TEST)
   /* Make copies of C to write the reference and test outputs to. */
