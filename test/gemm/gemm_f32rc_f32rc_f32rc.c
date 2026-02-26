@@ -137,7 +137,7 @@ enum {
   BLEN = ((K - 1) * RSB + (N - 1) * CSB + 1),
 };
 
-#if defined(SKL_TEST_MALLOC)
+#if defined(SKL_TEST_MEMALIGN)
 float *a;
 float *b;
 float *c;
@@ -217,10 +217,10 @@ int check_error(void) {
 int main(void) {
   int res = EXIT_SUCCESS;
 
-#if defined(SKL_TEST_MALLOC)
-  a = (float *)SKL_TEST_MALLOC(ALIGN, ALEN * sizeof(float));
-  b = (float *)SKL_TEST_MALLOC(ALIGN, BLEN * sizeof(float));
-  c = (float *)SKL_TEST_MALLOC(ALIGN, CLEN * sizeof(float));
+#if defined(SKL_TEST_MEMALIGN)
+  a = (float *)SKL_TEST_MEMALIGN(ALIGN, ALEN * sizeof(float));
+  b = (float *)SKL_TEST_MEMALIGN(ALIGN, BLEN * sizeof(float));
+  c = (float *)SKL_TEST_MEMALIGN(ALIGN, CLEN * sizeof(float));
 #endif
 
   printf("%s:\n", skl_test_name);
@@ -248,7 +248,7 @@ int main(void) {
   SKL_BENCHMARK_RUN(skl_test_name, M * N * K, SKL_TEST_WARMUP, SKL_TEST_NAME, M,
                     N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA, c, RSC, CSC);
 
-#if defined(SKL_TEST_MALLOC) && defined(SKL_TEST_FREE)
+#if defined(SKL_TEST_MEMALIGN) && defined(SKL_TEST_FREE)
   SKL_TEST_FREE(a);
   SKL_TEST_FREE(b);
   SKL_TEST_FREE(c);
