@@ -114,9 +114,17 @@ enum {
   ALEN = ((M - 1) * RSA + (K - 1) * CSA + 1),
   BLEN = ((K - 1) * RSB + (N - 1) * CSB + 1),
 };
+
+#if defined(SKL_TEST_MEMALIGN)
+int8_t *a;
+int8_t *b;
+int32_t *c;
+#else
 _Alignas(ALIGN) int8_t a[ALEN];
 _Alignas(ALIGN) int8_t b[BLEN];
 _Alignas(ALIGN) int32_t c[CLEN];
+#endif
+
 #if defined(ENABLE_TEST)
 int32_t ref_c[CLEN], test_c[CLEN];
 #endif // ENABLE_TEST
@@ -157,6 +165,12 @@ int gemm_i8rc_i8rc_i32rc_main(void) {
   printf("RSB = %u, CSB = %u\n", RSB, CSB);
   printf("RSC = %u, CSC = %u\n", RSC, CSC);
 
+#if defined(SKL_TEST_MEMALIGN)
+  a = (int8_t *)SKL_TEST_MEMALIGN(ALIGN, ALEN * sizeof(int8_t));
+  b = (int8_t *)SKL_TEST_MEMALIGN(ALIGN, BLEN * sizeof(int8_t));
+  c = (int32_t *)SKL_TEST_MEMALIGN(ALIGN, CLEN * sizeof(int32_t));
+#endif
+
   /* Populate the matrices. */
   SKL_TEST_INIT_I8(a, ALEN);
   SKL_TEST_INIT_I8(b, BLEN);
@@ -173,6 +187,12 @@ int gemm_i8rc_i8rc_i32rc_main(void) {
 
   SKL_BENCHMARK_RUN(skl_test_name, M * N * K, SKL_TEST_WARMUP, SKL_TEST_NAME, M,
                     N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA, c, RSC, CSC);
+
+#if defined(SKL_TEST_MEMALIGN) && defined(SKL_TEST_FREE)
+  SKL_TEST_FREE(a);
+  SKL_TEST_FREE(b);
+  SKL_TEST_FREE(c);
+#endif
 
   return res;
 }

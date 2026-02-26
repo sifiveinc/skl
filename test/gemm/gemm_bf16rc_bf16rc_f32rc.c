@@ -102,9 +102,17 @@ enum {
   ALEN = ((M - 1) * RSA + (K - 1) * CSA + 1),
   BLEN = ((K - 1) * RSB + (N - 1) * CSB + 1),
 };
+
+#if defined(SKL_TEST_MEMALIGN)
+__bf16 *a;
+__bf16 *b;
+float *c;
+#else
 _Alignas(ALIGN) __bf16 a[ALEN];
 _Alignas(ALIGN) __bf16 b[BLEN];
 _Alignas(ALIGN) float c[CLEN];
+#endif
+
 #if defined(ENABLE_TEST)
 double a_wide[ALEN];
 double b_wide[BLEN];
@@ -182,6 +190,12 @@ int gemm_bf16rc_bf16rc_f32rc_main(void) {
   printf("RSB = %u, CSB = %u\n", RSB, CSB);
   printf("RSC = %u, CSC = %u\n", RSC, CSC);
 
+#if defined(SKL_TEST_MEMALIGN)
+  a = (__bf16 *)SKL_TEST_MEMALIGN(ALIGN, ALEN * sizeof(__bf16));
+  b = (__bf16 *)SKL_TEST_MEMALIGN(ALIGN, BLEN * sizeof(__bf16));
+  c = (float *)SKL_TEST_MEMALIGN(ALIGN, CLEN * sizeof(float));
+#endif
+
   /* Populate the matrices. */
   SKL_TEST_INIT_BF16(a, ALEN);
   SKL_TEST_INIT_BF16(b, BLEN);
@@ -198,6 +212,12 @@ int gemm_bf16rc_bf16rc_f32rc_main(void) {
 
   SKL_BENCHMARK_RUN(skl_test_name, M * N * K, SKL_TEST_WARMUP, SKL_TEST_NAME, M,
                     N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA, c, RSC, CSC);
+
+#if defined(SKL_TEST_MEMALIGN) && defined(SKL_TEST_FREE)
+  SKL_TEST_FREE(a);
+  SKL_TEST_FREE(b);
+  SKL_TEST_FREE(c);
+#endif
 
   return res;
 }

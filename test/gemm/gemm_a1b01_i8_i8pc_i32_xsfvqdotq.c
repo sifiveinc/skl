@@ -95,10 +95,18 @@ enum {
   BLEN_PACKED = K1 * RSB1,
 };
 
+#if defined(SKL_TEST_MEMALIGN)
+int8_t *a;
+int8_t *b;
+int8_t *b_pack;
+int32_t *c;
+#else
 _Alignas(ALIGN) int8_t a[ALEN];
 _Alignas(ALIGN) int8_t b[BLEN];
 _Alignas(ALIGN) int8_t b_pack[BLEN_PACKED];
 _Alignas(ALIGN) int32_t c[CLEN];
+#endif
+
 #if defined(ENABLE_TEST)
 _Alignas(ALIGN) int32_t ref_c[CLEN];
 _Alignas(ALIGN) int32_t test_c[CLEN];
@@ -153,6 +161,13 @@ int gemm_a1b01_i8_i8pc_i32_xsfvqdotq_main(void) {
   printf("RSA = %u, RSB = %u, RSC = %u\n", RSA, RSB, RSC);
   printf("RSB1 = %u\n", RSB1);
 
+#if defined(SKL_TEST_MEMALIGN)
+  a = (int8_t *)SKL_TEST_MEMALIGN(ALIGN, ALEN * sizeof(int8_t));
+  b = (int8_t *)SKL_TEST_MEMALIGN(ALIGN, BLEN * sizeof(int8_t));
+  b_pack = (int8_t *)SKL_TEST_MEMALIGN(ALIGN, BLEN_PACKED * sizeof(int8_t));
+  c = (int32_t *)SKL_TEST_MEMALIGN(ALIGN, CLEN * sizeof(int32_t));
+#endif
+
   /* Populate the matrices. */
   SKL_TEST_INIT_I8(a, ALEN);
   SKL_TEST_INIT_I8(b, BLEN);
@@ -175,6 +190,13 @@ int gemm_a1b01_i8_i8pc_i32_xsfvqdotq_main(void) {
                     SKL_TEST_WARMUP, skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq, M, N,
                     K, a, (size_t)RSA, b_pack, (size_t)RSB1, c, (size_t)RSC,
                     ACCUM);
+
+#if defined(SKL_TEST_MEMALIGN) && defined(SKL_TEST_FREE)
+  SKL_TEST_FREE(a);
+  SKL_TEST_FREE(b);
+  SKL_TEST_FREE(b_pack);
+  SKL_TEST_FREE(c);
+#endif
 
   return res;
 }

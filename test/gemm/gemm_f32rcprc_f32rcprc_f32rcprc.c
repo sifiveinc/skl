@@ -158,9 +158,17 @@ enum {
           (N0 - 1) * CSB0 + 1),
   // NOLINTEND(misc-redundant-expression)
 };
+
+#if defined(SKL_TEST_MEMALIGN)
+float *a;
+float *b;
+float *c;
+#else
 _Alignas(ALIGN) float a[ALEN];
 _Alignas(ALIGN) float b[BLEN];
 _Alignas(ALIGN) float c[CLEN];
+#endif
+
 #if defined(ENABLE_TEST)
 double a_wide[ALEN];
 double b_wide[BLEN];
@@ -251,6 +259,12 @@ int gemm_f32rcprc_f32rcprc_f32rcprc_main(void) {
   printf("RSC0 = %u, CSC0 = %u, RSC1 = %u, CSC1 = %u\n", RSC0, CSC0, RSC1,
          CSC1);
 
+#if defined(SKL_TEST_MEMALIGN)
+  a = (float *)SKL_TEST_MEMALIGN(ALIGN, ALEN * sizeof(float));
+  b = (float *)SKL_TEST_MEMALIGN(ALIGN, BLEN * sizeof(float));
+  c = (float *)SKL_TEST_MEMALIGN(ALIGN, CLEN * sizeof(float));
+#endif
+
   /* Populate the matrices. */
   SKL_TEST_INIT_F32(a, ALEN);
   SKL_TEST_INIT_F32(b, BLEN);
@@ -271,6 +285,12 @@ int gemm_f32rcprc_f32rcprc_f32rcprc_main(void) {
                     (size_t)RSA1, (size_t)CSA1, b, RSB0, CSB0, (size_t)RSB1,
                     (size_t)CSB1, BETA, c, RSC0, CSC0, (size_t)RSC1,
                     (size_t)CSC1);
+
+#if defined(SKL_TEST_MEMALIGN) && defined(SKL_TEST_FREE)
+  SKL_TEST_FREE(a);
+  SKL_TEST_FREE(b);
+  SKL_TEST_FREE(c);
+#endif
 
   return res;
 }
