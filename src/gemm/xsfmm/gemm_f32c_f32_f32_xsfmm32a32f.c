@@ -17,17 +17,17 @@ typedef struct {
   float beta;
 } alpha_beta_f32_f32;
 
-typedef void (*fused_ker_f32_f32_t)(size_t tm, size_t tn, size_t tss, float *c,
-                                    size_t i1, size_t j1, size_t rsc0,
-                                    size_t csc0, size_t rsc1, size_t csc1,
-                                    void *params);
+typedef void (*fused_ker_f32_f32_t)(bool trans, size_t tm, size_t tn,
+                                    size_t tss, float *c, size_t row1,
+                                    size_t col1, size_t rsc0, size_t csc0,
+                                    size_t rsc1, size_t csc1, void *params);
 
 /* Computes C := alpha * tile + beta * C, where tile is the tm x tn tile
  * specified by tss. tm and tn must be <= TE. This is a general implementation
  * that will work on all Xsfmm machines.
  */
 SKL_XSFMM_IN
-SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m8_f32_f32_xsfmmbase(
+SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m8_f32_f32rc_xsfmmbase(
     size_t tm, size_t tn, float alpha, size_t tss, float beta,
     float *c, // NOLINT(readability-non-const-parameter)
     size_t rsc0, size_t csc0) {
@@ -38,46 +38,57 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m8_f32_f32_xsfmmbase(
   const size_t kRowInc = 1;
 
   size_t i = tm;
-  if (csc0 == 1) {
-    __asm__ volatile(
-        "sf.vsettnt x0, %[tn], e32, w1\n"
+  __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
 
-        "0:\n"
-        "sf.vtmv.v.t v0, %[tss]\n"
-        "add %[tss], %[tss], %[kRowInc]\n"
-        "vle32.v v16, (%[c])\n"
-        "vfmul.vf v16, v16, %[beta]\n"
-        "vfmacc.vf v16, %[alpha], v0\n"
-        "vse32.v v16, (%[c])\n"
-        "add %[c], %[c], %[rsc0]\n"
-        "addi %[i], %[i], -1\n"
-        "bnez %[i], 0b"
-        : [tss] "+&r"(tss), [c] "+&r"(c), [i] "+&r"(i)
-        : [alpha] "f"(alpha), [beta] "f"(beta), [kRowInc] "rI"(kRowInc),
-          [rsc0] "r"(rsc0 * sizeof(float)), [tn] "r"(tn)
-        : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v16", "v17", "v18",
-          "v19", "v20", "v21", "v22", "v23", "vtype", "vl", "memory");
-  } else {
-    __asm__ volatile(
-        "sf.vsettnt x0, %[tn], e32, w1\n"
+                   "0:\n"
+                   "sf.vtmv.v.t v0, %[tss]\n"
+                   "add %[tss], %[tss], %[kRowInc]\n"
+                   "vlse32.v v16, (%[c]), %[csc0]\n"
+                   "vfmul.vf v16, v16, %[beta]\n"
+                   "vfmacc.vf v16, %[alpha], v0\n"
+                   "vsse32.v v16, (%[c]), %[csc0]\n"
+                   "add %[c], %[c], %[rsc0]\n"
+                   "addi %[i], %[i], -1\n"
+                   "bnez %[i], 0b"
+                   : [tss] "+&r"(tss), [c] "+&r"(c), [i] "+&r"(i)
+                   : [alpha] "f"(alpha), [beta] "f"(beta),
+                     [kRowInc] "rI"(kRowInc), [rsc0] "r"(rsc0 * sizeof(float)),
+                     [csc0] "r"(csc0 * sizeof(float)), [tn] "r"(tn)
+                   : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v16",
+                     "v17", "v18", "v19", "v20", "v21", "v22", "v23", "vtype",
+                     "vl", "memory");
+}
 
-        "0:\n"
-        "sf.vtmv.v.t v0, %[tss]\n"
-        "add %[tss], %[tss], %[kRowInc]\n"
-        "vlse32.v v16, (%[c]), %[csc0]\n"
-        "vfmul.vf v16, v16, %[beta]\n"
-        "vfmacc.vf v16, %[alpha], v0\n"
-        "vsse32.v v16, (%[c]), %[csc0]\n"
-        "add %[c], %[c], %[rsc0]\n"
-        "addi %[i], %[i], -1\n"
-        "bnez %[i], 0b"
-        : [tss] "+&r"(tss), [c] "+&r"(c), [i] "+&r"(i)
-        : [alpha] "f"(alpha), [beta] "f"(beta), [kRowInc] "rI"(kRowInc),
-          [rsc0] "r"(rsc0 * sizeof(float)), [csc0] "r"(csc0 * sizeof(float)),
-          [tn] "r"(tn)
-        : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v16", "v17", "v18",
-          "v19", "v20", "v21", "v22", "v23", "vtype", "vl", "memory");
+SKL_XSFMM_IN
+SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m8_f32_f32r_xsfmmbase(
+    size_t tm, size_t tn, float alpha, size_t tss, float beta,
+    float *c, // NOLINT(readability-non-const-parameter)
+    size_t rsc0) {
+  if (tm == 0 || tn == 0) {
+    return;
   }
+
+  const size_t kRowInc = 1;
+
+  size_t i = tm;
+  __asm__ volatile(
+      "sf.vsettnt x0, %[tn], e32, w1\n"
+
+      "0:\n"
+      "sf.vtmv.v.t v0, %[tss]\n"
+      "add %[tss], %[tss], %[kRowInc]\n"
+      "vle32.v v16, (%[c])\n"
+      "vfmul.vf v16, v16, %[beta]\n"
+      "vfmacc.vf v16, %[alpha], v0\n"
+      "vse32.v v16, (%[c])\n"
+      "add %[c], %[c], %[rsc0]\n"
+      "addi %[i], %[i], -1\n"
+      "bnez %[i], 0b"
+      : [tss] "+&r"(tss), [c] "+&r"(c), [i] "+&r"(i)
+      : [alpha] "f"(alpha), [beta] "f"(beta), [kRowInc] "rI"(kRowInc),
+        [rsc0] "r"(rsc0 * sizeof(float)), [tn] "r"(tn)
+      : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v16", "v17", "v18",
+        "v19", "v20", "v21", "v22", "v23", "vtype", "vl", "memory");
 }
 
 /* Computes C := alpha * tile + beta * C, where tile is the tm x tn tile
@@ -88,7 +99,7 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m8_f32_f32_xsfmmbase(
  * to overlap their latency with the scaling computation.
  */
 SKL_XSFMM_IN
-SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m2_f32_f32_xsfmmbase(
+SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m2_f32_f32r_xsfmmbase(
     size_t tm, size_t tn, float alpha, size_t tss, float beta, float *c,
     size_t rsc0) {
   if (tm == 0 || tn == 0) {
@@ -400,25 +411,38 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m2_f32_f32_xsfmmbase(
  */
 SKL_XSFMM_IN
 SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_f32_f32_xsfmmbase(
-    size_t tm, size_t tn, size_t tss, float *c, size_t i1, size_t j1,
-    size_t rsc0, size_t csc0, size_t rsc1, size_t csc1, void *params) {
+    bool trans, size_t tm, size_t tn, size_t tss, float *c, size_t row1,
+    size_t col1, size_t rsc0, size_t csc0, size_t rsc1, size_t csc1,
+    void *params) {
+  if (trans == true) {
+    skl_gemm_alpha_beta_scaling_f32_f32_xsfmmbase(
+        false, tm, tn, tss, c, row1, col1, csc0, rsc0, rsc1, csc1, params);
+    return;
+  }
+
   alpha_beta_f32_f32 *params_cast = (alpha_beta_f32_f32 *)params;
   float alpha = params_cast->alpha;
   float beta = params_cast->beta;
-  float *c_tile = c + i1 * rsc1 + j1 * csc1;
+  float *c_tile = c + row1 * rsc1 + col1 * csc1;
 
   size_t ete = 0;
   __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
 
   if (ete <= (size_t)__riscv_vsetvlmax_e32m2() && csc0 == 1) {
-    skl_gemm_alpha_beta_scaling_m2_f32_f32_xsfmmbase(tm, tn, alpha, tss, beta,
-                                                     c_tile, rsc0);
+    skl_gemm_alpha_beta_scaling_m2_f32_f32r_xsfmmbase(tm, tn, alpha, tss, beta,
+                                                      c_tile, rsc0);
   } else if (ete <= (size_t)__riscv_vsetvlmax_e32m2() && rsc0 == 1) {
-    skl_gemm_alpha_beta_scaling_m2_f32_f32_xsfmmbase(
+    skl_gemm_alpha_beta_scaling_m2_f32_f32r_xsfmmbase(
+        tn, tm, alpha, tss | (size_t)1 << 24, beta, c_tile, csc0);
+  } else if (csc0 == 1) {
+    skl_gemm_alpha_beta_scaling_m8_f32_f32r_xsfmmbase(tm, tn, alpha, tss, beta,
+                                                      c_tile, rsc0);
+  } else if (rsc0 == 1) {
+    skl_gemm_alpha_beta_scaling_m8_f32_f32r_xsfmmbase(
         tn, tm, alpha, tss | (size_t)1 << 24, beta, c_tile, csc0);
   } else {
-    skl_gemm_alpha_beta_scaling_m8_f32_f32_xsfmmbase(tm, tn, alpha, tss, beta,
-                                                     c_tile, rsc0, csc0);
+    skl_gemm_alpha_beta_scaling_m8_f32_f32rc_xsfmmbase(tm, tn, alpha, tss, beta,
+                                                       c_tile, rsc0, csc0);
   }
 }
 
@@ -426,7 +450,7 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_f32_f32_xsfmmbase(
 SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void skl_gemm_fused_1tm1tn_f32c_f32_f32rcprc_xsfmm32a32f(
     size_t tm, size_t tn, size_t k, const float *a, size_t csa, const float *b,
-    size_t rsb, float *c, size_t i1, size_t j1, size_t rsc0, size_t csc0,
+    size_t rsb, float *c, size_t row1, size_t col1, size_t rsc0, size_t csc0,
     size_t rsc1, size_t csc1, fused_ker_f32_f32_t kernel, void *params) {
   if (tm == 0 || tn == 0) {
     return;
@@ -474,24 +498,17 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_1tm1tn_f32c_f32_f32rcprc_xsfmm32a32f(
   /* Apply fused kernel. */
   const size_t mt0 = 0;
 
-  (*kernel)(tm, tn, mt0, c, i1, j1, rsc0, csc0, rsc1, csc1, params);
+  (*kernel)(false, tm, tn, mt0, c, row1, col1, rsc0, csc0, rsc1, csc1, params);
 
   __asm__ volatile("sf.vtdiscard");
 }
 
-/* Process 2 (= 1 x 2) contiguous tm x tn tiles of c.
- * tm and tn must be <= TE.
+/* k loop implementation shared by the 1 x 2 and 2 x 1 tilings.
  */
-SKL_XSFMM_NEW
-SKL_FUNC_PRIVATE void skl_gemm_fused_1tm2tn_f32c_f32cp_f32rcprc_xsfmm32a32f(
+SKL_XSFMM_OUT
+SKL_FUNC_PRIVATE void skl_gemm_k_loop_1tm2tn_f32c_f32cp_f32_xsfmm32a32f(
     size_t tm, size_t tn, size_t k, const float *a, size_t csa, const float *b,
-    size_t rsb0, size_t csb1, float *c, size_t i1, size_t j1, size_t rsc0,
-    size_t csc0, size_t rsc1, size_t csc1, fused_ker_f32_f32_t kernel,
-    void *params) {
-  if (tm == 0 || tn == 0) {
-    return;
-  }
-
+    size_t rsb0, size_t csb1) {
   /* Zero-initialize tiles. */
   __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
                    "sf.vsettm x0, %[tm]\n"
@@ -556,14 +573,32 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_1tm2tn_f32c_f32cp_f32rcprc_xsfmm32a32f(
       : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
         "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20",
         "v21", "v22", "v23", "vtype", "vl", "memory");
+}
+
+/* Process 2 (= 1 x 2) contiguous tm x tn tiles of c.
+ * tm and tn must be <= TE.
+ */
+SKL_XSFMM_NEW
+SKL_FUNC_PRIVATE void skl_gemm_fused_1tm2tn_f32c_f32cp_f32rcprc_xsfmm32a32f(
+    size_t tm, size_t tn, size_t k, const float *a, size_t csa, const float *b,
+    size_t rsb0, size_t csb1, float *c, size_t row1, size_t col1, size_t rsc0,
+    size_t csc0, size_t rsc1, size_t csc1, fused_ker_f32_f32_t kernel,
+    void *params) {
+  if (tm == 0 || tn == 0) {
+    return;
+  }
+
+  skl_gemm_k_loop_1tm2tn_f32c_f32cp_f32_xsfmm32a32f(tm, tn, k, a, csa, b, rsb0,
+                                                    csb1);
 
   /* Apply fused kernel. */
   const size_t kShiftTile = 27;
   const size_t mt0 = 0;
   const size_t mt4 = (size_t)(4) << kShiftTile;
 
-  (*kernel)(tm, tn, mt0, c, i1, j1, rsc0, csc0, rsc1, csc1, params);
-  (*kernel)(tm, tn, mt4, c, i1, j1 + 1, rsc0, csc0, rsc1, csc1, params);
+  (*kernel)(false, tm, tn, mt0, c, row1, col1, rsc0, csc0, rsc1, csc1, params);
+  (*kernel)(false, tm, tn, mt4, c, row1, col1 + 1, rsc0, csc0, rsc1, csc1,
+            params);
 
   __asm__ volatile("sf.vtdiscard");
 }
@@ -574,14 +609,26 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_1tm2tn_f32c_f32cp_f32rcprc_xsfmm32a32f(
 SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void skl_gemm_fused_2tm1tn_f32pc_f32_f32rcprc_xsfmm32a32f(
     size_t tm, size_t tn, size_t k, const float *a, size_t csa0, size_t rsa1,
-    const float *b, size_t rsb, float *c, size_t i1, size_t j1, size_t rsc0,
+    const float *b, size_t rsb, float *c, size_t row1, size_t col1, size_t rsc0,
     size_t csc0, size_t rsc1, size_t csc1, fused_ker_f32_f32_t kernel,
     void *params) {
-  // NOLINTBEGIN(readability-suspicious-call-argument)
-  skl_gemm_fused_1tm2tn_f32c_f32cp_f32rcprc_xsfmm32a32f(
-      tn, tm, k, b, rsb, a, csa0, rsa1, c, j1, i1, csc0, rsc0, csc1, rsc1,
-      kernel, params);
-  // NOLINTEND(readability-suspicious-call-argument)
+  if (tm == 0 || tn == 0) {
+    return;
+  }
+
+  skl_gemm_k_loop_1tm2tn_f32c_f32cp_f32_xsfmm32a32f(tn, tm, k, b, rsb, a, csa0,
+                                                    rsa1);
+
+  /* Apply fused kernel. */
+  const size_t kShiftTile = 27;
+  const size_t mt0 = 0;
+  const size_t mt4 = (size_t)(4) << kShiftTile;
+
+  (*kernel)(true, tn, tm, mt0, c, row1, col1, rsc0, csc0, rsc1, csc1, params);
+  (*kernel)(true, tn, tm, mt4, c, row1 + 1, col1, rsc0, csc0, rsc1, csc1,
+            params);
+
+  __asm__ volatile("sf.vtdiscard");
 }
 
 /* Process 3 (= 1 x 3) contiguous tm x tn tiles of c.
@@ -590,7 +637,7 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_2tm1tn_f32pc_f32_f32rcprc_xsfmm32a32f(
 SKL_XSFMM_NEW SKL_FUNC_PRIVATE void
 skl_gemm_fused_1tm3tn_f32c_f32cp_f32rcprc_xsfmm32a32f(
     size_t tm, size_t tn, size_t k, const float *a, size_t csa, const float *b,
-    size_t rsb0, size_t csb1, float *c, size_t i1, size_t j1, size_t rsc0,
+    size_t rsb0, size_t csb1, float *c, size_t row1, size_t col1, size_t rsc0,
     size_t csc0, size_t rsc1, size_t csc1, fused_ker_f32_f32_t kernel,
     void *params) {
   if (tm == 0 || tn == 0) {
@@ -681,9 +728,11 @@ skl_gemm_fused_1tm3tn_f32c_f32cp_f32rcprc_xsfmm32a32f(
   const size_t mt4 = (size_t)(4) << kShiftTile;
   const size_t mt8 = (size_t)(8) << kShiftTile;
 
-  (*kernel)(tm, tn, mt0, c, i1, j1, rsc0, csc0, rsc1, csc1, params);
-  (*kernel)(tm, tn, mt4, c, i1, j1 + 1, rsc0, csc0, rsc1, csc1, params);
-  (*kernel)(tm, tn, mt8, c, i1, j1 + 2, rsc0, csc0, rsc1, csc1, params);
+  (*kernel)(false, tm, tn, mt0, c, row1, col1, rsc0, csc0, rsc1, csc1, params);
+  (*kernel)(false, tm, tn, mt4, c, row1, col1 + 1, rsc0, csc0, rsc1, csc1,
+            params);
+  (*kernel)(false, tm, tn, mt8, c, row1, col1 + 2, rsc0, csc0, rsc1, csc1,
+            params);
 
   __asm__ volatile("sf.vtdiscard");
 }
@@ -695,12 +744,12 @@ SKL_XSFMM_NEW
 __attribute__((unused)) SKL_FUNC_PRIVATE void
 skl_gemm_fused_3tm1tn_f32pc_f32_f32rcprc_xsfmm32a32f(
     size_t tm, size_t tn, size_t k, const float *a, size_t csa0, size_t rsa1,
-    const float *b, size_t rsb, float *c, size_t i1, size_t j1, size_t rsc0,
+    const float *b, size_t rsb, float *c, size_t row1, size_t col1, size_t rsc0,
     size_t csc0, size_t rsc1, size_t csc1, fused_ker_f32_f32_t kernel,
     void *params) {
   // NOLINTBEGIN(readability-suspicious-call-argument)
   skl_gemm_fused_1tm3tn_f32c_f32cp_f32rcprc_xsfmm32a32f(
-      tn, tm, k, b, rsb, a, csa0, rsa1, c, j1, i1, csc0, rsc0, csc1, rsc1,
+      tn, tm, k, b, rsb, a, csa0, rsa1, c, col1, row1, csc0, rsc0, csc1, rsc1,
       kernel, params);
   // NOLINTEND(readability-suspicious-call-argument)
 }
@@ -711,7 +760,7 @@ skl_gemm_fused_3tm1tn_f32pc_f32_f32rcprc_xsfmm32a32f(
 SKL_XSFMM_NEW SKL_FUNC_PRIVATE void
 skl_gemm_fused_1tm4tn_f32c_f32cp_f32rcprc_xsfmm32a32f(
     size_t tm, size_t tn, size_t k, const float *a, size_t csa, const float *b,
-    size_t rsb0, size_t csb1, float *c, size_t i1, size_t j1, size_t rsc0,
+    size_t rsb0, size_t csb1, float *c, size_t row1, size_t col1, size_t rsc0,
     size_t csc0, size_t rsc1, size_t csc1, fused_ker_f32_f32_t kernel,
     void *params) {
   if (tm == 0 || tn == 0) {
@@ -813,10 +862,13 @@ skl_gemm_fused_1tm4tn_f32c_f32cp_f32rcprc_xsfmm32a32f(
   const size_t mt8 = (size_t)(8) << kShiftTile;
   const size_t mt12 = (size_t)(12) << kShiftTile;
 
-  (*kernel)(tm, tn, mt0, c, i1, j1, rsc0, csc0, rsc1, csc1, params);
-  (*kernel)(tm, tn, mt4, c, i1, j1 + 1, rsc0, csc0, rsc1, csc1, params);
-  (*kernel)(tm, tn, mt8, c, i1, j1 + 2, rsc0, csc0, rsc1, csc1, params);
-  (*kernel)(tm, tn, mt12, c, i1, j1 + 3, rsc0, csc0, rsc1, csc1, params);
+  (*kernel)(false, tm, tn, mt0, c, row1, col1, rsc0, csc0, rsc1, csc1, params);
+  (*kernel)(false, tm, tn, mt4, c, row1, col1 + 1, rsc0, csc0, rsc1, csc1,
+            params);
+  (*kernel)(false, tm, tn, mt8, c, row1, col1 + 2, rsc0, csc0, rsc1, csc1,
+            params);
+  (*kernel)(false, tm, tn, mt12, c, row1, col1 + 3, rsc0, csc0, rsc1, csc1,
+            params);
 
   __asm__ volatile("sf.vtdiscard");
 }
@@ -827,12 +879,12 @@ skl_gemm_fused_1tm4tn_f32c_f32cp_f32rcprc_xsfmm32a32f(
 SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void skl_gemm_fused_4tm1tn_f32pc_f32_f32rcprc_xsfmm32a32f(
     size_t tm, size_t tn, size_t k, const float *a, size_t csa0, size_t rsa1,
-    const float *b, size_t rsb, float *c, size_t i1, size_t j1, size_t rsc0,
+    const float *b, size_t rsb, float *c, size_t row1, size_t col1, size_t rsc0,
     size_t csc0, size_t rsc1, size_t csc1, fused_ker_f32_f32_t kernel,
     void *params) {
   // NOLINTBEGIN(readability-suspicious-call-argument)
   skl_gemm_fused_1tm4tn_f32c_f32cp_f32rcprc_xsfmm32a32f(
-      tn, tm, k, b, rsb, a, csa0, rsa1, c, j1, i1, csc0, rsc0, csc1, rsc1,
+      tn, tm, k, b, rsb, a, csa0, rsa1, c, col1, row1, csc0, rsc0, csc1, rsc1,
       kernel, params);
   // NOLINTEND(readability-suspicious-call-argument)
 }
@@ -843,8 +895,8 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_4tm1tn_f32pc_f32_f32rcprc_xsfmm32a32f(
 SKL_XSFMM_NEW SKL_FUNC_PRIVATE void
 skl_gemm_fused_2tm2tn_f32pc_f32cp_f32rcprc_xsfmm32a32f(
     size_t tm, size_t tn, size_t k, const float *a, size_t csa0, size_t rsa1,
-    const float *b, size_t rsb0, size_t csb1, float *c, size_t i1, size_t j1,
-    size_t rsc0, size_t csc0, size_t rsc1, size_t csc1,
+    const float *b, size_t rsb0, size_t csb1, float *c, size_t row1,
+    size_t col1, size_t rsc0, size_t csc0, size_t rsc1, size_t csc1,
     fused_ker_f32_f32_t kernel, void *params) {
   if (tm == 0 || tn == 0) {
     return;
@@ -941,10 +993,13 @@ skl_gemm_fused_2tm2tn_f32pc_f32cp_f32rcprc_xsfmm32a32f(
   const size_t mt8 = (size_t)(8) << kShiftTile;
   const size_t mt12 = (size_t)(12) << kShiftTile;
 
-  (*kernel)(tm, tn, mt0, c, i1, j1, rsc0, csc0, rsc1, csc1, params);
-  (*kernel)(tm, tn, mt4, c, i1, j1 + 1, rsc0, csc0, rsc1, csc1, params);
-  (*kernel)(tm, tn, mt8, c, i1 + 1, j1, rsc0, csc0, rsc1, csc1, params);
-  (*kernel)(tm, tn, mt12, c, i1 + 1, j1 + 1, rsc0, csc0, rsc1, csc1, params);
+  (*kernel)(false, tm, tn, mt0, c, row1, col1, rsc0, csc0, rsc1, csc1, params);
+  (*kernel)(false, tm, tn, mt4, c, row1, col1 + 1, rsc0, csc0, rsc1, csc1,
+            params);
+  (*kernel)(false, tm, tn, mt8, c, row1 + 1, col1, rsc0, csc0, rsc1, csc1,
+            params);
+  (*kernel)(false, tm, tn, mt12, c, row1 + 1, col1 + 1, rsc0, csc0, rsc1, csc1,
+            params);
 
   __asm__ volatile("sf.vtdiscard");
 }
