@@ -243,9 +243,9 @@ int gemm_i8rcprc_i8rcprc_i32rcprc_main(void) {
          CSC1);
 
   /* Populate the matrices. */
-  skl_test_init_i8(a, ALEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
-  skl_test_init_i8(b, BLEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
-  skl_test_init_i32(c, CLEN, SKL_TEST_MIN_I32, SKL_TEST_MAX_I32);
+  SKL_TEST_INIT_I8(a, ALEN);
+  SKL_TEST_INIT_I8(b, BLEN);
+  SKL_TEST_INIT_I32(c, CLEN);
 
 #if defined(ENABLE_TEST)
   /* Make copies of C to write the reference and test outputs to. */
