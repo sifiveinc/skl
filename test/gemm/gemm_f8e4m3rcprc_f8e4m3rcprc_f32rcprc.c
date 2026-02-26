@@ -168,9 +168,17 @@ enum {
           (N0 - 1) * CSB0 + 1),
   // NOLINTEND(misc-redundant-expression)
 };
+
+#if defined(SKL_TEST_MEMALIGN)
+uint8_t *a;
+uint8_t *b;
+float *c;
+#else
 _Alignas(ALIGN) uint8_t a[ALEN];
 _Alignas(ALIGN) uint8_t b[BLEN];
 _Alignas(ALIGN) float c[CLEN];
+#endif
+
 #if defined(ENABLE_TEST)
 double a_wide[ALEN];
 double b_wide[BLEN];
@@ -329,6 +337,12 @@ int main(void) {
   printf("RSC0 = %u, CSC0 = %u, RSC1 = %u, CSC1 = %u\n", RSC0, CSC0, RSC1,
          CSC1);
 
+#if defined(SKL_TEST_MEMALIGN)
+  a = (uint8_t *)SKL_TEST_MEMALIGN(ALIGN, ALEN * sizeof(uint8_t));
+  b = (uint8_t *)SKL_TEST_MEMALIGN(ALIGN, BLEN * sizeof(uint8_t));
+  c = (float *)SKL_TEST_MEMALIGN(ALIGN, CLEN * sizeof(float));
+#endif
+
   /* Populate the matrices. */
   skl_test_init_i8((int8_t *)a, ALEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
   skl_test_init_i8((int8_t *)b, BLEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
@@ -349,6 +363,12 @@ int main(void) {
                     (size_t)RSA1, (size_t)CSA1, b, RSB0, CSB0, (size_t)RSB1,
                     (size_t)CSB1, BETA, c, RSC0, CSC0, (size_t)RSC1,
                     (size_t)CSC1);
+
+#if defined(SKL_TEST_MEMALIGN) && defined(SKL_TEST_FREE)
+  SKL_TEST_FREE(a);
+  SKL_TEST_FREE(b);
+  SKL_TEST_FREE(c);
+#endif
 
   return res;
 }

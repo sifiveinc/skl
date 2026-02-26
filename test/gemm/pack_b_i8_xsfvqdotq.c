@@ -69,8 +69,14 @@ enum {
   BLEN_PACKED = K1 * RSB1,
 };
 
+#if defined(SKL_TEST_MEMALIGN)
+int8_t *b;
+int8_t *b_pack;
+#else
 _Alignas(ALIGN) int8_t b[BLEN];
 _Alignas(ALIGN) int8_t b_pack[BLEN_PACKED];
+#endif
+
 #if defined(ENABLE_TEST)
 _Alignas(ALIGN) int8_t ref_b_pack[BLEN_PACKED];
 _Alignas(ALIGN) int8_t test_b_pack[BLEN_PACKED];
@@ -136,6 +142,11 @@ int main(void) {
   printf("K = %u, N = %u\n", K, N);
   printf("RSB = %u, RSB1 = %u\n", RSB, RSB1);
 
+#if defined(SKL_TEST_MEMALIGN)
+  b = (int8_t *)SKL_TEST_MEMALIGN(ALIGN, BLEN * sizeof(int8_t));
+  b_pack = (int8_t *)SKL_TEST_MEMALIGN(ALIGN, BLEN_PACKED * sizeof(int8_t));
+#endif
+
   /* Populate the matrices. */
   skl_test_init_i8(b, BLEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
   skl_test_init_i8(b_pack, BLEN_PACKED, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
@@ -150,6 +161,11 @@ int main(void) {
 
   SKL_BENCHMARK_RUN(skl_test_name, K * N, SKL_TEST_WARMUP, SKL_TEST_NAME, K, N,
                     b, RSB, b_pack, (size_t)RSB1);
+
+#if defined(SKL_TEST_MEMALIGN) && defined(SKL_TEST_FREE)
+  SKL_TEST_FREE(b);
+  SKL_TEST_FREE(b_pack);
+#endif
 
   return res;
 }

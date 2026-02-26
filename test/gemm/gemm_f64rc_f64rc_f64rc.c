@@ -100,9 +100,17 @@ enum {
   ALEN = ((M - 1) * RSA + (K - 1) * CSA + 1),
   BLEN = ((K - 1) * RSB + (N - 1) * CSB + 1),
 };
+
+#if defined(SKL_TEST_MEMALIGN)
+double *a;
+double *b;
+double *c;
+#else
 _Alignas(ALIGN) double a[ALEN];
 _Alignas(ALIGN) double b[BLEN];
 _Alignas(ALIGN) double c[CLEN];
+#endif
+
 #if defined(ENABLE_TEST)
 long double a_wide[ALEN];
 long double b_wide[BLEN];
@@ -181,6 +189,12 @@ int main(void) {
   printf("RSB = %u, CSB = %u\n", RSB, CSB);
   printf("RSC = %u, CSC = %u\n", RSC, CSC);
 
+#if defined(SKL_TEST_MEMALIGN)
+  a = (double *)SKL_TEST_MEMALIGN(ALIGN, ALEN * sizeof(double));
+  b = (double *)SKL_TEST_MEMALIGN(ALIGN, BLEN * sizeof(double));
+  c = (double *)SKL_TEST_MEMALIGN(ALIGN, CLEN * sizeof(double));
+#endif
+
   /* Populate the matrices. */
   skl_test_init_f64(a, ALEN, SKL_TEST_MIN_F64, SKL_TEST_MAX_F64);
   skl_test_init_f64(b, BLEN, SKL_TEST_MIN_F64, SKL_TEST_MAX_F64);
@@ -197,6 +211,12 @@ int main(void) {
 
   SKL_BENCHMARK_RUN(skl_test_name, M * N * K, SKL_TEST_WARMUP, SKL_TEST_NAME, M,
                     N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA, c, RSC, CSC);
+
+#if defined(SKL_TEST_MEMALIGN) && defined(SKL_TEST_FREE)
+  SKL_TEST_FREE(a);
+  SKL_TEST_FREE(b);
+  SKL_TEST_FREE(c);
+#endif
 
   return res;
 }
