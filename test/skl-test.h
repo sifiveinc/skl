@@ -824,6 +824,9 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
  * documentation.
  * @{
  */
+#define SKL_TEST_INIT_BF16(BUF, LEN)                                            \
+  SKL_TEST_INIT(BUF, LEN, __bf16, BF16, FLOAT, float)
+
 #define SKL_TEST_INIT_F16(BUF, LEN)                                            \
   SKL_TEST_INIT(BUF, LEN, _Float16, F16, FLOAT, float)
 
