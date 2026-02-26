@@ -171,7 +171,7 @@ int check_error(void) {
 }
 #endif // ENABLE_TEST
 
-int main(void) {
+int gemm_f64rc_f64rc_f64rc_main(void) {
   int res = EXIT_SUCCESS;
 
   printf("%s:\n", skl_test_name);
@@ -200,3 +200,7 @@ int main(void) {
 
   return res;
 }
+
+#if defined(SKL_TEST_MAIN)
+int main(void) { return gemm_f64rc_f64rc_f64rc_main(); }
+#endif

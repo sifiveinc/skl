@@ -134,7 +134,7 @@ int check_error(void) {
 #define TEST_LABEL(S) #S ":\n"
 #define PRINT_TEST_NAME(S) printf(TEST_LABEL(S));
 
-int main(void) {
+int gemm_a1b01_i8_i8pc_i32_xsfvqdotq_main(void) {
   int status = 0;
   SKL_TEST_REQUIRE(status, RSA >= K);
   SKL_TEST_REQUIRE(status, RSB >= N);
@@ -178,3 +178,7 @@ int main(void) {
 
   return res;
 }
+
+#if defined(SKL_TEST_MAIN)
+int main(void) { return gemm_a1b01_i8_i8pc_i32_xsfvqdotq_main(); }
+#endif
