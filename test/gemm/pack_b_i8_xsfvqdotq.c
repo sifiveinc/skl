@@ -122,7 +122,7 @@ int check_error(void) {
 #define TEST_LABEL(S) #S ":\n"
 #define PRINT_TEST_NAME(S) printf(TEST_LABEL(S));
 
-int main(void) {
+int pack_b_i8_xsfvqdotq_main(void) {
   int status = 0;
   SKL_TEST_REQUIRE(status, RSB >= N);
   SKL_TEST_REQUIRE(status, RSB1 >= 4 * N);
@@ -153,3 +153,7 @@ int main(void) {
 
   return res;
 }
+
+#if defined(SKL_TEST_MAIN)
+int main(void) { return pack_b_i8_xsfvqdotq_main(); }
+#endif
