@@ -3,6 +3,7 @@
 
 #include "skl-test-driver.h"
 #include <stddef.h>
+#include <stdint.h>
 
 skl_test_config_t skl_test_config = {
     .name = "Unknown SKL test",
@@ -72,6 +73,31 @@ int SKL_TEST_REPORT(uint64_t cycles, uint64_t insts);
  * It can be used to deallocate the buffers used by the test.
  */
 int SKL_TEST_FINISH(void);
+
+#if __riscv_xlen == 32
+#define RISCV_READ_COUNTER_FUNC(COUNTER)                                       \
+  static inline uint64_t riscv_read_m##COUNTER(void) {                         \
+    uint32_t lo;                                                               \
+    uint32_t hi0, hi1;                                                         \
+    /* guard against overflow between reads of lo/hi counter halves */         \
+    do {                                                                       \
+      __asm__ volatile("rd" #COUNTER "h %0" : "=r"(hi0));                      \
+      __asm__ volatile("rd" #COUNTER " %0" : "=r"(lo));                        \
+      __asm__ volatile("rd" #COUNTER "h %0" : "=r"(hi1));                      \
+    } while (hi0 != hi1);                                                      \
+    return (uint64_t)lo + ((uint64_t)hi1 << 32);                               \
+  }
+#elif __riscv_xlen == 64
+#define RISCV_READ_COUNTER_FUNC(COUNTER)                                       \
+  static inline uint64_t riscv_read_m##COUNTER(void) {                         \
+    uint64_t res;                                                              \
+    __asm__ volatile("rd" #COUNTER " %0" : "=r"(res));                         \
+    return res;                                                                \
+  }
+#endif
+
+RISCV_READ_COUNTER_FUNC(cycle)   // riscv_read_mcycle()
+RISCV_READ_COUNTER_FUNC(instret) // riscv_read_minstret()
 
 int main(void) {
   int res = 0;

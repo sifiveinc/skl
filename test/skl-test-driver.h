@@ -3,15 +3,35 @@
 
 // clang-format off
 /**
- * @file skl-test.c
- * @brief Test framework for SKL functions.
+ * @file skl-test-driver.h
+ * @brief Test driver for SKL test/benchmark harnesses.
+ * 
+ * This file defines the interface between the test driver and the test harness.
+ * A _test harness_ is a test program for a specific family of SKL functions.
+ * This _test driver_ provides a common main() function that calls into the test
+ * harness at various stages of the test execution.  The test harness must
+ * provide the following functions:
+ * 
+ * - int SKL_TEST_CONFIG(skl_test_param_t *params, size_t num_params);
+ * - int SKL_TEST_EXECUTE(void);
+ * - int SKL_TEST_REPORT(uint64_t cycles, uint64_t insts);
+ * - int SKL_TEST_VERIFY(void);
+ * - int SKL_TEST_FINISH(void);
+ * 
+ * Additionally, the harness must register the names of all functions it can test
+ * using the SKL_TEST_FUNCS() and SKL_TEST_FUNC() macros.  A pointer to the
+ * function named by "FUNC" will be set from this list.
  *
  * Example implementation:
  * @code
  *
- * typedef void (*gemm_test_func_t)(size_t, size_t, size_t, float, const float *,
- * size_t, const float *, size_t, size_t, float, float *, size_t, size_t);
+ * // Register names of all functions testable by this test harness.
+ * SKL_TEST_FUNCS(
+ *     SKL_TEST_FUNC(skl_gemm_f32_f32_f32_zve32f_x390_wrapper),
+ *     SKL_TEST_FUNC(skl_gemm_f32_f32_f32_zve32f_x390_clp_wrapper)
+ * );
  *
+ * 
  * struct {
  *     size_t M;
  *     size_t N;
@@ -24,24 +44,20 @@
  *     size_t CSC;
  *     float ALPHA;
  *     float BETA;
- *     gemm_test_func_t FUNC;
- * } gemm_params;
- *
- * const struct { skl_test_param_t *params; size_t num_params; } default_tests = {
- *     .params = (skl_test_param_t[]) {
- *         { "M", "1024" },
- *         { "N", "1024" },
- *         { "K", "1024" },
- *         { "ALPHA", "1.0" },
- *         { "BETA", "0.0" },
- *         { "TEST_FUNC", "skl_gemm_f32_f32_f32_zve32f_x390_wrapper" },
- *         { "REF_FUNC", "skl_gemm_f32_f32_f32_ref" },
- *     },
- *     .num_params = 7,
+ *     const char *FUNC;
+ * } gemm_params = {
+ *     .M = 1024,
+ *     .N = 1024,
+ *     .K = 1024,
+ *     .ALPHA = 1.0f,
+ *     .BETA = 0.0f,
+ *     .FUNC = "skl_gemm_f32_f32_f32_zve32f_x390_wrapper",
  * };
  *
+ *
  * // The buffers to use for the test.
- * static float *A, *B, *C;
+ * static float *A, *B, *C, *C_ref;
+ * static double *bound;
  *
  * int SKL_TEST_CONFIG(skl_test_param_t *params, size_t num_params) {
  *     // Parse the configurable parameters.
@@ -65,6 +81,10 @@
  *     SKL_TEST_BUFFER(&A, float, gemm_params.M * gemm_params.K);
  *     SKL_TEST_BUFFER(&B, float, gemm_params.K * gemm_params.N);
  *     SKL_TEST_BUFFER(&C, float, gemm_params.M * gemm_params.N);
+ * 
+ *     // Buffers the driver does not manage (initialized in SKL_TEST_VERIFY).
+ *     C_ref = (float *)malloc(gemm_params.M * gemm_params.N * sizeof(float));
+ *     bound = (double *)malloc(gemm_params.M * gemm_params.N * sizeof(double));
  *
  *     return 0;
  * }
@@ -87,6 +107,7 @@
  *
  * int SKL_TEST_VERIFY(void) {
  *     // Verify the results unless this is a performance test.
+ *     // [...]
  *     return 0;
  * }
  *
@@ -95,6 +116,10 @@
  *     SKL_TEST_FREE(A);
  *     SKL_TEST_FREE(B);
  *     SKL_TEST_FREE(C);
+ *     SKL_TEST_FREE(C_ref);
+ *     SKL_TEST_FREE(bound);
+ *     free(C_ref);
+ *     free(bound);
  *     return 0;
  * }
  *
@@ -102,7 +127,9 @@
  */
 // clang-format on
 
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define SKL_TEST_RESULT(NAME, FMT, ...)                                        \
   printf("%s: " FMT "\n", NAME, __VA_ARGS__)
@@ -163,17 +190,37 @@ typedef struct {
   const char *value;
 } skl_test_param_t;
 
-#define SKL_TEST_PARAM_(NAME, VAR, TYPE, PARSE, FMT)
-else if (strcmp(params[i].param, NAME) == 0) {
-  VAR = (TYPE)PARSE(params[i].value);
-  SKL_TEST_LOG("Set %s to %" FMT "\n", NAME, VAR);
-}
+#define SKL_TEST_PARAM_(NAME, VAR, TYPE, PARSE, FMT)                           \
+  else if (strcmp(params[i].param, NAME) == 0) {                               \
+    VAR = (TYPE)PARSE(params[i].value);                                        \
+    SKL_TEST_LOG("Set %s to %" FMT "\n", NAME, VAR);                           \
+  }
+
+#define SKL_TEST_PARAM_ENUM(NAME, VAR, ...)                                    \
+  else if (strcmp(params[i].param, NAME) == 0) {                               \
+    bool found = false;                                                        \
+    const char *values[] = {__VA_ARGS__};                                      \
+    for (size_t j = 0; values[j] != NULL; ++j) {                               \
+      if (strcmp(values[j], params[i].value) == 0) {                           \
+        VAR = (TYPE)j;                                                         \
+        found = true;                                                          \
+        break;                                                                 \
+      }                                                                        \
+    }                                                                          \
+    if (!found) {                                                              \
+      fprintf(stderr, "Invalid value for %s: %s\n", NAME, params[i].value);    \
+      return 1;                                                                \
+    }                                                                          \
+  }
 
 #define SKL_TEST_PARAM_STR(NAME, VAR)                                          \
   SKL_TEST_PARAM_(NAME, VAR, const char *, strdup, "%s")
 
 #define SKL_TEST_PARAM_SZ(NAME, VAR)                                           \
   SKL_TEST_PARAM_(NAME, VAR, size_t, atoll, "lu")
+
+#define SKL_TEST_PARAM_BOOL(NAME, VAR)                                         \
+  SKL_TEST_PARAM_(NAME, VAR, bool, atoi, "d")
 
 #define SKL_TEST_PARAM_I8(NAME, VAR)                                           \
   SKL_TEST_PARAM_(NAME, VAR, int8_t, atoi, "d")
@@ -189,6 +236,17 @@ else if (strcmp(params[i].param, NAME) == 0) {
     skl_test_param_t *params = (PARAMS);                                       \
     for (size_t i = 0; i < (NUM_PARAMS); ++i) {                                \
       if (0) {                                                                 \
+      } else if (strcmp(params[i].param, "FUNC") == 0) {                       \
+        for (size_t j = 0; skl_test_funcs[j].name != NULL; ++j) {              \
+          if (strcmp(skl_test_funcs[j].name, params[i].value) == 0) {          \
+            VAR = skl_test_funcs[j].func;                                      \
+            break;                                                             \
+          }                                                                    \
+        }                                                                      \
+        if (VAR == NULL) {                                                     \
+          fprintf(stderr, "Unknown function: %s\n", params[i].value);          \
+          return 1;                                                            \
+        }                                                                      \
       }                                                                        \
       SKL_TEST_RESERVED_PARAMS                                                 \
       __VA_ARGS__                                                              \
@@ -257,3 +315,13 @@ while (0)
 #define SKL_TEST_BUFFER(NAME, TYPE, NUM)                                       \
   *NAME = (TYPE *)SKL_TEST_MEMALIGN(SKL_TEST_ALIGNMENT, (NUM) * sizeof(TYPE)); \
   SKL_TEST_BUFFER_INIT_##TYPE(NAME, NUM)
+
+#define SKL_TEST_FUNCS(...)                                                    \
+  struct {                                                                     \
+    const char *name;                                                          \
+    void *func;                                                                \
+  } skl_test_funcs[] = {                                                       \
+      __VA_ARGS__{NULL, NULL},                                                 \
+  };
+
+#define SKL_TEST_FUNC(NAME) {#NAME, NAME}
