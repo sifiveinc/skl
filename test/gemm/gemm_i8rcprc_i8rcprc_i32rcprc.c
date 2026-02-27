@@ -135,7 +135,7 @@ void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_wrapper(
       rsb1, c_pack /* == c */, rsc1 /* == rsc */, beta != 0);
 }
 
-void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_clp_wrapper(
+void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_x390_clp_wrapper(
     size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
     int32_t alpha, const int8_t *a_pack, __attribute__((unused)) size_t rsa0,
     size_t csa0, size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb0,
@@ -159,7 +159,7 @@ void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_clp_wrapper(
   if (status) {
     exit(status);
   }
-  skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_clp(
+  skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_x390_clp(
       m0 * m1, n0 * n1, k0 * k1, a_pack /* == a */, rsa1 /* == rsa */, b_pack,
       rsb1, c_pack /* == c */, rsc1 /* == rsc */, beta != 0);
 }
