@@ -12,11 +12,11 @@
  * harness at various stages of the test execution.  The test harness must
  * provide the following functions:
  * 
- * - int SKL_TEST_CONFIG(skl_test_param_t *params, size_t num_params);
- * - int SKL_TEST_EXECUTE(void);
- * - int SKL_TEST_REPORT(uint64_t cycles, uint64_t insts);
- * - int SKL_TEST_VERIFY(void);
- * - int SKL_TEST_FINISH(void);
+ * - int skl_test_init(skl_test_param_t *params, size_t num_params);
+ * - int skl_test_execute(void);
+ * - int skl_test_report(uint64_t cycles, uint64_t insts);
+ * - int skl_test_verify(void);
+ * - int skl_test_finish(void);
  * 
  * Additionally, the harness must register the names of all functions it can test
  * using the SKL_TEST_FUNCS() and SKL_TEST_FUNC() macros.  A pointer to the
@@ -59,7 +59,7 @@
  * static float *A, *B, *C, *C_ref;
  * static double *bound;
  *
- * int SKL_TEST_CONFIG(skl_test_param_t *params, size_t num_params) {
+ * int skl_test_init(skl_test_param_t *params, size_t num_params) {
  *     // Parse the configurable parameters.
  *     SKL_TEST_PARAMS(params, num_params,
  *         SKL_TEST_PARAM_SZ ("M",        gemm_params.M),
@@ -77,7 +77,7 @@
  *     gemm_params.RSC = gemm_params.N;
  *     gemm_params.CSC = 1;
  *
- *     // Allocate and initialize the buffers.
+ *     // Allocate and initialize driver-managed buffers.
  *     SKL_TEST_BUFFER(&A, float, gemm_params.M * gemm_params.K);
  *     SKL_TEST_BUFFER(&B, float, gemm_params.K * gemm_params.N);
  *     SKL_TEST_BUFFER(&C, float, gemm_params.M * gemm_params.N);
@@ -89,7 +89,7 @@
  *     return 0;
  * }
  *
- * int SKL_TEST_EXECUTE(void) {
+ * int skl_test_execute(void) {
  *     // Execute the test.
  *     return gemm_params.FUNC(gemm_params.M, gemm_params.N, gemm_params.K,
  *                      gemm_params.ALPHA, A, gemm_params.RSA, gemm_params.CSA, B,
@@ -97,7 +97,7 @@
  *                      gemm_params.BETA, C, gemm_params.RSC, gemm_params.CSC);
  * }
  * 
- * int SKL_TEST_REPORT(uint64_t cycles, uint64_t insts) {
+ * int skl_test_report(uint64_t cycles, uint64_t insts) {
  *     size_t maccs = gemm_params.M * gemm_params.N * gemm_params.K;
  *     float mpc = (float)maccs / (float)cycles;
  *     SKL_TEST_RESULT("MACCS", "%lu", maccs);
@@ -105,13 +105,13 @@
  *     return 0;
  * }
  *
- * int SKL_TEST_VERIFY(void) {
+ * int skl_test_verify(void) {
  *     // Verify the results unless this is a performance test.
  *     // [...]
  *     return 0;
  * }
  *
- * int SKL_TEST_FINISH(void) {
+ * int skl_test_finish(void) {
  *     // Free the buffers.
  *     SKL_TEST_FREE(A);
  *     SKL_TEST_FREE(B);
@@ -130,6 +130,10 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#if !defined(SKL_TEST_LOG_LEVEL)
+#define SKL_TEST_LOG_LEVEL 0
+#endif
 
 #define SKL_TEST_RESULT(NAME, FMT, ...)                                        \
   printf("%s: " FMT "\n", NAME, __VA_ARGS__)
@@ -203,6 +207,7 @@ typedef struct {
     for (size_t j = 0; values[j] != NULL; ++j) {                               \
       if (strcmp(values[j], params[i].value) == 0) {                           \
         VAR = (TYPE)j;                                                         \
+        SKL_TEST_LOG("Set %s to %s\n", NAME, values[j]);                       \
         found = true;                                                          \
         break;                                                                 \
       }                                                                        \
@@ -240,6 +245,7 @@ typedef struct {
         for (size_t j = 0; skl_test_funcs[j].name != NULL; ++j) {              \
           if (strcmp(skl_test_funcs[j].name, params[i].value) == 0) {          \
             VAR = skl_test_funcs[j].func;                                      \
+            SKL_TEST_LOG("Set FUNC to %s\n", params[i].value);                 \
             break;                                                             \
           }                                                                    \
         }                                                                      \
@@ -313,7 +319,7 @@ while (0)
                      CFG.int32_min)
 
 #define SKL_TEST_BUFFER(NAME, TYPE, NUM)                                       \
-  *NAME = (TYPE *)SKL_TEST_MEMALIGN(SKL_TEST_ALIGNMENT, (NUM) * sizeof(TYPE)); \
+  *NAME = (TYPE *)skl_test_config.memalign(skl_test_config.alignment, (NUM) * sizeof(TYPE)); \
   SKL_TEST_BUFFER_INIT_##TYPE(NAME, NUM)
 
 #define SKL_TEST_FUNCS(...)                                                    \

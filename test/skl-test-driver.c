@@ -32,7 +32,7 @@ skl_test_config_t skl_test_config = {
  * It should parse the parameters and set the test parameters accordingly.
  * It should also allocate and initialize the buffers used by the test.
  */
-int SKL_TEST_CONFIG(skl_test_param_t *params, size_t num_params);
+int skl_test_init(skl_test_param_t *params, size_t num_params);
 
 /**
  * @brief Called by main() to execute the test.
@@ -42,7 +42,7 @@ int SKL_TEST_CONFIG(skl_test_param_t *params, size_t num_params);
  * This function is called by main() to execute the test.
  * It should call the function(s) being tested.
  */
-int SKL_TEST_EXECUTE(void);
+int skl_test_execute(void);
 
 /**
  * @brief Called by main() to verify the results of the test.
@@ -52,7 +52,7 @@ int SKL_TEST_EXECUTE(void);
  * This function is called by main() to verify the results of the test.
  * It should compare the results against the expected results.
  */
-int SKL_TEST_VERIFY(void);
+int skl_test_verify(void);
 
 /**
  * @brief Called by main() to report benchmark-specific metrics.
@@ -62,7 +62,7 @@ int SKL_TEST_VERIFY(void);
  * @return 0 on success, non-zero on failure.
  *
  */
-int SKL_TEST_REPORT(uint64_t cycles, uint64_t insts);
+int skl_test_report(uint64_t cycles, uint64_t insts);
 
 /**
  * @brief Called by main() to finish the test.
@@ -72,7 +72,7 @@ int SKL_TEST_REPORT(uint64_t cycles, uint64_t insts);
  * This function is called by main() to finish the test.
  * It can be used to deallocate the buffers used by the test.
  */
-int SKL_TEST_FINISH(void);
+int skl_test_finish(void);
 
 #if __riscv_xlen == 32
 #define RISCV_READ_COUNTER_FUNC(COUNTER)                                       \
@@ -102,14 +102,14 @@ RISCV_READ_COUNTER_FUNC(instret) // riscv_read_minstret()
 int main(void) {
   int res = 0;
 
-  res += SKL_TEST_CONFIG(SKL_TEST_PARAMS, SKL_TEST_NUM_PARAMS);
+  res += skl_test_init(SKL_TEST_PARAMS, SKL_TEST_NUM_PARAMS);
 
   if (skl_test_config.warm_cache) {
-    res += SKL_TEST_EXECUTE();
+    res += skl_test_execute();
   }
 
   uint64_t c0 = riscv_read_mcycle(), i0 = riscv_read_minstret();
-  res += SKL_TEST_EXECUTE();
+  res += skl_test_execute();
   uint64_t c1 = riscv_read_mcycle(), i1 = riscv_read_minstret();
   uint64_t cycles = c1 - c0;
   uint64_t insts = i1 - i0;
@@ -117,13 +117,13 @@ int main(void) {
   SKL_TEST_RESULT("TEST", "%s", skl_test_config.name);
   SKL_TEST_RESULT("CYCLES", "%lu", cycles);
   SKL_TEST_RESULT("INSTS", "%lu", insts);
-  res += SKL_TEST_REPORT(cycles, insts);
+  res += skl_test_report(cycles, insts);
 
   if (skl_test_config.verify) {
-    res += SKL_TEST_VERIFY();
+    res += skl_test_verify();
   }
 
-  res += SKL_TEST_FINISH();
+  res += skl_test_finish();
 
   return res;
 }
