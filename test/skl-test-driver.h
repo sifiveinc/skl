@@ -108,7 +108,7 @@
   printf("%s: " FMT "\n", NAME, __VA_ARGS__)
 
 #define SKL_TEST_LOG(...)                                                      \
-  if (SKL_TEST_LOG_LEVEL >= 1) {                                              \
+  if (SKL_TEST_LOG_LEVEL >= 1) {                                               \
     printf("SKL TEST: ");                                                      \
     printf(__VA_ARGS__);                                                       \
   }
@@ -137,7 +137,7 @@ typedef struct {
 
 /**
  * @brief The test configuration to be set by each test.
- * 
+ *
  * During the configuration phase, the SKL_TEST_CONFIG function should parse
  * the parameters and set the values of this structure accordingly. The test
  * driver initializes it with default values, which can be overridden by the
@@ -145,17 +145,17 @@ typedef struct {
  */
 extern skl_test_config_t skl_test_config;
 
-#define SKL_TEST_RESERVED_PARAMS \
-  SKL_TEST_PARAM_STR("NAME", skl_test_config.name) \
-  SKL_TEST_PARAM_SZ("ALIGNMENT", skl_test_config.alignment) \
-  SKL_TEST_PARAM_BOOL("WARM_CACHE", skl_test_config.warm_cache) \
-  SKL_TEST_PARAM_BOOL("VERIFY", skl_test_config.verify) \
+#define SKL_TEST_RESERVED_PARAMS                                               \
+  SKL_TEST_PARAM_STR("NAME", skl_test_config.name)                             \
+  SKL_TEST_PARAM_SZ("ALIGNMENT", skl_test_config.alignment)                    \
+  SKL_TEST_PARAM_BOOL("WARM_CACHE", skl_test_config.warm_cache)                \
+  SKL_TEST_PARAM_BOOL("VERIFY", skl_test_config.verify)                        \
   SKL_TEST_PARAM_ENUM("DATA", skl_test_config.data, "RANDOM", "SEQ", "STATIC") \
-  SKL_TEST_PARAM_F32("FLOAT_MIN", skl_test_config.float_min) \
-  SKL_TEST_PARAM_F32("FLOAT_MAX", skl_test_config.float_max) \
-  SKL_TEST_PARAM_I32("INT32_MIN", skl_test_config.int32_min) \
-  SKL_TEST_PARAM_I32("INT32_MAX", skl_test_config.int32_max) \
-  SKL_TEST_PARAM_I8("INT8_MIN", skl_test_config.int8_min) \
+  SKL_TEST_PARAM_F32("FLOAT_MIN", skl_test_config.float_min)                   \
+  SKL_TEST_PARAM_F32("FLOAT_MAX", skl_test_config.float_max)                   \
+  SKL_TEST_PARAM_I32("INT32_MIN", skl_test_config.int32_min)                   \
+  SKL_TEST_PARAM_I32("INT32_MAX", skl_test_config.int32_max)                   \
+  SKL_TEST_PARAM_I8("INT8_MIN", skl_test_config.int8_min)                      \
   SKL_TEST_PARAM_I8("INT8_MAX", skl_test_config.int8_max)
 
 typedef struct {
@@ -164,10 +164,10 @@ typedef struct {
 } skl_test_param_t;
 
 #define SKL_TEST_PARAM_(NAME, VAR, TYPE, PARSE, FMT)
-  else if (strcmp(params[i].param, NAME) == 0) {                              \
-    VAR = (TYPE)PARSE(params[i].value);                                       \
-    SKL_TEST_LOG("Set %s to %" FMT "\n", NAME, VAR);
-  }
+else if (strcmp(params[i].param, NAME) == 0) {
+  VAR = (TYPE)PARSE(params[i].value);
+  SKL_TEST_LOG("Set %s to %" FMT "\n", NAME, VAR);
+}
 
 #define SKL_TEST_PARAM_STR(NAME, VAR)                                          \
   SKL_TEST_PARAM_(NAME, VAR, const char *, strdup, "%s")
@@ -190,7 +190,7 @@ typedef struct {
     for (size_t i = 0; i < (NUM_PARAMS); ++i) {                                \
       if (0) {                                                                 \
       }                                                                        \
-      SKL_TEST_RESERVED_PARAMS \
+      SKL_TEST_RESERVED_PARAMS                                                 \
       __VA_ARGS__                                                              \
       else {                                                                   \
         fprintf(stderr, "Unknown parameter: %s\n", params[i].param);           \
@@ -199,7 +199,7 @@ typedef struct {
     }                                                                          \
   } while (0)
 
-#define SKL_TEST_INIT_(CFG, TYPE, BUF, NUM, RAND)                          \
+#define SKL_TEST_INIT_(CFG, TYPE, BUF, NUM, RAND)                              \
   do {                                                                         \
     TYPE *buf = (BUF);                                                         \
     const size_t num = (NUM);                                                  \
@@ -227,32 +227,32 @@ typedef struct {
 while (0)
 
 #define SKL_TEST_INIT__Float16(CFG, BUF, NUM)                                  \
-  SKL_TEST_INIT_(CFG, _Float16, BUF, NUM,                                  \
-                     ((float)rand() / (float)RAND_MAX) *                       \
-                             (CFG.float_max - CFG.float_min) +                 \
-                         CFG.float_min)
+  SKL_TEST_INIT_(CFG, _Float16, BUF, NUM,                                      \
+                 ((float)rand() / (float)RAND_MAX) *                           \
+                         (CFG.float_max - CFG.float_min) +                     \
+                     CFG.float_min)
 
 #define SKL_TEST_INIT_float(CFG, BUF, NUM)                                     \
-  SKL_TEST_INIT_(CFG, float, BUF, NUM,                                     \
-                     ((float)rand() / (float)RAND_MAX) *                       \
-                             (CFG.float_max - CFG.float_min) +                 \
-                         CFG.float_min)
+  SKL_TEST_INIT_(CFG, float, BUF, NUM,                                         \
+                 ((float)rand() / (float)RAND_MAX) *                           \
+                         (CFG.float_max - CFG.float_min) +                     \
+                     CFG.float_min)
 
 #define SKL_TEST_INIT_double(CFG, BUF, NUM)                                    \
-  SKL_TEST_INIT_(CFG, double, BUF, NUM,                                    \
-                     ((double)rand() / (double)RAND_MAX) *                     \
-                             (CFG.float_max - CFG.float_min) +                 \
-                         CFG.float_min)
+  SKL_TEST_INIT_(CFG, double, BUF, NUM,                                        \
+                 ((double)rand() / (double)RAND_MAX) *                         \
+                         (CFG.float_max - CFG.float_min) +                     \
+                     CFG.float_min)
 
 #define SKL_TEST_INIT_int8_t(CFG, BUF, NUM)                                    \
-  SKL_TEST_INIT_(CFG, int8_t, BUF, NUM,                                    \
-                     (int8_t)rand() % (CFG.int8_max - CFG.int8_min + 1) +      \
-                         CFG.int8_min)
+  SKL_TEST_INIT_(CFG, int8_t, BUF, NUM,                                        \
+                 (int8_t)rand() % (CFG.int8_max - CFG.int8_min + 1) +          \
+                     CFG.int8_min)
 
 #define SKL_TEST_INIT_int32_t(CFG, BUF, NUM)                                   \
-  SKL_TEST_INIT_(CFG, int32_t, BUF, NUM,                                   \
-                     (int32_t)rand() % (CFG.int32_max - CFG.int32_min + 1) +   \
-                         CFG.int32_min)
+  SKL_TEST_INIT_(CFG, int32_t, BUF, NUM,                                       \
+                 (int32_t)rand() % (CFG.int32_max - CFG.int32_min + 1) +       \
+                     CFG.int32_min)
 
 #define SKL_TEST_BUFFER(NAME, TYPE, NUM)                                       \
   *NAME = (TYPE *)SKL_TEST_MEMALIGN(SKL_TEST_ALIGNMENT, (NUM) * sizeof(TYPE)); \

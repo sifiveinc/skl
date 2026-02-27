@@ -1,8 +1,8 @@
 // Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-#include <stddef.h>
 #include "skl-test-driver.h"
+#include <stddef.h>
 
 skl_test_config_t skl_test_config = {
     .name = "Unknown SKL test",
@@ -21,16 +21,16 @@ skl_test_config_t skl_test_config = {
 };
 
 /**
-   * @brief Called by main() to configure the test.
-   *
-   * @param params The parameters to configure the test.
-   * @param num_params The number of parameters.
-   * @return 0 on success, non-zero on failure.
-   *
-   * This function is called by main() to configure the test.
-   * It should parse the parameters and set the test parameters accordingly.
-   * It should also allocate and initialize the buffers used by the test.
-   */
+ * @brief Called by main() to configure the test.
+ *
+ * @param params The parameters to configure the test.
+ * @param num_params The number of parameters.
+ * @return 0 on success, non-zero on failure.
+ *
+ * This function is called by main() to configure the test.
+ * It should parse the parameters and set the test parameters accordingly.
+ * It should also allocate and initialize the buffers used by the test.
+ */
 int SKL_TEST_CONFIG(skl_test_param_t *params, size_t num_params);
 
 /**
