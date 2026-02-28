@@ -128,8 +128,10 @@
 // clang-format on
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #if !defined(SKL_TEST_LOG_LEVEL)
 #define SKL_TEST_LOG_LEVEL 0
@@ -152,8 +154,9 @@ typedef enum {
 
 typedef struct {
   const char *name;
-  (void *)(*memalign)(size_t, size_t);
+  void (*memalign)(size_t, size_t);
   void (*free)(void *);
+  void *func;
   size_t alignment;
   bool warm_cache;
   bool verify;
@@ -178,6 +181,7 @@ extern skl_test_config_t skl_test_config;
 
 #define SKL_TEST_RESERVED_PARAMS                                               \
   SKL_TEST_PARAM_STR("NAME", skl_test_config.name)                             \
+  SKL_TEST_PARAM_FUNC("FUNC", skl_test_config.func, void *)                    \
   SKL_TEST_PARAM_SZ("ALIGNMENT", skl_test_config.alignment)                    \
   SKL_TEST_PARAM_BOOL("WARM_CACHE", skl_test_config.warm_cache)                \
   SKL_TEST_PARAM_BOOL("VERIFY", skl_test_config.verify)                        \
@@ -236,23 +240,28 @@ typedef struct {
 #define SKL_TEST_PARAM_F32(NAME, VAR)                                          \
   SKL_TEST_PARAM_(NAME, VAR, float, atof, "f")
 
+#define SKL_TEST_PARAM_FUNC(NAME, VAR, TYPE)                                   \
+  else if (strcmp(params[i].param, NAME) == 0) {                               \
+    void *func = NULL;
+for (size_t j = 0; skl_test_funcs[j].name != NULL; ++j) {
+  if (strcmp(skl_test_funcs[j].name, params[i].value) == 0) {
+    func = skl_test_funcs[j].func;
+    SKL_TEST_LOG("Set %s to %s\n", NAME, params[i].value);
+    break;
+  }
+}
+if (func == NULL) {
+  fprintf(stderr, "Unknown function: %s\n", params[i].value);
+  return 1;
+}
+VAR = (TYPE)func;
+}
+
 #define SKL_TEST_PARAMS(PARAMS, NUM_PARAMS, ...)                               \
   do {                                                                         \
     skl_test_param_t *params = (PARAMS);                                       \
     for (size_t i = 0; i < (NUM_PARAMS); ++i) {                                \
       if (0) {                                                                 \
-      } else if (strcmp(params[i].param, "FUNC") == 0) {                       \
-        for (size_t j = 0; skl_test_funcs[j].name != NULL; ++j) {              \
-          if (strcmp(skl_test_funcs[j].name, params[i].value) == 0) {          \
-            VAR = skl_test_funcs[j].func;                                      \
-            SKL_TEST_LOG("Set FUNC to %s\n", params[i].value);                 \
-            break;                                                             \
-          }                                                                    \
-        }                                                                      \
-        if (VAR == NULL) {                                                     \
-          fprintf(stderr, "Unknown function: %s\n", params[i].value);          \
-          return 1;                                                            \
-        }                                                                      \
       }                                                                        \
       SKL_TEST_RESERVED_PARAMS                                                 \
       __VA_ARGS__                                                              \
@@ -267,6 +276,9 @@ typedef struct {
   do {                                                                         \
     TYPE *buf = (BUF);                                                         \
     const size_t num = (NUM);                                                  \
+    const TYPE min = (SKL_TEST_MIN_##TYPE);                                    \
+    const TYPE max = (SKL_TEST_MAX_##TYPE);                                    \
+    const TYPE step = (max - min) / num;                                       \
     switch (CFG.data) {                                                        \
     case SKL_TEST_RANDOM:                                                      \
       for (size_t i = 0; i < num; ++i) {                                       \
@@ -278,17 +290,15 @@ typedef struct {
         buf[i] = (TYPE)(min + step * i);                                       \
       }                                                                        \
       break;                                                                   \
+    case SKL_TEST_STATIC:                                                      \
+      for (size_t i = 0; i < num; ++i) {                                       \
+        buf[i] =                                                               \
+            SKL_TEST_STATIC_DATA_NAME(BUF)[i % SKL_TEST_STATIC_DATA_LEN(BUF)]; \
+        \                                                                      \
+      }                                                                        \
+      break;                                                                   \
     }                                                                          \
-  case SKL_TEST_STATIC:                                                        \
-    for (size_t i = 0; i < num; ++i) {                                         \
-      buf[i] =                                                                 \
-          SKL_TEST_STATIC_DATA_NAME(BUF)[i % SKL_TEST_STATIC_DATA_LEN(BUF)];   \
-      \                                                                        \
-    }                                                                          \
-    break;                                                                     \
-  }
-}
-while (0)
+  } while (0);
 
 #define SKL_TEST_INIT__Float16(CFG, BUF, NUM)                                  \
   SKL_TEST_INIT_(CFG, _Float16, BUF, NUM,                                      \
@@ -319,7 +329,8 @@ while (0)
                      CFG.int32_min)
 
 #define SKL_TEST_BUFFER(NAME, TYPE, NUM)                                       \
-  *NAME = (TYPE *)skl_test_config.memalign(skl_test_config.alignment, (NUM) * sizeof(TYPE)); \
+  *NAME = (TYPE *)skl_test_config.memalign(skl_test_config.alignment,          \
+                                           (NUM) * sizeof(TYPE));              \
   SKL_TEST_BUFFER_INIT_##TYPE(NAME, NUM)
 
 #define SKL_TEST_FUNCS(...)                                                    \
@@ -327,7 +338,14 @@ while (0)
     const char *name;                                                          \
     void *func;                                                                \
   } skl_test_funcs[] = {                                                       \
-      __VA_ARGS__{NULL, NULL},                                                 \
+      __VA_ARGS__,                                                             \
+      {NULL, NULL},                                                            \
   };
 
-#define SKL_TEST_FUNC(NAME) {#NAME, NAME}
+#define SKL_TEST_FUNC(NAME) {#NAME, (void *)NAME}
+
+#define SKL_TEST_REQUIRE(status, requirement)                                  \
+  if (!(requirement)) {                                                        \
+    printf("Test %s requires " #requirement "\n", __func__);                   \
+    status = 1;                                                                \
+  }
