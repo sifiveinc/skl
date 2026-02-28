@@ -154,7 +154,7 @@ typedef enum {
 
 typedef struct {
   const char *name;
-  void (*memalign)(size_t, size_t);
+  void *(*memalign)(size_t, size_t);
   void (*free)(void *);
   void *func;
   size_t alignment;
@@ -242,20 +242,20 @@ typedef struct {
 
 #define SKL_TEST_PARAM_FUNC(NAME, VAR, TYPE)                                   \
   else if (strcmp(params[i].param, NAME) == 0) {                               \
-    void *func = NULL;
-for (size_t j = 0; skl_test_funcs[j].name != NULL; ++j) {
-  if (strcmp(skl_test_funcs[j].name, params[i].value) == 0) {
-    func = skl_test_funcs[j].func;
-    SKL_TEST_LOG("Set %s to %s\n", NAME, params[i].value);
-    break;
+    void *func = NULL;                                                         \
+    for (size_t j = 0; skl_test_funcs[j].name != NULL; ++j) {                  \
+      if (strcmp(skl_test_funcs[j].name, params[i].value) == 0) {              \
+        func = skl_test_funcs[j].func;                                         \
+        SKL_TEST_LOG("Set %s to %s\n", NAME, params[i].value);                 \
+        break;                                                                 \
+      }                                                                        \
+    }                                                                          \
+    if (func == NULL) {                                                        \
+      fprintf(stderr, "Unknown function: %s\n", params[i].value);              \
+      return 1;                                                                \
+    }                                                                          \
+    VAR = (TYPE)func;                                                          \
   }
-}
-if (func == NULL) {
-  fprintf(stderr, "Unknown function: %s\n", params[i].value);
-  return 1;
-}
-VAR = (TYPE)func;
-}
 
 #define SKL_TEST_PARAMS(PARAMS, NUM_PARAMS, ...)                               \
   do {                                                                         \
@@ -294,7 +294,6 @@ VAR = (TYPE)func;
       for (size_t i = 0; i < num; ++i) {                                       \
         buf[i] =                                                               \
             SKL_TEST_STATIC_DATA_NAME(BUF)[i % SKL_TEST_STATIC_DATA_LEN(BUF)]; \
-        \                                                                      \
       }                                                                        \
       break;                                                                   \
     }                                                                          \
