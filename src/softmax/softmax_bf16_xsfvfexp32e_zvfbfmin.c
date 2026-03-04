@@ -33,7 +33,8 @@ SKL_FUNC void skl_softmax_bf16_xsfvfexp32e_zvfbfmin(__bf16 *pDst,
     vbfloat16m4_t vx = __riscv_vle16_v_bf16m4(pSrc + i, vl);
     vfloat32m8_t va = __riscv_vfwcvtbf16_f_f_v_f32m8(vx, vl);
     va = __riscv_vfsub_vf_f32m8(va, max, vl);
-    va = __riscv_vfmul_vf_f32m8(va, beta, vl);
+    if (beta != (__bf16)1.0)
+      va = __riscv_vfmul_vf_f32m8(va, beta, vl);
     va = __riscv_sf_vfexp_v_f32m8(va, vl);
     vx = __riscv_vfncvtbf16_f_f_w_bf16m4(va, vl);
     vsum = __riscv_vfadd_vv_f32m8_tu(vsum, vsum, va, vl);

@@ -30,7 +30,8 @@ SKL_FUNC void skl_softmax_bf16_zvfbfmin(__bf16 *pDst, const __bf16 *pSrc,
     vbfloat16m4_t vx = __riscv_vle16_v_bf16m4(pSrc + i, vl);
     vfloat32m8_t va = __riscv_vfwcvtbf16_f_f_v_f32m8(vx, vl);
     va = __riscv_vfsub_vf_f32m8(va, max, vl);
-    va = __riscv_vfmul_vf_f32m8(va, (float)beta, vl);
+    if (beta != (__bf16)1.0)
+      va = __riscv_vfmul_vf_f32m8(va, (float)beta, vl);
     /* 0. Clamp */
     vbool4_t nn = __riscv_vmfeq_vv_f32m8_b4(va, va, vl);
     const float LB = -0x1.6p6f; /* round_down(-126.5 * log(2)) */

@@ -48,7 +48,8 @@ SKL_FUNC void skl_softmax_f32_xsfvfexp32e(float *pDst, const float *pSrc,
     vl = __riscv_vsetvl_e32m8(n - i);
     vfloat32m8_t vx = __riscv_vle32_v_f32m8(pSrc + i, vl);
     vx = __riscv_vfsub_vf_f32m8(vx, max, vl);
-    vx = __riscv_vfmul_vf_f32m8(vx, beta, vl);
+    if (beta != 1.0f)
+      vx = __riscv_vfmul_vf_f32m8(vx, beta, vl);
     vx = __riscv_sf_vfexp_v_f32m8(vx, vl);
     vsum = __riscv_vfadd_vv_f32m8_tu(vsum, vsum, vx, vl);
     __riscv_vse32_v_f32m8(pDst + i, vx, vl);

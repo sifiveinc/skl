@@ -40,7 +40,8 @@ SKL_FUNC void skl_softmax_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *pDst,
     vl = __riscv_vsetvl_e16m8(n - i);
     vbfloat16m8_t vx = __riscv_vle16_v_bf16m8(pSrc + i, vl);
     vx = __riscv_vfsub_vf_bf16m8(vx, max, vl);
-    vx = __riscv_vfmul_vf_bf16m8(vx, beta, vl);
+    if (beta != (__bf16)1.0)
+      vx = __riscv_vfmul_vf_bf16m8(vx, beta, vl);
     vx = __riscv_sf_vfexp_v_bf16m8(vx, vl);
     vsum = __riscv_vfadd_vv_bf16m8_tu(vsum, vsum, vx, vl);
     __riscv_vse16_v_bf16m8(pDst + i, vx, vl);
