@@ -19,40 +19,16 @@
 #include "skl-common.h"
 
 SKL_FUNC_PRIVATE void
-skl_mm_6xe32m4_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a, size_t rsa1,
-                             size_t csa1, const int8_t *b, size_t rsb1,
-                             int32_t *c, size_t rsc, bool accum,
+skl_mm_6xe32m4_i8i32_vqdotvx(size_t n, size_t k, int32_t alpha, const int8_t *a,
+                             size_t rsa1, size_t csa1, const int8_t *b,
+                             size_t rsb1, int32_t beta, int32_t *c, size_t rsc,
                              __attribute__((unused)) bool x390_clp) {
-  // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
-  vint32m4_t cvec0 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec1 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec2 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec3 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec4 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec5 = __riscv_vundefined_i32m4();
-  // NOLINTEND(clang-analyzer-deadcode.DeadStores)
-  if (!accum) {
-    cvec0 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec1 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec2 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec3 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec4 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec5 = __riscv_vmv_v_x_i32m4(0, n);
-  } else {
-    // load 6 rows from C.
-    int32_t *c_read = c;
-    cvec0 = __riscv_vle32_v_i32m4(c_read, n);
-    c_read += rsc;
-    cvec1 = __riscv_vle32_v_i32m4(c_read, n);
-    c_read += rsc;
-    cvec2 = __riscv_vle32_v_i32m4(c_read, n);
-    c_read += rsc;
-    cvec3 = __riscv_vle32_v_i32m4(c_read, n);
-    c_read += rsc;
-    cvec4 = __riscv_vle32_v_i32m4(c_read, n);
-    c_read += rsc;
-    cvec5 = __riscv_vle32_v_i32m4(c_read, n);
-  }
+  vint32m4_t vec0 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec1 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec2 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec3 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec4 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec5 = __riscv_vmv_v_x_i32m4(0, n);
 
   const int8_t *a0 = a + 0 * rsa1;
   const int8_t *a1 = a + 1 * rsa1;
@@ -98,17 +74,17 @@ skl_mm_6xe32m4_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a, size_t rsa1,
       __asm__ volatile(
           // compute first tile
           "vsetvli x0, %[n], e32, m4, ta, ma\n"
-          "sf.vqdot.vx %[cvec0], %[bvec0], %[a0_0]\n"
-          "sf.vqdot.vx %[cvec1], %[bvec0], %[a0_1]\n"
-          "sf.vqdot.vx %[cvec2], %[bvec0], %[a0_2]\n"
-          "sf.vqdot.vx %[cvec3], %[bvec0], %[a0_3]\n"
+          "sf.vqdot.vx %[vec0], %[bvec0], %[a0_0]\n"
+          "sf.vqdot.vx %[vec1], %[bvec0], %[a0_1]\n"
+          "sf.vqdot.vx %[vec2], %[bvec0], %[a0_2]\n"
+          "sf.vqdot.vx %[vec3], %[bvec0], %[a0_3]\n"
 
           // load second B tile (4xn)
           "vsetvli x0, %[n4], e8, m4, ta, ma\n"
           "vle8.v %[bvec1], (%[b])\n"
           "add %[b], %[b], %[rsb1]\n"
-          : [cvec0] "+&vr"(cvec0), [cvec1] "+&vr"(cvec1), [cvec2] "+&vr"(cvec2),
-            [cvec3] "+&vr"(cvec3), [bvec1] "=&vr"(bvec1), [b] "+&r"(b)
+          : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
+            [vec3] "+&vr"(vec3), [bvec1] "=&vr"(bvec1), [b] "+&r"(b)
           : [bvec0] "vr"(bvec0), [a0_0] "r"(a0_0), [a0_1] "r"(a0_1),
             [a0_2] "r"(a0_2), [a0_3] "r"(a0_3),
             [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n), [n4] "r"(4 * n)
@@ -129,23 +105,23 @@ skl_mm_6xe32m4_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a, size_t rsa1,
 
       __asm__ volatile(
           "vsetvli x0, %[n], e32, m4, ta, ma\n"
-          "sf.vqdot.vx %[cvec4], %[bvec0], %[a0_4]\n"
-          "sf.vqdot.vx %[cvec5], %[bvec0], %[a0_5]\n"
+          "sf.vqdot.vx %[vec4], %[bvec0], %[a0_4]\n"
+          "sf.vqdot.vx %[vec5], %[bvec0], %[a0_5]\n"
 
           // compute second tile
-          "sf.vqdot.vx %[cvec0], %[bvec1], %[a1_0]\n"
-          "sf.vqdot.vx %[cvec1], %[bvec1], %[a1_1]\n"
-          "sf.vqdot.vx %[cvec2], %[bvec1], %[a1_2]\n"
-          "sf.vqdot.vx %[cvec3], %[bvec1], %[a1_3]\n"
-          "sf.vqdot.vx %[cvec4], %[bvec1], %[a1_4]\n"
-          "sf.vqdot.vx %[cvec5], %[bvec1], %[a1_5]\n"
+          "sf.vqdot.vx %[vec0], %[bvec1], %[a1_0]\n"
+          "sf.vqdot.vx %[vec1], %[bvec1], %[a1_1]\n"
+          "sf.vqdot.vx %[vec2], %[bvec1], %[a1_2]\n"
+          "sf.vqdot.vx %[vec3], %[bvec1], %[a1_3]\n"
+          "sf.vqdot.vx %[vec4], %[bvec1], %[a1_4]\n"
+          "sf.vqdot.vx %[vec5], %[bvec1], %[a1_5]\n"
 
           // pre-load first B tile (4xn) of next iteration
           "vsetvli x0, %[n4], e8, m4, ta, ma\n"
           "vle8.v %[bvec0], (%[b])\n"
           "add %[b], %[b], %[rsb1]\n"
-          : [cvec0] "+&vr"(cvec0), [cvec1] "+&vr"(cvec1), [cvec2] "+&vr"(cvec2),
-            [cvec3] "+&vr"(cvec3), [cvec4] "+&vr"(cvec4), [cvec5] "+&vr"(cvec5),
+          : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
+            [vec3] "+&vr"(vec3), [vec4] "+&vr"(vec4), [vec5] "+&vr"(vec5),
             [bvec0] "+&vr"(bvec0), [b] "+&r"(b)
           : [bvec1] "vr"(bvec1), [a0_4] "r"(a0_4), [a0_5] "r"(a0_5),
             [a1_0] "r"(a1_0), [a1_1] "r"(a1_1), [a1_2] "r"(a1_2),
@@ -171,10 +147,10 @@ skl_mm_6xe32m4_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a, size_t rsa1,
 
     if (k >= 8) { // 8 <= k < 11
       // compute first tile
-      cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0_0, n);
+      vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0_0, n);
       memcpy(&a1_0, a0, 4);
       a0 += csa1;
-      cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec0, a0_1, n);
+      vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec0, a0_1, n);
       memcpy(&a1_1, a1, 4);
       a1 += csa1;
 
@@ -182,36 +158,36 @@ skl_mm_6xe32m4_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a, size_t rsa1,
       vint8m4_t bvec1 = __riscv_vle8_v_i8m4(b, 4 * n);
       b += rsb1;
 
-      cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec0, a0_2, n);
+      vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec0, a0_2, n);
       memcpy(&a1_2, a2, 4);
       a2 += csa1;
-      cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec0, a0_3, n);
+      vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec0, a0_3, n);
       memcpy(&a1_3, a3, 4);
       a3 += csa1;
-      cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec0, a0_4, n);
+      vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec0, a0_4, n);
       memcpy(&a1_4, a4, 4);
       a4 += csa1;
-      cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec0, a0_5, n);
+      vec5 = __riscv_sf_vqdot_vx_i32m4(vec5, bvec0, a0_5, n);
       memcpy(&a1_5, a5, 4);
       a5 += csa1;
 
       // compute second tile
-      cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec1, a1_0, n);
-      cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec1, a1_1, n);
-      cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec1, a1_2, n);
-      cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec1, a1_3, n);
-      cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec1, a1_4, n);
-      cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec1, a1_5, n);
+      vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec1, a1_0, n);
+      vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec1, a1_1, n);
+      vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec1, a1_2, n);
+      vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec1, a1_3, n);
+      vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec1, a1_4, n);
+      vec5 = __riscv_sf_vqdot_vx_i32m4(vec5, bvec1, a1_5, n);
 
       k -= 8;
     } else { // 4 <= k < 8
       // compute first tile
-      cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0_0, n);
-      cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec0, a0_1, n);
-      cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec0, a0_2, n);
-      cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec0, a0_3, n);
-      cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec0, a0_4, n);
-      cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec0, a0_5, n);
+      vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0_0, n);
+      vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec0, a0_1, n);
+      vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec0, a0_2, n);
+      vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec0, a0_3, n);
+      vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec0, a0_4, n);
+      vec5 = __riscv_sf_vqdot_vx_i32m4(vec5, bvec0, a0_5, n);
 
       k -= 4;
     }
@@ -230,65 +206,84 @@ skl_mm_6xe32m4_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a, size_t rsa1,
     memcpy(&a0_4, a4, k);
     memcpy(&a0_5, a5, k);
 
-    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec, a0_0 & mask, n);
-    cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec, a0_1 & mask, n);
-    cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec, a0_2 & mask, n);
-    cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec, a0_3 & mask, n);
-    cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec, a0_4 & mask, n);
-    cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec, a0_5 & mask, n);
+    vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec, a0_0 & mask, n);
+    vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec, a0_1 & mask, n);
+    vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec, a0_2 & mask, n);
+    vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec, a0_3 & mask, n);
+    vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec, a0_4 & mask, n);
+    vec5 = __riscv_sf_vqdot_vx_i32m4(vec5, bvec, a0_5 & mask, n);
+  }
+
+  if (beta != 0) {
+    if (alpha != 1) {
+      vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+      vec1 = __riscv_vmul_vx_i32m4(vec1, alpha, n);
+      vec2 = __riscv_vmul_vx_i32m4(vec2, alpha, n);
+      vec3 = __riscv_vmul_vx_i32m4(vec3, alpha, n);
+      vec4 = __riscv_vmul_vx_i32m4(vec4, alpha, n);
+      vec5 = __riscv_vmul_vx_i32m4(vec5, alpha, n);
+    }
+    int32_t *c_read = c;
+    vint32m4_t cvec0 = __riscv_vle32_v_i32m4(c_read, n);
+    c_read += rsc;
+    vec0 = __riscv_vmacc_vx_i32m4(vec0, beta, cvec0, n);
+
+    vint32m4_t cvec1 = __riscv_vle32_v_i32m4(c_read, n);
+    c_read += rsc;
+    vec1 = __riscv_vmacc_vx_i32m4(vec1, beta, cvec1, n);
+
+    vint32m4_t cvec2 = __riscv_vle32_v_i32m4(c_read, n);
+    c_read += rsc;
+    vec2 = __riscv_vmacc_vx_i32m4(vec2, beta, cvec2, n);
+
+    vint32m4_t cvec3 = __riscv_vle32_v_i32m4(c_read, n);
+    c_read += rsc;
+    vec3 = __riscv_vmacc_vx_i32m4(vec3, beta, cvec3, n);
+
+    vint32m4_t cvec4 = __riscv_vle32_v_i32m4(c_read, n);
+    c_read += rsc;
+    vec4 = __riscv_vmacc_vx_i32m4(vec4, beta, cvec4, n);
+
+    vint32m4_t cvec5 = __riscv_vle32_v_i32m4(c_read, n);
+    vec5 = __riscv_vmacc_vx_i32m4(vec5, beta, cvec5, n);
+  } else {
+    if (alpha != 1) {
+      vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+      vec1 = __riscv_vmul_vx_i32m4(vec1, alpha, n);
+      vec2 = __riscv_vmul_vx_i32m4(vec2, alpha, n);
+      vec3 = __riscv_vmul_vx_i32m4(vec3, alpha, n);
+      vec4 = __riscv_vmul_vx_i32m4(vec4, alpha, n);
+      vec5 = __riscv_vmul_vx_i32m4(vec5, alpha, n);
+    }
   }
 
   // write result back to c tile.
-  __riscv_vse32_v_i32m4(c, cvec0, n);
+  __riscv_vse32_v_i32m4(c, vec0, n);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, cvec1, n);
+  __riscv_vse32_v_i32m4(c, vec1, n);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, cvec2, n);
+  __riscv_vse32_v_i32m4(c, vec2, n);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, cvec3, n);
+  __riscv_vse32_v_i32m4(c, vec3, n);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, cvec4, n);
+  __riscv_vse32_v_i32m4(c, vec4, n);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, cvec5, n);
+  __riscv_vse32_v_i32m4(c, vec5, n);
 }
 
 // a is 4-byte aligned and rsa1 is a multiple of 4
 // If x390_clp == true, uses an inner loop tuned for the CLP on x390.
 SKL_FUNC_PRIVATE void
-skl_mm_6xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a,
-                                     size_t rsa1, size_t csa1, const int8_t *b,
-                                     size_t rsb1, int32_t *c, size_t rsc,
-                                     bool accum, bool x390_clp) {
-  // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
-  vint32m4_t cvec0 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec1 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec2 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec3 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec4 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec5 = __riscv_vundefined_i32m4();
-  // NOLINTEND(clang-analyzer-deadcode.DeadStores)
-  if (!accum) {
-    cvec0 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec1 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec2 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec3 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec4 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec5 = __riscv_vmv_v_x_i32m4(0, n);
-  } else {
-    // load 6 rows from C.
-    int32_t *c_read = c;
-    cvec0 = __riscv_vle32_v_i32m4(c_read, n);
-    c_read += rsc;
-    cvec1 = __riscv_vle32_v_i32m4(c_read, n);
-    c_read += rsc;
-    cvec2 = __riscv_vle32_v_i32m4(c_read, n);
-    c_read += rsc;
-    cvec3 = __riscv_vle32_v_i32m4(c_read, n);
-    c_read += rsc;
-    cvec4 = __riscv_vle32_v_i32m4(c_read, n);
-    c_read += rsc;
-    cvec5 = __riscv_vle32_v_i32m4(c_read, n);
-  }
+skl_mm_6xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, int32_t alpha,
+                                     const int8_t *a, size_t rsa1, size_t csa1,
+                                     const int8_t *b, size_t rsb1, int32_t beta,
+                                     int32_t *c, size_t rsc, bool x390_clp) {
+  vint32m4_t vec0 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec1 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec2 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec3 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec4 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec5 = __riscv_vmv_v_x_i32m4(0, n);
 
   const int8_t *a0 = a + 0 * rsa1;
   const int8_t *a1 = a + 1 * rsa1;
@@ -352,12 +347,12 @@ skl_mm_6xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a,
 
             // compute first tile
             "vsetvli x0, %[n], e32, m4, ta, ma\n"
-            "sf.vqdot.vx %[cvec0], %[bvec0], %[a0_0]\n"
-            "sf.vqdot.vx %[cvec1], %[bvec0], %[a0_1]\n"
-            "sf.vqdot.vx %[cvec2], %[bvec0], %[a0_2]\n"
-            "sf.vqdot.vx %[cvec3], %[bvec0], %[a0_3]\n"
-            "sf.vqdot.vx %[cvec4], %[bvec0], %[a0_4]\n"
-            "sf.vqdot.vx %[cvec5], %[bvec0], %[a0_5]\n"
+            "sf.vqdot.vx %[vec0], %[bvec0], %[a0_0]\n"
+            "sf.vqdot.vx %[vec1], %[bvec0], %[a0_1]\n"
+            "sf.vqdot.vx %[vec2], %[bvec0], %[a0_2]\n"
+            "sf.vqdot.vx %[vec3], %[bvec0], %[a0_3]\n"
+            "sf.vqdot.vx %[vec4], %[bvec0], %[a0_4]\n"
+            "sf.vqdot.vx %[vec5], %[bvec0], %[a0_5]\n"
 
             "lw %[a0_0], 0(%[a0])\n"
             "lw %[a0_1], 0(%[a1])\n"
@@ -379,15 +374,14 @@ skl_mm_6xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a,
 
             // compute second tile
             "vsetvli x0, %[n], e32, m4, ta, ma\n"
-            "sf.vqdot.vx %[cvec0], %[bvec1], %[a1_0]\n"
-            "sf.vqdot.vx %[cvec1], %[bvec1], %[a1_1]\n"
-            "sf.vqdot.vx %[cvec2], %[bvec1], %[a1_2]\n"
-            "sf.vqdot.vx %[cvec3], %[bvec1], %[a1_3]\n"
-            "sf.vqdot.vx %[cvec4], %[bvec1], %[a1_4]\n"
-            "sf.vqdot.vx %[cvec5], %[bvec1], %[a1_5]\n"
-            : [cvec0] "+&vr"(cvec0), [cvec1] "+&vr"(cvec1),
-              [cvec2] "+&vr"(cvec2), [cvec3] "+&vr"(cvec3),
-              [cvec4] "+&vr"(cvec4), [cvec5] "+&vr"(cvec5),
+            "sf.vqdot.vx %[vec0], %[bvec1], %[a1_0]\n"
+            "sf.vqdot.vx %[vec1], %[bvec1], %[a1_1]\n"
+            "sf.vqdot.vx %[vec2], %[bvec1], %[a1_2]\n"
+            "sf.vqdot.vx %[vec3], %[bvec1], %[a1_3]\n"
+            "sf.vqdot.vx %[vec4], %[bvec1], %[a1_4]\n"
+            "sf.vqdot.vx %[vec5], %[bvec1], %[a1_5]\n"
+            : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
+              [vec3] "+&vr"(vec3), [vec4] "+&vr"(vec4), [vec5] "+&vr"(vec5),
               [bvec0] "+&vr"(bvec0), [bvec1] "=&vr"(bvec1), [a0_0] "+&r"(a0_0),
               [a0_1] "+&r"(a0_1), [a0_2] "+&r"(a0_2), [a0_3] "+&r"(a0_3),
               [a0_4] "+&r"(a0_4), [a0_5] "+&r"(a0_5), [a1_0] "=&r"(a1_0),
@@ -402,10 +396,10 @@ skl_mm_6xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a,
         __asm__ volatile(
             // compute first tile
             "vsetvli x0, %[n], e32, m4, ta, ma\n"
-            "sf.vqdot.vx %[cvec0], %[bvec0], %[a0_0]\n"
-            "sf.vqdot.vx %[cvec1], %[bvec0], %[a0_1]\n"
-            "sf.vqdot.vx %[cvec2], %[bvec0], %[a0_2]\n"
-            "sf.vqdot.vx %[cvec3], %[bvec0], %[a0_3]\n"
+            "sf.vqdot.vx %[vec0], %[bvec0], %[a0_0]\n"
+            "sf.vqdot.vx %[vec1], %[bvec0], %[a0_1]\n"
+            "sf.vqdot.vx %[vec2], %[bvec0], %[a0_2]\n"
+            "sf.vqdot.vx %[vec3], %[bvec0], %[a0_3]\n"
 
             // load second B tile (4xn)
             "vsetvli x0, %[n4], e8, m4, ta, ma\n"
@@ -426,16 +420,16 @@ skl_mm_6xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a,
             "add %[a5], %[a5], %[csa1]\n"
 
             "vsetvli x0, %[n], e32, m4, ta, ma\n"
-            "sf.vqdot.vx %[cvec4], %[bvec0], %[a0_4]\n"
-            "sf.vqdot.vx %[cvec5], %[bvec0], %[a0_5]\n"
+            "sf.vqdot.vx %[vec4], %[bvec0], %[a0_4]\n"
+            "sf.vqdot.vx %[vec5], %[bvec0], %[a0_5]\n"
 
             // compute second tile
-            "sf.vqdot.vx %[cvec0], %[bvec1], %[a1_0]\n"
-            "sf.vqdot.vx %[cvec1], %[bvec1], %[a1_1]\n"
-            "sf.vqdot.vx %[cvec2], %[bvec1], %[a1_2]\n"
-            "sf.vqdot.vx %[cvec3], %[bvec1], %[a1_3]\n"
-            "sf.vqdot.vx %[cvec4], %[bvec1], %[a1_4]\n"
-            "sf.vqdot.vx %[cvec5], %[bvec1], %[a1_5]\n"
+            "sf.vqdot.vx %[vec0], %[bvec1], %[a1_0]\n"
+            "sf.vqdot.vx %[vec1], %[bvec1], %[a1_1]\n"
+            "sf.vqdot.vx %[vec2], %[bvec1], %[a1_2]\n"
+            "sf.vqdot.vx %[vec3], %[bvec1], %[a1_3]\n"
+            "sf.vqdot.vx %[vec4], %[bvec1], %[a1_4]\n"
+            "sf.vqdot.vx %[vec5], %[bvec1], %[a1_5]\n"
 
             // pre-load first B tile (4xn) of next iteration
             "vsetvli x0, %[n4], e8, m4, ta, ma\n"
@@ -454,9 +448,8 @@ skl_mm_6xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a,
             "add %[a4], %[a4], %[csa1]\n"
             "lw %[a0_5], 0(%[a5])\n"
             "add %[a5], %[a5], %[csa1]\n"
-            : [cvec0] "+&vr"(cvec0), [cvec1] "+&vr"(cvec1),
-              [cvec2] "+&vr"(cvec2), [cvec3] "+&vr"(cvec3),
-              [cvec4] "+&vr"(cvec4), [cvec5] "+&vr"(cvec5),
+            : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
+              [vec3] "+&vr"(vec3), [vec4] "+&vr"(vec4), [vec5] "+&vr"(vec5),
               [bvec0] "+&vr"(bvec0), [bvec1] "=&vr"(bvec1), [a0_0] "+&r"(a0_0),
               [a0_1] "+&r"(a0_1), [a0_2] "+&r"(a0_2), [a0_3] "+&r"(a0_3),
               [a0_4] "+&r"(a0_4), [a0_5] "+&r"(a0_5), [a1_0] "=&r"(a1_0),
@@ -474,10 +467,10 @@ skl_mm_6xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a,
 
     if (k >= 8) { // 8 <= k < 11
       // compute first tile
-      cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0_0, n);
+      vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0_0, n);
       a1_0 = *(uint32_t *)a0;
       a0 += csa1;
-      cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec0, a0_1, n);
+      vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec0, a0_1, n);
       a1_1 = *(uint32_t *)a1;
       a1 += csa1;
 
@@ -485,36 +478,36 @@ skl_mm_6xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a,
       vint8m4_t bvec1 = __riscv_vle8_v_i8m4(b, 4 * n);
       b += rsb1;
 
-      cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec0, a0_2, n);
+      vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec0, a0_2, n);
       a1_2 = *(uint32_t *)a2;
       a2 += csa1;
-      cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec0, a0_3, n);
+      vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec0, a0_3, n);
       a1_3 = *(uint32_t *)a3;
       a3 += csa1;
-      cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec0, a0_4, n);
+      vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec0, a0_4, n);
       a1_4 = *(uint32_t *)a4;
       a4 += csa1;
-      cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec0, a0_5, n);
+      vec5 = __riscv_sf_vqdot_vx_i32m4(vec5, bvec0, a0_5, n);
       a1_5 = *(uint32_t *)a5;
       a5 += csa1;
 
       // compute second tile
-      cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec1, a1_0, n);
-      cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec1, a1_1, n);
-      cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec1, a1_2, n);
-      cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec1, a1_3, n);
-      cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec1, a1_4, n);
-      cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec1, a1_5, n);
+      vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec1, a1_0, n);
+      vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec1, a1_1, n);
+      vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec1, a1_2, n);
+      vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec1, a1_3, n);
+      vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec1, a1_4, n);
+      vec5 = __riscv_sf_vqdot_vx_i32m4(vec5, bvec1, a1_5, n);
 
       k -= 8;
     } else { // 4 <= k < 8
       // compute first tile
-      cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0_0, n);
-      cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec0, a0_1, n);
-      cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec0, a0_2, n);
-      cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec0, a0_3, n);
-      cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec0, a0_4, n);
-      cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec0, a0_5, n);
+      vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0_0, n);
+      vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec0, a0_1, n);
+      vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec0, a0_2, n);
+      vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec0, a0_3, n);
+      vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec0, a0_4, n);
+      vec5 = __riscv_sf_vqdot_vx_i32m4(vec5, bvec0, a0_5, n);
 
       k -= 4;
     }
@@ -525,71 +518,81 @@ skl_mm_6xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a,
     uint32_t mask = 0xFFFFFFFF >> (8 * (4 - k));
 
     vint8m4_t bvec = __riscv_vle8_v_i8m4(b, 4 * n);
-    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec, *(uint32_t *)a0 & mask, n);
-    cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec, *(uint32_t *)a1 & mask, n);
-    cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec, *(uint32_t *)a2 & mask, n);
-    cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec, *(uint32_t *)a3 & mask, n);
-    cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec, *(uint32_t *)a4 & mask, n);
-    cvec5 = __riscv_sf_vqdot_vx_i32m4(cvec5, bvec, *(uint32_t *)a5 & mask, n);
+    vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec, *(uint32_t *)a0 & mask, n);
+    vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec, *(uint32_t *)a1 & mask, n);
+    vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec, *(uint32_t *)a2 & mask, n);
+    vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec, *(uint32_t *)a3 & mask, n);
+    vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec, *(uint32_t *)a4 & mask, n);
+    vec5 = __riscv_sf_vqdot_vx_i32m4(vec5, bvec, *(uint32_t *)a5 & mask, n);
+  }
+
+  if (beta != 0) {
+    if (alpha != 1) {
+      vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+      vec1 = __riscv_vmul_vx_i32m4(vec1, alpha, n);
+      vec2 = __riscv_vmul_vx_i32m4(vec2, alpha, n);
+      vec3 = __riscv_vmul_vx_i32m4(vec3, alpha, n);
+      vec4 = __riscv_vmul_vx_i32m4(vec4, alpha, n);
+      vec5 = __riscv_vmul_vx_i32m4(vec5, alpha, n);
+    }
+    int32_t *c_read = c;
+    vint32m4_t cvec0 = __riscv_vle32_v_i32m4(c_read, n);
+    c_read += rsc;
+    vec0 = __riscv_vmacc_vx_i32m4(vec0, beta, cvec0, n);
+
+    vint32m4_t cvec1 = __riscv_vle32_v_i32m4(c_read, n);
+    c_read += rsc;
+    vec1 = __riscv_vmacc_vx_i32m4(vec1, beta, cvec1, n);
+
+    vint32m4_t cvec2 = __riscv_vle32_v_i32m4(c_read, n);
+    c_read += rsc;
+    vec2 = __riscv_vmacc_vx_i32m4(vec2, beta, cvec2, n);
+
+    vint32m4_t cvec3 = __riscv_vle32_v_i32m4(c_read, n);
+    c_read += rsc;
+    vec3 = __riscv_vmacc_vx_i32m4(vec3, beta, cvec3, n);
+
+    vint32m4_t cvec4 = __riscv_vle32_v_i32m4(c_read, n);
+    c_read += rsc;
+    vec4 = __riscv_vmacc_vx_i32m4(vec4, beta, cvec4, n);
+
+    vint32m4_t cvec5 = __riscv_vle32_v_i32m4(c_read, n);
+    vec5 = __riscv_vmacc_vx_i32m4(vec5, beta, cvec5, n);
+  } else {
+    if (alpha != 1) {
+      vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+      vec1 = __riscv_vmul_vx_i32m4(vec1, alpha, n);
+      vec2 = __riscv_vmul_vx_i32m4(vec2, alpha, n);
+      vec3 = __riscv_vmul_vx_i32m4(vec3, alpha, n);
+      vec4 = __riscv_vmul_vx_i32m4(vec4, alpha, n);
+      vec5 = __riscv_vmul_vx_i32m4(vec5, alpha, n);
+    }
   }
 
   // write result back to c tile.
-  __riscv_vse32_v_i32m4(c, cvec0, n);
+  __riscv_vse32_v_i32m4(c, vec0, n);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, cvec1, n);
+  __riscv_vse32_v_i32m4(c, vec1, n);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, cvec2, n);
+  __riscv_vse32_v_i32m4(c, vec2, n);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, cvec3, n);
+  __riscv_vse32_v_i32m4(c, vec3, n);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, cvec4, n);
+  __riscv_vse32_v_i32m4(c, vec4, n);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, cvec5, n);
+  __riscv_vse32_v_i32m4(c, vec5, n);
 }
 
-SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_i8i32_vqdotvx(
-    size_t m, size_t n, size_t k, const int8_t *a, size_t rsa1, size_t csa1,
-    const int8_t *b, size_t rsb1, int32_t *c, size_t rsc, bool accum) {
-  // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
-  vint32m4_t cvec0 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec1 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec2 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec3 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec4 = __riscv_vundefined_i32m4();
-  // NOLINTEND(clang-analyzer-deadcode.DeadStores)
-
-  if (!accum) {
-    cvec0 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec1 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec2 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec3 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec4 = __riscv_vmv_v_x_i32m4(0, n);
-  } else {
-    int32_t *c_read = c + (m - 1) * rsc;
-    switch (m) {
-    case 5:
-      cvec4 = __riscv_vle32_v_i32m4(c_read, n);
-      c_read -= rsc;
-      __attribute__((fallthrough));
-    case 4:
-      cvec3 = __riscv_vle32_v_i32m4(c_read, n);
-      c_read -= rsc;
-      __attribute__((fallthrough));
-    case 3:
-      cvec2 = __riscv_vle32_v_i32m4(c_read, n);
-      c_read -= rsc;
-      __attribute__((fallthrough));
-    case 2:
-      cvec1 = __riscv_vle32_v_i32m4(c_read, n);
-      c_read -= rsc;
-      __attribute__((fallthrough));
-    case 1:
-      cvec0 = __riscv_vle32_v_i32m4(c_read, n);
-      __attribute__((fallthrough));
-    default:
-      break;
-    }
-  }
+SKL_FUNC_PRIVATE void
+skl_mm_lt6xe32m4_i8i32_vqdotvx(size_t m, size_t n, size_t k, int32_t alpha,
+                               const int8_t *a, size_t rsa1, size_t csa1,
+                               const int8_t *b, size_t rsb1, int32_t beta,
+                               int32_t *c, size_t rsc) {
+  vint32m4_t vec0 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec1 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec2 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec3 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec4 = __riscv_vmv_v_x_i32m4(0, n);
 
   const int8_t *a0 = a + 0 * rsa1;
   const int8_t *a1 = a + 1 * rsa1;
@@ -637,19 +640,19 @@ SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_i8i32_vqdotvx(
     // compute micro-tile.
     switch (m) {
     case 5:
-      cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec, a0_4, n);
+      vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec, a0_4, n);
       __attribute__((fallthrough));
     case 4:
-      cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec, a0_3, n);
+      vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec, a0_3, n);
       __attribute__((fallthrough));
     case 3:
-      cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec, a0_2, n);
+      vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec, a0_2, n);
       __attribute__((fallthrough));
     case 2:
-      cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec, a0_1, n);
+      vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec, a0_1, n);
       __attribute__((fallthrough));
     case 1:
-      cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec, a0_0, n);
+      vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec, a0_0, n);
       __attribute__((fallthrough));
     default:
       break;
@@ -686,22 +689,105 @@ SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_i8i32_vqdotvx(
     // compute micro-tile.
     switch (m) {
     case 5:
-      cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec, a0_4 & mask, n);
+      vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec, a0_4 & mask, n);
       __attribute__((fallthrough));
     case 4:
-      cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec, a0_3 & mask, n);
+      vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec, a0_3 & mask, n);
       __attribute__((fallthrough));
     case 3:
-      cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec, a0_2 & mask, n);
+      vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec, a0_2 & mask, n);
       __attribute__((fallthrough));
     case 2:
-      cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec, a0_1 & mask, n);
+      vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec, a0_1 & mask, n);
       __attribute__((fallthrough));
     case 1:
-      cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec, a0_0 & mask, n);
+      vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec, a0_0 & mask, n);
       __attribute__((fallthrough));
     default:
       break;
+    }
+  }
+
+  if (beta != 0) {
+    if (alpha != 1) {
+      switch (m) {
+      case 5:
+        vec4 = __riscv_vmul_vx_i32m4(vec4, alpha, n);
+        __attribute__((fallthrough));
+      case 4:
+        vec3 = __riscv_vmul_vx_i32m4(vec3, alpha, n);
+        __attribute__((fallthrough));
+      case 3:
+        vec2 = __riscv_vmul_vx_i32m4(vec2, alpha, n);
+        __attribute__((fallthrough));
+      case 2:
+        vec1 = __riscv_vmul_vx_i32m4(vec1, alpha, n);
+        __attribute__((fallthrough));
+      case 1:
+        vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+        __attribute__((fallthrough));
+      default:
+        break;
+      }
+    }
+
+    int32_t *c_read = c + (m - 1) * rsc;
+    // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
+    vint32m4_t cvec0 = __riscv_vundefined_i32m4();
+    vint32m4_t cvec1 = __riscv_vundefined_i32m4();
+    vint32m4_t cvec2 = __riscv_vundefined_i32m4();
+    vint32m4_t cvec3 = __riscv_vundefined_i32m4();
+    vint32m4_t cvec4 = __riscv_vundefined_i32m4();
+    // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+    switch (m) {
+    case 5:
+      cvec4 = __riscv_vle32_v_i32m4(c_read, n);
+      c_read -= rsc;
+      vec4 = __riscv_vmacc_vx_i32m4(vec4, beta, cvec4, n);
+      __attribute__((fallthrough));
+    case 4:
+      cvec3 = __riscv_vle32_v_i32m4(c_read, n);
+      c_read -= rsc;
+      vec3 = __riscv_vmacc_vx_i32m4(vec3, beta, cvec3, n);
+      __attribute__((fallthrough));
+    case 3:
+      cvec2 = __riscv_vle32_v_i32m4(c_read, n);
+      c_read -= rsc;
+      vec2 = __riscv_vmacc_vx_i32m4(vec2, beta, cvec2, n);
+      __attribute__((fallthrough));
+    case 2:
+      cvec1 = __riscv_vle32_v_i32m4(c_read, n);
+      c_read -= rsc;
+      vec1 = __riscv_vmacc_vx_i32m4(vec1, beta, cvec1, n);
+      __attribute__((fallthrough));
+    case 1:
+      cvec0 = __riscv_vle32_v_i32m4(c_read, n);
+      vec0 = __riscv_vmacc_vx_i32m4(vec0, beta, cvec0, n);
+      __attribute__((fallthrough));
+    default:
+      break;
+    }
+  } else {
+    if (alpha != 1) {
+      switch (m) {
+      case 5:
+        vec4 = __riscv_vmul_vx_i32m4(vec4, alpha, n);
+        __attribute__((fallthrough));
+      case 4:
+        vec3 = __riscv_vmul_vx_i32m4(vec3, alpha, n);
+        __attribute__((fallthrough));
+      case 3:
+        vec2 = __riscv_vmul_vx_i32m4(vec2, alpha, n);
+        __attribute__((fallthrough));
+      case 2:
+        vec1 = __riscv_vmul_vx_i32m4(vec1, alpha, n);
+        __attribute__((fallthrough));
+      case 1:
+        vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+        __attribute__((fallthrough));
+      default:
+        break;
+      }
     }
   }
 
@@ -709,23 +795,23 @@ SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_i8i32_vqdotvx(
   c += (m - 1) * rsc;
   switch (m) {
   case 5:
-    __riscv_vse32_v_i32m4(c, cvec4, n);
+    __riscv_vse32_v_i32m4(c, vec4, n);
     c -= rsc;
     __attribute__((fallthrough));
   case 4:
-    __riscv_vse32_v_i32m4(c, cvec3, n);
+    __riscv_vse32_v_i32m4(c, vec3, n);
     c -= rsc;
     __attribute__((fallthrough));
   case 3:
-    __riscv_vse32_v_i32m4(c, cvec2, n);
+    __riscv_vse32_v_i32m4(c, vec2, n);
     c -= rsc;
     __attribute__((fallthrough));
   case 2:
-    __riscv_vse32_v_i32m4(c, cvec1, n);
+    __riscv_vse32_v_i32m4(c, vec1, n);
     c -= rsc;
     __attribute__((fallthrough));
   case 1:
-    __riscv_vse32_v_i32m4(c, cvec0, n);
+    __riscv_vse32_v_i32m4(c, vec0, n);
     __attribute__((fallthrough));
   default:
     break;
@@ -734,48 +820,14 @@ SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_i8i32_vqdotvx(
 
 // a is 4-byte aligned and rsa1 is a multiple of 4
 SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_aligned_i8i32_vqdotvx(
-    size_t m, size_t n, size_t k, const int8_t *a, size_t rsa1, size_t csa1,
-    const int8_t *b, size_t rsb1, int32_t *c, size_t rsc, bool accum) {
-  // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
-  vint32m4_t cvec0 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec1 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec2 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec3 = __riscv_vundefined_i32m4();
-  vint32m4_t cvec4 = __riscv_vundefined_i32m4();
-  // NOLINTEND(clang-analyzer-deadcode.DeadStores)
-
-  if (!accum) {
-    cvec0 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec1 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec2 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec3 = __riscv_vmv_v_x_i32m4(0, n);
-    cvec4 = __riscv_vmv_v_x_i32m4(0, n);
-  } else {
-    int32_t *c_read = c + (m - 1) * rsc;
-    switch (m) {
-    case 5:
-      cvec4 = __riscv_vle32_v_i32m4(c_read, n);
-      c_read -= rsc;
-      __attribute__((fallthrough));
-    case 4:
-      cvec3 = __riscv_vle32_v_i32m4(c_read, n);
-      c_read -= rsc;
-      __attribute__((fallthrough));
-    case 3:
-      cvec2 = __riscv_vle32_v_i32m4(c_read, n);
-      c_read -= rsc;
-      __attribute__((fallthrough));
-    case 2:
-      cvec1 = __riscv_vle32_v_i32m4(c_read, n);
-      c_read -= rsc;
-      __attribute__((fallthrough));
-    case 1:
-      cvec0 = __riscv_vle32_v_i32m4(c_read, n);
-      __attribute__((fallthrough));
-    default:
-      break;
-    }
-  }
+    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a, size_t rsa1,
+    size_t csa1, const int8_t *b, size_t rsb1, int32_t beta, int32_t *c,
+    size_t rsc) {
+  vint32m4_t vec0 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec1 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec2 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec3 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec4 = __riscv_vmv_v_x_i32m4(0, n);
 
   const int8_t *a0 = a + 0 * rsa1;
   const int8_t *a1 = a + 1 * rsa1;
@@ -792,23 +844,23 @@ SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_aligned_i8i32_vqdotvx(
     // compute micro-tile.
     switch (m) {
     case 5:
-      cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec, *(uint32_t *)a4, n);
+      vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec, *(uint32_t *)a4, n);
       a4 += csa1;
       __attribute__((fallthrough));
     case 4:
-      cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec, *(uint32_t *)a3, n);
+      vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec, *(uint32_t *)a3, n);
       a3 += csa1;
       __attribute__((fallthrough));
     case 3:
-      cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec, *(uint32_t *)a2, n);
+      vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec, *(uint32_t *)a2, n);
       a2 += csa1;
       __attribute__((fallthrough));
     case 2:
-      cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec, *(uint32_t *)a1, n);
+      vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec, *(uint32_t *)a1, n);
       a1 += csa1;
       __attribute__((fallthrough));
     case 1:
-      cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec, *(uint32_t *)a0, n);
+      vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec, *(uint32_t *)a0, n);
       a0 += csa1;
       __attribute__((fallthrough));
     default:
@@ -826,22 +878,105 @@ SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_aligned_i8i32_vqdotvx(
     // compute micro-tile.
     switch (m) {
     case 5:
-      cvec4 = __riscv_sf_vqdot_vx_i32m4(cvec4, bvec, *(uint32_t *)a4 & mask, n);
+      vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec, *(uint32_t *)a4 & mask, n);
       __attribute__((fallthrough));
     case 4:
-      cvec3 = __riscv_sf_vqdot_vx_i32m4(cvec3, bvec, *(uint32_t *)a3 & mask, n);
+      vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec, *(uint32_t *)a3 & mask, n);
       __attribute__((fallthrough));
     case 3:
-      cvec2 = __riscv_sf_vqdot_vx_i32m4(cvec2, bvec, *(uint32_t *)a2 & mask, n);
+      vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec, *(uint32_t *)a2 & mask, n);
       __attribute__((fallthrough));
     case 2:
-      cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec, *(uint32_t *)a1 & mask, n);
+      vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec, *(uint32_t *)a1 & mask, n);
       __attribute__((fallthrough));
     case 1:
-      cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec, *(uint32_t *)a0 & mask, n);
+      vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec, *(uint32_t *)a0 & mask, n);
       __attribute__((fallthrough));
     default:
       break;
+    }
+  }
+
+  if (beta != 0) {
+    if (alpha != 1) {
+      switch (m) {
+      case 5:
+        vec4 = __riscv_vmul_vx_i32m4(vec4, alpha, n);
+        __attribute__((fallthrough));
+      case 4:
+        vec3 = __riscv_vmul_vx_i32m4(vec3, alpha, n);
+        __attribute__((fallthrough));
+      case 3:
+        vec2 = __riscv_vmul_vx_i32m4(vec2, alpha, n);
+        __attribute__((fallthrough));
+      case 2:
+        vec1 = __riscv_vmul_vx_i32m4(vec1, alpha, n);
+        __attribute__((fallthrough));
+      case 1:
+        vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+        __attribute__((fallthrough));
+      default:
+        break;
+      }
+    }
+
+    int32_t *c_read = c + (m - 1) * rsc;
+    // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
+    vint32m4_t cvec0 = __riscv_vundefined_i32m4();
+    vint32m4_t cvec1 = __riscv_vundefined_i32m4();
+    vint32m4_t cvec2 = __riscv_vundefined_i32m4();
+    vint32m4_t cvec3 = __riscv_vundefined_i32m4();
+    vint32m4_t cvec4 = __riscv_vundefined_i32m4();
+    // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+    switch (m) {
+    case 5:
+      cvec4 = __riscv_vle32_v_i32m4(c_read, n);
+      c_read -= rsc;
+      vec4 = __riscv_vmacc_vx_i32m4(vec4, beta, cvec4, n);
+      __attribute__((fallthrough));
+    case 4:
+      cvec3 = __riscv_vle32_v_i32m4(c_read, n);
+      c_read -= rsc;
+      vec3 = __riscv_vmacc_vx_i32m4(vec3, beta, cvec3, n);
+      __attribute__((fallthrough));
+    case 3:
+      cvec2 = __riscv_vle32_v_i32m4(c_read, n);
+      c_read -= rsc;
+      vec2 = __riscv_vmacc_vx_i32m4(vec2, beta, cvec2, n);
+      __attribute__((fallthrough));
+    case 2:
+      cvec1 = __riscv_vle32_v_i32m4(c_read, n);
+      c_read -= rsc;
+      vec1 = __riscv_vmacc_vx_i32m4(vec1, beta, cvec1, n);
+      __attribute__((fallthrough));
+    case 1:
+      cvec0 = __riscv_vle32_v_i32m4(c_read, n);
+      vec0 = __riscv_vmacc_vx_i32m4(vec0, beta, cvec0, n);
+      __attribute__((fallthrough));
+    default:
+      break;
+    }
+  } else {
+    if (alpha != 1) {
+      switch (m) {
+      case 5:
+        vec4 = __riscv_vmul_vx_i32m4(vec4, alpha, n);
+        __attribute__((fallthrough));
+      case 4:
+        vec3 = __riscv_vmul_vx_i32m4(vec3, alpha, n);
+        __attribute__((fallthrough));
+      case 3:
+        vec2 = __riscv_vmul_vx_i32m4(vec2, alpha, n);
+        __attribute__((fallthrough));
+      case 2:
+        vec1 = __riscv_vmul_vx_i32m4(vec1, alpha, n);
+        __attribute__((fallthrough));
+      case 1:
+        vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+        __attribute__((fallthrough));
+      default:
+        break;
+      }
     }
   }
 
@@ -849,23 +984,23 @@ SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_aligned_i8i32_vqdotvx(
   c += (m - 1) * rsc;
   switch (m) {
   case 5:
-    __riscv_vse32_v_i32m4(c, cvec4, n);
+    __riscv_vse32_v_i32m4(c, vec4, n);
     c -= rsc;
     __attribute__((fallthrough));
   case 4:
-    __riscv_vse32_v_i32m4(c, cvec3, n);
+    __riscv_vse32_v_i32m4(c, vec3, n);
     c -= rsc;
     __attribute__((fallthrough));
   case 3:
-    __riscv_vse32_v_i32m4(c, cvec2, n);
+    __riscv_vse32_v_i32m4(c, vec2, n);
     c -= rsc;
     __attribute__((fallthrough));
   case 2:
-    __riscv_vse32_v_i32m4(c, cvec1, n);
+    __riscv_vse32_v_i32m4(c, vec1, n);
     c -= rsc;
     __attribute__((fallthrough));
   case 1:
-    __riscv_vse32_v_i32m4(c, cvec0, n);
+    __riscv_vse32_v_i32m4(c, vec0, n);
     __attribute__((fallthrough));
   default:
     break;
@@ -873,20 +1008,13 @@ SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_aligned_i8i32_vqdotvx(
 }
 
 SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(size_t n, size_t k,
+                                                   int32_t alpha,
                                                    const int8_t *a,
                                                    const int8_t *b, size_t rsb1,
-                                                   int32_t *c, bool accum) {
-  // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
-  vint32m4_t cvec = __riscv_vundefined_i32m4();
-  if (!accum) {
-    cvec = __riscv_vmv_v_x_i32m4(0, n);
-  } else {
-    // load 1 row from C.
-    cvec = __riscv_vle32_v_i32m4(c, n);
-  }
+                                                   int32_t beta, int32_t *c) {
   // init 2 int32m4_t accumulators.
-  vint32m4_t cvec0 = __riscv_vmv_v_x_i32m4(0, n);
-  vint32m4_t cvec1 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec0 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec1 = __riscv_vmv_v_x_i32m4(0, n);
 
   uint32_t a0;
   uint32_t a1;
@@ -914,10 +1042,10 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(size_t n, size_t k,
     vint8m4_t bvec3 = __riscv_vle8_v_i8m4(b, 4 * n);
     b += rsb1;
 
-    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0, n);
-    cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec1, a1, n);
-    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec2, a2, n);
-    cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec3, a3, n);
+    vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0, n);
+    vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec1, a1, n);
+    vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec2, a2, n);
+    vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec3, a3, n);
 
     k -= 16;
   }
@@ -935,8 +1063,8 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(size_t n, size_t k,
     vint8m4_t bvec1 = __riscv_vle8_v_i8m4(b, 4 * n);
     b += rsb1;
 
-    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0, n);
-    cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec1, a1, n);
+    vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0, n);
+    vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec1, a1, n);
 
     k -= 8;
   }
@@ -950,7 +1078,7 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(size_t n, size_t k,
     vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b, 4 * n);
     b += rsb1;
 
-    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0, n);
+    vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0, n);
 
     k -= 4;
   }
@@ -959,29 +1087,34 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(size_t n, size_t k,
     uint32_t mask = 0xFFFFFFFF >> (8 * (4 - k));
     memcpy(&a0, a, k);
     vint8m4_t bvec = __riscv_vle8_v_i8m4(b, 4 * n);
-    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec, a0 & mask, n);
+    vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec, a0 & mask, n);
   }
 
-  cvec0 = __riscv_vadd_vv_i32m4(cvec0, cvec1, n);
-  cvec = __riscv_vadd_vv_i32m4(cvec, cvec0, n);
-  __riscv_vse32_v_i32m4(c, cvec, n);
+  vec0 = __riscv_vadd_vv_i32m4(vec0, vec1, n);
+
+  if (beta != 0) {
+    if (alpha != 1) {
+      vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+    }
+    int32_t *c_read = c;
+    vint32m4_t cvec = __riscv_vle32_v_i32m4(c_read, n);
+    vec0 = __riscv_vmacc_vx_i32m4(vec0, beta, cvec, n);
+  } else {
+    if (alpha != 1) {
+      vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+    }
+  }
+
+  __riscv_vse32_v_i32m4(c, vec0, n);
 }
 
 SKL_FUNC_PRIVATE void
-skl_vm_1xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a,
-                                     const int8_t *b, size_t rsb1, int32_t *c,
-                                     bool accum) {
-  // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
-  vint32m4_t cvec = __riscv_vundefined_i32m4();
-  if (!accum) {
-    cvec = __riscv_vmv_v_x_i32m4(0, n);
-  } else {
-    // load 1 row from C.
-    cvec = __riscv_vle32_v_i32m4(c, n);
-  }
+skl_vm_1xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, int32_t alpha,
+                                     const int8_t *a, const int8_t *b,
+                                     size_t rsb1, int32_t beta, int32_t *c) {
   // init 2 int32m4_t accumulators.
-  vint32m4_t cvec0 = __riscv_vmv_v_x_i32m4(0, n);
-  vint32m4_t cvec1 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec0 = __riscv_vmv_v_x_i32m4(0, n);
+  vint32m4_t vec1 = __riscv_vmv_v_x_i32m4(0, n);
 
   while (k >= 16) {
     // load 4 words from A.
@@ -1004,10 +1137,10 @@ skl_vm_1xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a,
     vint8m4_t bvec3 = __riscv_vle8_v_i8m4(b, 4 * n);
     b += rsb1;
 
-    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0, n);
-    cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec1, a1, n);
-    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec2, a2, n);
-    cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec3, a3, n);
+    vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0, n);
+    vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec1, a1, n);
+    vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec2, a2, n);
+    vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec3, a3, n);
 
     k -= 16;
   }
@@ -1025,8 +1158,8 @@ skl_vm_1xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a,
     vint8m4_t bvec1 = __riscv_vle8_v_i8m4(b, 4 * n);
     b += rsb1;
 
-    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0, n);
-    cvec1 = __riscv_sf_vqdot_vx_i32m4(cvec1, bvec1, a1, n);
+    vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0, n);
+    vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec1, a1, n);
 
     k -= 8;
   }
@@ -1040,7 +1173,7 @@ skl_vm_1xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a,
     vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b, 4 * n);
     b += rsb1;
 
-    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec0, a0, n);
+    vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0, n);
 
     k -= 4;
   }
@@ -1048,32 +1181,46 @@ skl_vm_1xe32m4_aligned_i8i32_vqdotvx(size_t n, size_t k, const int8_t *a,
   if (k) {
     uint32_t mask = 0xFFFFFFFF >> (8 * (4 - k));
     vint8m4_t bvec = __riscv_vle8_v_i8m4(b, 4 * n);
-    cvec0 = __riscv_sf_vqdot_vx_i32m4(cvec0, bvec, *(uint32_t *)a & mask, n);
+    vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec, *(uint32_t *)a & mask, n);
   }
 
-  cvec0 = __riscv_vadd_vv_i32m4(cvec0, cvec1, n);
-  cvec = __riscv_vadd_vv_i32m4(cvec, cvec0, n);
-  __riscv_vse32_v_i32m4(c, cvec, n);
+  vec0 = __riscv_vadd_vv_i32m4(vec0, vec1, n);
+
+  if (beta != 0) {
+    if (alpha != 1) {
+      vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+    }
+    int32_t *c_read = c;
+    vint32m4_t cvec = __riscv_vle32_v_i32m4(c_read, n);
+    vec0 = __riscv_vmacc_vx_i32m4(vec0, beta, cvec, n);
+  } else {
+    if (alpha != 1) {
+      vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+    }
+  }
+
+  __riscv_vse32_v_i32m4(c, vec0, n);
 }
 
 SKL_FUNC_PRIVATE void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_dispatch(
-    size_t m, size_t n, size_t k, const int8_t *a, size_t rsa,
-    const int8_t *b_pack, size_t rsb1, int32_t *c, size_t rsc, bool accum,
+    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a, size_t rsa,
+    const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c, size_t rsc,
     bool x390_clp) {
   const size_t m0 = 6;
   const size_t n0 = __riscv_vsetvlmax_e32m4();
   const size_t k0 = 4;
 
   void (*skl_mm_6xe32m4_i8i32_vqdotvx_kernel)(
-      size_t n, size_t k, const int8_t *a, size_t rsa1, size_t csa1,
-      const int8_t *b, size_t rsb1, int32_t *c, size_t rsc, bool accum,
-      bool x390_clp);
+      size_t n, size_t k, int32_t alpha, const int8_t *a, size_t rsa1,
+      size_t csa1, const int8_t *b, size_t rsb1, int32_t beta, int32_t *c,
+      size_t rsc, bool x390_clp);
   void (*skl_mm_lt6xe32m4_i8i32_vqdotvx_kernel)(
-      size_t m, size_t n, size_t k, const int8_t *a, size_t rsa1, size_t csa1,
-      const int8_t *b, size_t rsb1, int32_t *c, size_t rsc, bool accum);
+      size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a, size_t rsa1,
+      size_t csa1, const int8_t *b, size_t rsb1, int32_t beta, int32_t *c,
+      size_t rsc);
   void (*skl_vm_1xe32m4_i8i32_vqdotvx_kernel)(
-      size_t n, size_t k, const int8_t *a, const int8_t *b, size_t rsb1,
-      int32_t *c, bool accum);
+      size_t n, size_t k, int32_t alpha, const int8_t *a, const int8_t *b,
+      size_t rsb1, int32_t beta, int32_t *c);
 
   if ((uintptr_t)a % (k0 * sizeof(int8_t)) == 0 && rsa % k0 == 0) {
     skl_mm_6xe32m4_i8i32_vqdotvx_kernel = &skl_mm_6xe32m4_aligned_i8i32_vqdotvx;
@@ -1092,8 +1239,8 @@ SKL_FUNC_PRIVATE void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_dispatch(
       int32_t *c_write = c + n_idx;
       const int8_t *b_tile_ptr = b_pack + k0 * n_idx;
       const size_t n_tile = n0 <= n - n_idx ? n0 : n - n_idx;
-      (*skl_vm_1xe32m4_i8i32_vqdotvx_kernel)(n_tile, k, a, b_tile_ptr, rsb1,
-                                             c_write, accum);
+      (*skl_vm_1xe32m4_i8i32_vqdotvx_kernel)(n_tile, k, alpha, a, b_tile_ptr,
+                                             rsb1, beta, c_write);
     }
   } else {
     size_t m_idx = 0;
@@ -1103,9 +1250,9 @@ SKL_FUNC_PRIVATE void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_dispatch(
       for (size_t n_idx = 0; n_idx < n; n_idx += n0) {
         const int8_t *b_tile_ptr = b_pack + k0 * n_idx;
         const size_t n_tile = n0 <= n - n_idx ? n0 : n - n_idx;
-        (*skl_mm_6xe32m4_i8i32_vqdotvx_kernel)(n_tile, k, a_tile_ptr, rsa, k0,
-                                               b_tile_ptr, rsb1, c_write, rsc,
-                                               accum, x390_clp);
+        (*skl_mm_6xe32m4_i8i32_vqdotvx_kernel)(n_tile, k, alpha, a_tile_ptr,
+                                               rsa, k0, b_tile_ptr, rsb1, beta,
+                                               c_write, rsc, x390_clp);
         c_write += n_tile;
       }
     }
@@ -1117,27 +1264,25 @@ SKL_FUNC_PRIVATE void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_dispatch(
       for (size_t n_idx = 0; n_idx < n; n_idx += n0) {
         const int8_t *b_tile_ptr = b_pack + k0 * n_idx;
         const size_t n_tile = n0 <= n - n_idx ? n0 : n - n_idx;
-        (*skl_mm_lt6xe32m4_i8i32_vqdotvx_kernel)(m_left, n_tile, k, a_tile_ptr,
-                                                 rsa, k0, b_tile_ptr, rsb1,
-                                                 c_write, rsc, accum);
+        (*skl_mm_lt6xe32m4_i8i32_vqdotvx_kernel)(
+            m_left, n_tile, k, alpha, a_tile_ptr, rsa, k0, b_tile_ptr, rsb1,
+            beta, c_write, rsc);
         c_write += n_tile;
       }
     }
   }
 }
 
-SKL_FUNC void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
-                                                   const int8_t *a, size_t rsa,
-                                                   const int8_t *b_pack,
-                                                   size_t rsb1, int32_t *c,
-                                                   size_t rsc, bool accum) {
-  skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_dispatch(m, n, k, a, rsa, b_pack, rsb1,
-                                                c, rsc, accum, false);
+SKL_FUNC void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(
+    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a, size_t rsa,
+    const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c, size_t rsc) {
+  skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_dispatch(m, n, k, alpha, a, rsa, b_pack,
+                                                rsb1, beta, c, rsc, false);
 }
 
 SKL_FUNC void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_x390_clp(
-    size_t m, size_t n, size_t k, const int8_t *a, size_t rsa,
-    const int8_t *b_pack, size_t rsb1, int32_t *c, size_t rsc, bool accum) {
-  skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_dispatch(m, n, k, a, rsa, b_pack, rsb1,
-                                                c, rsc, accum, true);
+    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a, size_t rsa,
+    const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c, size_t rsc) {
+  skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_dispatch(m, n, k, alpha, a, rsa, b_pack,
+                                                rsb1, beta, c, rsc, true);
 }

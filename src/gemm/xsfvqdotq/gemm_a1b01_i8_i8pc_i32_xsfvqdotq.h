@@ -74,9 +74,10 @@ extern "C" {
  * will be best when A is 4-byte-aligned and rsa is a multiple of 4.
  */
 void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
-                                          const int8_t *a, size_t rsa,
-                                          const int8_t *b_pack, size_t rsb1,
-                                          int32_t *c, size_t rsc, bool accum);
+                                          int32_t alpha, const int8_t *a,
+                                          size_t rsa, const int8_t *b_pack,
+                                          size_t rsb1, int32_t beta, int32_t *c,
+                                          size_t rsc);
 
 /**
  * @brief Int8 GEMM tuned for Core Local Port memory on SiFive's X390.
@@ -139,11 +140,9 @@ void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
  * used directly in row-major format without requiring pre-packing. Performance
  * will be best when A is 4-byte-aligned and rsa is a multiple of 4.
  */
-void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_x390_clp(size_t m, size_t n, size_t k,
-                                                   const int8_t *a, size_t rsa,
-                                                   const int8_t *b_pack,
-                                                   size_t rsb1, int32_t *c,
-                                                   size_t rsc, bool accum);
+void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_x390_clp(
+    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a, size_t rsa,
+    const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c, size_t rsc);
 
 #if defined(__cplusplus)
 } // extern "C"
