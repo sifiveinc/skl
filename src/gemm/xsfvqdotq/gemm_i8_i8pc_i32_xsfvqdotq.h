@@ -54,7 +54,7 @@ extern "C" {
  * pre-allocated with size ((k + 3) / 4) * rsb1 bytes, then
  * ```
  * skl_pack_b_i8_xsfvqdotq(k, n, b, rsb, b_pack, rsb1);
- * skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(m, n, k, a, rsa, b_pack, rsb1, c, rsc,
+ * skl_gemm_i8_i8pc_i32_xsfvqdotq(m, n, k, a, rsa, b_pack, rsb1, c, rsc,
  *                                      accum);
  * ```
  * is equivalent to scalar call:
@@ -73,11 +73,10 @@ extern "C" {
  * used directly in row-major format without requiring pre-packing. Performance
  * will be best when A is 4-byte-aligned and rsa is a multiple of 4.
  */
-void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
-                                          int32_t alpha, const int8_t *a,
-                                          size_t rsa, const int8_t *b_pack,
-                                          size_t rsb1, int32_t beta, int32_t *c,
-                                          size_t rsc);
+void skl_gemm_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k, int32_t alpha,
+                                    const int8_t *a, size_t rsa,
+                                    const int8_t *b_pack, size_t rsb1,
+                                    int32_t beta, int32_t *c, size_t rsc);
 
 /**
  * @brief Int8 GEMM tuned for Core Local Port memory on SiFive's X390.
@@ -113,7 +112,7 @@ void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
  * pre-allocated with size ((k + 3) / 4) * rsb1 bytes, then
  * ```
  * skl_pack_b_i8_xsfvqdotq(k, n, b, rsb, b_pack, rsb1);
- * skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_x390_clp(m, n, k, a, rsa, b_pack, rsb1,
+ * skl_gemm_i8_i8pc_i32_xsfvqdotq_x390_clp(m, n, k, a, rsa, b_pack, rsb1,
  *                                               c, rsc, accum);
  * ```
  * is equivalent to scalar call:
@@ -127,22 +126,24 @@ void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
  * - For m=1: uses an internal GEMV kernel
  * - For m>1: uses tiled GEMM kernels
  *
- * This version of skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq has been tuned for
+ * This version of skl_gemm_i8_i8pc_i32_xsfvqdotq has been tuned for
  * improved performance on X390 when all of the following conditions are met:
  * 1) the matrices are allocated in CLP memory,
  * 2) m >= 6, and
  * 3) A is 4-byte-aligned and rsa is a multiple 4.
  * If matrices are not allocated in the CLP address space, please use
- * skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq instead.
+ * skl_gemm_i8_i8pc_i32_xsfvqdotq instead.
  *
  * @note
  * Matrix B_pack must be pre-packed using skl_pack_b_i8_xsfvqdotq(). Matrix A is
  * used directly in row-major format without requiring pre-packing. Performance
  * will be best when A is 4-byte-aligned and rsa is a multiple of 4.
  */
-void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq_x390_clp(
-    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a, size_t rsa,
-    const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c, size_t rsc);
+void skl_gemm_i8_i8pc_i32_xsfvqdotq_x390_clp(size_t m, size_t n, size_t k,
+                                             int32_t alpha, const int8_t *a,
+                                             size_t rsa, const int8_t *b_pack,
+                                             size_t rsb1, int32_t beta,
+                                             int32_t *c, size_t rsc);
 
 #if defined(__cplusplus)
 } // extern "C"
