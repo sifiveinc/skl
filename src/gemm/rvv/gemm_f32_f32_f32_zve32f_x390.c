@@ -546,9 +546,11 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
  * @note
  * Works best when `m >= 4` and `n >= __riscv_vsetvlmax_e32m4()`.
  */
-SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
-    size_t m, size_t n, size_t k, float alpha, const float *a, size_t rsa,
-    const float *b, size_t rsb, float beta, float *c, size_t rsc) {
+__attribute__((noinline)) SKL_FUNC_PRIVATE void
+skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(size_t m, size_t n, size_t k,
+                                        float alpha, const float *a, size_t rsa,
+                                        const float *b, size_t rsb, float beta,
+                                        float *c, size_t rsc) {
   size_t jj_vl;
   size_t ii;
   size_t jj;
@@ -563,13 +565,20 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
   vfloat32m4_t acc3;
   float a00;
   float a01;
+  float a02;
+  float a03;
   float a10;
   float a11;
+  float a12;
+  float a13;
   float a20;
   float a21;
+  float a22;
+  float a23;
   float a30;
   float a31;
-  float a_scratch;
+  float a32;
+  float a33;
   vfloat32m4_t b00;
   vfloat32m4_t b10;
   vfloat32m4_t b20;
@@ -595,7 +604,7 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
   for (ii = 0; (ii + 4) <= m; ii = ii + 4) {
     for (jj = 0; jj < n; jj = jj + jj_vl) {
       jj_vl = __riscv_vsetvl_e32m4(n - jj);
-      if (4 * 4 < k) {
+      if (2 * 4 < k) {
         // clang-format off
         __asm__ volatile(
           "\n\t"
@@ -607,20 +616,50 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
           "flw %[a30], 0(%[a_addr_3]) \n\t"
           "vfmul.vf %[acc0], %[b00], %[a00] \n\t"
           "vfmul.vf %[acc1], %[b00], %[a10] \n\t"
-          "vle32.v %[b30], (%[b_load_4]) \n\t"
           "vfmul.vf %[acc2], %[b00], %[a20] \n\t"
           "vfmul.vf %[acc3], %[b00], %[a30] \n\t"
-          "vle32.v %[b20], (%[b_load_3]) \n\t"
-          "flw %[a00],  4(%[a_addr_0]) \n\t"
-          "flw %[a10],  4(%[a_addr_1]) \n\t"
-          "flw %[a20],  4(%[a_addr_2]) \n\t"
-          "flw %[a30],  4(%[a_addr_3]) \n\t"
-          "vle32.v %[b10], (%[b_load_2]) \n\t"
-          "flw %[a01],  8(%[a_addr_0]) \n\t"
-          "flw %[a11],  8(%[a_addr_1]) \n\t"
-          "flw %[a21],  8(%[a_addr_2]) \n\t"
-          "flw %[a31],  8(%[a_addr_3]) \n\t"
+
+          // Handle strict lower triangle of 4x4 block of MACs
           "vle32.v %[b00], (%[b_load_1]) \n\t"
+          "vle32.v %[b10], (%[b_load_2]) \n\t"
+          "vle32.v %[b20], (%[b_load_3]) \n\t"
+          "vle32.v %[b30], (%[b_load_4]) \n\t"
+
+          "flw %[a10],  4(%[a_addr_1]) \n\t"
+          "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
+
+          "flw %[a20],  4(%[a_addr_2]) \n\t"
+          "flw %[a21],  8(%[a_addr_2]) \n\t"
+          "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
+          "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
+
+          "flw %[a30],  4(%[a_addr_3]) \n\t"
+          "flw %[a31],  8(%[a_addr_3]) \n\t"
+          "flw %[a32], 12(%[a_addr_3]) \n\t"
+          "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
+          "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
+          "vfmacc.vf %[acc3], %[a32], %[b20] \n\t"
+
+          // Load floats to initialize K loop
+          "flw %[a00],  4(%[a_addr_0]) \n\t"
+          "flw %[a11],  8(%[a_addr_1]) \n\t"
+          "flw %[a22], 12(%[a_addr_2]) \n\t"
+          "flw %[a33], 16(%[a_addr_3]) \n\t"
+
+          "flw %[a01],  8(%[a_addr_0]) \n\t"
+          "flw %[a12], 12(%[a_addr_1]) \n\t"
+          "flw %[a23], 16(%[a_addr_2]) \n\t"
+          "flw %[a30], 20(%[a_addr_3]) \n\t"
+
+          "flw %[a02], 12(%[a_addr_0]) \n\t"
+          "flw %[a13], 16(%[a_addr_1]) \n\t"
+          "flw %[a20], 20(%[a_addr_2]) \n\t"
+          "flw %[a31], 24(%[a_addr_3]) \n\t"
+
+          "flw %[a03], 16(%[a_addr_0]) \n\t"
+          "flw %[a10], 20(%[a_addr_1]) \n\t"
+          "flw %[a21], 24(%[a_addr_2]) \n\t"
+          "flw %[a32], 28(%[a_addr_3]) \n\t"
           :
           [b00] "=&vr" (b00),
           [b10] "=&vr" (b10),
@@ -637,7 +676,15 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
           [a01] "=&f" (a01),
           [a11] "=&f" (a11),
           [a21] "=&f" (a21),
-          [a31] "=f" (a31)
+          [a31] "=&f" (a31),
+          [a02] "=&f" (a02),
+          [a12] "=&f" (a12),
+          [a22] "=&f" (a22),
+          [a32] "=&f" (a32),
+          [a03] "=&f" (a03),
+          [a13] "=&f" (a13),
+          [a23] "=&f" (a23),
+          [a33] "=&f" (a33)
           :
           [a_addr_0] "r" (a + (ii + 0) * rsa + 0),
           [a_addr_1] "r" (a + (ii + 1) * rsa + 0),
@@ -658,7 +705,6 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
       } else {
         __asm__ volatile(
             // clang-format off
-          // 0 < k <= 12:
           // Just initialize accumulators and let fixup loop below handle any remaining iterations.
           "\n\t"
           "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
@@ -695,107 +741,61 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
             // clang-format on
         );
       }
-      for (kk = 1; (kk + 2 * 8) <= k; kk = kk + 8) {
+      for (kk = 1; (kk + 2 * 4 + 3) < k; kk = kk + 4) {
         const float *a_addr_1;
         const float *a_addr_2;
         const float *a_addr_3;
+        const float *b_addr = b + (kk + 4) * rsb + jj;
         // clang-format off
         __asm__ volatile(
             "\n\t"
             "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
 
-            "flw %[a_scratch], 56(%[a_addr_0]) \n\t" // anticipate cache miss
             "add %[a_addr_1], %[a_addr_0], %[rsa4] \n\t" // a + (ii + 1) * rsa + kk
             "add %[a_addr_2], %[a_addr_1], %[rsa4] \n\t" // a + (ii + 2) * rsa + kk
-            "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
-            "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
             "add %[a_addr_3], %[a_addr_2], %[rsa4] \n\t" // a + (ii + 3) * rsa + kk
-            "flw %[a00],  8(%[a_addr_0]) \n\t"
-            "flw %[a10],  8(%[a_addr_1]) \n\t"
-            "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
-            "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
-            "flw %[a20],  8(%[a_addr_2]) \n\t"
-            "flw %[a30],  8(%[a_addr_3]) \n\t"
+
+            "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
+            "vfmacc.vf %[acc1], %[a11], %[b10] \n\t"
+            "vfmacc.vf %[acc2], %[a22], %[b20] \n\t"
+            "vfmacc.vf %[acc3], %[a33], %[b30] \n\t"
+            "flw %[a00], 16(%[a_addr_0]) \n\t"
+            "flw %[a11], 20(%[a_addr_1]) \n\t"
+            "flw %[a22], 24(%[a_addr_2]) \n\t"
+            "flw %[a33], 28(%[a_addr_3]) \n\t"
             "vle32.v %[b00], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 1) * rsb + jj
 
             "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
-            "vfmacc.vf %[acc1], %[a11], %[b10] \n\t"
-            "flw %[a01], 12(%[a_addr_0]) \n\t"
-            "flw %[a11], 12(%[a_addr_1]) \n\t"
-            "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
-            "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
-            "flw %[a21], 12(%[a_addr_2]) \n\t"
-            "flw %[a31], 12(%[a_addr_3]) \n\t"
-            "flw %[a_scratch], 56(%[a_addr_1]) \n\t" // anticipate cache miss
+            "vfmacc.vf %[acc1], %[a12], %[b20] \n\t"
+            "vfmacc.vf %[acc2], %[a23], %[b30] \n\t"
+            "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
+            "flw %[a01], 20(%[a_addr_0]) \n\t"
+            "flw %[a12], 24(%[a_addr_1]) \n\t"
+            "flw %[a23], 28(%[a_addr_2]) \n\t"
+            "flw %[a30], 32(%[a_addr_3]) \n\t"
             "vle32.v %[b10], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 2) * rsb + jj
 
-            "vfmacc.vf %[acc0], %[a00], %[b20] \n\t"
-            "vfmacc.vf %[acc1], %[a10], %[b20] \n\t"
-            "flw %[a00], 16(%[a_addr_0]) \n\t"
-            "flw %[a10], 16(%[a_addr_1]) \n\t"
-            "vfmacc.vf %[acc2], %[a20], %[b20] \n\t"
-            "vfmacc.vf %[acc3], %[a30], %[b20] \n\t"
-            "flw %[a20], 16(%[a_addr_2]) \n\t"
-            "flw %[a30], 16(%[a_addr_3]) \n\t"
+            "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
+            "vfmacc.vf %[acc1], %[a13], %[b30] \n\t"
+            "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
+            "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
+            "flw %[a02], 24(%[a_addr_0]) \n\t"
+            "flw %[a13], 28(%[a_addr_1]) \n\t"
+            "flw %[a20], 32(%[a_addr_2]) \n\t"
+            "flw %[a31], 36(%[a_addr_3]) \n\t"
             "vle32.v %[b20], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 3) * rsb + jj
 
-            "vfmacc.vf %[acc0], %[a01], %[b30] \n\t"
-            "vfmacc.vf %[acc1], %[a11], %[b30] \n\t"
-            "flw %[a01], 20(%[a_addr_0]) \n\t"
-            "flw %[a11], 20(%[a_addr_1]) \n\t"
-            "vfmacc.vf %[acc2], %[a21], %[b30] \n\t"
-            "vfmacc.vf %[acc3], %[a31], %[b30] \n\t"
-            "flw %[a21], 20(%[a_addr_2]) \n\t"
-            "flw %[a31], 20(%[a_addr_3]) \n\t"
-            "flw %[a_scratch], 56(%[a_addr_2]) \n\t" // anticipate cache miss
-            "vle32.v %[b30], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 4) * rsb + jj
-
-            "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
+            "vfmacc.vf %[acc0], %[a03], %[b30] \n\t"
             "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
-            "flw %[a00], 24(%[a_addr_0]) \n\t"
-            "flw %[a10], 24(%[a_addr_1]) \n\t"
-            "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
-            "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
-            "flw %[a20], 24(%[a_addr_2]) \n\t"
-            "flw %[a30], 24(%[a_addr_3]) \n\t"
-            "vle32.v %[b00], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 5) * rsb + jj
-
-            "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
-            "vfmacc.vf %[acc1], %[a11], %[b10] \n\t"
-            "flw %[a01], 28(%[a_addr_0]) \n\t"
-            "flw %[a11], 28(%[a_addr_1]) \n\t"
             "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
-            "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
-            "flw %[a21], 28(%[a_addr_2]) \n\t"
-            "flw %[a31], 28(%[a_addr_3]) \n\t"
-            "flw %[a_scratch], 56(%[a_addr_3]) \n\t" // anticipate cache miss
-            "vle32.v %[b10], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 6) * rsb + jj
-
-            "vfmacc.vf %[acc0], %[a00], %[b20] \n\t"
-            "vfmacc.vf %[acc1], %[a10], %[b20] \n\t"
-            "flw %[a00], 32(%[a_addr_0]) \n\t"
+            "vfmacc.vf %[acc3], %[a32], %[b20] \n\t"
+            "flw %[a03], 28(%[a_addr_0]) \n\t"
             "flw %[a10], 32(%[a_addr_1]) \n\t"
-            "vfmacc.vf %[acc2], %[a20], %[b20] \n\t"
-            "vfmacc.vf %[acc3], %[a30], %[b20] \n\t"
-            "flw %[a20], 32(%[a_addr_2]) \n\t"
-            "flw %[a30], 32(%[a_addr_3]) \n\t"
-            "vle32.v %[b20], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 7) * rsb + jj
-
-            "vfmacc.vf %[acc0], %[a01], %[b30] \n\t"
-            "vfmacc.vf %[acc1], %[a11], %[b30] \n\t"
-            "flw %[a01], 36(%[a_addr_0]) \n\t"
-            "flw %[a11], 36(%[a_addr_1]) \n\t"
-            "vfmacc.vf %[acc2], %[a21], %[b30] \n\t"
-            "vfmacc.vf %[acc3], %[a31], %[b30] \n\t"
             "flw %[a21], 36(%[a_addr_2]) \n\t"
-            "flw %[a31], 36(%[a_addr_3]) \n\t"
+            "flw %[a32], 40(%[a_addr_3]) \n\t"
             "vle32.v %[b30], (%[b_addr]) \n\t"
             :
             [a00] "+&f" (a00),
@@ -806,7 +806,14 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
             [a11] "+&f" (a11),
             [a21] "+&f" (a21),
             [a31] "+&f" (a31),
-            [a_scratch] "=&f" (a_scratch),
+            [a02] "+&f" (a02),
+            [a12] "+&f" (a12),
+            [a22] "+&f" (a22),
+            [a32] "+&f" (a32),
+            [a03] "+&f" (a03),
+            [a13] "+&f" (a13),
+            [a23] "+&f" (a23),
+            [a33] "+&f" (a33),
             [b00] "+&vr" (b00),
             [b10] "+&vr" (b10),
             [b20] "+&vr" (b20),
@@ -817,16 +824,12 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
             [acc3] "+&vr" (acc3),
             [a_addr_1] "=&r" (a_addr_1),
             [a_addr_2] "=&r" (a_addr_2),
-            [a_addr_3] "=&r" (a_addr_3)
+            [a_addr_3] "=&r" (a_addr_3),
+            [b_addr] "+&r" (b_addr)
             :
             [a_addr_0] "r" (a + ii * rsa + kk),
-            [b_addr] "r" (b + (kk + 4) * rsb + jj),
             [rsa4] "r" (rsa * sizeof(float)),
             [rsb4] "r" (rsb * sizeof(float)),
-            // [a_addr_0] "r" (a + (ii + 0) * rsa + kk),
-            // [a_addr_1] "r" (a + (ii + 1) * rsa + kk),
-            // [a_addr_2] "r" (a + (ii + 2) * rsa + kk),
-            // [a_addr_3] "r" (a + (ii + 3) * rsa + kk),
             [jj_vl_in] "r" (jj_vl)
             :
             "vtype",
@@ -836,82 +839,83 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
         );
       }
 
-      if (16 < k) {
+      if (2 * 4 < k) {
         // clang-format off
+        const float* b_addr = b + (kk + 4) * rsb + jj;
         __asm__ volatile(
             "\n\t"
             "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
 
             "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
-            "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
-            "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
-            "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
+            "vfmacc.vf %[acc1], %[a11], %[b10] \n\t"
+            "vfmacc.vf %[acc2], %[a22], %[b20] \n\t"
+            "vfmacc.vf %[acc3], %[a33], %[b30] \n\t"
+            "flw %[a00], 16(%[a_addr_0]) \n\t"
+            "flw %[a11], 20(%[a_addr_1]) \n\t"
+            "flw %[a22], 24(%[a_addr_2]) \n\t"
+            "flw %[a33], 28(%[a_addr_3]) \n\t"
             "vle32.v %[b00], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t"
-            "flw %[a00], 0(%[a_addr_0]) \n\t"
-            "flw %[a10], 0(%[a_addr_1]) \n\t"
-            "flw %[a20], 0(%[a_addr_2]) \n\t"
-            "flw %[a30], 0(%[a_addr_3]) \n\t"
 
             "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
-            "vfmacc.vf %[acc1], %[a11], %[b10] \n\t"
-            "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
-            "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
+            "vfmacc.vf %[acc1], %[a12], %[b20] \n\t"
+            "vfmacc.vf %[acc2], %[a23], %[b30] \n\t"
+            "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
+            "flw %[a01], 20(%[a_addr_0]) \n\t"
+            "flw %[a12], 24(%[a_addr_1]) \n\t"
+            "flw %[a23], 28(%[a_addr_2]) \n\t"
+            // "flw %[a30], 32(%[a_addr_3]) \n\t"
             "vle32.v %[b10], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t"
-            "flw %[a01], 4(%[a_addr_0]) \n\t"
-            "flw %[a11], 4(%[a_addr_1]) \n\t"
-            "flw %[a21], 4(%[a_addr_2]) \n\t"
-            "flw %[a31], 4(%[a_addr_3]) \n\t"
 
-            "vfmacc.vf %[acc0], %[a00], %[b20] \n\t"
-            "vfmacc.vf %[acc1], %[a10], %[b20] \n\t"
-            "vfmacc.vf %[acc2], %[a20], %[b20] \n\t"
-            "vfmacc.vf %[acc3], %[a30], %[b20] \n\t"
+            "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
+            "vfmacc.vf %[acc1], %[a13], %[b30] \n\t"
+            "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
+            "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
+            "flw %[a02], 24(%[a_addr_0]) \n\t"
+            "flw %[a13], 28(%[a_addr_1]) \n\t"
+            // "flw %[a20], 32(%[a_addr_2]) \n\t"
+            // "flw %[a31], 36(%[a_addr_3]) \n\t"
             "vle32.v %[b20], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t"
-            "flw %[a00], 8(%[a_addr_0]) \n\t"
-            "flw %[a10], 8(%[a_addr_1]) \n\t"
-            "flw %[a20], 8(%[a_addr_2]) \n\t"
-            "flw %[a30], 8(%[a_addr_3]) \n\t"
 
-            "vfmacc.vf %[acc0], %[a01], %[b30] \n\t"
-            "vfmacc.vf %[acc1], %[a11], %[b30] \n\t"
-            "vfmacc.vf %[acc2], %[a21], %[b30] \n\t"
-            "vfmacc.vf %[acc3], %[a31], %[b30] \n\t"
+            "vfmacc.vf %[acc0], %[a03], %[b30] \n\t"
+            "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
+            "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
+            "vfmacc.vf %[acc3], %[a32], %[b20] \n\t"
+            "flw %[a03], 28(%[a_addr_0]) \n\t"
+            // "flw %[a10], 32(%[a_addr_1]) \n\t"
+            // "flw %[a21], 36(%[a_addr_2]) \n\t"
+            // "flw %[a32], 40(%[a_addr_3]) \n\t"
             "vle32.v %[b30], (%[b_addr]) \n\t"
-            "flw %[a01], 12(%[a_addr_0]) \n\t"
-            "flw %[a11], 12(%[a_addr_1]) \n\t"
-            "flw %[a21], 12(%[a_addr_2]) \n\t"
-            "flw %[a31], 12(%[a_addr_3]) \n\t"
 
             "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
-            "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
-            "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
-            "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
-            "flw %[a00], 16(%[a_addr_0]) \n\t"
-            "flw %[a10], 16(%[a_addr_1]) \n\t"
-            "flw %[a20], 16(%[a_addr_2]) \n\t"
-            "flw %[a30], 16(%[a_addr_3]) \n\t"
+            "vfmacc.vf %[acc1], %[a11], %[b10] \n\t"
+            "vfmacc.vf %[acc2], %[a22], %[b20] \n\t"
+            "vfmacc.vf %[acc3], %[a33], %[b30] \n\t"
+            // "flw %[a00], 32(%[a_addr_0]) \n\t"
+            // "flw %[a11], 36(%[a_addr_1]) \n\t"
+            // "flw %[a22], 40(%[a_addr_2]) \n\t"
+            // "flw %[a33], 44(%[a_addr_3]) \n\t"
 
             "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
-            "vfmacc.vf %[acc1], %[a11], %[b10] \n\t"
-            "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
-            "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
-            "flw %[a01], 20(%[a_addr_0]) \n\t"
-            "flw %[a11], 20(%[a_addr_1]) \n\t"
-            "flw %[a21], 20(%[a_addr_2]) \n\t"
-            "flw %[a31], 20(%[a_addr_3]) \n\t"
+            "vfmacc.vf %[acc1], %[a12], %[b20] \n\t"
+            "vfmacc.vf %[acc2], %[a23], %[b30] \n\t"
+            // "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
+            // "flw %[a01], 36(%[a_addr_0]) \n\t"
+            // "flw %[a12], 40(%[a_addr_1]) \n\t"
+            // "flw %[a23], 44(%[a_addr_2]) \n\t"
+            // "flw %[a30], 48(%[a_addr_3]) \n\t"
 
-            "vfmacc.vf %[acc0], %[a00], %[b20] \n\t"
-            "vfmacc.vf %[acc1], %[a10], %[b20] \n\t"
-            "vfmacc.vf %[acc2], %[a20], %[b20] \n\t"
-            "vfmacc.vf %[acc3], %[a30], %[b20] \n\t"
+            "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
+            "vfmacc.vf %[acc1], %[a13], %[b30] \n\t"
+            // "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
+            // "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
 
-            "vfmacc.vf %[acc0], %[a01], %[b30] \n\t"
-            "vfmacc.vf %[acc1], %[a11], %[b30] \n\t"
-            "vfmacc.vf %[acc2], %[a21], %[b30] \n\t"
-            "vfmacc.vf %[acc3], %[a31], %[b30] \n\t"
+            "vfmacc.vf %[acc0], %[a03], %[b30] \n\t"
+            // "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
+            // "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
+            // "vfmacc.vf %[acc3], %[a32], %[b20] \n\t"
             :
             [b00] "+&vr" (b00),
             [b10] "+&vr" (b10),
@@ -928,13 +932,21 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(
             [a01] "+&f" (a01),
             [a11] "+&f" (a11),
             [a21] "+&f" (a21),
-            [a31] "+&f" (a31)
+            [a31] "+&f" (a31),
+            [a02] "+&f" (a02),
+            [a12] "+&f" (a12),
+            [a22] "+&f" (a22),
+            [a32] "+&f" (a32),
+            [a03] "+&f" (a03),
+            [a13] "+&f" (a13),
+            [a23] "+&f" (a23),
+            [a33] "+&f" (a33),
+            [b_addr] "+&r" (b_addr)
             :
-            [a_addr_0] "r" (a + (ii + 0) * rsa + kk + 2),
-            [a_addr_1] "r" (a + (ii + 1) * rsa + kk + 2),
-            [a_addr_2] "r" (a + (ii + 2) * rsa + kk + 2),
-            [a_addr_3] "r" (a + (ii + 3) * rsa + kk + 2),
-            [b_addr] "r" (b + (kk + 4) * rsb + jj),
+            [a_addr_0] "r" (a + (ii + 0) * rsa + kk ),
+            [a_addr_1] "r" (a + (ii + 1) * rsa + kk ),
+            [a_addr_2] "r" (a + (ii + 2) * rsa + kk ),
+            [a_addr_3] "r" (a + (ii + 3) * rsa + kk ),
             [rsb4] "r" (rsb * sizeof(float)),
             [jj_vl_in] "r" (jj_vl)
             :
