@@ -25,7 +25,7 @@ extern "C" {
  * @param m - Number of rows in matrix A and matrix C.
  * @param n - Number of columns in matrix B and matrix C.
  * @param k - Number of columns in matrix A and rows in matrix B.
- * @param alpha - Scalar multiplier for A * B product.
+ * @param alpha - Scalar multiplier for A * B_pack product.
  * @param a - Pointer to matrix A in row-major format.
  * @param rsa - Stride between rows of matrix A in elements.
  * @param b_pack - Pointer to packed matrix B_pack.
@@ -83,7 +83,7 @@ void skl_gemm_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k, int32_t alpha,
  * @param m - Number of rows in matrix A and matrix C.
  * @param n - Number of columns in matrix B and matrix C.
  * @param k - Number of columns in matrix A and rows in matrix B.
- * @param alpha - Scalar multiplier for A * B product.
+ * @param alpha - Scalar multiplier for A * B_pack product.
  * @param a - Pointer to matrix A in row-major format.
  * @param rsa - Stride between rows of matrix A in elements.
  * @param b_pack - Pointer to packed matrix B_pack.
