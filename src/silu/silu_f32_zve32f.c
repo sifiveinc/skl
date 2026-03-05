@@ -33,11 +33,8 @@ SKL_FUNC void skl_silu_52u_f32_zve32f(float *out, const float *in, size_t n) {
     r = __riscv_vfmadd_vv_f32m8(r, t, r, vl);    // r + r * (1 - x * r)
 
     /* Calculate quotient */
-    const vfloat32m8_t q = __riscv_vfmul_vv_f32m8(n, r, vl);
-
-    const vbool4_t m = __riscv_vmfgt_vf_f32m8_b4(vx, 0, vl);
-    /* Reconstruction */
-    vfloat32m8_t vy = __riscv_vfrsub_vf_f32m8_mu(m, q, q, 1, vl);
+    const vbool4_t m = __riscv_vmflt_vf_f32m8_b4(vx, 0, vl);
+    vfloat32m8_t vy = __riscv_vfmul_vv_f32m8_mu(m, r, r, n, vl);
 
     /* Multiply */
     vy = __riscv_vfmul_vv_f32m8(vy, vx, vl);
