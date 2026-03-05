@@ -20,8 +20,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Xsfvqdotq int8 A * B_pack matrix-matrix multiplication with row-major
- * A, packed B_pack, and row-major int32 output.
+ * @brief Xsfvqdotq int8 GEMM with int32 accumulator.
  *
  * @param m - Number of rows in matrix A and matrix C.
  * @param n - Number of columns in matrix B and matrix C.
