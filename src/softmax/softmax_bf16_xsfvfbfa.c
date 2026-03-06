@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 #if !defined(__riscv_xsfvfbfa)
@@ -20,7 +20,7 @@ SKL_FUNC void skl_softmax_bf16_xsfvfbfa(__bf16 *pDst, const __bf16 *pSrc,
     vmax = __riscv_vfmax_vv_bf16m4_tu(vmax, vmax, vx, vl);
   }
   /* Xsfvfbfa does not have bf16 reductions, so reduce in f32 */
-  vfloat32m8_t vMAX = __riscv_vfwcvtbf16_f_f_v_f32m8(vmax, vl);
+  vfloat32m8_t vMAX = __riscv_vfwcvt_f_f_v_bf16m4_f32m8(vmax, vl);
   vfloat32m1_t sMAX = __riscv_vlmul_trunc_v_f32m8_f32m1(vMAX);
   sMAX = __riscv_vfredmax_vs_f32m8_f32m1(vMAX, sMAX, n);
   __bf16 max = (__bf16)__riscv_vfmv_f_s_f32m1_f32(sMAX);
@@ -36,8 +36,8 @@ SKL_FUNC void skl_softmax_bf16_xsfvfbfa(__bf16 *pDst, const __bf16 *pSrc,
     vx = __riscv_vfmax_vf_bf16m8(vx, LB, vl);
     /* 1. Reduce */
     vbfloat16m8_t v = __riscv_vfmul_vf_bf16m8(vx, (__bf16)0x1.72p0, vl);
-    vint8m4_t q = __riscv_vfncvt_x_f_w_bf16m8(v, vl);
-    vbfloat16m8_t z = __riscv_vfwcvt_bf_x_v_bf16m8(q, vl);
+    vint8m4_t q = __riscv_vfncvt_x_f_w_bf16m8_i8m4(v, vl);
+    vbfloat16m8_t z = __riscv_vfwcvt_f_x_v_bf16m8(q, vl);
     vbfloat16m8_t s = __riscv_vfnmsac_vf_bf16m8(vx, (__bf16)0x1.6p-1, z, vl);
     s = __riscv_vfnmsac_vf_bf16m8(s, (__bf16)0x1.72p-8, z, vl);
     /* 2. Approximate exp(s) */
@@ -62,7 +62,7 @@ SKL_FUNC void skl_softmax_bf16_xsfvfbfa(__bf16 *pDst, const __bf16 *pSrc,
   vbfloat16m4_t vsum1 = __riscv_vget_v_bf16m8_bf16m4(vsum, 1);
   vsum0 = __riscv_vfadd_vv_bf16m4_tu(vsum0, vsum0, vsum1, vl1);
 
-  vfloat32m8_t vSUM = __riscv_vfwcvtbf16_f_f_v_f32m8(vsum0, vl0);
+  vfloat32m8_t vSUM = __riscv_vfwcvt_f_f_v_bf16m4_f32m8(vsum0, vl0);
   vfloat32m1_t ssum = __riscv_vfmv_s_f_f32m1(0.0f, vl0);
   ssum = __riscv_vfredusum_vs_f32m8_f32m1(vSUM, ssum, vl0);
   float sum = __riscv_vfmv_f_s_f32m1_f32(ssum);

@@ -30,7 +30,7 @@ SKL_FUNC void skl_softmax_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *pDst,
     vbfloat16m4_t vx = __riscv_vle16_v_bf16m4(pSrc + i, vl);
     vmax = __riscv_vfmax_vv_bf16m4_tu(vmax, vmax, vx, vl);
   }
-  vfloat32m8_t vMAX = __riscv_vfwcvtbf16_f_f_v_f32m8(vmax, vl);
+  vfloat32m8_t vMAX = __riscv_vfwcvt_f_f_v_bf16m4_f32m8(vmax, vl);
   vfloat32m1_t sMAX = __riscv_vlmul_trunc_v_f32m8_f32m1(vMAX);
   sMAX = __riscv_vfredmax_vs_f32m8_f32m1(vMAX, sMAX, n);
   __bf16 max = (__bf16)__riscv_vfmv_f_s_f32m1_f32(sMAX);
@@ -53,7 +53,7 @@ SKL_FUNC void skl_softmax_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *pDst,
   vbfloat16m4_t vsum1 = __riscv_vget_v_bf16m8_bf16m4(vsum, 1);
   vsum0 = __riscv_vfadd_vv_bf16m4_tu(vsum0, vsum0, vsum1, vl1);
 
-  vfloat32m8_t vSUM = __riscv_vfwcvtbf16_f_f_v_f32m8(vsum0, vl0);
+  vfloat32m8_t vSUM = __riscv_vfwcvt_f_f_v_bf16m4_f32m8(vsum0, vl0);
   vfloat32m1_t ssum = __riscv_vfmv_s_f_f32m1(0.0f, vl0);
   ssum = __riscv_vfredusum_vs_f32m8_f32m1(vSUM, ssum, vl0);
   float sum = __riscv_vfmv_f_s_f32m1_f32(ssum);
