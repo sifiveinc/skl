@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <stddef.h>
+
 #if !defined(__riscv_zvfh)
 #error This file requires the Zvfh extension
 #endif

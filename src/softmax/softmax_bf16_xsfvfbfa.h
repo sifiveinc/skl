@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <stddef.h>
+
 #if !defined(__riscv_xsfvfbfa)
 #error This file requires the Xsfvfbfa extension
 #endif
