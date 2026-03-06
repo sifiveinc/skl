@@ -36,79 +36,57 @@ extern "C" {
 #endif
 
 /**
- * @brief Optimized patch extraction with bulk memory operations
+ * @brief Convert input tensor to im2row matrix with RVV optimization for 32-bit
+ * elements
  *
- * Extracts a convolution patch from input tensor using optimized bulk copying.
- * Uses three-phase processing (head, middle, tail) to maximize memcpy
- * efficiency while maintaining support for partial patches and arbitrary
- * starting coordinates.
+ * Type-safe version of skl_im2row_hwc_zve32x for 32-bit element types
+ * (uint32_t, int32_t, float). Processes all output positions for a single
+ * batch, generating the complete im2row matrix in one call. Uses optimized bulk
+ * memory operations exploiting HWC channel-contiguous layout. Automatically
+ * selects specialized non-dilated kernel when dilation_width == 1 &&
+ * dilation_height == 1 for better performance.
  *
- * @param out Point to the buffer which stores a row of output matrix
- * @param in_batch Point to the start of input tensor for current batch
- * (NHWC layout)
- * @param in_h_origin Top coordinate of patch in input tensor
- * @param in_w_origin Left coordinate of patch in input tensor
- * @param in_c_origin Channel cooridnate of patch in input tensor
- * @param input_height Height of input tensor
- * @param input_width Width of input tensor
- * @param filter_height Height of convolution filter
- * @param filter_width Width of convolution filter
- * @param patch_channel Number of patch channels
- * @param dilation_height_factor Height dilation factor for dilated convolution
- * @param dilation_width_factor Width dilation factor for dilated convolution
- * @param input_height_stride Height's stride of input tensor
- * @param input_width_stride Width's stride of input tensor
- * @param zero_byte Byte value used for out-of-bounds padding
- * @param patch_begin_coord Starting coordinates [h, w, c] within the patch
- * @param patch_elements Number of elements to extract from patch
- *
- * @note Optimized for channel-contiguous memory layout
- * @note Uses bulk memcpy operations when possible for better performance
- * @note Head: partial channel at start, Middle: full channels, Tail: partial
- * channel at end
- *
- */
-void skl_im2row_hwc_e32_zve32x(
-    uint32_t *out, const uint32_t *in_batch, int32_t in_h_origin,
-    int32_t in_w_origin, int32_t in_c_origin, size_t input_height,
-    size_t input_width, size_t filter_height, size_t filter_width,
-    size_t patch_channel, size_t dilation_height_factor,
-    size_t dilation_width_factor, size_t input_height_stride,
-    size_t input_width_stride, unsigned char zero_byte,
-    const size_t patch_begin_coord[3], size_t patch_elements);
-
-/**
- * @brief Optimized full patch extraction for non-dilated convolutions
- *
- * Extracts a complete convolution patch from input tensor using optimized bulk
- * copying. Specialized for non-dilated convolutions (dilation_factor=1) and
- * full patch extraction. Uses efficient bulk memory operations and padding
- * strategies.
- *
- * @param out Point to the buffer which stores a row of output matrix
- * @param in_batch Point to the start of input tensor for current batch
- * (NHWC layout)
- * @param in_h_origin Top coordinate of patch in input tensor
- * @param in_w_origin Left coordinate of patch in input tensor
+ * @param output Point to the buffer which stores the output im2row matrix
+ * (size: output_height × output_width × filter_height × filter_width ×
+ * input_channel elements)
+ * @param input Point to the start of input tensor for current batch (HWC
+ * layout)
  * @param input_height Height of input tensor
  * @param input_width Width of input tensor
  * @param input_channel Number of input channels
+ * @param input_height_stride Height's stride of input tensor (for standard HWC:
+ * input_width × input_channel)
+ * @param input_width_stride Width's stride of input tensor (for standard HWC:
+ * input_channel)
  * @param filter_height Height of convolution filter
  * @param filter_width Width of convolution filter
- * @param input_height_stride Height's stride of input tensor
- * @param input_width_stride Width's stride of input tensor
+ * @param output_height Height of output tensor (number of output rows)
+ * @param output_width Width of output tensor (number of output columns)
+ * @param padding_width Padding applied to left and right of input
+ * @param padding_height Padding applied to top and bottom of input
+ * @param stride_width Horizontal stride for convolution
+ * @param stride_height Vertical stride for convolution
+ * @param dilation_width Width dilation factor for dilated convolution
+ * @param dilation_height Height dilation factor for dilated convolution
  * @param zero_byte Byte value used for out-of-bounds padding
  *
- * @note Optimized for dilation_factor=1 (no dilation)
- * @note Extracts complete patches only (no partial patch support)
- * @note Uses bulk memcpy operations for better performance
+ * @note Type-safe wrapper: element_size is fixed at sizeof(uint32_t)
+ * @note Uses bulk memcpy operations for better performance than scalar version
+ * @note Automatically dispatches to specialized kernel for non-dilated
+ * convolutions
+ * @note Processes all output positions: output_height × output_width patches
+ * @note Requires HWC layout: channels are contiguous in memory for optimal
+ * performance
  */
-void skl_im2row_d1_full_patch_hwc_e32_zve32x(
-    uint32_t *out, const uint32_t *in_batch, int32_t in_h_origin,
-    int32_t in_w_origin, size_t input_height, size_t input_width,
-    size_t input_channel, size_t filter_height, size_t filter_width,
-    size_t input_height_stride, size_t input_width_stride,
-    unsigned char zero_byte);
+void skl_im2row_hwc_e32_zve32x(uint32_t *output, const uint32_t *input,
+                               size_t input_height, size_t input_width,
+                               size_t input_channel, size_t input_height_stride,
+                               size_t input_width_stride, size_t filter_height,
+                               size_t filter_width, size_t output_height,
+                               size_t output_width, size_t padding_width,
+                               size_t padding_height, size_t stride_width,
+                               size_t stride_height, size_t dilation_width,
+                               size_t dilation_height, unsigned char zero_byte);
 
 #ifdef __cplusplus
 }
