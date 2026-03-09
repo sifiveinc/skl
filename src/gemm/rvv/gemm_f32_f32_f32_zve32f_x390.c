@@ -604,7 +604,7 @@ skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(size_t m, size_t n, size_t k,
   for (ii = 0; (ii + 4) <= m; ii = ii + 4) {
     for (jj = 0; jj < n; jj = jj + jj_vl) {
       jj_vl = __riscv_vsetvl_e32m4(n - jj);
-      if (2 * 4 < k) {
+      if (1 + 4 <= k) {
         // clang-format off
         __asm__ volatile(
           "\n\t"
@@ -731,7 +731,7 @@ skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(size_t m, size_t n, size_t k,
             // clang-format on
         );
       }
-      for (kk = 1; (kk + 2 * 4 + 3) < k; kk = kk + 4) {
+      for (kk = 1; (kk + 2 * 4) < k; kk = kk + 4) {
         const float *a_addr_1;
         const float *a_addr_2;
         const float *a_addr_3;
@@ -802,6 +802,7 @@ skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(size_t m, size_t n, size_t k,
             "flw %[a23], 28(%[a_addr_2]) \n\t"
             "c.ntl.p1 \n\t"
             "flw %[a33], 28(%[a_addr_3]) \n\t"
+
             "vle32.v %[b30], (%[b_addr]) \n\t"
             :
             [a00] "+&f" (a00),
@@ -845,9 +846,8 @@ skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(size_t m, size_t n, size_t k,
         );
       }
 
-      if (2 * 4 < k) {
+      if (1 + 4 <= k) {
         // clang-format off
-        const float* b_addr = b + (kk + 4) * rsb + jj;
         __asm__ volatile(
             "\n\t"
             "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
@@ -897,7 +897,6 @@ skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(size_t m, size_t n, size_t k,
             [a13] "f" (a13),
             [a23] "f" (a23),
             [a33] "f" (a33),
-            [rsb4] "r" (rsb * sizeof(float)),
             [jj_vl_in] "r" (jj_vl)
             :
             "vtype",
