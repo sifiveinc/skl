@@ -33,7 +33,8 @@ SKL_FUNC void skl_softmax_f32_zve32f(float *pDst, const float *pSrc,
     vfloat32m8_t vp = __riscv_vfmv_v_f_f32m8(c4, vl);
 
     vx = __riscv_vfsub_vf_f32m8(vx, max, vl);
-    vx = __riscv_vfmul_vf_f32m8(vx, beta, vl);
+    if (beta != 1.0f)
+      vx = __riscv_vfmul_vf_f32m8(vx, beta, vl);
 
     /* Clamp inputs: */
     const float xmin = -0x1.5ebb86p6f;
