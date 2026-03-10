@@ -167,5 +167,12 @@ else()
   set(RISCV_ZVFOFP4MIN OFF)
 endif()
 
+if (${SKL_PREPROCESSOR_OUTPUT} MATCHES __riscv_zihintntl)
+  set(RISCV_ZIHINTNTL ON)
+  list(APPEND SKL_QEMU_CPU_OPTIONS "zihintntl=true")
+else()
+  set(RISCV_ZIHINTNTL OFF)
+endif()
+
 string(JOIN "," SKL_QEMU_CPU_OPTIONS ${SKL_QEMU_CPU_OPTIONS})
 set(SKL_QEMU_OPTIONS -cpu ${SKL_QEMU_CPU_OPTIONS})
