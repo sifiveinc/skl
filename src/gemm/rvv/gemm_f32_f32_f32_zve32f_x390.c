@@ -993,45 +993,37 @@ skl_gemm_4xm4x1_f32_f32_f32_zve32f_x390(size_t m, size_t n, size_t k,
   for (ii0 = ii; (ii0 + 1) <= m; ii0 = ii0 + 1) {
     for (jj = 0; jj < n; jj = jj + jj_vl) {
       jj_vl = __riscv_vsetvl_e32m4(n - jj);
-      for (kk_peel = 0; ((kk_peel + 1) <= k) && (kk_peel < (0 + (1 * 1)));
-           kk_peel = kk_peel + 1) {
+      __asm__ volatile("\n\t"
+                       "flw %[a0], 0(%[a_load]) \n\t"
+                       "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
+                       "vle32.v %[b0], (%[b_load]) \n\t"
+                       "vfmul.vf %[acc], %[b0], %[a0] \n\t"
+                       : [a0] "=&f"(a0), [b0] "=&vr"(b0), [acc] "=vr"(acc)
+                       : [jj_vl_in] "r"(jj_vl), [a_load] "r"(a + ii0 * rsa),
+                         [b_load] "r"(b + jj)
+                       : "vtype", "vl", "memory");
+      for (kk = 1; (kk + 1) <= k; kk = kk + 1) {
         __asm__ volatile(
             "\n\t"
-            "flw %[a0], 0(%[a_load_23]) \n\t"
+            "flw %[a0], 0(%[a_load]) \n\t"
             "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
-            "vle32.v %[b0], (%[b_load_5]) \n\t"
-            "vfmul.vf %[acc], %[b0], %[a0] \n\t"
-            : [a0] "=&f"(a0), [b0] "=&vr"(b0), [acc] "=vr"(acc)
-            : [a_load_23] "r"(a + (((ii0 + 0) * rsa) + ((kk_peel + 0) * 1))),
-              [jj_vl_in] "r"(jj_vl),
-              [b_load_5] "r"(b + (((kk_peel + 0) * rsb) + ((jj + 0) * 1)))
-            : "vtype", "vl", "memory");
-      }
-      for (kk = kk_peel; (kk + 1) <= k; kk = kk + 1) {
-        __asm__ volatile(
-            "\n\t"
-            "flw %[a0], 0(%[a_load_24]) \n\t"
-            "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
-            "vle32.v %[b0], (%[b_load_6]) \n\t"
+            "vle32.v %[b0], (%[b_load]) \n\t"
             "vfmacc.vf %[acc], %[a0], %[b0] \n\t"
             : [a0] "=&f"(a0), [b0] "=&vr"(b0), [acc] "+vr"(acc)
-            : [a_load_24] "r"(a + (((ii0 + 0) * rsa) + ((kk + 0) * 1))),
-              [jj_vl_in] "r"(jj_vl),
-              [b_load_6] "r"(b + (((kk + 0) * rsb) + ((jj + 0) * 1)))
+            : [jj_vl_in] "r"(jj_vl), [a_load] "r"(a + ii0 * rsa + kk),
+              [b_load] "r"(b + kk * rsb + jj)
             : "vtype", "vl", "memory");
       }
       __asm__ volatile(
           "\n\t"
           "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
-          "vle32.v %[c0], (%[c_load_3]) \n\t"
+          "vle32.v %[c0], (%[c_addr]) \n\t"
           "vfmul.vf %[c0], %[c0], %[beta] \n\t"
           "vfmacc.vf %[c0], %[alpha], %[acc] \n\t"
-          "vse32.v %[c0], (%[c_store_3]) \n\t"
+          "vse32.v %[c0], (%[c_addr]) \n\t"
           : [c0] "=&vr"(c0)
-          : [jj_vl_in] "r"(jj_vl),
-            [c_load_3] "r"(c + (((ii0 + 0) * rsc) + ((jj + 0) * 1))),
-            [beta] "f"(beta), [alpha] "f"(alpha), [acc] "vr"(acc),
-            [c_store_3] "r"(c + (((ii0 + 0) * rsc) + ((jj + 0) * 1)))
+          : [jj_vl_in] "r"(jj_vl), [c_addr] "r"(c + ii0 * rsc + jj),
+            [beta] "f"(beta), [alpha] "f"(alpha), [acc] "vr"(acc)
           : "vtype", "vl", "memory");
     }
   }
