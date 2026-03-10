@@ -39,6 +39,10 @@ void skl_transpose_e32_xsfmmbase(size_t m, size_t n,
                                  const uint32_t *SKL_RESTRICT a, size_t rsa,
                                  uint32_t *SKL_RESTRICT at, size_t rsat);
 
+void skl_pack_transpose_e32_inner_transpose_xsfmmbase(
+    size_t m, size_t n, const uint32_t *a, size_t rsa, size_t m0, size_t n0,
+    uint32_t *b, size_t rsb0, size_t csb0, size_t rsb1, size_t csb1);
+
 #if defined(__cplusplus)
 } // extern "C"
 #endif

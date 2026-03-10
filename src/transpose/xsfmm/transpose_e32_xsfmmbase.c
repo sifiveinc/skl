@@ -12,6 +12,178 @@
 
 #include "skl-common.h"
 
+SKL_XSFMM_OUT
+SKL_FUNC_PRIVATE void skl_load_tile_e32_xsfmmbase(size_t tm, size_t tn,
+                                                  const uint32_t *a, size_t rsa,
+                                                  size_t tss) {
+  if (tm == 0 || tn == 0) {
+    return;
+  }
+
+  const size_t kRowInc = 1;
+
+  size_t i = 0;
+  __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
+
+                   "0:\n"
+                   "addi %[i], %[i], 1\n"
+                   "sf.vlte32 %[tss], (%[a])\n"
+                   "add %[tss], %[tss], %[kRowInc]\n"
+                   "add %[a], %[a], %[sa]\n"
+                   "bltu %[i], %[tm], 0b\n"
+                   : [tss] "+&r"(tss), [a] "+&r"(a), [i] "+&r"(i)
+                   : [kRowInc] "rI"(kRowInc), [sa] "r"(rsa * sizeof(uint32_t)),
+                     [tm] "r"(tm), [tn] "r"(tn)
+                   : "vtype", "vl", "memory");
+}
+
+// *0: store tss0 to a0
+// *1: load a1 into tss1
+SKL_XSFMM_INOUT
+SKL_FUNC_PRIVATE void skl_load_store_tile_full_full_e32_xsfmmbase(
+    size_t tm0, size_t tn0, size_t tss0, uint32_t *a0, size_t rsa0, size_t tm1,
+    size_t tn1, const uint32_t *a1, size_t rsa1, size_t tss1) {
+  if ((tm0 == 0 || tn0 == 0) && (tm1 == 0 || tn1 == 0)) {
+    return;
+  }
+
+  const size_t kRowInc = 1;
+
+  size_t tm = tm0 <= tm1 ? tm0 : tm1;
+  size_t i = 0;
+  __asm__ volatile(
+      "sf.vsettnt x0, x0, e32, w1\n"
+
+      "beqz %[tm], 1f\n"
+
+      "0:\n"
+      "addi %[i], %[i], 1\n"
+      "sf.vsettn x0, %[tn0]\n"
+      "sf.vste32 %[tss0], (%[a0])\n"
+      "add %[tss0], %[tss0], %[kRowInc]\n"
+      "add %[a0], %[a0], %[sa0]\n"
+      "sf.vsettn x0, %[tn1]\n"
+      "sf.vlte32 %[tss1], (%[a1])\n"
+      "add %[tss1], %[tss1], %[kRowInc]\n"
+      "add %[a1], %[a1], %[sa1]\n"
+      "bltu %[i], %[tm], 0b\n"
+
+      "1:\n"
+      "beq %[tm0], %[tm1], 6f\n"
+      "bltu %[tm0], %[tm1], 4f\n"
+
+      "2:\n"
+      "sf.vsettn x0, %[tn0]\n"
+      "3:\n"
+      "addi %[i], %[i], 1\n"
+      "sf.vste32 %[tss0], (%[a0])\n"
+      "add %[tss0], %[tss0], %[kRowInc]\n"
+      "add %[a0], %[a0], %[sa0]\n"
+      "bltu %[i], %[tm0], 3b\n"
+      "j 6f\n"
+
+      "4:\n"
+      "sf.vsettn x0, %[tn1]\n"
+      "5:\n"
+      "addi %[i], %[i], 1\n"
+      "sf.vlte32 %[tss1], (%[a1])\n"
+      "add %[tss1], %[tss1], %[kRowInc]\n"
+      "add %[a1], %[a1], %[sa1]\n"
+      "bltu %[i], %[tm1], 5b\n"
+
+      "6:\n"
+      : [tss0] "+&r"(tss0), [tss1] "+&r"(tss1), [a0] "+&r"(a0), [a1] "+&r"(a1),
+        [i] "+&r"(i)
+      : [kRowInc] "rI"(kRowInc), [sa0] "r"(rsa0 * sizeof(float)),
+        [sa1] "r"(rsa1 * sizeof(float)), [tm] "r"(tm), [tm0] "r"(tm0),
+        [tn0] "r"(tn0), [tm1] "r"(tm1), [tn1] "r"(tn1)
+      : "vtype", "vl", "memory");
+}
+
+SKL_XSFMM_OUT
+SKL_FUNC_PRIVATE void skl_store_tile_e32_xsfmmbase(size_t tm, size_t tn,
+                                                   const uint32_t *a,
+                                                   size_t rsa, size_t tss) {
+  if (tm == 0 || tn == 0) {
+    return;
+  }
+
+  const size_t kRowInc = 1;
+
+  size_t i = 0;
+  __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
+
+                   "0:\n"
+                   "addi %[i], %[i], 1\n"
+                   "sf.vste32 %[tss], (%[a])\n"
+                   "add %[tss], %[tss], %[kRowInc]\n"
+                   "add %[a], %[a], %[sa]\n"
+                   "bltu %[i], %[tm], 0b\n"
+                   : [tss] "+&r"(tss), [a] "+&r"(a), [i] "+&r"(i)
+                   : [kRowInc] "rI"(kRowInc), [sa] "r"(rsa * sizeof(uint32_t)),
+                     [tm] "r"(tm), [tn] "r"(tn)
+                   : "vtype", "vl", "memory");
+}
+
+SKL_XSFMM_NEW
+SKL_FUNC void skl_pack_transpose_e32_inner_transpose_xsfmmbase(
+    size_t m, size_t n, const uint32_t *a, size_t rsa, size_t m0, size_t n0,
+    uint32_t *b, size_t rsb0, size_t csb0, size_t rsb1, size_t csb1) {
+  // for now, assume no padding required (m % m0 == 0, n % n0 == 0)
+  size_t m1 = (m + m0 - 1) / m0;
+  size_t n1 = (n + n0 - 1) / n0;
+  if (m1 == 0 || n1 == 0) {
+    return;
+  }
+
+  const size_t mt0 = 0;
+  const size_t mt0c = mt0 | (size_t)1 << 24;
+  const size_t mt4 = (size_t)4 << 27;
+  const size_t mt4c = mt4 | (size_t)1 << 24;
+  skl_load_tile_e32_xsfmmbase(m0, n0, a, rsa, mt0);
+  for (size_t i1 = 0; i1 + 1 < m1; i1 += 2) {
+    for (size_t j1 = 0; j1 + 1 < n1; ++j1) {
+      skl_load_store_tile_full_full_e32_xsfmmbase(
+          n0, m0, mt0c, b + i1 * rsb1 + j1 * csb1, csb0, m0, n0,
+          a + (i1 + 1) * m0 * rsa + j1 * n0, rsa, mt4);
+      skl_load_store_tile_full_full_e32_xsfmmbase(
+          n0, m0, mt4c, b + (i1 + 1) * rsb1 + j1 * csb1, csb0, m0, n0,
+          a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt0);
+    }
+    skl_load_store_tile_full_full_e32_xsfmmbase(
+        n0, m0, mt0c, b + i1 * rsb1 + j1 * csb1, csb0, m0, n0,
+        a + (i1 + 1) * m0 * rsa + j1 * n0, rsa, mt4);
+    if (i1 + 2 < m1) {
+      skl_load_store_tile_full_full_e32_xsfmmbase(
+          n0, m0, mt4c, b + (i1 + 1) * rsb1 + j1 * csb1, csb0, m0, n0,
+          a + (i1 + 2) * m0 * rsa + 0 * n0, rsa, mt0);
+    } else {
+      skl_store_tile_e32_xsfmmbase(n0, m0, b + (i1 + 1) * rsb1 + j1 * csb1,
+                                   csb0, mt4c);
+      return;
+    }
+  }
+
+  // m1 % 2 == 1
+  for (size_t j1 = 0; j1 + 2 < n1; j1 += 2) {
+    skl_load_store_tile_full_full_e32_xsfmmbase(
+        n0, m0, mt0c, b + i1 * rsb1 + j1 * csb1, csb0, m0, n0,
+        a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt4);
+    skl_load_store_tile_full_full_e32_xsfmmbase(
+        n0, m0, mt4c, b + i1 * rsb1 + (j1 + 1) * csb1, csb0, m0, n0,
+        a + i1 * m0 * rsa + (j1 + 2) * n0, rsa, mt0);
+  }
+  if (n1 % 2) {
+    skl_store_tile_e32_xsfmmbase(n0, m0, b + i1 * rsb1 + j1 * csb1, csb0, mt0c);
+  } else {
+    skl_load_store_tile_full_full_e32_xsfmmbase(
+        n0, m0, mt0c, b + i1 * rsb1 + j1 * csb1, csb0, m0, n0,
+        a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt4);
+    skl_store_tile_e32_xsfmmbase(n0, m0, b + i1 * rsb1 + (j1 + 1) * csb1, csb0,
+                                 mt4c);
+  }
+}
+
 SKL_XSFMM_NEW
 SKL_FUNC void skl_transpose_e32_xsfmmbase(size_t m, size_t n,
                                           const uint32_t *SKL_RESTRICT a,
