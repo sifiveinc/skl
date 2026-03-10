@@ -556,7 +556,6 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(
   size_t jj_vl;
   size_t ii;
   size_t jj;
-  size_t kk_peel;
   size_t kk;
   size_t kk0;
   size_t ii0;
@@ -733,7 +732,7 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(
             // clang-format on
         );
       }
-      for (kk = 1; (kk + 2 * 4) < k; kk = kk + 4) {
+      for (kk = 1; (kk + 2UL * 4UL) < k; kk = kk + 4) {
         const float *a_addr_1;
         const float *a_addr_2;
         const float *a_addr_3;
