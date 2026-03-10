@@ -5,6 +5,10 @@
 #error This file requires the Zve32f extension
 #endif
 
+#if !defined(__riscv_zihintntl)
+#error This file requires the Zihintntl extension
+#endif
+
 #include <riscv_vector.h>
 #include <stddef.h>
 
