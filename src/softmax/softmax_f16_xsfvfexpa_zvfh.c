@@ -32,7 +32,8 @@ SKL_FUNC void skl_softmax_f16_xsfvfexpa_zvfh(_Float16 *pDst,
     vl = __riscv_vsetvl_e16m8(n - i);
     vfloat16m8_t vx = __riscv_vle16_v_f16m8(pSrc + i, vl);
     vx = __riscv_vfsub_vf_f16m8(vx, max, vl);
-    vx = __riscv_vfmul_vf_f16m8(vx, beta, vl);
+    if (beta != 1.0f16)
+      vx = __riscv_vfmul_vf_f16m8(vx, beta, vl);
 
     /* 0. Clamp */
     const _Float16 xmin = -0x1.4c8p+3f16;

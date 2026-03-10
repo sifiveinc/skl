@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <stddef.h>
+
 #if !defined(__riscv_zve32f)
 #error This file requires the Zve32f extension
 #endif

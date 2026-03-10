@@ -45,8 +45,10 @@ SKL_FUNC void skl_softmax_f16_zvfh(_Float16 *pDst, const _Float16 *pSrc,
     /* We have vl0 >= vl1, so use vl0, until sum accumulation. */
     vx0 = __riscv_vfsub_vf_f16m4(vx0, max, vl0);
     vx1 = __riscv_vfsub_vf_f16m4(vx1, max, vl0);
-    vx0 = __riscv_vfmul_vf_f16m4(vx0, beta, vl0);
-    vx1 = __riscv_vfmul_vf_f16m4(vx1, beta, vl0);
+    if (beta != 1.0f16) {
+      vx0 = __riscv_vfmul_vf_f16m4(vx0, beta, vl0);
+      vx1 = __riscv_vfmul_vf_f16m4(vx1, beta, vl0);
+    }
 
     /* Clamp */
     const _Float16 xmin = -0x1.4c8p3f16;

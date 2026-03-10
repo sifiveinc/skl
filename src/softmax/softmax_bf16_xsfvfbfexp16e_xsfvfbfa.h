@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <stddef.h>
+
 #if !defined(__riscv_xsfvfbfexp16e) || !defined(__riscv_xsfvfbfa)
 #error This file requires the Xsfvfbfexp16e and Xsfvfbfa extensions
 #endif

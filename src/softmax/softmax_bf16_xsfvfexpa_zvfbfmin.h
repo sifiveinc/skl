@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <stddef.h>
+
 #if !defined(__riscv_xsfvfexpa) || !defined(__riscv_zvfbfmin)
 #error This file requires the Xsfvfexpa and Zvfbfmin extensions
 #endif

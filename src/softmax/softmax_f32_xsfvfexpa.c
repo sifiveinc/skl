@@ -30,7 +30,8 @@ SKL_FUNC void skl_softmax_f32_xsfvfexpa(float *pDst, const float *pSrc,
     vl = __riscv_vsetvl_e32m8(n - i);
     vfloat32m8_t vx = __riscv_vle32_v_f32m8(pSrc + i, vl);
     vx = __riscv_vfsub_vf_f32m8(vx, max, vl);
-    vx = __riscv_vfmul_vf_f32m8(vx, beta, vl);
+    if (beta != 1.0f)
+      vx = __riscv_vfmul_vf_f32m8(vx, beta, vl);
 
     /* Clamp inputs: */
     const float xmin = -0x1.6018dep6f;
