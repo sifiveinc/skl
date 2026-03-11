@@ -38,6 +38,13 @@ else()
   set(RISCV_ZVFH OFF)
 endif()
 
+if (${SKL_PREPROCESSOR_OUTPUT} MATCHES "__riscv_zvfbfwma")
+  set(RISCV_ZVFBFWMA ON)
+  list(APPEND SKL_QEMU_CPU_OPTIONS "zvfbfwma=true")
+else()
+  set(RISCV_ZVFBFWMA OFF)
+endif()
+
 if(${SKL_PREPROCESSOR_OUTPUT} MATCHES __riscv_zvfbfmin)
   list(APPEND SKL_QEMU_CPU_OPTIONS "zvfbfmin=true")
   set(RISCV_ZVFBFMIN ON)
