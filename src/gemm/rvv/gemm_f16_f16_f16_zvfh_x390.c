@@ -209,6 +209,7 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f16_zvfh_x390(
     }
   }
 }
+
 SKL_FUNC void skl_gemm_f16_f16_f16_zvfh_x390(size_t m, size_t n, size_t k,
                                              _Float16 alpha, const _Float16 *a,
                                              size_t rsa, const _Float16 *b,
