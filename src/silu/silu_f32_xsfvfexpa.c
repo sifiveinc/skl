@@ -50,12 +50,13 @@ SKL_FUNC void skl_silu_52u_f32_xsfvfexpa(float *out, const float *in,
 /**
  * @brief Approximate the exponential function on vector of f32 floating-point
  * values with a 1-ULP error bound in [-inf; 0].
+ *
+ * @note NaNs are not propagated.
  */
 SKL_FUNC_PRIVATE vfloat32m8_t skl_leftexp_xsfvfexpa_f32m8(vfloat32m8_t x,
                                                           size_t vl) {
   /* 0. Clamp inputs to lower bound */
-  vbool4_t nn = __riscv_vmfeq_vv_f32m8_b4(x, x, vl); // Propagate NaN inputs
-  x = __riscv_vfmax_vf_f32m8_mu(nn, x, x, -0x1.9fe36ap6f, vl);
+  x = __riscv_vfmax_vf_f32m8(x, -0x1.9fe36ap6f, vl);
 
   /* 1. Reduction */
   const float r_ln2 = 0x1.715476p0f; // 1/log(2)

@@ -48,12 +48,13 @@ SKL_FUNC void skl_silu_9u_f16_xsfvfexpa_zvfh(_Float16 *out, const _Float16 *in,
 /**
  * @brief Approximate the exponential function on vector of f16 floating-point
  * values with a 1-ULP error bound in [-inf; 0].
+ *
+ * @note NaNs are not propagated.
  */
 SKL_FUNC_PRIVATE vfloat16m8_t skl_leftexp_xsfvfexpa_zvfh_f16m8(vfloat16m8_t x,
                                                                size_t vl) {
   /* 0. Clamp inputs to lower bound */
-  vbool2_t nn = __riscv_vmfeq_vv_f16m8_b2(x, x, vl); // Propagate NaN inputs
-  x = __riscv_vfmax_vf_f16m8_mu(nn, x, x, -0x1.158p4f16, vl);
+  x = __riscv_vfmax_vf_f16m8(x, -0x1.158p4f16, vl);
 
   /* 1. Reduction */
   const _Float16 r_ln2 = 0x1.714p0f16; // 1/log(2)
