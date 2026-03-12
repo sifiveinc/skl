@@ -26,23 +26,16 @@ SKL_FUNC void skl_silu_52u_f32_xsfvfexpa(float *out, const float *in,
 
     /* Approximate 1 / (1 + exp(-|vx|)) */
     const vfloat32m8_t d = __riscv_vfadd_vf_f32m8(n, 1, vl);
-    // With __riscv_xsfvfexpa, our leftexp(x) is slighty less accurate.  To
-    // retain some additional accuracy, calculate n / d using a more accurate
-    // division algorithm.  This requires an additional two instructions, but
-    // lowers maximum error by about 0.5ulp.  Since we know that n is in [0;1]
-    // and d is in [1;2], we can skip the usual scaling and refinement checks
-    // that are required in `div`.
+    // Since we know that n is in [0;1] and d is in [1;2], we can skip the usual
+    // scaling and refinement checks that are required in `div`.
     vfloat32m8_t r = __riscv_vfrec7_v_f32m8(d, vl);
-    vfloat32m8_t q = __riscv_vfmul_vv_f32m8(n, r, vl);
     /* Refine r */
     const vfloat32m8_t one = __riscv_vfmv_v_f_f32m8(1, vl);
     vfloat32m8_t t = __riscv_vfnmsac_vv_f32m8(one, d, r, vl); // 1 - d * r
     r = __riscv_vfmadd_vv_f32m8(r, t, r, vl);    // r + r * (1 - d * r)
     t = __riscv_vfnmsac_vv_f32m8(one, d, r, vl); // 1 - d * r
     r = __riscv_vfmadd_vv_f32m8(r, t, r, vl);    // r + r * (1 - d * r)
-    /* Refine q */
-    t = __riscv_vfnmsub_vv_f32m8(d, q, n, vl);
-    q = __riscv_vfmacc_vv_f32m8(q, r, t, vl);
+    vfloat32m8_t q = __riscv_vfmul_vv_f32m8(n, r, vl);
 
     const vbool4_t m = __riscv_vmfgt_vf_f32m8_b4(vx, 0, vl);
     vfloat32m8_t vy = __riscv_vfrsub_vf_f32m8_mu(m, q, q, 1, vl);
