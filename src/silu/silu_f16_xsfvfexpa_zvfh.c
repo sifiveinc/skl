@@ -33,10 +33,10 @@ SKL_FUNC void skl_silu_9u_f16_xsfvfexpa_zvfh(_Float16 *out, const _Float16 *in,
     const vfloat16m8_t one = __riscv_vfmv_v_f_f16m8(1, vl);
     vfloat16m8_t t = __riscv_vfnmsac_vv_f16m8(one, d, r, vl); // 1 - d * r
     r = __riscv_vfmadd_vv_f16m8(r, t, r, vl); // r + r * (1 - d * r)
-    vfloat16m8_t q = __riscv_vfmul_vv_f16m8(n, r, vl);
 
-    const vbool2_t m = __riscv_vmfgt_vf_f16m8_b2(vx, 0, vl);
-    vfloat16m8_t vy = __riscv_vfrsub_vf_f16m8_mu(m, q, q, 1, vl);
+    /* Calculate quotient */
+    const vbool2_t m = __riscv_vmflt_vf_f16m8_b2(vx, 0, vl);
+    vfloat16m8_t vy = __riscv_vfmul_vv_f16m8_mu(m, r, r, n, vl);
 
     /* Multiply */
     vy = __riscv_vfmul_vv_f16m8(vy, vx, vl);

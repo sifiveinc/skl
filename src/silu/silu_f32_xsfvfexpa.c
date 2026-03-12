@@ -35,10 +35,10 @@ SKL_FUNC void skl_silu_52u_f32_xsfvfexpa(float *out, const float *in,
     r = __riscv_vfmadd_vv_f32m8(r, t, r, vl);    // r + r * (1 - d * r)
     t = __riscv_vfnmsac_vv_f32m8(one, d, r, vl); // 1 - d * r
     r = __riscv_vfmadd_vv_f32m8(r, t, r, vl);    // r + r * (1 - d * r)
-    vfloat32m8_t q = __riscv_vfmul_vv_f32m8(n, r, vl);
 
-    const vbool4_t m = __riscv_vmfgt_vf_f32m8_b4(vx, 0, vl);
-    vfloat32m8_t vy = __riscv_vfrsub_vf_f32m8_mu(m, q, q, 1, vl);
+    /* Calculate quotient */
+    const vbool4_t m = __riscv_vmflt_vf_f32m8_b4(vx, 0, vl);
+    vfloat32m8_t vy = __riscv_vfmul_vv_f32m8_mu(m, r, r, n, vl);
 
     /* Multiply */
     vy = __riscv_vfmul_vv_f32m8(vy, vx, vl);
