@@ -5,14 +5,16 @@
 #error This file requires the Zve32f extension
 #endif
 
-#if !defined(__riscv_zihintntl)
-#error This file requires the Zihintntl extension
-#endif
-
 #include <riscv_vector.h>
 #include <stddef.h>
 
 #include "skl-common.h"
+
+#if defined(__riscv_zihintntl)
+#define NTL_P1 "ntl.p1 \n\t"
+#else
+#define NTL_P1
+#endif
 
 /**
  * @brief RVV float32 vector-matrix multiplication for row-major B and
@@ -613,14 +615,10 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(
             "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
 
             // Initialize accs
-            "vle32.v %[b00], (%[b_load_0]) \n\t"
-            "ntl.p1 \n\t"
-            "flw %[a00], 0(%[a_addr_0]) \n\t"
-            "ntl.p1 \n\t"
-            "flw %[a10], 0(%[a_addr_1]) \n\t"
-            "ntl.p1 \n\t"
-            "flw %[a20], 0(%[a_addr_2]) \n\t"
-            "ntl.p1 \n\t"
+            "vle32.v %[b00], (%[b_load_0]) \n\t" NTL_P1
+            "flw %[a00], 0(%[a_addr_0]) \n\t" NTL_P1
+            "flw %[a10], 0(%[a_addr_1]) \n\t" NTL_P1
+            "flw %[a20], 0(%[a_addr_2]) \n\t" NTL_P1
             "flw %[a30], 0(%[a_addr_3]) \n\t"
             "vfmul.vf %[acc0], %[b00], %[a00] \n\t"
             "vfmul.vf %[acc1], %[b00], %[a10] \n\t"
@@ -713,14 +711,10 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(
             "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
             "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
             "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
-            "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
-            "ntl.p1 \n\t"
-            "flw %[a00], 16(%[a_addr_0]) \n\t"
-            "ntl.p1 \n\t"
-            "flw %[a10], 16(%[a_addr_1]) \n\t"
-            "ntl.p1 \n\t"
-            "flw %[a20], 16(%[a_addr_2]) \n\t"
-            "ntl.p1 \n\t"
+            "vfmacc.vf %[acc3], %[a30], %[b00] \n\t" NTL_P1
+            "flw %[a00], 16(%[a_addr_0]) \n\t" NTL_P1
+            "flw %[a10], 16(%[a_addr_1]) \n\t" NTL_P1
+            "flw %[a20], 16(%[a_addr_2]) \n\t" NTL_P1
             "flw %[a30], 16(%[a_addr_3]) \n\t"
 
             "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
@@ -729,14 +723,10 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(
             "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 1) * rsb +
                                                      // jj
             "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
-            "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
-            "ntl.p1 \n\t"
-            "flw %[a01], 20(%[a_addr_0]) \n\t"
-            "ntl.p1 \n\t"
-            "flw %[a11], 20(%[a_addr_1]) \n\t"
-            "ntl.p1 \n\t"
-            "flw %[a21], 20(%[a_addr_2]) \n\t"
-            "ntl.p1 \n\t"
+            "vfmacc.vf %[acc3], %[a31], %[b10] \n\t" NTL_P1
+            "flw %[a01], 20(%[a_addr_0]) \n\t" NTL_P1
+            "flw %[a11], 20(%[a_addr_1]) \n\t" NTL_P1
+            "flw %[a21], 20(%[a_addr_2]) \n\t" NTL_P1
             "flw %[a31], 20(%[a_addr_3]) \n\t"
 
             "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
@@ -745,14 +735,10 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(
             "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 2) * rsb +
                                                      // jj
             "vfmacc.vf %[acc2], %[a22], %[b20] \n\t"
-            "vfmacc.vf %[acc3], %[a32], %[b20] \n\t"
-            "ntl.p1 \n\t"
-            "flw %[a02], 24(%[a_addr_0]) \n\t"
-            "ntl.p1 \n\t"
-            "flw %[a12], 24(%[a_addr_1]) \n\t"
-            "ntl.p1 \n\t"
-            "flw %[a22], 24(%[a_addr_2]) \n\t"
-            "ntl.p1 \n\t"
+            "vfmacc.vf %[acc3], %[a32], %[b20] \n\t" NTL_P1
+            "flw %[a02], 24(%[a_addr_0]) \n\t" NTL_P1
+            "flw %[a12], 24(%[a_addr_1]) \n\t" NTL_P1
+            "flw %[a22], 24(%[a_addr_2]) \n\t" NTL_P1
             "flw %[a32], 24(%[a_addr_3]) \n\t"
 
             "vfmacc.vf %[acc0], %[a03], %[b30] \n\t"
@@ -761,14 +747,10 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(
             "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 3) * rsb +
                                                      // jj
             "vfmacc.vf %[acc2], %[a23], %[b30] \n\t"
-            "vfmacc.vf %[acc3], %[a33], %[b30] \n\t"
-            "ntl.p1 \n\t"
-            "flw %[a03], 28(%[a_addr_0]) \n\t"
-            "ntl.p1 \n\t"
-            "flw %[a13], 28(%[a_addr_1]) \n\t"
-            "ntl.p1 \n\t"
-            "flw %[a23], 28(%[a_addr_2]) \n\t"
-            "ntl.p1 \n\t"
+            "vfmacc.vf %[acc3], %[a33], %[b30] \n\t" NTL_P1
+            "flw %[a03], 28(%[a_addr_0]) \n\t" NTL_P1
+            "flw %[a13], 28(%[a_addr_1]) \n\t" NTL_P1
+            "flw %[a23], 28(%[a_addr_2]) \n\t" NTL_P1
             "flw %[a33], 28(%[a_addr_3]) \n\t"
 
             "vle32.v %[b30], (%[b_addr]) \n\t"
@@ -937,3 +919,5 @@ SKL_FUNC void skl_gemm_f32_f32_f32_zve32f_x390(size_t m, size_t n, size_t k,
   skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(m, n, k, alpha, a, rsa, b, rsb, beta,
                                           c, rsc);
 }
+
+#undef NTL_P1
