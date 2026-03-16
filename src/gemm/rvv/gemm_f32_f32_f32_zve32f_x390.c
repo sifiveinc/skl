@@ -611,14 +611,19 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(
       jj_vl = __riscv_vsetvl_e32m4(n - jj);
       if (1 + 4 <= k) {
         __asm__ volatile(
+            // clang-format off
             "\n\t"
             "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
 
             // Initialize accs
-            "vle32.v %[b00], (%[b_load_0]) \n\t" NTL_P1
-            "flw %[a00], 0(%[a_addr_0]) \n\t" NTL_P1
-            "flw %[a10], 0(%[a_addr_1]) \n\t" NTL_P1
-            "flw %[a20], 0(%[a_addr_2]) \n\t" NTL_P1
+            "vle32.v %[b00], (%[b_load_0]) \n\t"
+            NTL_P1
+            "flw %[a00], 0(%[a_addr_0]) \n\t"
+            NTL_P1
+            "flw %[a10], 0(%[a_addr_1]) \n\t"
+            NTL_P1
+            "flw %[a20], 0(%[a_addr_2]) \n\t"
+            NTL_P1
             "flw %[a30], 0(%[a_addr_3]) \n\t"
             "vfmul.vf %[acc0], %[b00], %[a00] \n\t"
             "vfmul.vf %[acc1], %[b00], %[a10] \n\t"
@@ -650,6 +655,7 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(
             "flw %[a13], 16(%[a_addr_1]) \n\t"
             "flw %[a23], 16(%[a_addr_2]) \n\t"
             "flw %[a33], 16(%[a_addr_3]) \n\t"
+            // clang-format on
             : [b00] "=&vr"(b00), [b10] "=&vr"(b10), [b20] "=&vr"(b20),
               [b30] "=&vr"(b30), [acc0] "=&vr"(acc0), [acc1] "=&vr"(acc1),
               [acc2] "=&vr"(acc2), [acc3] "=&vr"(acc3), [a00] "=&f"(a00),
@@ -698,62 +704,74 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(
         const float *a_addr_3;
         const float *b_addr = b + (kk + 4) * rsb + jj;
         __asm__ volatile(
+            // clang-format off
             "\n\t"
             "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
 
-            "add %[a_addr_1], %[a_addr_0], %[rsa4] \n\t" // a + (ii + 1) * rsa +
-                                                         // kk
-            "add %[a_addr_2], %[a_addr_1], %[rsa4] \n\t" // a + (ii + 2) * rsa +
-                                                         // kk
-            "add %[a_addr_3], %[a_addr_2], %[rsa4] \n\t" // a + (ii + 3) * rsa +
-                                                         // kk
+            "add %[a_addr_1], %[a_addr_0], %[rsa4] \n\t" // a + (ii + 1) * rsa + kk
+            "add %[a_addr_2], %[a_addr_1], %[rsa4] \n\t" // a + (ii + 2) * rsa + kk
+            "add %[a_addr_3], %[a_addr_2], %[rsa4] \n\t" // a + (ii + 3) * rsa + kk
 
             "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
             "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
             "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
-            "vfmacc.vf %[acc3], %[a30], %[b00] \n\t" NTL_P1
-            "flw %[a00], 16(%[a_addr_0]) \n\t" NTL_P1
-            "flw %[a10], 16(%[a_addr_1]) \n\t" NTL_P1
-            "flw %[a20], 16(%[a_addr_2]) \n\t" NTL_P1
+            "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
+            NTL_P1
+            "flw %[a00], 16(%[a_addr_0]) \n\t"
+            NTL_P1
+            "flw %[a10], 16(%[a_addr_1]) \n\t"
+            NTL_P1
+            "flw %[a20], 16(%[a_addr_2]) \n\t"
+            NTL_P1
             "flw %[a30], 16(%[a_addr_3]) \n\t"
 
             "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
             "vfmacc.vf %[acc1], %[a11], %[b10] \n\t"
             "vle32.v %[b00], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 1) * rsb +
-                                                     // jj
+            "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 1) * rsb + jj
             "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
-            "vfmacc.vf %[acc3], %[a31], %[b10] \n\t" NTL_P1
-            "flw %[a01], 20(%[a_addr_0]) \n\t" NTL_P1
-            "flw %[a11], 20(%[a_addr_1]) \n\t" NTL_P1
-            "flw %[a21], 20(%[a_addr_2]) \n\t" NTL_P1
+            "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
+            NTL_P1
+            "flw %[a01], 20(%[a_addr_0]) \n\t"
+            NTL_P1
+            "flw %[a11], 20(%[a_addr_1]) \n\t"
+            NTL_P1
+            "flw %[a21], 20(%[a_addr_2]) \n\t"
+            NTL_P1
             "flw %[a31], 20(%[a_addr_3]) \n\t"
 
             "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
             "vfmacc.vf %[acc1], %[a12], %[b20] \n\t"
             "vle32.v %[b10], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 2) * rsb +
-                                                     // jj
+            "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 2) * rsb + jj
             "vfmacc.vf %[acc2], %[a22], %[b20] \n\t"
-            "vfmacc.vf %[acc3], %[a32], %[b20] \n\t" NTL_P1
-            "flw %[a02], 24(%[a_addr_0]) \n\t" NTL_P1
-            "flw %[a12], 24(%[a_addr_1]) \n\t" NTL_P1
-            "flw %[a22], 24(%[a_addr_2]) \n\t" NTL_P1
+            "vfmacc.vf %[acc3], %[a32], %[b20] \n\t"
+            NTL_P1
+            "flw %[a02], 24(%[a_addr_0]) \n\t"
+            NTL_P1
+            "flw %[a12], 24(%[a_addr_1]) \n\t"
+            NTL_P1
+            "flw %[a22], 24(%[a_addr_2]) \n\t"
+            NTL_P1
             "flw %[a32], 24(%[a_addr_3]) \n\t"
 
             "vfmacc.vf %[acc0], %[a03], %[b30] \n\t"
             "vfmacc.vf %[acc1], %[a13], %[b30] \n\t"
             "vle32.v %[b20], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 3) * rsb +
-                                                     // jj
+            "add %[b_addr], %[b_addr], %[rsb4] \n\t" // b + (kk + 4 + 3) * rsb + jj
             "vfmacc.vf %[acc2], %[a23], %[b30] \n\t"
-            "vfmacc.vf %[acc3], %[a33], %[b30] \n\t" NTL_P1
-            "flw %[a03], 28(%[a_addr_0]) \n\t" NTL_P1
-            "flw %[a13], 28(%[a_addr_1]) \n\t" NTL_P1
-            "flw %[a23], 28(%[a_addr_2]) \n\t" NTL_P1
+            "vfmacc.vf %[acc3], %[a33], %[b30] \n\t"
+            NTL_P1
+            "flw %[a03], 28(%[a_addr_0]) \n\t"
+            NTL_P1
+            "flw %[a13], 28(%[a_addr_1]) \n\t"
+            NTL_P1
+            "flw %[a23], 28(%[a_addr_2]) \n\t"
+            NTL_P1
             "flw %[a33], 28(%[a_addr_3]) \n\t"
 
             "vle32.v %[b30], (%[b_addr]) \n\t"
+            // clang-format on
             : [a00] "+&f"(a00), [a10] "+&f"(a10), [a20] "+&f"(a20),
               [a30] "+&f"(a30), [a01] "+&f"(a01), [a11] "+&f"(a11),
               [a21] "+&f"(a21), [a31] "+&f"(a31), [a02] "+&f"(a02),
