@@ -245,26 +245,31 @@ SKL_FUNC_PRIVATE void skl_store_tile_e32c_xsfmmbase(size_t tm, size_t tn,
 }
 
 SKL_XSFMM_NEW
-SKL_FUNC void skl_pack_transpose_e32_inner_transpose_xsfmmbase(
-    size_t m, size_t n, const uint32_t *a, size_t rsa, size_t m0, size_t n0,
-    uint32_t *b, size_t rsb0, size_t csb0, size_t rsb1, size_t csb1) {
-  // for now, assume no bottom padding required (m % m0 == 0)
-  size_t m1 = (m + m0 - 1) / m0;
-  size_t n1 = (n + n0 - 1) / n0;
-  if (m1 == 0 || n1 == 0) {
+SKL_FUNC void skl_pack_e32_e32rcpc_xsfmmbase(size_t m, size_t n,
+                                             const uint32_t *a, size_t rsa,
+                                             size_t m0, size_t n0,
+                                             uint32_t *a_pack, size_t csa0,
+                                             size_t rsa1, size_t csa1) {
+  if (m == 0 || n == 0) {
     return;
   }
+
+  const size_t m1 = (m + m0 - 1) / m0;
+  const size_t n1 = (n + n0 - 1) / n0;
 
   const size_t mt0 = 0;
   const size_t mt0c = mt0 | (size_t)1 << 24;
   const size_t mt4 = (size_t)4 << 27;
   const size_t mt4c = mt4 | (size_t)1 << 24;
+
   size_t avl_m = m;
   size_t mb0 = m0 <= avl_m ? m0 : avl_m;
   size_t mb1 = 0;
   size_t nb0 = n0 <= n ? n0 : n;
   size_t nb1 = 0;
+
   skl_load_tile_e32_xsfmmbase(mb0, nb0, a, rsa, mt0);
+
   size_t i1 = 0;
   size_t j1 = 0;
   for (; i1 + 1 < m1; i1 += 2) {
@@ -275,27 +280,27 @@ SKL_FUNC void skl_pack_transpose_e32_inner_transpose_xsfmmbase(
       avl_n -= nb0;
       nb1 = n0 <= avl_n ? n0 : avl_n;
       skl_store_load_tile_e32c_e32_xsfmmbase(
-          mb0, nb0, mt0c, m0, n0, b + i1 * rsb1 + j1 * csb1, csb0, mb1, nb0,
-          a + (i1 + 1) * m0 * rsa + j1 * n0, rsa, mt4);
+          mb0, nb0, mt0c, m0, n0, a_pack + i1 * rsa1 + j1 * csa1, csa0, mb1,
+          nb0, a + (i1 + 1) * m0 * rsa + j1 * n0, rsa, mt4);
       skl_store_load_tile_e32c_e32_xsfmmbase(
-          mb1, nb0, mt4c, m0, n0, b + (i1 + 1) * rsb1 + j1 * csb1, csb0, mb0,
-          nb1, a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt0);
+          mb1, nb0, mt4c, m0, n0, a_pack + (i1 + 1) * rsa1 + j1 * csa1, csa0,
+          mb0, nb1, a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt0);
       nb0 = nb1;
     }
     skl_store_load_tile_e32c_e32_xsfmmbase(
-        mb0, nb0, mt0c, m0, n0, b + i1 * rsb1 + j1 * csb1, csb0, mb1, nb0,
+        mb0, nb0, mt0c, m0, n0, a_pack + i1 * rsa1 + j1 * csa1, csa0, mb1, nb0,
         a + (i1 + 1) * m0 * rsa + j1 * n0, rsa, mt4);
     if (i1 + 2 < m1) {
       avl_m -= mb1;
       mb0 = m0 <= avl_m ? m0 : avl_m;
       nb1 = n0 <= n ? n0 : n;
       skl_store_load_tile_e32c_e32_xsfmmbase(
-          mb1, nb0, mt4c, m0, n0, b + (i1 + 1) * rsb1 + j1 * csb1, csb0, mb0,
-          nb1, a + (i1 + 2) * m0 * rsa + 0 * n0, rsa, mt0);
+          mb1, nb0, mt4c, m0, n0, a_pack + (i1 + 1) * rsa1 + j1 * csa1, csa0,
+          mb0, nb1, a + (i1 + 2) * m0 * rsa + 0 * n0, rsa, mt0);
       nb0 = nb1;
     } else {
       skl_store_tile_e32c_xsfmmbase(mb1, nb0, mt4c, m0, n0,
-                                    b + (i1 + 1) * rsb1 + j1 * csb1, csb0);
+                                    a_pack + (i1 + 1) * rsa1 + j1 * csa1, csa0);
       return;
     }
   }
@@ -309,24 +314,24 @@ SKL_FUNC void skl_pack_transpose_e32_inner_transpose_xsfmmbase(
     avl_n -= nb1;
     nb2 = n0 <= avl_n ? n0 : avl_n;
     skl_store_load_tile_e32c_e32_xsfmmbase(
-        mb0, nb0, mt0c, m0, n0, b + i1 * rsb1 + j1 * csb1, csb0, mb0, nb1,
+        mb0, nb0, mt0c, m0, n0, a_pack + i1 * rsa1 + j1 * csa1, csa0, mb0, nb1,
         a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt4);
     skl_store_load_tile_e32c_e32_xsfmmbase(
-        mb0, nb1, mt4c, m0, n0, b + i1 * rsb1 + (j1 + 1) * csb1, csb0, mb0, nb2,
-        a + i1 * m0 * rsa + (j1 + 2) * n0, rsa, mt0);
+        mb0, nb1, mt4c, m0, n0, a_pack + i1 * rsa1 + (j1 + 1) * csa1, csa0, mb0,
+        nb2, a + i1 * m0 * rsa + (j1 + 2) * n0, rsa, mt0);
     nb0 = nb2;
   }
   if (n1 % 2) {
     skl_store_tile_e32c_xsfmmbase(mb0, nb0, mt0c, m0, n0,
-                                  b + i1 * rsb1 + j1 * csb1, csb0);
+                                  a_pack + i1 * rsa1 + j1 * csa1, csa0);
   } else {
     avl_n -= nb0;
     nb1 = n0 <= avl_n ? n0 : avl_n;
     skl_store_load_tile_e32c_e32_xsfmmbase(
-        mb0, nb0, mt0c, m0, n0, b + i1 * rsb1 + j1 * csb1, csb0, m0, nb1,
+        mb0, nb0, mt0c, m0, n0, a_pack + i1 * rsa1 + j1 * csa1, csa0, m0, nb1,
         a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt4);
     skl_store_tile_e32c_xsfmmbase(mb0, nb1, mt4c, m0, n0,
-                                  b + i1 * rsb1 + (j1 + 1) * csb1, csb0);
+                                  a_pack + i1 * rsa1 + (j1 + 1) * csa1, csa0);
   }
 }
 
