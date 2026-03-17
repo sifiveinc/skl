@@ -44,16 +44,16 @@ SKL_FUNC_PRIVATE void skl_load_tile_e32_xsfmmbase(size_t tm, size_t tn,
 // Note: this function will only be called with tm0 == m0 or tn0 == n0 since the
 // bottom right corner tile is stored last.
 SKL_XSFMM_INOUT
-SKL_FUNC_PRIVATE void skl_load_store_tile_full_full_e32_xsfmmbase(
-    size_t m0, size_t n0, size_t tm0, size_t tn0, size_t tss0, uint32_t *a0,
+SKL_FUNC_PRIVATE void skl_store_load_tile_e32c_e32_xsfmmbase(
+    size_t tm0, size_t tn0, size_t tss0, size_t m0, size_t n0, uint32_t *a0,
     size_t csa0, size_t tm1, size_t tn1, const uint32_t *a1, size_t rsa1,
     size_t tss1) {
   if ((m0 == 0 || n0 == 0) && (tm1 == 0 || tn1 == 0)) {
     return;
   }
 
-  const size_t pad_len = m0 >= n0 ? m0 : n0;
-  vuint32m8_t pad = __riscv_vmv_v_x_u32m8(0, pad_len);
+  vuint32m8_t pad = __riscv_vmv_v_x_u32m8(0, m0);
+
   const size_t kRowInc = 1;
 
   if (tm0 == m0) {
@@ -132,7 +132,7 @@ SKL_FUNC_PRIVATE void skl_load_store_tile_full_full_e32_xsfmmbase(
     size_t i = 0;
     __asm__ volatile("sf.vsettnt x0, x0, e32, w1\n"
 
-                     "bgeu %[i], %[k0], 2f\n"
+                     "bgeu %[i], %[k0], 1f\n"
                      "0:\n"
                      "addi %[i], %[i], 1\n"
                      "sf.vsettn x0, %[tm0]\n"
@@ -145,8 +145,8 @@ SKL_FUNC_PRIVATE void skl_load_store_tile_full_full_e32_xsfmmbase(
                      "add %[a1], %[a1], %[sa1]\n"
                      "bltu %[i], %[k0], 0b\n"
 
-                     "2:\n"
-                     "bgeu %[i], %[tn0], 4f\n"
+                     "1:\n"
+                     "bgeu %[i], %[tn0], 2f\n"
                      "sf.vsettn x0, %[tm0]\n"
                      "0:\n"
                      "addi %[i], %[i], 1\n"
@@ -155,8 +155,8 @@ SKL_FUNC_PRIVATE void skl_load_store_tile_full_full_e32_xsfmmbase(
                      "add %[a0], %[a0], %[sa0]\n"
                      "bltu %[i], %[tn0], 0b\n"
 
-                     "4:\n"
-                     "bgeu %[i], %[tm1], 5f\n"
+                     "2:\n"
+                     "bgeu %[i], %[tm1], 3f\n"
                      "sf.vsettn x0, %[tn1]\n"
                      "0:\n"
                      "addi %[i], %[i], 1\n"
@@ -165,9 +165,9 @@ SKL_FUNC_PRIVATE void skl_load_store_tile_full_full_e32_xsfmmbase(
                      "add %[a1], %[a1], %[sa1]\n"
                      "bltu %[i], %[tm1], 0b\n"
 
-                     "5:\n"
-                     "beqz %[tn0], 6f\n"
-                     "beqz %[tm_pad], 6f\n"
+                     "3:\n"
+                     "beqz %[tn0], 4f\n"
+                     "beqz %[tm_pad], 4f\n"
                      "li %[i], 0\n"
                      "sf.vsettn x0, %[tm_pad]\n"
                      "0:\n"
@@ -176,7 +176,7 @@ SKL_FUNC_PRIVATE void skl_load_store_tile_full_full_e32_xsfmmbase(
                      "add %[a0_pad], %[a0_pad], %[sa0]\n"
                      "bltu %[i], %[tn0], 0b\n"
 
-                     "6:\n"
+                     "4:\n"
                      : [tss0] "+&r"(tss0), [tss1] "+&r"(tss1), [a0] "+&r"(a0),
                        [a1] "+&r"(a1), [a0_pad] "+&r"(a0_pad), [i] "+&r"(i)
                      : [pad] "vr"(pad), [kRowInc] "rI"(kRowInc),
@@ -274,23 +274,23 @@ SKL_FUNC void skl_pack_transpose_e32_inner_transpose_xsfmmbase(
     for (j1 = 0; j1 + 1 < n1; ++j1) {
       avl_n -= nb0;
       nb1 = n0 <= avl_n ? n0 : avl_n;
-      skl_load_store_tile_full_full_e32_xsfmmbase(
-          m0, n0, mb0, nb0, mt0c, b + i1 * rsb1 + j1 * csb1, csb0, mb1, nb0,
+      skl_store_load_tile_e32c_e32_xsfmmbase(
+          mb0, nb0, mt0c, m0, n0, b + i1 * rsb1 + j1 * csb1, csb0, mb1, nb0,
           a + (i1 + 1) * m0 * rsa + j1 * n0, rsa, mt4);
-      skl_load_store_tile_full_full_e32_xsfmmbase(
-          m0, n0, mb1, nb0, mt4c, b + (i1 + 1) * rsb1 + j1 * csb1, csb0, mb0,
+      skl_store_load_tile_e32c_e32_xsfmmbase(
+          mb1, nb0, mt4c, m0, n0, b + (i1 + 1) * rsb1 + j1 * csb1, csb0, mb0,
           nb1, a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt0);
       nb0 = nb1;
     }
-    skl_load_store_tile_full_full_e32_xsfmmbase(
-        m0, n0, mb0, nb0, mt0c, b + i1 * rsb1 + j1 * csb1, csb0, mb1, nb0,
+    skl_store_load_tile_e32c_e32_xsfmmbase(
+        mb0, nb0, mt0c, m0, n0, b + i1 * rsb1 + j1 * csb1, csb0, mb1, nb0,
         a + (i1 + 1) * m0 * rsa + j1 * n0, rsa, mt4);
     if (i1 + 2 < m1) {
       avl_m -= mb1;
       mb0 = m0 <= avl_m ? m0 : avl_m;
       nb1 = n0 <= n ? n0 : n;
-      skl_load_store_tile_full_full_e32_xsfmmbase(
-          m0, n0, mb1, nb0, mt4c, b + (i1 + 1) * rsb1 + j1 * csb1, csb0, mb0,
+      skl_store_load_tile_e32c_e32_xsfmmbase(
+          mb1, nb0, mt4c, m0, n0, b + (i1 + 1) * rsb1 + j1 * csb1, csb0, mb0,
           nb1, a + (i1 + 2) * m0 * rsa + 0 * n0, rsa, mt0);
       nb0 = nb1;
     } else {
@@ -308,11 +308,11 @@ SKL_FUNC void skl_pack_transpose_e32_inner_transpose_xsfmmbase(
     nb1 = n0 <= avl_n ? n0 : avl_n;
     avl_n -= nb1;
     nb2 = n0 <= avl_n ? n0 : avl_n;
-    skl_load_store_tile_full_full_e32_xsfmmbase(
-        m0, n0, mb0, nb0, mt0c, b + i1 * rsb1 + j1 * csb1, csb0, mb0, nb1,
+    skl_store_load_tile_e32c_e32_xsfmmbase(
+        mb0, nb0, mt0c, m0, n0, b + i1 * rsb1 + j1 * csb1, csb0, mb0, nb1,
         a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt4);
-    skl_load_store_tile_full_full_e32_xsfmmbase(
-        m0, n0, mb0, nb1, mt4c, b + i1 * rsb1 + (j1 + 1) * csb1, csb0, mb0, nb2,
+    skl_store_load_tile_e32c_e32_xsfmmbase(
+        mb0, nb1, mt4c, m0, n0, b + i1 * rsb1 + (j1 + 1) * csb1, csb0, mb0, nb2,
         a + i1 * m0 * rsa + (j1 + 2) * n0, rsa, mt0);
     nb0 = nb2;
   }
@@ -322,8 +322,8 @@ SKL_FUNC void skl_pack_transpose_e32_inner_transpose_xsfmmbase(
   } else {
     avl_n -= nb0;
     nb1 = n0 <= avl_n ? n0 : avl_n;
-    skl_load_store_tile_full_full_e32_xsfmmbase(
-        m0, n0, mb0, nb0, mt0c, b + i1 * rsb1 + j1 * csb1, csb0, m0, nb1,
+    skl_store_load_tile_e32c_e32_xsfmmbase(
+        mb0, nb0, mt0c, m0, n0, b + i1 * rsb1 + j1 * csb1, csb0, m0, nb1,
         a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt4);
     skl_store_tile_e32c_xsfmmbase(mb0, nb1, mt4c, m0, n0,
                                   b + i1 * rsb1 + (j1 + 1) * csb1, csb0);
