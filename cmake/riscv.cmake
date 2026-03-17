@@ -29,6 +29,7 @@ set(SKL_ARCH_EXTENSIONS
   # zvfofp4min0p1
   # xsfvqdotq
   zvfbfmin
+  zihintntl
 )
 
 string(JOIN "_" SKL_ARCH_STR ${SKL_ARCH_EXTENSIONS})
