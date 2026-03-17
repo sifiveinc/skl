@@ -535,7 +535,7 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
               : "vtype", "vl", "memory");
         }
 
-        __asm__ volatile( // Drain pipline.
+        __asm__ volatile( // Drain pipeline.
             "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
 
             "flw %[a003], 12(%[a_addr0]) \n\t"
