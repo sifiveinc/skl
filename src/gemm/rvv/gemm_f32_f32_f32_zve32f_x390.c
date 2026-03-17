@@ -232,7 +232,6 @@ skl_gemm_1x2m8x2_f32_f32_f32_zve32f_x390(size_t n, size_t k, float alpha,
  * @note
  * Works best when `m >= 8` and `n <= 2*__riscv_vsetvlmax_e32m1()`.
  */
-
 SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
     size_t m, size_t n, size_t k, float alpha, const float *a, size_t rsa,
     const float *b, size_t rsb, float beta, float *c, size_t rsc) {
@@ -407,12 +406,12 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
               [a010] "=&f"(a010), [a011] "=&f"(a011), [a020] "=&f"(a020),
               [jj_vl_out] "=&r"(jj_vl), [b00] "=&vr"(b00), [b01] "=&vr"(b01),
               [b02] "=&vr"(b02), [b03] "=&vr"(b03), [acc0] "+&vr"(acc0),
-              [acc1] "+&vr"(acc1), [acc2] "+&vr"(acc2),
-              [a_addr0] "+&r"(a_addr0), [a_addr1] "+&r"(a_addr1),
-              [a_addr2] "+&r"(a_addr2), [b_addr0] "+&r"(b_addr0),
-              [b_addr1] "+&r"(b_addr1), [b_addr2] "+&r"(b_addr2),
-              [b_addr3] "+&r"(b_addr3)
-            : [rsa] "r"(rsa), [rsb] "r"(rsb), [jj_vl_in] "r"(n - jj)
+              [acc1] "+&vr"(acc1), [acc2] "+&vr"(acc2)
+            : [rsa] "r"(rsa), [rsb] "r"(rsb), [jj_vl_in] "r"(n - jj),
+              [a_addr0] "r"(a_addr0), [a_addr1] "r"(a_addr1),
+              [a_addr2] "r"(a_addr2), [b_addr0] "r"(b_addr0),
+              [b_addr1] "r"(b_addr1), [b_addr2] "r"(b_addr2),
+              [b_addr3] "r"(b_addr3)
             : "vtype", "vl", "memory");
 
         for (; (kk + 8) <= k; kk = kk + 4) {
@@ -521,8 +520,8 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
                 [a060] "=&f"(a060), [a061] "=&f"(a061), [a062] "=&f"(a062),
                 [a063] "=&f"(a063), [a070] "=&f"(a070), [a071] "=&f"(a071),
                 [a072] "=&f"(a072), [a073] "=&f"(a073),
-                [jj_vl_out] "=&r"(jj_vl), [b00] "=&vr"(b00), [b01] "=&vr"(b01),
-                [b02] "=&vr"(b02), [b03] "=&vr"(b03), [acc0] "+&vr"(acc0),
+                [jj_vl_out] "=&r"(jj_vl), [b00] "+&vr"(b00), [b01] "+&vr"(b01),
+                [b02] "+&vr"(b02), [b03] "+&vr"(b03), [acc0] "+&vr"(acc0),
                 [acc1] "+&vr"(acc1), [acc2] "+&vr"(acc2), [acc3] "+&vr"(acc3),
                 [acc4] "+&vr"(acc4), [acc5] "+&vr"(acc5), [acc6] "+&vr"(acc6),
                 [acc7] "+&vr"(acc7), [a_addr0] "+&r"(a_addr0),
@@ -616,17 +615,15 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
               [a060] "=&f"(a060), [a061] "=&f"(a061), [a062] "=&f"(a062),
               [a063] "=&f"(a063), [a070] "=&f"(a070), [a071] "=&f"(a071),
               [a072] "=&f"(a072), [a073] "=&f"(a073), [jj_vl_out] "=&r"(jj_vl),
-              [b00] "=&vr"(b00), [b01] "=&vr"(b01), [b02] "=&vr"(b02),
-              [b03] "=&vr"(b03), [acc0] "+&vr"(acc0), [acc1] "+&vr"(acc1),
-              [acc2] "+&vr"(acc2), [acc3] "+&vr"(acc3), [acc4] "+&vr"(acc4),
-              [acc5] "+&vr"(acc5), [acc6] "+&vr"(acc6), [acc7] "+&vr"(acc7)
-            : [jj_vl_in] "r"(n - jj), [a_addr0] "r"(a_addr0),
-              [a_addr1] "r"(a_addr1), [a_addr2] "r"(a_addr2),
-              [a_addr3] "r"(a_addr3), [a_addr4] "r"(a_addr4),
-              [a_addr5] "r"(a_addr5), [a_addr6] "r"(a_addr6),
-              [a_addr7] "r"(a_addr7), [b_addr0] "r"(b_addr0),
-              [b_addr1] "r"(b_addr1), [b_addr2] "r"(b_addr2),
-              [b_addr3] "r"(b_addr3)
+              [acc0] "+&vr"(acc0), [acc1] "+&vr"(acc1), [acc2] "+&vr"(acc2),
+              [acc3] "+&vr"(acc3), [acc4] "+&vr"(acc4), [acc5] "+&vr"(acc5),
+              [acc6] "+&vr"(acc6), [acc7] "+&vr"(acc7),
+              [a_addr0] "+&r"(a_addr0), [a_addr1] "+&r"(a_addr1),
+              [a_addr2] "+&r"(a_addr2), [a_addr3] "+&r"(a_addr3),
+              [a_addr4] "+&r"(a_addr4), [a_addr5] "+&r"(a_addr5),
+              [a_addr6] "+&r"(a_addr6), [a_addr7] "+&r"(a_addr7)
+            : [jj_vl_in] "r"(n - jj), [b00] "vr"(b00), [b01] "vr"(b01),
+              [b02] "vr"(b02), [b03] "vr"(b03)
             : "vtype", "vl", "memory");
 
         kk += 4; // Account for work done by drain.
@@ -670,8 +667,7 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
               [a_addr2] "+&r"(a_addr2), [a_addr3] "+&r"(a_addr3),
               [a_addr4] "+&r"(a_addr4), [a_addr5] "+&r"(a_addr5),
               [a_addr6] "+&r"(a_addr6), [a_addr7] "+&r"(a_addr7)
-            : [jj_vl_in] "r"(n - jj), [b_load] "r"(b + kk0 * rsb + jj),
-              [rsa] "r"(rsa)
+            : [jj_vl_in] "r"(n - jj), [b_load] "r"(b + kk0 * rsb + jj)
             : "vtype", "vl", "memory");
       }
       __asm__ volatile(
