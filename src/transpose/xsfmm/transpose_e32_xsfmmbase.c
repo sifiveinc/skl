@@ -7,6 +7,7 @@
 #error This file requires the Xsfmmbase extension
 #endif
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -245,11 +246,10 @@ SKL_FUNC_PRIVATE void skl_store_tile_e32c_xsfmmbase(size_t tm, size_t tn,
 }
 
 SKL_XSFMM_NEW
-SKL_FUNC void skl_pack_e32_e32rcpc_xsfmmbase(size_t m, size_t n,
-                                             const uint32_t *a, size_t rsa,
-                                             size_t m0, size_t n0,
-                                             uint32_t *a_pack, size_t csa0,
-                                             size_t rsa1, size_t csa1) {
+SKL_FUNC_PRIVATE void skl_pack_e32_e32rcpc_xsfmmbase(
+    size_t m, size_t n, const uint32_t *a, size_t rsa, size_t m0, size_t n0,
+    uint32_t *a_pack, size_t csa0, size_t rsa1, size_t csa1,
+    bool pad_right = true, bool pad_bottom = true, uint32_t padding_value = 0) {
   if (m == 0 || n == 0) {
     return;
   }
@@ -268,6 +268,9 @@ SKL_FUNC void skl_pack_e32_e32rcpc_xsfmmbase(size_t m, size_t n,
   size_t nb0 = n0 <= n ? n0 : n;
   size_t nb1 = 0;
 
+  size_t m0_bottom = pad_bottom ? m0 : (m - 1) % m0 + 1;
+  size_t n0_right = pad_right ? n0 : (n - 1) % n0 + 1;
+
   skl_load_tile_e32_xsfmmbase(mb0, nb0, a, rsa, mt0);
 
   size_t i1 = 0;
@@ -275,6 +278,7 @@ SKL_FUNC void skl_pack_e32_e32rcpc_xsfmmbase(size_t m, size_t n,
   for (; i1 + 1 < m1; i1 += 2) {
     avl_m -= mb0;
     mb1 = m0 <= avl_m ? m0 : avl_m;
+    size_t m0_2nd_row = i1 == m1 - 2 ? m0_bottom : m0;
     size_t avl_n = n;
     for (j1 = 0; j1 + 1 < n1; ++j1) {
       avl_n -= nb0;
@@ -283,23 +287,23 @@ SKL_FUNC void skl_pack_e32_e32rcpc_xsfmmbase(size_t m, size_t n,
           mb0, nb0, mt0c, m0, n0, a_pack + i1 * rsa1 + j1 * csa1, csa0, mb1,
           nb0, a + (i1 + 1) * m0 * rsa + j1 * n0, rsa, mt4);
       skl_store_load_tile_e32c_e32_xsfmmbase(
-          mb1, nb0, mt4c, m0, n0, a_pack + (i1 + 1) * rsa1 + j1 * csa1, csa0,
-          mb0, nb1, a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt0);
+          mb1, nb0, mt4c, m0_2nd_row, n0, a_pack + (i1 + 1) * rsa1 + j1 * csa1,
+          csa0, mb0, nb1, a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt0);
       nb0 = nb1;
     }
     skl_store_load_tile_e32c_e32_xsfmmbase(
-        mb0, nb0, mt0c, m0, n0, a_pack + i1 * rsa1 + j1 * csa1, csa0, mb1, nb0,
-        a + (i1 + 1) * m0 * rsa + j1 * n0, rsa, mt4);
+        mb0, nb0, mt0c, m0, n0_right, a_pack + i1 * rsa1 + j1 * csa1, csa0, mb1,
+        nb0, a + (i1 + 1) * m0 * rsa + j1 * n0, rsa, mt4);
     if (i1 + 2 < m1) {
       avl_m -= mb1;
       mb0 = m0 <= avl_m ? m0 : avl_m;
       nb1 = n0 <= n ? n0 : n;
       skl_store_load_tile_e32c_e32_xsfmmbase(
-          mb1, nb0, mt4c, m0, n0, a_pack + (i1 + 1) * rsa1 + j1 * csa1, csa0,
-          mb0, nb1, a + (i1 + 2) * m0 * rsa + 0 * n0, rsa, mt0);
+          mb1, nb0, mt4c, m0, n0_right, a_pack + (i1 + 1) * rsa1 + j1 * csa1,
+          csa0, mb0, nb1, a + (i1 + 2) * m0 * rsa + 0 * n0, rsa, mt0);
       nb0 = nb1;
     } else {
-      skl_store_tile_e32c_xsfmmbase(mb1, nb0, mt4c, m0, n0,
+      skl_store_tile_e32c_xsfmmbase(mb1, nb0, mt4c, m0_2nd_row, n0_right,
                                     a_pack + (i1 + 1) * rsa1 + j1 * csa1, csa0);
       return;
     }
@@ -314,25 +318,38 @@ SKL_FUNC void skl_pack_e32_e32rcpc_xsfmmbase(size_t m, size_t n,
     avl_n -= nb1;
     nb2 = n0 <= avl_n ? n0 : avl_n;
     skl_store_load_tile_e32c_e32_xsfmmbase(
-        mb0, nb0, mt0c, m0, n0, a_pack + i1 * rsa1 + j1 * csa1, csa0, mb0, nb1,
-        a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt4);
+        mb0, nb0, mt0c, m0_bottom, n0, a_pack + i1 * rsa1 + j1 * csa1, csa0,
+        mb0, nb1, a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt4);
     skl_store_load_tile_e32c_e32_xsfmmbase(
-        mb0, nb1, mt4c, m0, n0, a_pack + i1 * rsa1 + (j1 + 1) * csa1, csa0, mb0,
-        nb2, a + i1 * m0 * rsa + (j1 + 2) * n0, rsa, mt0);
+        mb0, nb1, mt4c, m0_bottom, n0, a_pack + i1 * rsa1 + (j1 + 1) * csa1,
+        csa0, mb0, nb2, a + i1 * m0 * rsa + (j1 + 2) * n0, rsa, mt0);
     nb0 = nb2;
   }
   if (n1 % 2) {
-    skl_store_tile_e32c_xsfmmbase(mb0, nb0, mt0c, m0, n0,
+    skl_store_tile_e32c_xsfmmbase(mb0, nb0, mt0c, m0_bottom, n0_right,
                                   a_pack + i1 * rsa1 + j1 * csa1, csa0);
   } else {
     avl_n -= nb0;
     nb1 = n0 <= avl_n ? n0 : avl_n;
     skl_store_load_tile_e32c_e32_xsfmmbase(
-        mb0, nb0, mt0c, m0, n0, a_pack + i1 * rsa1 + j1 * csa1, csa0, m0, nb1,
-        a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt4);
-    skl_store_tile_e32c_xsfmmbase(mb0, nb1, mt4c, m0, n0,
+        mb0, nb0, mt0c, m0_bottom, n0, a_pack + i1 * rsa1 + j1 * csa1, csa0, m0,
+        nb1, a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt4);
+    skl_store_tile_e32c_xsfmmbase(mb0, nb1, mt4c, m0_bottom, n0_right,
                                   a_pack + i1 * rsa1 + (j1 + 1) * csa1, csa0);
   }
+}
+
+SKL_FUNC_PRIVATE void
+skl_pack_tex1_e32_e32pc_xsfmmbase(size_t m, size_t n, const uint32_t *a,
+                                  size_t rsa, uint32_t *a_pack, size_t csa0,
+                                  size_t rsa1, uint32_t padding_value = 0) {
+  size_t te = 0;
+  __asm__ volatile("sf.vsettnt %[te], x0, e32, w1"
+                   : [te] "=r"(te)
+                   :
+                   : "vtype", "vl");
+  skl_pack_e32_e32rcpc_xsfmmbase(m, n, a, rsa, te, te, a_pack, csa0, rsa1,
+                                 te * te, false, true, padding_value);
 }
 
 SKL_XSFMM_NEW
