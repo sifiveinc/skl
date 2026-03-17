@@ -189,11 +189,11 @@ SKL_FUNC_PRIVATE void skl_load_store_tile_full_full_e32_xsfmmbase(
 }
 
 // tss is a tm x tn tile with column pattern
-SKL_XSFMM_OUT
-SKL_FUNC_PRIVATE void skl_store_tile_e32_xsfmmbase(size_t m0, size_t n0,
-                                                   size_t tm, size_t tn,
-                                                   uint32_t *a, size_t csa,
-                                                   size_t tss) {
+SKL_XSFMM_IN
+SKL_FUNC_PRIVATE void skl_store_tile_e32c_xsfmmbase(size_t tm, size_t tn,
+                                                    size_t tss, size_t m0,
+                                                    size_t n0, uint32_t *a,
+                                                    size_t csa) {
   if (m0 == 0 || n0 == 0) {
     return;
   }
@@ -228,8 +228,8 @@ SKL_FUNC_PRIVATE void skl_store_tile_e32_xsfmmbase(size_t m0, size_t n0,
       "2:\n"
       "beqz %[tn], 3f\n"
       "beqz %[tm_pad], 3f\n"
-      "sf.vsettn x0, %[tm_pad]\n"
       "li %[i], 0\n"
+      "sf.vsettn x0, %[tm_pad]\n"
       "0:\n"
       "addi %[i], %[i], 1\n"
       "vse32.v %[pad], (%[a_pad])\n"
@@ -294,8 +294,8 @@ SKL_FUNC void skl_pack_transpose_e32_inner_transpose_xsfmmbase(
           nb1, a + (i1 + 2) * m0 * rsa + 0 * n0, rsa, mt0);
       nb0 = nb1;
     } else {
-      skl_store_tile_e32_xsfmmbase(m0, n0, mb1, nb0,
-                                   b + (i1 + 1) * rsb1 + j1 * csb1, csb0, mt4c);
+      skl_store_tile_e32c_xsfmmbase(mb1, nb0, mt4c, m0, n0,
+                                    b + (i1 + 1) * rsb1 + j1 * csb1, csb0);
       return;
     }
   }
@@ -317,16 +317,16 @@ SKL_FUNC void skl_pack_transpose_e32_inner_transpose_xsfmmbase(
     nb0 = nb2;
   }
   if (n1 % 2) {
-    skl_store_tile_e32_xsfmmbase(m0, n0, mb0, nb0, b + i1 * rsb1 + j1 * csb1,
-                                 csb0, mt0c);
+    skl_store_tile_e32c_xsfmmbase(mb0, nb0, mt0c, m0, n0,
+                                  b + i1 * rsb1 + j1 * csb1, csb0);
   } else {
     avl_n -= nb0;
     nb1 = n0 <= avl_n ? n0 : avl_n;
     skl_load_store_tile_full_full_e32_xsfmmbase(
         m0, n0, mb0, nb0, mt0c, b + i1 * rsb1 + j1 * csb1, csb0, m0, nb1,
         a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt4);
-    skl_store_tile_e32_xsfmmbase(m0, n0, mb0, nb1,
-                                 b + i1 * rsb1 + (j1 + 1) * csb1, csb0, mt4c);
+    skl_store_tile_e32c_xsfmmbase(mb0, nb1, mt4c, m0, n0,
+                                  b + i1 * rsb1 + (j1 + 1) * csb1, csb0);
   }
 }
 
