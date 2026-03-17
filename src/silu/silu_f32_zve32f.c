@@ -46,19 +46,18 @@ SKL_FUNC void skl_silu_52u_f32_zve32f(float *out, const float *in, size_t n) {
 /**
  * Approximate the exponential function on a vector of f32 floating-point values
  * with a 1-ULP error bound in [-inf; 0].
+ *
+ * @note NaNs are not propagated.
  */
 SKL_FUNC_PRIVATE vfloat32m8_t skl_leftexp_zve32f_f32m8(vfloat32m8_t x,
                                                        size_t vl) {
   /* 0. Clamp inputs to lower bound */
-  vbool4_t nn = __riscv_vmfeq_vv_f32m8_b4(x, x, vl); // Propagate NaN inputs
-  x = __riscv_vfmax_vf_f32m8_mu(nn, x, x, -0x1.9fe36ap6f, vl);
+  x = __riscv_vfmax_vf_f32m8(x, -0x1.9fe36ap6f, vl);
 
   /* 1. Reduction */
   const float r_ln2 = 0x1.715476p0f; // single(1/log(2));
   const vfloat32m8_t v = __riscv_vfmul_vf_f32m8(x, r_ln2, vl);
-  const int16_t offset = -24;
-  const vint16m4_t voffset = __riscv_vlse16_v_i16m4(&offset, 0, vl);
-  const vint16m4_t q = __riscv_vfncvt_x_f_w_i16m4_mu(nn, voffset, v, vl);
+  const vint16m4_t q = __riscv_vfncvt_x_f_w_i16m4(v, vl);
   const vfloat32m8_t z = __riscv_vfwcvt_f_x_v_f32m8(q, vl);
 
   const float l2u = 0x1.62e4p-1f;    // round(log(2), 24-8, RN);
