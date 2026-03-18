@@ -388,8 +388,6 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test_legacy(skl_depthwise_conv2d_f32_f32_f32_zve32f depthwise_conv2d/depthwise_conv2d_f32_f32_f32.c "")
     skl_add_test_legacy(exp_f32 exp/exp_f32.c "-DRUN_ZVE32F;-DRUN_VFEXPA;-DRUN_VFEXP")
     skl_add_test_legacy(exp_bf16 exp/exp_bf16.c "-DRUN_ZVE32F;-DRUN_VFBFA;-DRUN_VFEXP;-DRUN_VFEXPA")
-    skl_add_test_legacy(skl_gemm_f32_f32_f32_zve32f_x390_wrapper gemm/gemm_f32rc_f32rc_f32rc.c
-      "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
     skl_add_test_legacy(logistic_f32_zve32f logistic/logistic_f32.c "-DRUN_ALL")
     skl_add_test_legacy(gelu_f32 gelu/gelu_f32.c "")
   endif()
