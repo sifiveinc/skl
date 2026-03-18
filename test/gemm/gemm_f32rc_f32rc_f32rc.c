@@ -142,7 +142,7 @@ int gemm_f32rc_f32rc_f32rc_report(skl_test_t *t) {
   INFO("M: %zd, N: %zd, K: %zd\n", h->m, h->n, h->k);
   INFO("CSA: %zd, RSB: %zd, RSC: %zd\n", h->csa, h->rsb, h->rsc);
   INFO("Alpha: %f, Beta: %f\n", h->alpha, h->beta);
-  INFO("\n", );
+  INFO("%s", "\n");
   INFO("Warmup: %s\n", h->warmup ? "yes" : "no");
   INFO("Cycles: %zd\n", t->counters.cycles);
   INFO("Instructions: %zd\n", t->counters.instret);
