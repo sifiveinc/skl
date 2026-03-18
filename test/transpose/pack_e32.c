@@ -41,11 +41,12 @@
 void skl_pack_tex1_e32_e32pc_xsfmmbase_wrapper(
     size_t m, size_t n, const uint32_t *a, size_t rsa, size_t m0, size_t n0,
     uint32_t *a_pack, size_t rsa0, __attribute((unused)) size_t csa0,
-    size_t rsa1, __attribute((unused)) size_t csa1, uint32_t padding_value) {
+    size_t rsa1, size_t csa1, uint32_t padding_value) {
   int status = 0;
   SKL_TEST_REQUIRE(status, m0 == skl_get_te_xsfmmbase());
   SKL_TEST_REQUIRE(status, n0 == 1);
   SKL_TEST_REQUIRE(status, rsa0 == 1);
+  SKL_TEST_REQUIRE(status, csa1 == m0 * n0);
   if (status) {
     exit(status);
   }
@@ -110,7 +111,7 @@ static void skl_pack_e32_scalar(size_t m, size_t n, const uint32_t *a,
 #if defined(ENABLE_TEST)
 int check_error(void) {
   /* Compute the reference (scalar) matrix output. */
-  skl_pack_e32_scalar(M, N, (uint32_t *)a, (size_t)RSA, (size_t)M0, (size_t)N0,
+  skl_pack_e32_scalar(M, N, (uint32_t *)a, (size_t)RSA, M0, N0,
                       (uint32_t *)ref_a_pack, (size_t)RSA0, (size_t)CSA0,
                       (size_t)RSA1, (size_t)CSA1, PADDING_VALUE);
 
@@ -145,9 +146,7 @@ int main(void) {
 
   /* Populate the matrices. */
   skl_test_init_f32(a, ALEN, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32);
-  for (size_t i = 0; i < ALEN; ++i)
-    a[i] = (float)i;
-  skl_test_init_f32(a_pack, APACKLEN, -1, -1);
+  skl_test_init_f32(a_pack, APACKLEN, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32);
 
 #if defined(ENABLE_TEST)
   /* Make copies of A_pack to write the reference and test outputs to. */
