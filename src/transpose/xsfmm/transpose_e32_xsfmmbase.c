@@ -349,14 +349,14 @@ SKL_FUNC_PRIVATE void skl_pack_e32_e32rcpc_xsfmmbase(
 
 __attribute((unused)) SKL_FUNC_PRIVATE void
 skl_pack_tex1_e32_e32pc_xsfmmbase(size_t m, size_t n, const uint32_t *a,
-                                  size_t rsa, uint32_t *a_pack, size_t csa0,
-                                  size_t rsa1, uint32_t padding_value) {
+                                  size_t rsa, uint32_t *a_pack, size_t rsa1,
+                                  uint32_t padding_value) {
   size_t te = 0;
   __asm__ volatile("sf.vsettnt %[te], x0, e32, w1"
                    : [te] "=r"(te)
                    :
                    : "vtype", "vl");
-  skl_pack_e32_e32rcpc_xsfmmbase(m, n, a, rsa, te, te, a_pack, csa0, rsa1,
+  skl_pack_e32_e32rcpc_xsfmmbase(m, n, a, rsa, te, te, a_pack, te, rsa1,
                                  te * te, false, true, padding_value);
 }
 
