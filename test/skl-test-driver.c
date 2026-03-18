@@ -1,0 +1,177 @@
+#include "skl-test-driver.h"
+#include <inttypes.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+enum { SKL_TEST_DRIVER_ALIGNMENT = 4096 };
+
+#if !defined(SKL_TEST_LOG_LEVEL)
+#define SKL_TEST_LOG_LEVEL SKL_TEST_LOG_INFO
+#endif
+
+#if defined(__riscv)
+#if __riscv_xlen == 32
+#define RISCV_READ_COUNTER_FUNC(COUNTER)                                       \
+  static inline uint64_t riscv_read_m##COUNTER(void) {                         \
+    uint32_t lo;                                                               \
+    uint32_t hi0, hi1;                                                         \
+    /* guard against overflow between reads of lo/hi counter halves */         \
+    do {                                                                       \
+      __asm__ volatile("rd" #COUNTER "h %0" : "=r"(hi0));                      \
+      __asm__ volatile("rd" #COUNTER " %0" : "=r"(lo));                        \
+      __asm__ volatile("rd" #COUNTER "h %0" : "=r"(hi1));                      \
+    } while (hi0 != hi1);                                                      \
+    return (uint64_t)lo + ((uint64_t)hi1 << 32);                               \
+  }
+#elif __riscv_xlen == 64
+#define RISCV_READ_COUNTER_FUNC(COUNTER)                                       \
+  static inline uint64_t riscv_read_m##COUNTER(void) {                         \
+    uint64_t res;                                                              \
+    __asm__ volatile("rd" #COUNTER " %0" : "=r"(res));                         \
+    return res;                                                                \
+  }
+#endif
+
+RISCV_READ_COUNTER_FUNC(cycle)   // riscv_read_mcycle()
+RISCV_READ_COUNTER_FUNC(instret) // riscv_read_minstret()
+
+static inline void riscv_fence(void) {
+  __asm__ volatile("fence" : : : "memory");
+}
+#else
+// Stub implementations for non-RISC-V platforms
+static inline uint64_t riscv_read_mcycle(void) { return 0; }
+static inline uint64_t riscv_read_minstret(void) { return 0; }
+static inline void riscv_fence(void) {}
+#endif
+
+void skl_test_driver_update_counters(skl_test_counters_t *counters) {
+  riscv_fence();
+  counters->cycles = riscv_read_mcycle() - counters->cycles;
+  counters->instret = riscv_read_minstret() - counters->instret;
+}
+
+void *skl_test_driver_alloc(size_t region, size_t size) {
+  (void)region;
+  return aligned_alloc(SKL_TEST_DRIVER_ALIGNMENT, size);
+}
+
+void skl_test_driver_free(size_t region, void *ptr) {
+  (void)region;
+  free(ptr);
+}
+
+static size_t fprintf_prefix(FILE *stream, skl_test_t *t) {
+  if (t == NULL) {
+    return 0;
+  }
+  size_t id =
+      ((char *)t->harness - (char *)t->suite->tests) / t->suite->test_size;
+  return fprintf(stream, "[%zd]: ", id);
+}
+
+void skl_test_driver_error(skl_test_t *t, const char *fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  (void)fprintf_prefix(stderr, t);
+  (void)vfprintf(stderr, fmt, args);
+  va_end(args);
+}
+
+void skl_test_driver_log(skl_test_t *t, const char *fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  (void)fprintf_prefix(stdout, t);
+  (void)vfprintf(stdout, fmt, args);
+  va_end(args);
+}
+
+static void log_separator(skl_test_t *t, char sep) {
+  enum { SEP_LEN = 10 };
+  char buf[SEP_LEN];
+  memset(buf, sep, sizeof(buf));
+  buf[sizeof(buf) - 1] = '\n';
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "%s", buf);
+}
+
+int skl_test_driver_run_suite(skl_test_suite_t *suite) {
+  int failures = 0;
+
+  // Log test suite start (and avoid lint warning)
+  int log_level = SKL_TEST_LOG_LEVEL;
+  if (suite->num_tests > 0 && suite->name != NULL &&
+      log_level >= SKL_TEST_LOG_INFO) {
+    skl_test_driver_log(NULL, "Running test suite %s with %zd tests\n",
+                        suite->name, suite->num_tests);
+  }
+
+  // Main loop over all tests
+  for (size_t i = 0; i < suite->num_tests; ++i) {
+    skl_test_t t = {.suite = suite,
+                    .harness = (char *)suite->tests + i * suite->test_size,
+                    .log_level = log_level,
+                    .counters = {.cycles = 0, .instret = 0},
+                    .status = SKL_TEST_PASS};
+    log_separator(&t, '=');
+
+#define TRY(STEP)                                                              \
+  do {                                                                         \
+    if (suite->STEP != NULL) {                                                 \
+      SKL_TEST_REQUIRE(&t, suite->STEP(&t) == 0);                              \
+      if (t.status != SKL_TEST_PASS)                                           \
+        goto cleanup;                                                          \
+    }                                                                          \
+  } while (0)
+
+    TRY(init);
+
+    // Run the test, including optional cache warmup
+    TRY(warmup);
+    skl_test_driver_update_counters(&t.counters);
+    TRY(execute);
+    skl_test_driver_update_counters(&t.counters);
+
+    // Verify test results, if verification is enabled
+    TRY(verify);
+    SKL_TEST_LOG(&t, SKL_TEST_LOG_INFO, "Verification passed\n");
+
+  cleanup:
+    // Always run cleanup if provided
+    if (suite->cleanup != NULL) {
+      int cleanup_status = suite->cleanup(&t);
+      if (cleanup_status != 0) {
+        skl_test_driver_error(&t, "Cleanup function failed\n");
+        t.status = SKL_TEST_FAIL;
+      }
+    }
+
+    // Always run report if provided, even after failure
+    if (suite->report != NULL) {
+      int report_status = suite->report(&t);
+      if (report_status != 0) {
+        skl_test_driver_error(&t, "Report function failed\n");
+        t.status = SKL_TEST_FAIL;
+      }
+    }
+
+    // Check final status and update failure count
+    if (t.status != SKL_TEST_PASS) {
+      SKL_TEST_LOG(&t, SKL_TEST_LOG_ERROR, "Test failed\n");
+      failures++;
+    }
+    log_separator(&t, '=');
+    SKL_TEST_LOG(&t, SKL_TEST_LOG_INFO, "\n");
+  }
+
+  if (log_level >= SKL_TEST_LOG_INFO) {
+    skl_test_driver_log(NULL,
+                        "Test suite %s completed %zd tests with %d failures\n",
+                        suite->name, suite->num_tests, failures);
+  }
+
+  return failures;
+}
