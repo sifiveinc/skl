@@ -113,7 +113,7 @@ endif()
 
 if(${SKL_PREPROCESSOR_OUTPUT} MATCHES __riscv_xsfvfbfa)
   list(APPEND SKL_QEMU_CPU_OPTIONS "x-xsfvfbfa=true")
-  set(RISCV_XSFVFBFA ON)
+  set(RISCV_XSFVFBFA OFF) #ON)
 else()
   set(RISCV_XSFVFBFA OFF)
 endif()
