@@ -1,10 +1,20 @@
 set(SKL_TEST_LOG_LEVEL SKL_TEST_LOG_INFO CACHE STRING "Test log level")
 
+add_library(skl-test-driver OBJECT skl-test-driver.c)
+target_compile_definitions(
+    skl-test-driver
+    PRIVATE SKL_TEST_LOG_LEVEL=${SKL_TEST_LOG_LEVEL}
+)
+target_compile_options(
+    skl-test-driver
+    PRIVATE ${SKL_COMPILE_OPTIONS} ${SKL_TEST_COMPILE_OPTIONS}
+)
+
 function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC OPTS)
-    add_executable(test-${TEST_NAME} ${HARNESS_SRC} ${TEST_SRC} skl-test-driver.c)
+    add_executable(test-${TEST_NAME} ${HARNESS_SRC} ${TEST_SRC})
     target_link_libraries(
         test-${TEST_NAME}
-        PRIVATE ${SKL_LIBRARY} ${SKL_TEST_LIBS}
+        PRIVATE ${SKL_LIBRARY} ${SKL_TEST_LIBS} skl-test-driver
     )
     target_compile_options(
         test-${TEST_NAME}
@@ -12,7 +22,9 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC OPTS)
     )
     target_compile_definitions(
         test-${TEST_NAME}
-        PRIVATE SKL_TEST_NAME=${TEST_NAME} SKL_TEST_LOG_LEVEL=${SKL_TEST_LOG_LEVEL}
+        PRIVATE
+            SKL_TEST_NAME=${TEST_NAME}
+            SKL_TEST_LOG_LEVEL=${SKL_TEST_LOG_LEVEL}
     )
     target_include_directories(test-${TEST_NAME} PRIVATE . ../src)
     add_test(
