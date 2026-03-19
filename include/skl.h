@@ -206,6 +206,9 @@
 #if defined(__riscv_xsfvfbfexp16e) && defined(__riscv_zvfbfmin)
 #include "../src/softmax/softmax_bf16_xsfvfbfexp16e_zvfbfmin.h"
 #endif
+#if defined(__riscv_xsfvfexp32e) && defined(__riscv_zvfbfmin)
+#include "../src/softmax/softmax_bf16_xsfvfexp32e_zvfbfmin.h"
+#endif
 #if defined(__riscv_xsfvfexpa) && defined(__riscv_xsfvfbfa)
 #include "../src/softmax/softmax_bf16_xsfvfexpa_xsfvfbfa.h"
 #endif

@@ -155,6 +155,10 @@ set(SKL_XSFVFEXP32E_SRCS
   src/softmax/softmax_f32_xsfvfexp32e.c
 )
 
+set(SKL_XSFVFEXP32E_ZVFBFMIN_SRCS
+  src/softmax/softmax_bf16_xsfvfexp32e_zvfbfmin.c
+)
+
 set(SKL_ZVE64D_SRCS
   src/gemm/rvv/gemm_f64_f64_f64_zve64d_x390.c
 )
@@ -259,6 +263,10 @@ endif()
 
 if(RISCV_XSFVFEXP32E)
   target_sources(${SKL_LIBRARY} PRIVATE ${SKL_XSFVFEXP32E_SRCS})
+endif()
+
+if(RISCV_XSFVFEXP32E AND RISCV_ZVFBFMIN)
+  target_sources(${SKL_LIBRARY} PRIVATE ${SKL_XSFVFEXP32E_ZVFBFMIN_SRCS})
 endif()
 
 if(RISCV_ZVFBFMIN)
