@@ -111,9 +111,8 @@ static void skl_pack_e32_scalar(size_t m, size_t n, const uint32_t *a,
 #if defined(ENABLE_TEST)
 int check_error(void) {
   /* Compute the reference (scalar) matrix output. */
-  skl_pack_e32_scalar(M, N, (uint32_t *)a, (size_t)RSA, M0, N0,
-                      (uint32_t *)ref_a_pack, (size_t)RSA0, (size_t)CSA0,
-                      (size_t)RSA1, (size_t)CSA1, PADDING_VALUE);
+  skl_pack_e32_scalar(M, N, a, (size_t)RSA, M0, N0, ref_a_pack, (size_t)RSA0,
+                      (size_t)CSA0, (size_t)RSA1, (size_t)CSA1, PADDING_VALUE);
 
   /* Compare the reference and test outputs. */
   for (size_t i1 = 0; i1 < M1; ++i1) {
@@ -152,16 +151,15 @@ int main(void) {
   /* Make copies of A_pack to write the reference and test outputs to. */
   memcpy(ref_a_pack, a_pack, APACKLEN * sizeof(uint32_t));
   memcpy(test_a_pack, a_pack, APACKLEN * sizeof(uint32_t));
-  SKL_TEST_NAME(M, N, (uint32_t *)a, (size_t)RSA, M0, N0,
-                (uint32_t *)test_a_pack, (size_t)RSA0, (size_t)CSA0,
-                (size_t)RSA1, (size_t)CSA1, PADDING_VALUE);
+  SKL_TEST_NAME(M, N, a, (size_t)RSA, M0, N0, test_a_pack, (size_t)RSA0,
+                (size_t)CSA0, (size_t)RSA1, (size_t)CSA1, PADDING_VALUE);
   res += check_error();
 #endif // ENABLE_TEST
 
   SKL_BENCHMARK_RUN(skl_test_name, M1 * N1 * M0 * N0, SKL_TEST_WARMUP,
-                    SKL_TEST_NAME, M, N, (uint32_t *)a, (size_t)RSA, M0, N0,
-                    (uint32_t *)test_a_pack, (size_t)RSA0, (size_t)CSA0,
-                    (size_t)RSA1, (size_t)CSA1, PADDING_VALUE);
+                    SKL_TEST_NAME, M, N, a, (size_t)RSA, M0, N0, test_a_pack,
+                    (size_t)RSA0, (size_t)CSA0, (size_t)RSA1, (size_t)CSA1,
+                    PADDING_VALUE);
 
   return res;
 }
