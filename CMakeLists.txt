@@ -389,7 +389,7 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   endif()
   if(RISCV_ZVFBFWMA)
     skl_add_test(skl_gemm_bf16_bf16_f32_zvfbfwma_wrapper gemm/gemm_bf16rc_bf16rc_f32rc.c
-      "-DRSA=128;-DCSA=1;-DM=4;-DN=16;-DK=128;-DALPHA=1.f;-DBETA=0.f")
+      "-DM=4;-DN=16;-DK=128;-DALPHA=1.f;-DBETA=0.f")
   endif()
   skl_add_test(softmax_f16 softmax/softmax_f16.c "-DRUN_ALL;-DBETA=0.5")
   skl_add_test(softmax_bf16 softmax/softmax_bf16.c "-DRUN_ALL;-DBETA=0.5")
