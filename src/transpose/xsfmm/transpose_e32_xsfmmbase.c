@@ -358,7 +358,7 @@ SKL_FUNC_PRIVATE void skl_pack_e32_e32rcpc_xsfmmbase(
     avl_n -= nb0;
     nb1 = n0 <= avl_n ? n0 : avl_n;
     skl_store_load_tile_e32c_e32_xsfmmbase(
-        mb0, nb0, mt0c, m0_bottom, n0, a_pack + i1 * rsa1 + j1 * csa1, csa0, m0,
+        mb0, nb0, mt0c, m0_bottom, n0, a_pack + i1 * rsa1 + j1 * csa1, csa0, mb0,
         nb1, a + i1 * m0 * rsa + (j1 + 1) * n0, rsa, mt4, padding_value);
     skl_store_tile_e32c_xsfmmbase(mb0, nb1, mt4c, m0_bottom, n0_right,
                                   a_pack + i1 * rsa1 + (j1 + 1) * csa1, csa0,
