@@ -7,6 +7,7 @@
  * This file defines all harness functions _except_ `skl_test_execute`, which is
  * defined in the test file (e.g. rvv/skl_gemm_f16_f16_f32_zvfh_x390.c).
  */
+
 #include "gemm_f16rc_f16rc_f32rc.h"
 #include "skl-test-driver.h"
 #include "skl.h"
@@ -34,6 +35,7 @@ int gemm_f16rc_f16rc_f32rc_init(skl_test_t *t) {
     h->c.len = (h->m - 1) * h->rsc + (h->n - 1) * h->csc + 1;
   }
 
+  // Allocate buffers
   SKL_TEST_BUF_CREATE(t, _Float16, &h->a);
   SKL_TEST_BUF_CREATE(t, _Float16, &h->b);
   SKL_TEST_BUF_CREATE(t, float, &h->c);
@@ -66,6 +68,11 @@ int gemm_f16rc_f16rc_f32rc_verify(skl_test_t *t) {
     return 0;
   }
 
+  //
+  // Compute the error bound array for comparing test vs reference results.
+  // Since both test and reference results have roundoff errors, we double this
+  // bound using the triangle inequality to get the final comparison threshold.
+  //
   for (size_t i = 0; i < h->a.len; ++i) {
     h->ctx.a_wide[i] = fabs((double)h->a.data[i]);
   }
@@ -85,10 +92,14 @@ int gemm_f16rc_f16rc_f32rc_verify(skl_test_t *t) {
       h->ctx.a_wide, h->rsa, h->csa, h->ctx.b_wide, h->rsb, h->csb,
       roundoff_scaling * fabs((double)h->beta), h->ctx.bound, h->rsc, h->csc);
 
+  // Compute the reference result using h->ctx.ref_c.
+  // h->ctx.ref_c contains the original C values (copied during init).
+  // After this call, h->ctx.ref_c will contain the reference result.
   skl_gemm_f16rc_f16rc_f32rc_scalar(h->m, h->n, h->k, h->alpha, h->a.data,
                                     h->rsa, h->csa, h->b.data, h->rsb, h->csb,
                                     h->beta, h->ctx.ref_c, h->rsc, h->csc);
 
+  // Compare the reference and test outputs using error bound.
   for (size_t i = 0; i < h->m; ++i) {
     for (size_t j = 0; j < h->n; ++j) {
       size_t idx = i * h->rsc + j * h->csc;
@@ -104,7 +115,7 @@ int gemm_f16rc_f16rc_f32rc_verify(skl_test_t *t) {
     }
   }
 
-  return 0;
+  return 0; // Success
 }
 
 int gemm_f16rc_f16rc_f32rc_report(skl_test_t *t) {
@@ -132,6 +143,7 @@ int gemm_f16rc_f16rc_f32rc_report(skl_test_t *t) {
 int gemm_f16rc_f16rc_f32rc_cleanup(skl_test_t *t) {
   gemm_f16rc_f16rc_f32rc_t *h = (gemm_f16rc_f16rc_f32rc_t *)t->harness;
 
+  // Free buffers
   SKL_TEST_BUF_FREE(t, &h->a);
   SKL_TEST_BUF_FREE(t, &h->b);
   SKL_TEST_BUF_FREE(t, &h->c);

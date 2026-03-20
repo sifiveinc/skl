@@ -8,6 +8,14 @@
 #error This file requires the Zvfh extension.
 #endif
 
+/**
+ * @brief Test cases for skl_gemm_f16_f16_f32_zvfh_x390.
+ *
+ * This test uses the gemm_f32rc_f32rc_f32rc harness with the following
+ * restrictions on the input parameters:
+ *  - All matrices are row-major (csa == 1, csb == 1, csc == 1)
+ */
+
 static int execute(skl_test_t *t);
 
 gemm_f16rc_f16rc_f32rc_t tests[] = {
@@ -57,6 +65,7 @@ static int execute(skl_test_t *t) {
 int main(void) {
 
   for (size_t i = 0; i < suite.num_tests; i++) {
+    // Set default row stride to row length
     tests[i].rsa = tests[i].rsa ? tests[i].rsa : tests[i].k;
     tests[i].rsb = tests[i].rsb ? tests[i].rsb : tests[i].n;
     tests[i].rsc = tests[i].rsc ? tests[i].rsc : tests[i].n;

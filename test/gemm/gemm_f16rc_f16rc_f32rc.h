@@ -1,4 +1,22 @@
+// Copyright 2026 SiFive, Inc.
+// SPDX-License-Identifier: Apache-2.0
 
+/**
+ * @brief Test and benchmark for GEMM: C = alpha * A * B + beta * C.
+ *
+ * This test uses a table-driven approach where test configurations are defined
+ * in the `tests` array. Each test specifies:
+ *  - Matrix dimensions M, N, and K
+ *  - Scalar coefficients ALPHA and BETA
+ *  - Row and column strides (RSA, CSA, RSB, CSB, RSC, CSC)
+ *  - The GEMM kernel function to test
+ *
+ * Matrix layouts:
+ *  - A is M x K with row stride RSA and column stride CSA
+ *  - B is K x N with row stride RSB and column stride CSB
+ *  - C is M x N with row stride RSC and column stride CSC
+ */
+#pragma once
 
 #include "skl-test-driver.h"
 #include <stdbool.h>
@@ -6,9 +24,11 @@
 #include <stdint.h>
 
 typedef struct {
+  // Test configuration
   bool warmup;
   bool verify;
 
+  // Kernel parameters
   size_t m, n, k;
   _Float16 alpha;
   SKL_TEST_BUFFER(_Float16) a;
@@ -19,6 +39,7 @@ typedef struct {
   SKL_TEST_BUFFER(float) c;
   size_t rsc, csc;
 
+  // Derived parameters & buffers (private to the test harness)
   struct {
     double *a_wide, *b_wide;
     float *ref_c;
