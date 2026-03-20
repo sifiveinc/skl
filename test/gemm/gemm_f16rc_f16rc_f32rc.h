@@ -60,7 +60,5 @@ int gemm_f16rc_f16rc_f32rc_cleanup(skl_test_t *t);
   .b = {.min = (_Float16)-1.0f,                                                \
         .max = (_Float16)1.0f,                                                 \
         .mode = SKL_TEST_RANDOM},                                              \
-  .c = {.min = (_Float16)-1.0f,                                                \
-        .max = (_Float16)1.0f,                                                 \
-        .mode = SKL_TEST_RANDOM},                                              \
+  .c = {.min = -1.0f, .max = 1.0f, .mode = SKL_TEST_RANDOM},                   \
   .alpha = (_Float16)2.f, .beta = (_Float16)3.f
