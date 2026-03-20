@@ -31,6 +31,10 @@
 #include "../src/gemm/rvv/gemm_f16_f16_f32_zvfh_x390.h"
 #endif
 
+#if defined(__riscv_zvfbfwma)
+#include "../src/gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma.h"
+#endif
+
 #if defined(__riscv_zve32f)
 #include "../src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390.h"
 #endif

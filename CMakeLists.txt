@@ -64,6 +64,10 @@ set(SKL_ZVFH_SRCS
   src/softmax/softmax_f16_zvfh.c
 )
 
+set(SKL_ZVFBFWMA_SRCS
+  src/gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma.c
+)
+
 set(SKL_ZVE32F_SRCS
   src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_zve32f.c
   src/exp/exp_bf16_zve32f.c
@@ -187,6 +191,10 @@ endif()
 
 if(RISCV_ZVFH)
   target_sources(${SKL_LIBRARY} PRIVATE ${SKL_ZVFH_SRCS})
+endif()
+
+if(RISCV_ZVFBFWMA)
+  target_sources(${SKL_LIBRARY} PRIVATE ${SKL_ZVFBFWMA_SRCS})
 endif()
 
 if(RISCV_ZVE32F)
@@ -378,6 +386,10 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test(skl_gemm_f16_f16_f32_zvfh_x390_wrapper gemm/gemm_f16rc_f16rc_f32rc.c
       "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
     skl_add_test(logistic_f16 logistic/logistic_f16.c "-DRUN_ALL")
+  endif()
+  if(RISCV_ZVFBFWMA)
+    skl_add_test(skl_gemm_bf16_bf16_f32_zvfbfwma_wrapper gemm/gemm_bf16rc_bf16rc_f32rc.c
+      "-DM=4;-DN=16;-DK=128;-DALPHA=1.f;-DBETA=0.f")
   endif()
   skl_add_test(softmax_f16 softmax/softmax_f16.c "-DRUN_ALL;-DBETA=0.5")
   skl_add_test(softmax_bf16 softmax/softmax_bf16.c "-DRUN_ALL;-DBETA=0.5")
