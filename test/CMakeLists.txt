@@ -22,6 +22,14 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC OPTS)
     )
 endfunction()
 
+if(RISCV_ZVFH)
+  skl_add_test(
+    skl_gemm_f16_f16_f32_zvfh_x390
+    gemm/gemm_f16rc_f16rc_f32rc.c
+    gemm/rvv/skl_gemm_f16_f16_f32_zvfh_x390.c
+    ""
+  )
+endif()
 if(RISCV_ZVE32F)
     skl_add_test(
         skl_gemm_f32_f32_f32_zve32f_x390

@@ -375,8 +375,6 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test_legacy(exp_f16 exp/exp_f16.c "-DRUN_ZVFH;-DRUN_VFEXPA;-DRUN_VFEXP")
     skl_add_test_legacy(skl_gemm_f16_f16_f16_zvfh_x390_wrapper gemm/gemm_f16rc_f16rc_f16rc.c
       "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
-    skl_add_test_legacy(skl_gemm_f16_f16_f32_zvfh_x390_wrapper gemm/gemm_f16rc_f16rc_f32rc.c
-      "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
     skl_add_test_legacy(logistic_f16 logistic/logistic_f16.c "-DRUN_ALL")
   endif()
   skl_add_test_legacy(softmax_f16 softmax/softmax_f16.c "-DRUN_ALL;-DBETA=0.5")
