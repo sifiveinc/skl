@@ -30,122 +30,100 @@ target_include_directories(${SKL_LIBRARY} PUBLIC
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get-riscv-extensions.cmake)
 
 set(SKL_SRC_DEPS
-  "\n" src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_scalar.c
-  "\n" src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_scalar.c
-  "\n" src/gemm/scalar/gemm_bf16rc_bf16rc_f32rc_scalar.c
-  "\n" src/gemm/scalar/gemm_f16rc_f16rc_f16rc_scalar.c
-  "\n" src/gemm/scalar/gemm_f16rc_f16rc_f32rc_scalar.c
-  "\n" src/gemm/scalar/gemm_f32rc_f32rc_f32rc_scalar.c
-  "\n" src/gemm/scalar/gemm_f64rc_f64rc_f64rc_scalar.c
-  "\n" src/gemm/scalar/gemm_i8rc_i8rc_i32rc_scalar.c
-  "\n" src/gemm/scalar/gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar.c
-  "\n" src/gemm/scalar/gemm_f16rcprc_f16rcprc_f32rcprc_scalar.c
-  "\n" src/gemm/scalar/gemm_f32rcprc_f32rcprc_f32rcprc_scalar.c
-  "\n" src/gemm/scalar/gemm_f64rcprc_f64rcprc_f64rcprc_scalar.c
-  "\n" src/gemm/scalar/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.c
-  "\n" src/logistic/logistic_f16_scalar.c
-  "\n" src/logistic/logistic_f32_scalar.c
-  "\n" src/silu/silu_f16_scalar.c
-  "\n" src/silu/silu_f32_scalar.c
-  "\n" src/softmax/softmax_f16_scalar.c
-  "\n" src/softmax/softmax_bf16_scalar.c
-  "\n" src/softmax/softmax_f32_scalar.c
-  "\n" src/transpose/scalar/transpose_e8_scalar.c
-  "\n" src/transpose/scalar/transpose_e16_scalar.c
-  "\n" src/transpose/scalar/transpose_e32_scalar.c
-
-  "\n" src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_scalar.c RISCV_ZFH
-
-  "\n" src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_zvfh.c RISCV_ZVFH
-  "\n" src/exp/exp_f16_zvfh.c RISCV_ZVFH
-  "\n" src/gemm/rvv/gemm_f16_f16_f16_zvfh_x390.c RISCV_ZVFH
-  "\n" src/gemm/rvv/gemm_f16_f16_f32_zvfh_x390.c RISCV_ZVFH
-  "\n" src/logistic/logistic_f16_zvfh.c RISCV_ZVFH
-  "\n" src/silu/silu_f16_zvfh.c RISCV_ZVFH
-  "\n" src/softmax/softmax_f16_zvfh.c RISCV_ZVFH
-
-  "\n" src/gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma.c RISCV_ZVFBFWMA
-
-  "\n" src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_zve32f.c RISCV_ZVE32F
-  "\n" src/exp/exp_bf16_zve32f.c RISCV_ZVE32F
-  "\n" src/exp/exp_f32_zve32f.c RISCV_ZVE32F
-  "\n" src/logistic/logistic_f32_zve32f.c RISCV_ZVE32F
-  "\n" src/silu/silu_f32_zve32f.c RISCV_ZVE32F
-  "\n" src/softmax/softmax_bf16_zve32f.c RISCV_ZVE32F
-  "\n" src/softmax/softmax_f32_zve32f.c RISCV_ZVE32F
-  "\n" src/gelu/gelu_f32_zve32f.c RISCV_ZVE32F
-  "\n" src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390.c RISCV_ZVE32F
-
-  "\n" src/gemm/rvv/gemm_i8_i8_i32_zve32x_x390.c RISCV_ZVE32X
-  "\n" src/gemm/xsfvqdotq/pack_b_xsfvqdotq.c RISCV_ZVE32X
-  "\n" src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_zve32x.c RISCV_ZVE32X
-  "\n" src/transpose/rvv/transpose_e8_zve32x.c RISCV_ZVE32X
-  "\n" src/transpose/rvv/transpose_e16_zve32x.c RISCV_ZVE32X
-  "\n" src/transpose/rvv/transpose_e32_zve32x.c RISCV_ZVE32X
-
-  "\n" src/transpose/xsfmm/transpose_e8_xsfmmbase.c RISCV_XSFMM
-  "\n" src/transpose/xsfmm/transpose_e16_xsfmmbase.c RISCV_XSFMM
-  "\n" src/transpose/xsfmm/transpose_e32_xsfmmbase.c RISCV_XSFMM
-
-  "\n" src/gemm/xsfmm/gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c RISCV_XSFMM32A8F
-  "\n" src/gemm/xsfmm/gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c RISCV_XSFMM32A8F
-
-  "\n" src/gemm/xsfmm/gemm_a1b01_i8c_i8_i32_xsfmm32a8i.c RISCV_XSFMM32A8I
-
-  "\n" src/gemm/xsfmm/gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f.c RISCV_XSFMM32A16F
-  "\n" src/gemm/xsfmm/gemm_a1b01_f16c_f16_f32_xsfmm32a16f.c RISCV_XSFMM32A16F
-
-  "\n" src/gemm/xsfmm/gemm_a1b01_f32c_f32_f32_xsfmm32a32f.c RISCV_XSFMM32A32F
-
-  "\n" src/exp/exp_bf16_xsfvfbfa.c RISCV_XSFVFBFA
-  "\n" src/softmax/softmax_bf16_xsfvfbfa.c RISCV_XSFVFBFA
-
-  "\n" src/exp/exp_f16_xsfvfexpa_zvfh.c RISCV_XSFVFEXPA RISCV_ZVFH
-  "\n" src/silu/silu_f16_xsfvfexpa_zvfh.c RISCV_XSFVFEXPA RISCV_ZVFH
-  "\n" src/softmax/softmax_f16_xsfvfexpa_zvfh.c RISCV_XSFVFEXPA RISCV_ZVFH
-
-  "\n" src/exp/exp_f16_xsfvfexpa_zvfh.c RISCV_XSFVFEXPA
-  "\n" src/softmax/softmax_f16_xsfvfexpa_zvfh.c RISCV_XSFVFEXPA
-
-  "\n" src/softmax/softmax_bf16_xsfvfexpa_xsfvfbfa.c RISCV_XSFVFEXPA RISCV_XSFVFBFA
-
-  "\n" src/exp/exp_bf16_xsfvfexpa_zvfbfmin.c RISCV_XSFVFEXPA RISCV_ZVFBFMIN
-  "\n" src/softmax/softmax_bf16_xsfvfexpa_zvfbfmin.c RISCV_XSFVFEXPA RISCV_ZVFBFMIN
-
-  "\n" src/exp/exp_f32_xsfvfexpa.c RISCV_XSFVFEXPA
-  "\n" src/logistic/logistic_f32_xsfvfexpa.c RISCV_XSFVFEXPA
-  "\n" src/silu/silu_f32_xsfvfexpa.c RISCV_XSFVFEXPA
-  "\n" src/softmax/softmax_f32_xsfvfexpa.c RISCV_XSFVFEXPA
-
-  "\n" src/exp/exp_f16_xsfvfexp16e.c RISCV_XSFVFEXP16E
-  "\n" src/logistic/logistic_f16_xsfvfexp16e.c RISCV_XSFVFEXP16E
-  "\n" src/silu/silu_f16_xsfvfexp16e.c RISCV_XSFVFEXP16E
-  "\n" src/softmax/softmax_f16_xsfvfexp16e.c RISCV_XSFVFEXP16E
-
-  "\n" src/exp/exp_bf16_xsfvfbfexp16e.c RISCV_XSFVFBFEXP16E
-
-  "\n" src/softmax/softmax_bf16_xsfvfbfexp16e_xsfvfbfa.c RISCV_XSFVFBFEXP16E RISCV_XSFVFBFA
-
-  "\n" src/softmax/softmax_bf16_xsfvfbfexp16e_zvfbfmin.c RISCV_XSFVFBFEXP16E RISCV_ZVFBFMIN
-
-  "\n" src/exp/exp_f32_xsfvfexp32e.c RISCV_XSFVFEXP32E
-  "\n" src/softmax/softmax_f32_xsfvfexp32e.c RISCV_XSFVFEXP32E
-  "\n" src/silu/silu_f32_xsfvfexp32e.c RISCV_XSFVFEXP32E
-
-  "\n" src/softmax/softmax_bf16_xsfvfexp32e_zvfbfmin.c RISCV_XSFVFEXP32E RISCV_ZVFBFMIN
-
-  "\n" src/gemm/rvv/gemm_f64_f64_f64_zve64d_x390.c RISCV_ZVE64D
-
-  "\n" src/exp/exp_bf16_zvfbfmin.c RISCV_ZVFBFMIN
-  "\n" src/softmax/softmax_bf16_zvfbfmin.c RISCV_ZVFBFMIN
-
+  "\n" src/cvt/cvt_zvfofp4min.c RISCV_ZVFOFP4MIN
   "\n" src/cvt/cvt_zvfofp8min.c RISCV_ZVFOFP8MIN
-
   "\n" src/cvt/cvt_zvfofp8min_zvfbfmin.c RISCV_ZVFOFP8MIN RISCV_ZVFBFMIN
 
-  "\n" src/cvt/cvt_zvfofp4min.c RISCV_ZVFOFP4MIN
+  "\n" src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_scalar.c RISCV_ZFH
+  "\n" src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_zvfh.c RISCV_ZVFH
+  "\n" src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_scalar.c
+  "\n" src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_zve32f.c RISCV_ZVE32F
+  "\n" src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_scalar.c
+  "\n" src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_zve32x.c RISCV_ZVE32X
 
+  "\n" src/exp/exp_bf16_xsfvfbfa.c RISCV_XSFVFBFA
+  "\n" src/exp/exp_bf16_xsfvfbfexp16e.c RISCV_XSFVFBFEXP16E
+  "\n" src/exp/exp_bf16_xsfvfexpa_zvfbfmin.c RISCV_XSFVFEXPA RISCV_ZVFBFMIN
+  "\n" src/exp/exp_bf16_zve32f.c RISCV_ZVE32F
+  "\n" src/exp/exp_bf16_zvfbfmin.c RISCV_ZVFBFMIN
+  "\n" src/exp/exp_f16_xsfvfexp16e.c RISCV_XSFVFEXP16E
+  "\n" src/exp/exp_f16_xsfvfexpa_zvfh.c RISCV_XSFVFEXPA RISCV_ZVFH
+  "\n" src/exp/exp_f16_zvfh.c RISCV_ZVFH
+  "\n" src/exp/exp_f32_xsfvfexp32e.c RISCV_XSFVFEXP32E
+  "\n" src/exp/exp_f32_xsfvfexpa.c RISCV_XSFVFEXPA
+  "\n" src/exp/exp_f32_zve32f.c RISCV_ZVE32F
+
+  "\n" src/gelu/gelu_f32_zve32f.c RISCV_ZVE32F
+
+  "\n" src/gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma.c RISCV_ZVFBFWMA
+  "\n" src/gemm/rvv/gemm_f16_f16_f16_zvfh_x390.c RISCV_ZVFH
+  "\n" src/gemm/rvv/gemm_f16_f16_f32_zvfh_x390.c RISCV_ZVFH
+  "\n" src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390.c RISCV_ZVE32F
+  "\n" src/gemm/rvv/gemm_f64_f64_f64_zve64d_x390.c RISCV_ZVE64D
+  "\n" src/gemm/rvv/gemm_i8_i8_i32_zve32x_x390.c RISCV_ZVE32X
+  "\n" src/gemm/scalar/gemm_bf16rc_bf16rc_f32rc_scalar.c
+  "\n" src/gemm/scalar/gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar.c
+  "\n" src/gemm/scalar/gemm_f16rc_f16rc_f16rc_scalar.c
+  "\n" src/gemm/scalar/gemm_f16rc_f16rc_f32rc_scalar.c
+  "\n" src/gemm/scalar/gemm_f16rcprc_f16rcprc_f32rcprc_scalar.c
+  "\n" src/gemm/scalar/gemm_f32rc_f32rc_f32rc_scalar.c
+  "\n" src/gemm/scalar/gemm_f32rcprc_f32rcprc_f32rcprc_scalar.c
+  "\n" src/gemm/scalar/gemm_f64rc_f64rc_f64rc_scalar.c
+  "\n" src/gemm/scalar/gemm_f64rcprc_f64rcprc_f64rcprc_scalar.c
+  "\n" src/gemm/scalar/gemm_i8rc_i8rc_i32rc_scalar.c
+  "\n" src/gemm/scalar/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.c
+  "\n" src/gemm/xsfmm/gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f.c RISCV_XSFMM32A16F
+  "\n" src/gemm/xsfmm/gemm_a1b01_f16c_f16_f32_xsfmm32a16f.c RISCV_XSFMM32A16F
+  "\n" src/gemm/xsfmm/gemm_a1b01_f32c_f32_f32_xsfmm32a32f.c RISCV_XSFMM32A32F
+  "\n" src/gemm/xsfmm/gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c RISCV_XSFMM32A8F
+  "\n" src/gemm/xsfmm/gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c RISCV_XSFMM32A8F
+  "\n" src/gemm/xsfmm/gemm_a1b01_i8c_i8_i32_xsfmm32a8i.c RISCV_XSFMM32A8I
   "\n" src/gemm/xsfvqdotq/gemm_i8_i8pc_i32_xsfvqdotq.c RISCV_XSFVQDOTQ
+  "\n" src/gemm/xsfvqdotq/pack_b_xsfvqdotq.c RISCV_ZVE32X
+
+  "\n" src/logistic/logistic_f16_scalar.c
+  "\n" src/logistic/logistic_f16_xsfvfexp16e.c RISCV_XSFVFEXP16E
+  "\n" src/logistic/logistic_f16_zvfh.c RISCV_ZVFH
+  "\n" src/logistic/logistic_f32_scalar.c
+  "\n" src/logistic/logistic_f32_xsfvfexpa.c RISCV_XSFVFEXPA
+  "\n" src/logistic/logistic_f32_zve32f.c RISCV_ZVE32F
+
+  "\n" src/silu/silu_f16_scalar.c
+  "\n" src/silu/silu_f16_xsfvfexp16e.c RISCV_XSFVFEXP16E
+  "\n" src/silu/silu_f16_xsfvfexpa_zvfh.c RISCV_XSFVFEXPA RISCV_ZVFH
+  "\n" src/silu/silu_f16_zvfh.c RISCV_ZVFH
+  "\n" src/silu/silu_f32_scalar.c
+  "\n" src/silu/silu_f32_xsfvfexp32e.c RISCV_XSFVFEXP32E
+  "\n" src/silu/silu_f32_xsfvfexpa.c RISCV_XSFVFEXPA
+  "\n" src/silu/silu_f32_zve32f.c RISCV_ZVE32F
+
+  "\n" src/softmax/softmax_bf16_scalar.c
+  "\n" src/softmax/softmax_bf16_xsfvfbfa.c RISCV_XSFVFBFA
+  "\n" src/softmax/softmax_bf16_xsfvfbfexp16e_xsfvfbfa.c RISCV_XSFVFBFEXP16E RISCV_XSFVFBFA
+  "\n" src/softmax/softmax_bf16_xsfvfbfexp16e_zvfbfmin.c RISCV_XSFVFBFEXP16E RISCV_ZVFBFMIN
+  "\n" src/softmax/softmax_bf16_xsfvfexp32e_zvfbfmin.c RISCV_XSFVFEXP32E RISCV_ZVFBFMIN
+  "\n" src/softmax/softmax_bf16_xsfvfexpa_xsfvfbfa.c RISCV_XSFVFEXPA RISCV_XSFVFBFA
+  "\n" src/softmax/softmax_bf16_xsfvfexpa_zvfbfmin.c RISCV_XSFVFEXPA RISCV_ZVFBFMIN
+  "\n" src/softmax/softmax_bf16_zve32f.c RISCV_ZVE32F
+  "\n" src/softmax/softmax_bf16_zvfbfmin.c RISCV_ZVFBFMIN
+  "\n" src/softmax/softmax_f16_scalar.c
+  "\n" src/softmax/softmax_f16_xsfvfexp16e.c RISCV_XSFVFEXP16E
+  "\n" src/softmax/softmax_f16_xsfvfexpa_zvfh.c RISCV_XSFVFEXPA RISCV_ZVFH
+  "\n" src/softmax/softmax_f16_zvfh.c RISCV_ZVFH
+  "\n" src/softmax/softmax_f32_scalar.c
+  "\n" src/softmax/softmax_f32_xsfvfexp32e.c RISCV_XSFVFEXP32E
+  "\n" src/softmax/softmax_f32_xsfvfexpa.c RISCV_XSFVFEXPA
+  "\n" src/softmax/softmax_f32_zve32f.c RISCV_ZVE32F
+
+  "\n" src/transpose/rvv/transpose_e16_zve32x.c RISCV_ZVE32X
+  "\n" src/transpose/rvv/transpose_e32_zve32x.c RISCV_ZVE32X
+  "\n" src/transpose/rvv/transpose_e8_zve32x.c RISCV_ZVE32X
+  "\n" src/transpose/scalar/transpose_e16_scalar.c
+  "\n" src/transpose/scalar/transpose_e32_scalar.c
+  "\n" src/transpose/scalar/transpose_e8_scalar.c
+  "\n" src/transpose/xsfmm/transpose_e16_xsfmmbase.c RISCV_XSFMM
+  "\n" src/transpose/xsfmm/transpose_e32_xsfmmbase.c RISCV_XSFMM
+  "\n" src/transpose/xsfmm/transpose_e8_xsfmmbase.c RISCV_XSFMM
 
   "\n" # Final newline necessary for parsing.
 )
