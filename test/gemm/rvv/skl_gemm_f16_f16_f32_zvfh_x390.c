@@ -18,24 +18,41 @@
 
 static int execute(skl_test_t *t);
 
+// Uses defaults from gemm_f16rc_f16rc_f32rc.h
+#define TEST GEMM_F16RC_F16RC_F32RC_DEFAULTS, .warmup = false, .verify = true
+#define BENCH GEMM_F16RC_F16RC_F32RC_DEFAULTS, .warmup = true, .verify = false
+
+// clang-format off
 gemm_f16rc_f16rc_f32rc_t tests[] = {
-    {.warmup = false,
-     .verify = true,
-     .alpha = (_Float16)2.0f,
-     .beta = (_Float16)3.0f,
-     .a = {.min = (_Float16)-1.0f,
-           .max = (_Float16)1.0f,
-           .mode = SKL_TEST_RANDOM},
-     .b = {.min = (_Float16)-1.0f,
-           .max = (_Float16)1.0f,
-           .mode = SKL_TEST_RANDOM},
-     .c = {.min = (_Float16)-1.0f,
-           .max = (_Float16)1.0f,
-           .mode = SKL_TEST_RANDOM},
-     .m = 32,
-     .n = 32,
-     .k = 32},
+    // Benchmark tests
+    {BENCH, .m =  64, .n = 128, .k = 128},
+
+    // Verifcation tests - comprehensive coverage for RVV GEMM
+    /* Edge cases: minimal dimensions */
+    {TEST, .m =   1, .n =   1, .k =   0},
+    {TEST, .m =   1, .n =   1, .k =   1},
+    /* Small odd dimensions for remainder handling */
+    {TEST, .m =   7, .n =   7, .k =   7},
+    {TEST, .m =  17, .n =  17, .k =  17},
+    /* Skinny matrices (one dimension = 1) */
+    {TEST, .m =   1, .n =  33, .k =  31},
+    {TEST, .m =  33, .n =   1, .k =  31},
+    /* k=0 edge case (C = beta*C, no A*B contribution) */
+    {TEST, .m =  33, .n =  33, .k =   0},
+    {TEST, .m =  16, .n =  16, .k =   0},
+    /* Vector length boundary tests (multiples of 4, 8, 16, 32) */
+    {TEST, .m =  16, .n =  16, .k =  16},
+    {TEST, .m =  32, .n =  32, .k =  32},
+    {TEST, .m =  32, .n = 128, .k =  32},
+    /* Near-boundary tests (±1 from vector length multiples) */
+    {TEST, .m =  15, .n =  17, .k =  31},
+    {TEST, .m =  31, .n =  33, .k =  15},
+    /* Wide and tall matrices */
+    {TEST, .m =  33, .n = 129, .k =  32},
+    {TEST, .m = 129, .n =  33, .k =  32},
+    {TEST, .m =  31, .n = 133, .k =  32},
 };
+// clang-format on
 
 static skl_test_suite_t suite = {
     .name = "skl_gemm_f16_f16_f32_zvfh_x390",

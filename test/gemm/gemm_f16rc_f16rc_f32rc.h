@@ -52,3 +52,15 @@ int gemm_f16rc_f16rc_f32rc_warmup(skl_test_t *t);
 int gemm_f16rc_f16rc_f32rc_verify(skl_test_t *t);
 int gemm_f16rc_f16rc_f32rc_report(skl_test_t *t);
 int gemm_f16rc_f16rc_f32rc_cleanup(skl_test_t *t);
+
+#define GEMM_F16RC_F16RC_F32RC_DEFAULTS                                        \
+  .a = {.min = (_Float16)-1.0f,                                                \
+        .max = (_Float16)1.0f,                                                 \
+        .mode = SKL_TEST_RANDOM},                                              \
+  .b = {.min = (_Float16)-1.0f,                                                \
+        .max = (_Float16)1.0f,                                                 \
+        .mode = SKL_TEST_RANDOM},                                              \
+  .c = {.min = (_Float16)-1.0f,                                                \
+        .max = (_Float16)1.0f,                                                 \
+        .mode = SKL_TEST_RANDOM},                                              \
+  .alpha = (_Float16)2.f, .beta = (_Float16)3.f
