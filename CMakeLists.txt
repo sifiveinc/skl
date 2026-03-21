@@ -227,12 +227,12 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   enable_testing()
 
   # Examples
-  if (RISCV_ZVE32F)
+  if("ZVE32F" IN_LIST RISCV_EXTENSIONS)
     skl_add_example(skl_conv2d_io_nhwc_filter_hwio_im2row_gemm_f32_f32_f32_zve32f_x390 "conv2d/main.c;conv2d/conv2d_nhwc_f32.c" "-DTEST_IM2ROW_GEMM")
     skl_add_example(skl_conv2d_io_nhwc_filter_hwio_direct_gemm_f32_f32_f32_zve32f_x390 "conv2d/main.c;conv2d/conv2d_nhwc_f32.c" "")
   endif()
 
-  if(RISCV_ZVE32X)
+  if("ZVE32X" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_depthwise_conv2d_i8_i8_i32_zve32x depthwise_conv2d/depthwise_conv2d_i8_i8_i32.c "")
     skl_add_test_legacy(skl_gemm_i8_i8_i32_zve32x_x390_wrapper gemm/gemm_i8rc_i8rc_i32rc.c
       "-DM=32;-DN=32;-DK=32;-DALPHA=1;-DBETA=0")
@@ -241,7 +241,7 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test_legacy(skl_transpose_e32_zve32x transpose/transpose_e32.c "")
     skl_add_test_legacy(skl_pack_b_i8_xsfvqdotq gemm/pack_b_i8_xsfvqdotq.c "-DK=126;-DN=128")
   endif()
-  if(RISCV_ZVFH)
+  if("ZVFH" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_depthwise_conv2d_f16_f16_f16_zvfh depthwise_conv2d/depthwise_conv2d_f16_f16_f16.c "")
     skl_add_test_legacy(exp_f16 exp/exp_f16.c "-DRUN_ZVFH;-DRUN_VFEXPA;-DRUN_VFEXP")
     skl_add_test_legacy(skl_gemm_f16_f16_f16_zvfh_x390_wrapper gemm/gemm_f16rc_f16rc_f16rc.c
@@ -251,7 +251,7 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test_legacy(logistic_f16_zvfh logistic/logistic_f16.c "-DRUN_ALL")
     skl_add_test_legacy(silu_f16_zvfh silu/silu_f16.c "-DRUN_ALL")
   endif()
-  if(RISCV_ZVFBFWMA)
+  if("ZVFBFWMA" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_bf16_bf16_f32_zvfbfwma_wrapper gemm/gemm_bf16rc_bf16rc_f32rc.c
       "-DM=4;-DN=16;-DK=128;-DALPHA=1.f;-DBETA=0.f")
   endif()
@@ -260,7 +260,7 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   skl_add_test_legacy(softmax_f32 softmax/softmax_f32.c "-DRUN_ALL;-DBETA=0.5")
   skl_add_test_legacy(softmax_2d_f32 softmax/softmax_2d_f32.c
     "-DRUN_ALL;-DM=64;-DN=128;-DBETA=0.5")
-  if (RISCV_ZVE32F)
+  if("ZVE32F" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_depthwise_conv2d_f32_f32_f32_zve32f depthwise_conv2d/depthwise_conv2d_f32_f32_f32.c "")
     skl_add_test_legacy(exp_f32 exp/exp_f32.c "-DRUN_ZVE32F;-DRUN_VFEXPA;-DRUN_VFEXP")
     skl_add_test_legacy(exp_bf16 exp/exp_bf16.c "-DRUN_ZVE32F;-DRUN_VFBFA;-DRUN_VFEXP;-DRUN_VFEXPA")
@@ -268,11 +268,11 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test_legacy(gelu_f32 gelu/gelu_f32.c "")
     skl_add_test_legacy(silu_f32_zve32f silu/silu_f32.c "-DRUN_ALL")
   endif()
-  if(RISCV_ZVE64D)
+  if("ZVE64D" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_f64_f64_f64_zve64d_x390_wrapper gemm/gemm_f64rc_f64rc_f64rc.c
       "-DM=32;-DN=32;-DK=32;-DALPHA=1.;-DBETA=0.")
   endif()
-  if(RISCV_XSFMM32A8F)
+  if("XSFMM32A8F" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f_wrapper gemm/gemm_f8e4m3rc_f8e4m3rc_f32rc.c
       "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1.f;-DBETA=0.f")
     skl_add_test_legacy(skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f_wrapper gemm/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc.c
@@ -282,13 +282,13 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test_legacy(skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f_wrapper gemm/gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc.c
       "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
   endif()
-  if(RISCV_XSFMM32A8I)
+  if("XSFMM32A8I" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i_wrapper gemm/gemm_i8rc_i8rc_i32rc.c
       "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1;-DBETA=0")
     skl_add_test_legacy(skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i_wrapper gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
       "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1;-DBETA=0")
   endif()
-  if(RISCV_XSFMM32A16F)
+  if("XSFMM32A16F" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f_wrapper gemm/gemm_bf16rc_bf16rc_f32rc.c
       "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1.f;-DBETA=0.f")
     skl_add_test_legacy(skl_gemm_a1b01_f16c_f16_f32_xsfmm32a16f_wrapper gemm/gemm_f16rc_f16rc_f32rc.c
@@ -298,31 +298,31 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test_legacy(skl_gemm_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f_wrapper gemm/gemm_f16rcprc_f16rcprc_f32rcprc.c
       "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
   endif()
-  if(RISCV_XSFMM32A32F)
+  if("XSFMM32A32F" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f_wrapper gemm/gemm_f32rcprc_f32rcprc_f32rcprc.c
       "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
   endif()
-  if(RISCV_XSFMM)
+  if("XSFMM" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_transpose_e8_xsfmmbase transpose/transpose_e8.c "")
     skl_add_test_legacy(skl_transpose_e16_xsfmmbase transpose/transpose_e16.c "")
     skl_add_test_legacy(skl_transpose_e32_xsfmmbase transpose/transpose_e32.c "")
   endif()
-  if(RISCV_ZVFOFP8MIN)
+  if("ZVFOFP8MIN" IN_LIST RISCV_EXTENSIONS)
     #For SCALING_TEST_MODE, 1: no scaling, 2: scaling, 3: both
     #For SATURATION_TEST_MODE, 1: no saturation, 2: saturation, 3: both
     skl_add_test_legacy(skl_cvt_zvfofp8min cvt/cvt_ofp_zvfofp8min.c
       "-DRUN_F32_E4M3;-DRUN_F32_E5M2;-DRUN_E4M3_BF16;-DRUN_E5M2_BF16;-DSCALING_TEST_MODE=3;-DSATURATION_TEST_MODE=3")
   endif()
-  if(RISCV_ZVFOFP8MIN AND RISCV_ZVFBFMIN)
+  if("ZVFOFP8MIN" IN_LIST RISCV_EXTENSIONS AND "ZVFBFMIN" IN_LIST RISCV_EXTENSIONS)
     #For SCALING_TEST_MODE, 1: no scaling, 2: scaling, 3: both
     #For SATURATION_TEST_MODE, 1: no saturation, 2: saturation, 3: both
     skl_add_test_legacy(skl_cvt_zvfofp8min_zvfbfmin cvt/cvt_ofp_zvfofp8min_zvfbfmin.c
       "-DRUN_BF16_E4M3;-DRUN_BF16_E5M2;-DSCALING_TEST_MODE=3;-DSATURATION_TEST_MODE=3")
   endif()
-  if(RISCV_ZVFOFP4MIN)
+  if("ZVFOFP4MIN" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_cvt_zvfofp4min cvt/cvt_ofp_zvfofp4min.c "")
   endif()
-  if(RISCV_XSFVQDOTQ)
+  if("XSFVQDOTQ" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_i8_i8pc_i32_xsfvqdotq gemm/gemm_i8_i8pc_i32_xsfvqdotq.c "-DM=128;-DN=128;-DK=256;-DALPHA=1;-DBETA=1")
     skl_add_test_legacy(skl_gemm_i8_i8pc_i32_xsfvqdotq_wrapper gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
       "-DM0=1;-DN0=1;-DK0=4;-DM1=12;-DN1=128;-DK1=8;-DRSB0=1;-DCSB0=0;-DALPHA=1;-DBETA=0;")
