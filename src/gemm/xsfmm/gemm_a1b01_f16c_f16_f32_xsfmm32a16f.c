@@ -1382,3 +1382,341 @@ SKL_FUNC void skl_gemm_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
 
   __asm__ volatile("sf.vtdiscard");
 }
+
+/* Intrinsics */
+SKL_XSFMM_NEW
+SKL_FUNC_PRIVATE void skl_gemm_1tm1tn_a1b01_intr_f16c_f16_f32_xsfmm32a16f(
+    size_t tm, size_t tn, size_t k, const _Float16 *a, size_t csa,
+    const _Float16 *b, size_t rsb, float *c, size_t rsc, bool accum) {
+  if (tm == 0 || tn == 0) {
+    return;
+  }
+
+  const size_t kRowInc = 1;
+
+  const size_t mt0 = 0;
+  float *c00 = c;
+
+  if (accum) {
+    size_t mt0_load = mt0;
+    const float *c00_load = c00;
+
+    for (size_t i = 0; i < tm; ++i) {
+      __riscv_sf_vlte32_f32(mt0_load, c00_load, tn);
+      mt0_load += kRowInc;
+      c00_load += rsc;
+    }
+  } else {
+    __riscv_sf_vtzero_t_e16w2(0, tm, tn);
+  }
+
+  const _Float16 *a0 = a;
+  const _Float16 *a1 = a + csa;
+  const _Float16 *b0 = b;
+  const _Float16 *b1 = b + rsb;
+
+  vfloat16m8_t a0_vec, b0_vec;
+  vfloat16m4_t a0_vec0, a0_vec1, b0_vec0, b0_vec1;
+
+  while (k >= 2) {
+    a0_vec0 = __riscv_vle16_v_f16m4(a0, tm);
+    a0 += 2 * csa;
+    a0_vec1 = __riscv_vle16_v_f16m4(a1, tm);
+    a1 += 2 * csa;
+    a0_vec = __riscv_vcreate_v_f16m4_f16m8(a0_vec0, a0_vec1);
+
+    b0_vec0 = __riscv_vle16_v_f16m4(b0, tn);
+    b0 += 2 * rsb;
+    b0_vec1 = __riscv_vle16_v_f16m4(b1, tn);
+    b1 += 2 * rsb;
+    b0_vec = __riscv_vcreate_v_f16m4_f16m8(b0_vec0, b0_vec1);
+
+    __riscv_sf_mm_f_f_w2_f16m8(0, a0_vec, b0_vec, tm, tn, 2);
+    k -= 2;
+  }
+
+  if (k == 1) {
+    a0_vec0 = __riscv_vle16_v_f16m4(a0, tm);
+    a0_vec = __riscv_vcreate_v_f16m4_f16m8(a0_vec0, a0_vec1);
+
+    b0_vec0 = __riscv_vle16_v_f16m4(b0, tn);
+    b0_vec = __riscv_vcreate_v_f16m4_f16m8(b0_vec0, b0_vec1);
+
+    __riscv_sf_mm_f_f_w2_f16m8(0, a0_vec, b0_vec, tm, tn, 1);
+  }
+
+  // store data from tiles to memory
+  size_t mt0_store = mt0;
+  float *c00_store = c00;
+
+  for (size_t i = 0; i < tm; ++i) {
+    __riscv_sf_vste32_f32(mt0_store, c00_store, tn);
+    mt0_store += kRowInc;
+    c00_store += rsc;
+  }
+
+  return;
+}
+
+// process 4 (= 2 x 2) contiguous tn x tn tiles of c
+SKL_XSFMM_NEW
+SKL_FUNC_PRIVATE void skl_gemm_2tn2tn_a1b01_intr_f16pc_f16cp_f32rcp_xsfmm32a16f(
+    size_t tn, size_t k, const _Float16 *a, size_t csa0, size_t rsa1,
+    const _Float16 *b, size_t rsb0, size_t csb1, float *c, size_t rsc0,
+    size_t rsc1, size_t csc1, bool accum) {
+  /* Avoiding sf.vsettn instructions in the inner loop slightly improves
+   * performance but requires tm == tn. */
+  size_t tm = tn;
+
+  if (tm == 0 || tn == 0) {
+    return;
+  }
+
+  const size_t kShiftTile = 27;
+  const size_t kRowInc = 1;
+
+  const size_t mt0 = 0;
+  const size_t mt4 = (size_t)(4) << kShiftTile;
+  const size_t mt8 = (size_t)(8) << kShiftTile;
+  const size_t mt12 = (size_t)(12) << kShiftTile;
+
+  float *c00 = c;
+  float *c01 = c00 + csc1;
+  float *c10 = c00 + rsc1;
+  float *c11 = c10 + csc1;
+
+  if (accum) {
+    size_t mt0_load = mt0;
+    size_t mt4_load = mt4;
+    size_t mt8_load = mt8;
+    size_t mt12_load = mt12;
+
+    const float *c00_load = c00;
+    const float *c01_load = c01;
+    const float *c10_load = c10;
+    const float *c11_load = c11;
+    for (size_t i = 0; i < tm; ++i) {
+      __riscv_sf_vlte32_f32(mt0_load, c00_load, tn);
+      mt0_load += kRowInc;
+      c00_load += rsc0;
+      __riscv_sf_vlte32_f32(mt4_load, c01_load, tn);
+      mt4_load += kRowInc;
+      c01_load += rsc0;
+      __riscv_sf_vlte32_f32(mt8_load, c10_load, tn);
+      mt8_load += kRowInc;
+      c10_load += rsc0;
+      __riscv_sf_vlte32_f32(mt12_load, c11_load, tn);
+      mt12_load += kRowInc;
+      c11_load += rsc0;
+    }
+  } else {
+    __riscv_sf_vtzero_t_e16w2(0, tm, tn);
+    __riscv_sf_vtzero_t_e16w2(4, tm, tn);
+    __riscv_sf_vtzero_t_e16w2(8, tm, tn);
+    __riscv_sf_vtzero_t_e16w2(12, tm, tn);
+  }
+
+  // a0_{0,1} are used to load a tm x 2 submatrix of A
+  // b0_{0,1} are used to load a 2 x tn submatrix of B
+  // b1_{0,1} and a1_{0,1} are similar
+  const _Float16 *a0_0 = a;
+  const _Float16 *a0_1 = a0_0 + csa0;
+  const _Float16 *a1_0 = a0_0 + rsa1;
+  const _Float16 *a1_1 = a1_0 + csa0;
+  const _Float16 *b0_0 = b;
+  const _Float16 *b0_1 = b0_0 + rsb0;
+  const _Float16 *b1_0 = b0_0 + csb1;
+  const _Float16 *b1_1 = b1_0 + rsb0;
+
+  vfloat16m8_t a0_vec, a1_vec, b0_vec, b1_vec;
+  vfloat16m4_t a0_vec0, a0_vec1;
+  vfloat16m4_t a1_vec0, a1_vec1;
+  vfloat16m4_t b0_vec0, b0_vec1;
+  vfloat16m4_t b1_vec0, b1_vec1;
+
+  if (k == 1) {
+    a0_vec0 = __riscv_vle16_v_f16m4(a0_0, tm);
+    a0_vec = __riscv_vcreate_v_f16m4_f16m8(a0_vec0, a0_vec1);
+
+    b0_vec0 = __riscv_vle16_v_f16m4(b0_0, tn);
+    b0_vec = __riscv_vcreate_v_f16m4_f16m8(b0_vec0, b0_vec1);
+
+    __riscv_sf_mm_f_f_w2_f16m8(0, a0_vec, b0_vec, tm, tn, 1);
+
+    b1_vec0 = __riscv_vle16_v_f16m4(b1_0, tn);
+    b1_vec = __riscv_vcreate_v_f16m4_f16m8(b1_vec0, b1_vec1);
+
+    __riscv_sf_mm_f_f_w2_f16m8(4, a0_vec, b1_vec, tm, tn, 1);
+
+    a1_vec0 = __riscv_vle16_v_f16m4(a1_0, tm);
+    a1_vec = __riscv_vcreate_v_f16m4_f16m8(a1_vec0, a1_vec1);
+
+    __riscv_sf_mm_f_f_w2_f16m8(8, a1_vec, b0_vec, tm, tn, 1);
+    __riscv_sf_mm_f_f_w2_f16m8(12, a1_vec, b1_vec, tm, tn, 1);
+  } else if (k > 1) {
+    b0_vec0 = __riscv_vle16_v_f16m4(b0_0, tn);
+    b0_0 += 2 * rsb0;
+    b0_vec1 = __riscv_vle16_v_f16m4(b0_1, tn);
+    b0_1 += 2 * rsb0;
+    b0_vec = __riscv_vcreate_v_f16m4_f16m8(b0_vec0, b0_vec1);
+
+    a0_vec0 = __riscv_vle16_v_f16m4(a0_0, tm);
+    a0_0 += 2 * csa0;
+    a0_vec1 = __riscv_vle16_v_f16m4(a0_1, tm);
+    a0_1 += 2 * csa0;
+    a0_vec = __riscv_vcreate_v_f16m4_f16m8(a0_vec0, a0_vec1);
+
+    while (k >= 4) {
+      b1_vec0 = __riscv_vle16_v_f16m4(b1_0, tn);
+      b1_0 += 2 * rsb0;
+      b1_vec1 = __riscv_vle16_v_f16m4(b1_1, tn);
+      b1_1 += 2 * rsb0;
+      b1_vec = __riscv_vcreate_v_f16m4_f16m8(b1_vec0, b1_vec1);
+
+      __riscv_sf_mm_f_f_w2_f16m8(0, a0_vec, b0_vec, tm, tn, 2);
+
+      a1_vec0 = __riscv_vle16_v_f16m4(a1_0, tm);
+      a1_0 += 2 * csa0;
+      a1_vec1 = __riscv_vle16_v_f16m4(a1_1, tm);
+      a1_1 += 2 * csa0;
+      a1_vec = __riscv_vcreate_v_f16m4_f16m8(a1_vec0, a1_vec1);
+
+      __riscv_sf_mm_f_f_w2_f16m8(4, a0_vec, b1_vec, tm, tn, 2);
+
+      a0_vec0 = __riscv_vle16_v_f16m4(a0_0, tm);
+      a0_0 += 2 * csa0;
+      a0_vec1 = __riscv_vle16_v_f16m4(a0_1, tm);
+      a0_1 += 2 * csa0;
+      a0_vec = __riscv_vcreate_v_f16m4_f16m8(a0_vec0, a0_vec1);
+
+      __riscv_sf_mm_f_f_w2_f16m8(8, a1_vec, b0_vec, tm, tn, 2);
+
+      b0_vec0 = __riscv_vle16_v_f16m4(b0_0, tn);
+      b0_0 += 2 * rsb0;
+      b0_vec1 = __riscv_vle16_v_f16m4(b0_1, tn);
+      b0_1 += 2 * rsb0;
+      b0_vec = __riscv_vcreate_v_f16m4_f16m8(b0_vec0, b0_vec1);
+
+      __riscv_sf_mm_f_f_w2_f16m8(12, a1_vec, b1_vec, tm, tn, 2);
+      k -= 2;
+    }
+
+    b1_vec0 = __riscv_vle16_v_f16m4(b1_0, tn);
+    b1_0 += 2 * rsb0;
+    b1_vec1 = __riscv_vle16_v_f16m4(b1_1, tn);
+    b1_1 += 2 * rsb0;
+    b1_vec = __riscv_vcreate_v_f16m4_f16m8(b1_vec0, b1_vec1);
+
+    __riscv_sf_mm_f_f_w2_f16m8(0, a0_vec, b0_vec, tm, tn, 2);
+
+    a1_vec0 = __riscv_vle16_v_f16m4(a1_0, tm);
+    a1_0 += 2 * csa0;
+    a1_vec1 = __riscv_vle16_v_f16m4(a1_1, tm);
+    a1_1 += 2 * csa0;
+    a1_vec = __riscv_vcreate_v_f16m4_f16m8(a1_vec0, a1_vec1);
+
+    __riscv_sf_mm_f_f_w2_f16m8(4, a0_vec, b1_vec, tm, tn, 2);
+    k -= 2;
+
+    if (k == 1) {
+      a0_vec0 = __riscv_vle16_v_f16m4(a0_0, tm);
+      a0_vec = __riscv_vcreate_v_f16m4_f16m8(a0_vec0, a0_vec1);
+
+      __riscv_sf_mm_f_f_w2_f16m8(8, a1_vec, b0_vec, tm, tn, 2);
+
+      b0_vec0 = __riscv_vle16_v_f16m4(b0_0, tn);
+      b0_vec = __riscv_vcreate_v_f16m4_f16m8(b0_vec0, b0_vec1);
+
+      __riscv_sf_mm_f_f_w2_f16m8(12, a1_vec, b1_vec, tm, tn, 2);
+
+      b1_vec0 = __riscv_vle16_v_f16m4(b1_0, tn);
+      b1_vec = __riscv_vcreate_v_f16m4_f16m8(b1_vec0, b1_vec1);
+
+      __riscv_sf_mm_f_f_w2_f16m8(0, a0_vec, b0_vec, tm, tn, 1);
+
+      a1_vec0 = __riscv_vle16_v_f16m4(a1_0, tm);
+      a1_vec = __riscv_vcreate_v_f16m4_f16m8(a1_vec0, a1_vec1);
+
+      __riscv_sf_mm_f_f_w2_f16m8(4, a0_vec, b1_vec, tm, tn, 1);
+      __riscv_sf_mm_f_f_w2_f16m8(8, a1_vec, b0_vec, tm, tn, 1);
+      __riscv_sf_mm_f_f_w2_f16m8(12, a1_vec, b1_vec, tm, tn, 1);
+    } else { // k == 0
+      __riscv_sf_mm_f_f_w2_f16m8(8, a1_vec, b0_vec, tm, tn, 2);
+      __riscv_sf_mm_f_f_w2_f16m8(12, a1_vec, b1_vec, tm, tn, 2);
+    }
+  }
+
+  // store data from tiles to memory
+  size_t mt0_store = mt0;
+  size_t mt4_store = mt4;
+  size_t mt8_store = mt8;
+  size_t mt12_store = mt12;
+
+  float *c00_store = c00;
+  float *c01_store = c01;
+  float *c10_store = c10;
+  float *c11_store = c11;
+  for (size_t i = 0; i < tm; ++i) {
+    __riscv_sf_vste32_f32(mt0_store, c00_store, tn);
+    mt0_store += kRowInc;
+    c00_store += rsc0;
+    __riscv_sf_vste32_f32(mt4_store, c01_store, tn);
+    mt4_store += kRowInc;
+    c01_store += rsc0;
+    __riscv_sf_vste32_f32(mt8_store, c10_store, tn);
+    mt8_store += kRowInc;
+    c10_store += rsc0;
+    __riscv_sf_vste32_f32(mt12_store, c11_store, tn);
+    mt12_store += kRowInc;
+    c11_store += rsc0;
+  }
+
+  return;
+}
+
+SKL_XSFMM_NEW
+SKL_FUNC void skl_gemm_a1b01_intr_f16pc_f16cp_f32rcp_xsfmm32a16f(
+    size_t m1, size_t n1, size_t k, const _Float16 *a_pack, size_t rsa1,
+    const _Float16 *b_pack, size_t csb1, float *c_pack, size_t rsc1,
+    size_t csc1, bool accum) {
+  if (m1 == 0 || n1 == 0) {
+    return;
+  }
+
+  size_t ete = __riscv_sf_vsettnt_e16w2(
+      -1); // Effective tile edge length (always TE for TEW=32).
+
+  size_t num_processed_by_2tn2tn_m1 = (m1 / 2) * 2;
+  size_t num_processed_by_2tn2tn_n1 = (n1 / 2) * 2;
+
+  size_t i = 0;
+  for (; i < num_processed_by_2tn2tn_m1; i += 2) {
+    size_t j = 0;
+    for (; j < num_processed_by_2tn2tn_n1; j += 2) {
+      skl_gemm_2tn2tn_a1b01_intr_f16pc_f16cp_f32rcp_xsfmm32a16f(
+          ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
+          csb1, c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
+    }
+    while (j < n1) {
+      skl_gemm_1tm1tn_a1b01_intr_f16c_f16_f32_xsfmm32a16f(
+          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete,
+          c_pack + i * rsc1 + j * csc1, ete, accum);
+      skl_gemm_1tm1tn_a1b01_intr_f16c_f16_f32_xsfmm32a16f(
+          ete, ete, k, a_pack + (i + 1) * rsa1, ete, b_pack + j * csb1, ete,
+          c_pack + (i + 1) * rsc1 + j * csc1, ete, accum);
+      j += 1;
+    }
+  }
+
+  while (i < m1) {
+    size_t j = 0;
+    while (j < n1) {
+      skl_gemm_1tm1tn_a1b01_intr_f16c_f16_f32_xsfmm32a16f(
+          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete,
+          c_pack + i * rsc1 + j * csc1, ete, accum);
+      j += 1;
+    }
+    i += 1;
+  }
+  __asm__ volatile("sf.vtdiscard");
+}
