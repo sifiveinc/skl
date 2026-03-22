@@ -91,6 +91,11 @@ void skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
     const float *b_pack, size_t csb1, float *c_pack, size_t rsc1, size_t csc1,
     bool accum);
 
+void skl_gemm_a1b01_intr_f32pc_f32cp_f32rcp_xsfmm32a32f(
+    size_t m1, size_t n1, size_t k, const float *a_pack, size_t rsa1,
+    const float *b_pack, size_t csb1, float *c_pack, size_t rsc1, size_t csc1,
+    bool accum);
+
 #if defined(__cplusplus)
 } // extern "C"
 #endif
