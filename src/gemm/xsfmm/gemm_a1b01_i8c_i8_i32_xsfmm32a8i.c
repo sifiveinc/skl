@@ -2490,3 +2490,523 @@ SKL_FUNC void skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
 
   __asm__ volatile("sf.vtdiscard");
 }
+
+/* Intrinsics */
+// process a tm x tn tile of c
+SKL_XSFMM_NEW
+SKL_FUNC_PRIVATE void skl_gemm_1tm1tn_a1b01_intr_i8c_i8_i32_xsfmm32a8i(
+    size_t tm, size_t tn, size_t k, const int8_t *a, size_t csa,
+    const int8_t *b, size_t rsb, int32_t *c, size_t rsc0, bool accum) {
+  if (tm == 0 || tn == 0) {
+    return;
+  }
+
+  const size_t kRowInc = 1;
+
+  const size_t mt0 = 0;
+  int32_t *c00 = c;
+
+  if (accum) {
+    size_t mt0_load = mt0;
+    const int32_t *c00_load = c00;
+
+    for (size_t i = 0; i < tm; ++i) {
+      __riscv_sf_vlte32_i32(mt0_load, c00_load, tn);
+      mt0_load += kRowInc;
+      c00_load += rsc0;
+    }
+  } else {
+    __riscv_sf_vtzero_t_e8w4(0, tm, tn);
+  }
+
+  const int8_t *a0 = a;
+  const int8_t *a1 = a0 + csa;
+  const int8_t *b0 = b;
+  const int8_t *b1 = b0 + rsb;
+
+  vint8m8_t a0_vec, b0_vec;
+  vint8m2_t a0_vec0, a0_vec1, a0_vec2, a0_vec3;
+  vint8m2_t b0_vec0, b0_vec1, b0_vec2, b0_vec3;
+
+  while (k >= 4) {
+    a0_vec0 = __riscv_vle8_v_i8m2(a0, tm);
+    a0 += 2 * csa;
+    a0_vec1 = __riscv_vle8_v_i8m2(a1, tm);
+    a1 += 2 * csa;
+    a0_vec2 = __riscv_vle8_v_i8m2(a0, tm);
+    a0 += 2 * csa;
+    a0_vec3 = __riscv_vle8_v_i8m2(a1, tm);
+    a1 += 2 * csa;
+    a0_vec = __riscv_vcreate_v_i8m2_i8m8(a0_vec0, a0_vec1, a0_vec2, a0_vec3);
+
+    b0_vec0 = __riscv_vle8_v_i8m2(b0, tn);
+    b0 += 2 * rsb;
+    b0_vec1 = __riscv_vle8_v_i8m2(b1, tn);
+    b1 += 2 * rsb;
+    b0_vec2 = __riscv_vle8_v_i8m2(b0, tn);
+    b0 += 2 * rsb;
+    b0_vec3 = __riscv_vle8_v_i8m2(b1, tn);
+    b1 += 2 * rsb;
+    b0_vec = __riscv_vcreate_v_i8m2_i8m8(b0_vec0, b0_vec1, b0_vec2, b0_vec3);
+
+    __riscv_sf_mm_s_s_w4_i8m8_i8m8(0, a0_vec, b0_vec, tm, tn, 4);
+    k -= 4;
+  }
+
+  if (k == 3) {
+    a0_vec0 = __riscv_vle8_v_i8m2(a0, tm);
+    a0 += 2 * csa;
+    a0_vec1 = __riscv_vle8_v_i8m2(a1, tm);
+    a0_vec2 = __riscv_vle8_v_i8m2(a0, tm);
+    a0_vec = __riscv_vcreate_v_i8m2_i8m8(a0_vec0, a0_vec1, a0_vec2, a0_vec3);
+
+    b0_vec0 = __riscv_vle8_v_i8m2(b0, tn);
+    b0 += 2 * rsb;
+    b0_vec1 = __riscv_vle8_v_i8m2(b1, tn);
+    b0_vec2 = __riscv_vle8_v_i8m2(b0, tn);
+    b0_vec = __riscv_vcreate_v_i8m2_i8m8(b0_vec0, b0_vec1, b0_vec2, b0_vec3);
+
+    __riscv_sf_mm_s_s_w4_i8m8_i8m8(0, a0_vec, b0_vec, tm, tn, 3);
+  } else if (k == 2) {
+    a0_vec0 = __riscv_vle8_v_i8m2(a0, tm);
+    a0_vec1 = __riscv_vle8_v_i8m2(a1, tm);
+    a0_vec = __riscv_vcreate_v_i8m2_i8m8(a0_vec0, a0_vec1, a0_vec2, a0_vec3);
+
+    b0_vec0 = __riscv_vle8_v_i8m2(b0, tn);
+    b0_vec1 = __riscv_vle8_v_i8m2(b1, tn);
+    b0_vec = __riscv_vcreate_v_i8m2_i8m8(b0_vec0, b0_vec1, b0_vec2, b0_vec3);
+
+    __riscv_sf_mm_s_s_w4_i8m8_i8m8(0, a0_vec, b0_vec, tm, tn, 2);
+  } else if (k == 1) {
+    a0_vec0 = __riscv_vle8_v_i8m2(a0, tm);
+    a0_vec = __riscv_vcreate_v_i8m2_i8m8(a0_vec0, a0_vec1, a0_vec2, a0_vec3);
+
+    b0_vec0 = __riscv_vle8_v_i8m2(b0, tn);
+    b0_vec = __riscv_vcreate_v_i8m2_i8m8(b0_vec0, b0_vec1, b0_vec2, b0_vec3);
+
+    __riscv_sf_mm_s_s_w4_i8m8_i8m8(0, a0_vec, b0_vec, tm, tn, 1);
+  }
+
+  // store data from tiles to memory
+  size_t mt0_store = mt0;
+  int32_t *c00_store = c00;
+
+  for (size_t i = 0; i < tm; ++i) {
+    __riscv_sf_vste32_i32(mt0_store, c00_store, tn);
+    mt0_store += kRowInc;
+    c00_store += rsc0;
+  }
+
+  return;
+}
+
+// process 4 (= 2 x 2) contiguous tn x tn tiles of c
+SKL_XSFMM_NEW
+SKL_FUNC_PRIVATE void skl_gemm_2tn2tn_a1b01_intr_i8pc_i8cp_i32rcp_xsfmm32a8i(
+    size_t tn, size_t k, const int8_t *a, size_t csa0, size_t rsa1,
+    const int8_t *b, size_t rsb0, size_t csb1, int32_t *c, size_t rsc0,
+    size_t rsc1, size_t csc1, bool accum) {
+  // Avoiding sf.vsettm instructions in the inner loop slightly improves
+  // performance but requires tm == tn.
+  size_t tm = tn;
+
+  if (tm == 0 || tn == 0) {
+    return;
+  }
+
+  const size_t kShiftTile = 27;
+  const size_t kRowInc = 1;
+
+  const size_t mt0 = 0;
+  const size_t mt4 = (size_t)(4) << kShiftTile;
+  const size_t mt8 = (size_t)(8) << kShiftTile;
+  const size_t mt12 = (size_t)(12) << kShiftTile;
+
+  int32_t *c00 = c;
+  int32_t *c01 = c00 + csc1;
+  int32_t *c10 = c00 + rsc1;
+  int32_t *c11 = c10 + csc1;
+
+  if (accum) {
+    size_t mt0_load = mt0;
+    size_t mt4_load = mt4;
+    size_t mt8_load = mt8;
+    size_t mt12_load = mt12;
+
+    const int32_t *c00_load = c00;
+    const int32_t *c01_load = c01;
+    const int32_t *c10_load = c10;
+    const int32_t *c11_load = c11;
+    for (size_t i = 0; i < tm; ++i) {
+      __riscv_sf_vlte32_i32(mt0_load, c00_load, tn);
+      mt0_load += kRowInc;
+      c00_load += rsc0;
+      __riscv_sf_vlte32_i32(mt4_load, c01_load, tn);
+      mt4_load += kRowInc;
+      c01_load += rsc0;
+      __riscv_sf_vlte32_i32(mt8_load, c10_load, tn);
+      mt8_load += kRowInc;
+      c10_load += rsc0;
+      __riscv_sf_vlte32_i32(mt12_load, c11_load, tn);
+      mt12_load += kRowInc;
+      c11_load += rsc0;
+    }
+  } else {
+    __riscv_sf_vtzero_t_e8w4(0, tm, tn);
+    __riscv_sf_vtzero_t_e8w4(4, tm, tn);
+    __riscv_sf_vtzero_t_e8w4(8, tm, tn);
+    __riscv_sf_vtzero_t_e8w4(12, tm, tn);
+  }
+
+  // a0_{0,1} are used to load a tm x 2 submatrix of A
+  // b0_{0,1} are used to load a 2 x tn submatrix of B
+  // b1_{0,1} and a1_{0,1} are similar
+  const int8_t *a0_0 = a;
+  const int8_t *a0_1 = a0_0 + csa0;
+  const int8_t *a1_0 = a0_0 + rsa1;
+  const int8_t *a1_1 = a1_0 + csa0;
+  const int8_t *b0_0 = b;
+  const int8_t *b0_1 = b0_0 + rsb0;
+  const int8_t *b1_0 = b0_0 + csb1;
+  const int8_t *b1_1 = b1_0 + rsb0;
+
+  vint8m8_t a0_vec, a1_vec, b0_vec, b1_vec;
+  vint8m2_t a0_vec0, a0_vec1, a0_vec2, a0_vec3;
+  vint8m2_t a1_vec0, a1_vec1, a1_vec2, a1_vec3;
+  vint8m2_t b0_vec0, b0_vec1, b0_vec2, b0_vec3;
+  vint8m2_t b1_vec0, b1_vec1, b1_vec2, b1_vec3;
+
+  if (k < 4) {
+    if (k == 3) {
+      b0_vec0 = __riscv_vle8_v_i8m2(b0_0, tn);
+      b0_0 += 2 * rsb0;
+      b0_vec1 = __riscv_vle8_v_i8m2(b0_1, tn);
+      b0_vec2 = __riscv_vle8_v_i8m2(b0_0, tn);
+      b0_vec = __riscv_vcreate_v_i8m2_i8m8(b0_vec0, b0_vec1, b0_vec2, b0_vec3);
+
+      a0_vec0 = __riscv_vle8_v_i8m2(a0_0, tm);
+      a0_0 += 2 * csa0;
+      a0_vec1 = __riscv_vle8_v_i8m2(a0_1, tm);
+      a0_vec2 = __riscv_vle8_v_i8m2(a0_0, tm);
+      a0_vec = __riscv_vcreate_v_i8m2_i8m8(a0_vec0, a0_vec1, a0_vec2, a0_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(0, a0_vec, b0_vec, tm, tn, 3);
+
+      b1_vec0 = __riscv_vle8_v_i8m2(b1_0, tn);
+      b1_0 += 2 * rsb0;
+      b1_vec1 = __riscv_vle8_v_i8m2(b1_1, tn);
+      b1_vec2 = __riscv_vle8_v_i8m2(b1_0, tn);
+      b1_vec = __riscv_vcreate_v_i8m2_i8m8(b1_vec0, b1_vec1, b1_vec2, b1_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(4, a0_vec, b1_vec, tm, tn, 3);
+
+      a1_vec0 = __riscv_vle8_v_i8m2(a1_0, tm);
+      a1_0 += 2 * csa0;
+      a1_vec1 = __riscv_vle8_v_i8m2(a1_1, tm);
+      a1_vec2 = __riscv_vle8_v_i8m2(a1_0, tm);
+      a1_vec = __riscv_vcreate_v_i8m2_i8m8(a1_vec0, a1_vec1, a1_vec2, a1_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(8, a1_vec, b0_vec, tm, tn, 3);
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(12, a1_vec, b1_vec, tm, tn, 3);
+    } else if (k == 2) {
+      b0_vec0 = __riscv_vle8_v_i8m2(b0_0, tn);
+      b0_vec1 = __riscv_vle8_v_i8m2(b0_1, tn);
+      b0_vec = __riscv_vcreate_v_i8m2_i8m8(b0_vec0, b0_vec1, b0_vec2, b0_vec3);
+
+      a0_vec0 = __riscv_vle8_v_i8m2(a0_0, tm);
+      a0_vec1 = __riscv_vle8_v_i8m2(a0_1, tm);
+      a0_vec = __riscv_vcreate_v_i8m2_i8m8(a0_vec0, a0_vec1, a0_vec2, a0_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(0, a0_vec, b0_vec, tm, tn, 2);
+
+      b1_vec0 = __riscv_vle8_v_i8m2(b1_0, tn);
+      b1_vec1 = __riscv_vle8_v_i8m2(b1_1, tn);
+      b1_vec = __riscv_vcreate_v_i8m2_i8m8(b1_vec0, b1_vec1, b1_vec2, b1_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(4, a0_vec, b1_vec, tm, tn, 2);
+
+      a1_vec0 = __riscv_vle8_v_i8m2(a1_0, tm);
+      a1_vec1 = __riscv_vle8_v_i8m2(a1_1, tm);
+      a1_vec = __riscv_vcreate_v_i8m2_i8m8(a1_vec0, a1_vec1, a1_vec2, a1_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(8, a1_vec, b0_vec, tm, tn, 2);
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(12, a1_vec, b1_vec, tm, tn, 2);
+    } else if (k == 1) {
+      b0_vec0 = __riscv_vle8_v_i8m2(b0_0, tn);
+      b0_vec = __riscv_vcreate_v_i8m2_i8m8(b0_vec0, b0_vec1, b0_vec2, b0_vec3);
+
+      a0_vec0 = __riscv_vle8_v_i8m2(a0_0, tm);
+      a0_vec = __riscv_vcreate_v_i8m2_i8m8(a0_vec0, a0_vec1, a0_vec2, a0_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(0, a0_vec, b0_vec, tm, tn, 1);
+
+      b1_vec0 = __riscv_vle8_v_i8m2(b1_0, tn);
+      b1_vec = __riscv_vcreate_v_i8m2_i8m8(b1_vec0, b1_vec1, b1_vec2, b1_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(4, a0_vec, b1_vec, tm, tn, 1);
+
+      a1_vec0 = __riscv_vle8_v_i8m2(a1_0, tm);
+      a1_vec = __riscv_vcreate_v_i8m2_i8m8(a1_vec0, a1_vec1, a1_vec2, a1_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(8, a1_vec, b0_vec, tm, tn, 1);
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(12, a1_vec, b1_vec, tm, tn, 1);
+    }
+  } else if (k >= 4) {
+    b0_vec0 = __riscv_vle8_v_i8m2(b0_0, tn);
+    b0_0 += 2 * rsb0;
+    b0_vec1 = __riscv_vle8_v_i8m2(b0_1, tn);
+    b0_1 += 2 * rsb0;
+    b0_vec2 = __riscv_vle8_v_i8m2(b0_0, tn);
+    b0_0 += 2 * rsb0;
+    b0_vec3 = __riscv_vle8_v_i8m2(b0_1, tn);
+    b0_1 += 2 * rsb0;
+    b0_vec = __riscv_vcreate_v_i8m2_i8m8(b0_vec0, b0_vec1, b0_vec2, b0_vec3);
+
+    a0_vec0 = __riscv_vle8_v_i8m2(a0_0, tm);
+    a0_0 += 2 * csa0;
+    a0_vec1 = __riscv_vle8_v_i8m2(a0_1, tm);
+    a0_1 += 2 * csa0;
+    a0_vec2 = __riscv_vle8_v_i8m2(a0_0, tm);
+    a0_0 += 2 * csa0;
+    a0_vec3 = __riscv_vle8_v_i8m2(a0_1, tm);
+    a0_1 += 2 * csa0;
+    a0_vec = __riscv_vcreate_v_i8m2_i8m8(a0_vec0, a0_vec1, a0_vec2, a0_vec3);
+
+    while (k >= 8) {
+      b1_vec0 = __riscv_vle8_v_i8m2(b1_0, tn);
+      b1_0 += 2 * rsb0;
+      b1_vec1 = __riscv_vle8_v_i8m2(b1_1, tn);
+      b1_1 += 2 * rsb0;
+      b1_vec2 = __riscv_vle8_v_i8m2(b1_0, tn);
+      b1_0 += 2 * rsb0;
+      b1_vec3 = __riscv_vle8_v_i8m2(b1_1, tn);
+      b1_1 += 2 * rsb0;
+      b1_vec = __riscv_vcreate_v_i8m2_i8m8(b1_vec0, b1_vec1, b1_vec2, b1_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(0, a0_vec, b0_vec, tm, tn, 4);
+
+      a1_vec0 = __riscv_vle8_v_i8m2(a1_0, tm);
+      a1_0 += 2 * csa0;
+      a1_vec1 = __riscv_vle8_v_i8m2(a1_1, tm);
+      a1_1 += 2 * csa0;
+      a1_vec2 = __riscv_vle8_v_i8m2(a1_0, tm);
+      a1_0 += 2 * csa0;
+      a1_vec3 = __riscv_vle8_v_i8m2(a1_1, tm);
+      a1_1 += 2 * csa0;
+      a1_vec = __riscv_vcreate_v_i8m2_i8m8(a1_vec0, a1_vec1, a1_vec2, a1_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(4, a0_vec, b1_vec, tm, tn, 4);
+
+      a0_vec0 = __riscv_vle8_v_i8m2(a0_0, tm);
+      a0_0 += 2 * csa0;
+      a0_vec1 = __riscv_vle8_v_i8m2(a0_1, tm);
+      a0_1 += 2 * csa0;
+      a0_vec2 = __riscv_vle8_v_i8m2(a0_0, tm);
+      a0_0 += 2 * csa0;
+      a0_vec3 = __riscv_vle8_v_i8m2(a0_1, tm);
+      a0_1 += 2 * csa0;
+      a0_vec = __riscv_vcreate_v_i8m2_i8m8(a0_vec0, a0_vec1, a0_vec2, a0_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(8, a1_vec, b0_vec, tm, tn, 4);
+
+      b0_vec0 = __riscv_vle8_v_i8m2(b0_0, tn);
+      b0_0 += 2 * rsb0;
+      b0_vec1 = __riscv_vle8_v_i8m2(b0_1, tn);
+      b0_1 += 2 * rsb0;
+      b0_vec2 = __riscv_vle8_v_i8m2(b0_0, tn);
+      b0_0 += 2 * rsb0;
+      b0_vec3 = __riscv_vle8_v_i8m2(b0_1, tn);
+      b0_1 += 2 * rsb0;
+      b0_vec = __riscv_vcreate_v_i8m2_i8m8(b0_vec0, b0_vec1, b0_vec2, b0_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(12, a1_vec, b1_vec, tm, tn, 4);
+      k -= 4;
+    }
+
+    b1_vec0 = __riscv_vle8_v_i8m2(b1_0, tn);
+    b1_0 += 2 * rsb0;
+    b1_vec1 = __riscv_vle8_v_i8m2(b1_1, tn);
+    b1_1 += 2 * rsb0;
+    b1_vec2 = __riscv_vle8_v_i8m2(b1_0, tn);
+    b1_0 += 2 * rsb0;
+    b1_vec3 = __riscv_vle8_v_i8m2(b1_1, tn);
+    b1_1 += 2 * rsb0;
+    b1_vec = __riscv_vcreate_v_i8m2_i8m8(b1_vec0, b1_vec1, b1_vec2, b1_vec3);
+
+    __riscv_sf_mm_s_s_w4_i8m8_i8m8(0, a0_vec, b0_vec, tm, tn, 4);
+
+    a1_vec0 = __riscv_vle8_v_i8m2(a1_0, tm);
+    a1_0 += 2 * csa0;
+    a1_vec1 = __riscv_vle8_v_i8m2(a1_1, tm);
+    a1_1 += 2 * csa0;
+    a1_vec2 = __riscv_vle8_v_i8m2(a1_0, tm);
+    a1_0 += 2 * csa0;
+    a1_vec3 = __riscv_vle8_v_i8m2(a1_1, tm);
+    a1_1 += 2 * csa0;
+    a1_vec = __riscv_vcreate_v_i8m2_i8m8(a1_vec0, a1_vec1, a1_vec2, a1_vec3);
+
+    __riscv_sf_mm_s_s_w4_i8m8_i8m8(4, a0_vec, b1_vec, tm, tn, 4);
+    k -= 4;
+
+    if (k == 3) {
+      a0_vec0 = __riscv_vle8_v_i8m2(a0_0, tm);
+      a0_0 += 2 * csa0;
+      a0_vec1 = __riscv_vle8_v_i8m2(a0_1, tm);
+      a0_vec2 = __riscv_vle8_v_i8m2(a0_0, tm);
+      a0_vec = __riscv_vcreate_v_i8m2_i8m8(a0_vec0, a0_vec1, a0_vec2, a0_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(8, a1_vec, b0_vec, tm, tn, 4);
+
+      b0_vec0 = __riscv_vle8_v_i8m2(b0_0, tn);
+      b0_0 += 2 * rsb0;
+      b0_vec1 = __riscv_vle8_v_i8m2(b0_1, tn);
+      b0_vec2 = __riscv_vle8_v_i8m2(b0_0, tn);
+      b0_vec = __riscv_vcreate_v_i8m2_i8m8(b0_vec0, b0_vec1, b0_vec2, b0_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(12, a1_vec, b1_vec, tm, tn, 4);
+
+      b1_vec0 = __riscv_vle8_v_i8m2(b1_0, tn);
+      b1_0 += 2 * rsb0;
+      b1_vec1 = __riscv_vle8_v_i8m2(b1_1, tn);
+      b1_vec2 = __riscv_vle8_v_i8m2(b1_0, tn);
+      b1_vec = __riscv_vcreate_v_i8m2_i8m8(b1_vec0, b1_vec1, b1_vec2, b1_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(0, a0_vec, b0_vec, tm, tn, 3);
+
+      a1_vec0 = __riscv_vle8_v_i8m2(a1_0, tm);
+      a1_0 += 2 * csa0;
+      a1_vec1 = __riscv_vle8_v_i8m2(a1_1, tm);
+      a1_vec2 = __riscv_vle8_v_i8m2(a1_0, tm);
+      a1_vec = __riscv_vcreate_v_i8m2_i8m8(a1_vec0, a1_vec1, a1_vec2, a1_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(4, a0_vec, b1_vec, tm, tn, 3);
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(8, a1_vec, b0_vec, tm, tn, 3);
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(12, a1_vec, b1_vec, tm, tn, 3);
+    } else if (k == 2) {
+      a0_vec0 = __riscv_vle8_v_i8m2(a0_0, tm);
+      a0_vec1 = __riscv_vle8_v_i8m2(a0_1, tm);
+      a0_vec = __riscv_vcreate_v_i8m2_i8m8(a0_vec0, a0_vec1, a0_vec2, a0_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(8, a1_vec, b0_vec, tm, tn, 4);
+
+      b0_vec0 = __riscv_vle8_v_i8m2(b0_0, tn);
+      b0_vec1 = __riscv_vle8_v_i8m2(b0_1, tn);
+      b0_vec = __riscv_vcreate_v_i8m2_i8m8(b0_vec0, b0_vec1, b0_vec2, b0_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(12, a1_vec, b1_vec, tm, tn, 4);
+
+      b1_vec0 = __riscv_vle8_v_i8m2(b1_0, tn);
+      b1_vec1 = __riscv_vle8_v_i8m2(b1_1, tn);
+      b1_vec = __riscv_vcreate_v_i8m2_i8m8(b1_vec0, b1_vec1, b1_vec2, b1_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(0, a0_vec, b0_vec, tm, tn, 2);
+
+      a1_vec0 = __riscv_vle8_v_i8m2(a1_0, tm);
+      a1_vec1 = __riscv_vle8_v_i8m2(a1_1, tm);
+      a1_vec = __riscv_vcreate_v_i8m2_i8m8(a1_vec0, a1_vec1, a1_vec2, a1_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(4, a0_vec, b1_vec, tm, tn, 2);
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(8, a1_vec, b0_vec, tm, tn, 2);
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(12, a1_vec, b1_vec, tm, tn, 2);
+    } else if (k == 1) {
+      a0_vec0 = __riscv_vle8_v_i8m2(a0_0, tm);
+      a0_vec = __riscv_vcreate_v_i8m2_i8m8(a0_vec0, a0_vec1, a0_vec2, a0_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(8, a1_vec, b0_vec, tm, tn, 4);
+
+      b0_vec0 = __riscv_vle8_v_i8m2(b0_0, tn);
+      b0_vec = __riscv_vcreate_v_i8m2_i8m8(b0_vec0, b0_vec1, b0_vec2, b0_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(12, a1_vec, b1_vec, tm, tn, 4);
+
+      b1_vec0 = __riscv_vle8_v_i8m2(b1_0, tn);
+      b1_vec = __riscv_vcreate_v_i8m2_i8m8(b1_vec0, b1_vec1, b1_vec2, b1_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(0, a0_vec, b0_vec, tm, tn, 1);
+
+      a1_vec0 = __riscv_vle8_v_i8m2(a1_0, tm);
+      a1_vec = __riscv_vcreate_v_i8m2_i8m8(a1_vec0, a1_vec1, a1_vec2, a1_vec3);
+
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(4, a0_vec, b1_vec, tm, tn, 1);
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(8, a1_vec, b0_vec, tm, tn, 1);
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(12, a1_vec, b1_vec, tm, tn, 1);
+    } else if (k == 0) {
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(8, a1_vec, b0_vec, tm, tn, 4);
+      __riscv_sf_mm_s_s_w4_i8m8_i8m8(12, a1_vec, b1_vec, tm, tn, 4);
+    }
+  }
+
+  // store data from tiles to memory
+  size_t mt0_store = mt0;
+  size_t mt4_store = mt4;
+  size_t mt8_store = mt8;
+  size_t mt12_store = mt12;
+
+  int32_t *c00_store = c00;
+  int32_t *c01_store = c01;
+  int32_t *c10_store = c10;
+  int32_t *c11_store = c11;
+  for (size_t i = 0; i < tm; ++i) {
+    __riscv_sf_vste32_i32(mt0_store, c00_store, tn);
+    mt0_store += kRowInc;
+    c00_store += rsc0;
+    __riscv_sf_vste32_i32(mt4_store, c01_store, tn);
+    mt4_store += kRowInc;
+    c01_store += rsc0;
+    __riscv_sf_vste32_i32(mt8_store, c10_store, tn);
+    mt8_store += kRowInc;
+    c10_store += rsc0;
+    __riscv_sf_vste32_i32(mt12_store, c11_store, tn);
+    mt12_store += kRowInc;
+    c11_store += rsc0;
+  }
+
+  return;
+}
+
+SKL_XSFMM_NEW
+SKL_FUNC void skl_gemm_a1b01_intr_i8pc_i8cp_i32rcp_xsfmm32a8i(
+    size_t m1, size_t n1, size_t k, const int8_t *a_pack, size_t rsa1,
+    const int8_t *b_pack, size_t csb1, int32_t *c_pack, size_t rsc1,
+    size_t csc1, bool accum) {
+  if (m1 == 0 || n1 == 0) {
+    return;
+  }
+
+  size_t ete = __riscv_sf_vsettnt_e8w4(
+      -1); // Effective tile edge length (always TE for TEW=32).
+
+  size_t num_processed_by_2tn2tn_m1 = (m1 / 2) * 2;
+  size_t num_processed_by_2tn2tn_n1 = (n1 / 2) * 2;
+
+  size_t i = 0;
+  for (; i < num_processed_by_2tn2tn_m1; i += 2) {
+    size_t j = 0;
+    for (; j < num_processed_by_2tn2tn_n1; j += 2) {
+      skl_gemm_2tn2tn_a1b01_intr_i8pc_i8cp_i32rcp_xsfmm32a8i(
+          ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete, csb1,
+          c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
+    }
+    while (j < n1) {
+      skl_gemm_1tm1tn_a1b01_intr_i8c_i8_i32_xsfmm32a8i(
+          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete,
+          c_pack + i * rsc1 + j * csc1, ete, accum);
+      skl_gemm_1tm1tn_a1b01_intr_i8c_i8_i32_xsfmm32a8i(
+          ete, ete, k, a_pack + (i + 1) * rsa1, ete, b_pack + j * csb1, ete,
+          c_pack + (i + 1) * rsc1 + j * csc1, ete, accum);
+      j += 1;
+    }
+  }
+
+  while (i < m1) {
+    size_t j = 0;
+    while (j < n1) {
+      skl_gemm_1tm1tn_a1b01_intr_i8c_i8_i32_xsfmm32a8i(
+          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete,
+          c_pack + i * rsc1 + j * csc1, ete, accum);
+      j += 1;
+    }
+    i += 1;
+  }
+  __asm__ volatile("sf.vtdiscard");
+}

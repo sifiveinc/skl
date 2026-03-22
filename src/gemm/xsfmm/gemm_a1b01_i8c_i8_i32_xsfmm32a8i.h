@@ -94,6 +94,11 @@ void skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
     const int8_t *b_pack, size_t csb1, int32_t *c_pack, size_t rsc1,
     size_t csc1, bool accum);
 
+void skl_gemm_a1b01_intr_i8pc_i8cp_i32rcp_xsfmm32a8i(
+    size_t m1, size_t n1, size_t k, const int8_t *a_pack, size_t rsa1,
+    const int8_t *b_pack, size_t csb1, int32_t *c_pack, size_t rsc1,
+    size_t csc1, bool accum);
+
 #if defined(__cplusplus)
 } // extern "C"
 #endif
