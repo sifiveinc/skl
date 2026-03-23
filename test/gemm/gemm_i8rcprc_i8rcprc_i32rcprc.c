@@ -125,8 +125,6 @@ void skl_gemm_i8_i8pc_i32_xsfvqdotq_wrapper(
   SKL_TEST_REQUIRE(status, csb1 == k0 * n0);
   SKL_TEST_REQUIRE(status, rsc1 >= n1 * csc1);
   SKL_TEST_REQUIRE(status, csc1 == m0 * n0);
-  SKL_TEST_REQUIRE(status, alpha == 1);
-  SKL_TEST_REQUIRE(status, beta == 0 || beta == 1);
   if (status) {
     exit(status);
   }
@@ -154,8 +152,6 @@ void skl_gemm_i8_i8pc_i32_xsfvqdotq_x390_clp_wrapper(
   SKL_TEST_REQUIRE(status, csb1 == k0 * n0);
   SKL_TEST_REQUIRE(status, rsc1 >= n1 * csc1);
   SKL_TEST_REQUIRE(status, csc1 == m0 * n0);
-  SKL_TEST_REQUIRE(status, alpha == 1);
-  SKL_TEST_REQUIRE(status, beta == 0 || beta == 1);
   if (status) {
     exit(status);
   }

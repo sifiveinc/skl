@@ -9,7 +9,7 @@
 #error This source file requires compiler support for the Xsfvqdotq extension.
 #endif
 
-/* Test and benchmark for Xsfvqdotq GEMM: C = A * B + beta * C.
+/* Test and benchmark for Xsfvqdotq GEMM: C = alpha * A * B + beta * C.
  *
  * A is M x K row-major with row stride RSA.
  * B is K x N row-major with row stride RSB.
@@ -19,7 +19,8 @@
  *
  * Users must provide the values of the following as compiler flags using -D:
  *  - All dimensions M, N, and K
- *  - BETA, as an integer literal. BETA must be 0 or 1.
+ *  - ALPHA, as an integer literal.
+ *  - BETA, as an integer literal.
  *
  * Users may optionally provide the values of the following:
  *  - RSA, which must be >= K (the default is RSA = K)
@@ -43,6 +44,10 @@
 
 #ifndef K
 #error Must define K
+#endif
+
+#ifndef ALPHA
+#error Must define ALPHA
 #endif
 
 #ifndef BETA
@@ -85,12 +90,11 @@ enum {
   CSA = 1,
   CSB = 1,
   CSC = 1,
-  K0 = 4, // xsfvqdotq K0 constraint
+  K0 = 4, // Xsfvqdotq K0 constraint
   K1 = ((K + (K0 - 1)) / K0),
   ALEN = M * RSA,
   BLEN = K * RSB,
   CLEN = M * RSC,
-  ALPHA = 1,
   BLEN_PACKED = K1 * RSB1,
 };
 
@@ -138,8 +142,7 @@ int main(void) {
   SKL_TEST_REQUIRE(status, RSA >= K);
   SKL_TEST_REQUIRE(status, RSB >= N);
   SKL_TEST_REQUIRE(status, RSC >= N);
-  SKL_TEST_REQUIRE(status, RSB1 >= 4 * N);
-  SKL_TEST_REQUIRE(status, BETA == 0 || BETA == 1);
+  SKL_TEST_REQUIRE(status, RSB1 >= K0 * N);
   if (status) {
     exit(status);
   }
