@@ -50,10 +50,17 @@ typedef struct skl_test_t skl_test_t;
  * Describes a collection of related tests.
  */
 typedef struct {
-  const char *name; /**< Name of the test suite */
-  size_t num_tests; /**< Number of tests in the suite */
-  size_t test_size; /**< Size of the test-specific data structure */
-  void *tests;      /**< Array of test-specific data structures */
+  const char *name;            /**< Name of the test suite */
+  size_t num_tests;            /**< Number of tests in the suite */
+  size_t test_size;            /**< Size of the test-specific data structure */
+  void *tests;                 /**< Array of test-specific data structures */
+  int (*steps)(skl_test_t *t); /**< Populates the steps field of t*/
+} skl_test_suite_t;
+
+/**
+ *  @brief Function pointers determining each step ran by the driver.
+ */
+typedef struct {
   int (*init)(
       skl_test_t *t); /**< Optional initialization function, NULL to skip */
   int (*warmup)(skl_test_t *t);  /**< Optional warmup function, NULL to skip */
@@ -63,7 +70,7 @@ typedef struct {
   int (*report)(
       skl_test_t *t); /**< Optional reporting function, NULL to skip */
   int (*cleanup)(skl_test_t *t); /**< Optional cleanup function, NULL to skip */
-} skl_test_suite_t;
+} skl_test_steps_t;
 
 /**
  * @brief Performance counter values.
@@ -92,6 +99,8 @@ typedef enum {
  */
 struct skl_test_t {
   const skl_test_suite_t *suite; /**< Test suite (set by driver before init) */
+  const skl_test_steps_t
+      *steps;    /**< Pointers to test functions (set by test) */
   void *harness; /**< Harness-specific data (set by harness in init) */
   int log_level; /**< Logging verbosity level (set by driver before init) */
   skl_test_counters_t counters; /**< Performance counters (updated by driver) */
