@@ -27,134 +27,116 @@ target_include_directories(${SKL_LIBRARY} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+target_compile_options(${SKL_LIBRARY} PRIVATE ${SKL_COMPILE_OPTIONS})
+
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get-riscv-extensions.cmake)
 
-set(SKL_SRC_DEPS
-# "\n" SOURCE_FILE  "EXT_1" "EXT_2" "..."
-  "\n" src/cvt/cvt_zvfofp4min.c "ZVFOFP4MIN"
-  "\n" src/cvt/cvt_zvfofp8min.c "ZVFOFP8MIN"
-  "\n" src/cvt/cvt_zvfofp8min_zvfbfmin.c "ZVFOFP8MIN" "ZVFBFMIN"
-
-  "\n" src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_scalar.c "ZFH"
-  "\n" src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_zvfh.c "ZVFH"
-  "\n" src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_scalar.c
-  "\n" src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_zve32f.c "ZVE32F"
-  "\n" src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_scalar.c
-  "\n" src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_zve32x.c "ZVE32X"
-
-  "\n" src/exp/exp_bf16_xsfvfbfa.c "XSFVFBFA"
-  "\n" src/exp/exp_bf16_xsfvfbfexp16e.c "XSFVFBFEXP16E"
-  "\n" src/exp/exp_bf16_xsfvfexpa_zvfbfmin.c "XSFVFEXPA" "ZVFBFMIN"
-  "\n" src/exp/exp_bf16_zve32f.c "ZVE32F"
-  "\n" src/exp/exp_bf16_zvfbfmin.c "ZVFBFMIN"
-  "\n" src/exp/exp_f16_xsfvfexp16e.c "XSFVFEXP16E"
-  "\n" src/exp/exp_f16_xsfvfexpa_zvfh.c "XSFVFEXPA" "ZVFH"
-  "\n" src/exp/exp_f16_zvfh.c "ZVFH"
-  "\n" src/exp/exp_f32_xsfvfexp32e.c "XSFVFEXP32E"
-  "\n" src/exp/exp_f32_xsfvfexpa.c "XSFVFEXPA"
-  "\n" src/exp/exp_f32_zve32f.c "ZVE32F"
-
-  "\n" src/gelu/gelu_f32_zve32f.c "ZVE32F"
-
-  "\n" src/gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma.c "ZVFBFWMA"
-  "\n" src/gemm/rvv/gemm_f16_f16_f16_zvfh_x390.c "ZVFH"
-  "\n" src/gemm/rvv/gemm_f16_f16_f32_zvfh_x390.c "ZVFH"
-  "\n" src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390.c "ZVE32F"
-  "\n" src/gemm/rvv/gemm_f64_f64_f64_zve64d_x390.c "ZVE64D"
-  "\n" src/gemm/rvv/gemm_i8_i8_i32_zve32x_x390.c "ZVE32X"
-  "\n" src/gemm/scalar/gemm_bf16rc_bf16rc_f32rc_scalar.c
-  "\n" src/gemm/scalar/gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar.c
-  "\n" src/gemm/scalar/gemm_f16rc_f16rc_f16rc_scalar.c
-  "\n" src/gemm/scalar/gemm_f16rc_f16rc_f32rc_scalar.c
-  "\n" src/gemm/scalar/gemm_f16rcprc_f16rcprc_f32rcprc_scalar.c
-  "\n" src/gemm/scalar/gemm_f32rc_f32rc_f32rc_scalar.c
-  "\n" src/gemm/scalar/gemm_f32rcprc_f32rcprc_f32rcprc_scalar.c
-  "\n" src/gemm/scalar/gemm_f64rc_f64rc_f64rc_scalar.c
-  "\n" src/gemm/scalar/gemm_f64rcprc_f64rcprc_f64rcprc_scalar.c
-  "\n" src/gemm/scalar/gemm_i8rc_i8rc_i32rc_scalar.c
-  "\n" src/gemm/scalar/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.c
-  "\n" src/gemm/xsfmm/gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f.c "XSFMM32A16F"
-  "\n" src/gemm/xsfmm/gemm_a1b01_f16c_f16_f32_xsfmm32a16f.c "XSFMM32A16F"
-  "\n" src/gemm/xsfmm/gemm_a1b01_f32c_f32_f32_xsfmm32a32f.c "XSFMM32A32F"
-  "\n" src/gemm/xsfmm/gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c "XSFMM32A8F"
-  "\n" src/gemm/xsfmm/gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c "XSFMM32A8F"
-  "\n" src/gemm/xsfmm/gemm_a1b01_i8c_i8_i32_xsfmm32a8i.c "XSFMM32A8I"
-  "\n" src/gemm/xsfvqdotq/gemm_i8_i8pc_i32_xsfvqdotq.c "XSFVQDOTQ"
-  "\n" src/gemm/xsfvqdotq/pack_b_xsfvqdotq.c "ZVE32X"
-
-  "\n" src/logistic/logistic_f16_scalar.c
-  "\n" src/logistic/logistic_f16_xsfvfexp16e.c "XSFVFEXP16E"
-  "\n" src/logistic/logistic_f16_zvfh.c "ZVFH"
-  "\n" src/logistic/logistic_f32_scalar.c
-  "\n" src/logistic/logistic_f32_xsfvfexpa.c "XSFVFEXPA"
-  "\n" src/logistic/logistic_f32_zve32f.c "ZVE32F"
-
-  "\n" src/silu/silu_f16_scalar.c
-  "\n" src/silu/silu_f16_xsfvfexp16e.c "XSFVFEXP16E"
-  "\n" src/silu/silu_f16_xsfvfexpa_zvfh.c "XSFVFEXPA" "ZVFH"
-  "\n" src/silu/silu_f16_zvfh.c "ZVFH"
-  "\n" src/silu/silu_f32_scalar.c
-  "\n" src/silu/silu_f32_xsfvfexp32e.c "XSFVFEXP32E"
-  "\n" src/silu/silu_f32_xsfvfexpa.c "XSFVFEXPA"
-  "\n" src/silu/silu_f32_zve32f.c "ZVE32F"
-
-  "\n" src/softmax/softmax_bf16_scalar.c
-  "\n" src/softmax/softmax_bf16_xsfvfbfa.c "XSFVFBFA"
-  "\n" src/softmax/softmax_bf16_xsfvfbfexp16e_xsfvfbfa.c "XSFVFBFEXP16E" "XSFVFBFA"
-  "\n" src/softmax/softmax_bf16_xsfvfbfexp16e_zvfbfmin.c "XSFVFBFEXP16E" "ZVFBFMIN"
-  "\n" src/softmax/softmax_bf16_xsfvfexp32e_zvfbfmin.c "XSFVFEXP32E" "ZVFBFMIN"
-  "\n" src/softmax/softmax_bf16_xsfvfexpa_xsfvfbfa.c "XSFVFEXPA" "XSFVFBFA"
-  "\n" src/softmax/softmax_bf16_xsfvfexpa_zvfbfmin.c "XSFVFEXPA" "ZVFBFMIN"
-  "\n" src/softmax/softmax_bf16_zve32f.c "ZVE32F"
-  "\n" src/softmax/softmax_bf16_zvfbfmin.c "ZVFBFMIN"
-  "\n" src/softmax/softmax_f16_scalar.c
-  "\n" src/softmax/softmax_f16_xsfvfexp16e.c "XSFVFEXP16E"
-  "\n" src/softmax/softmax_f16_xsfvfexpa_zvfh.c "XSFVFEXPA" "ZVFH"
-  "\n" src/softmax/softmax_f16_zvfh.c "ZVFH"
-  "\n" src/softmax/softmax_f32_scalar.c
-  "\n" src/softmax/softmax_f32_xsfvfexp32e.c "XSFVFEXP32E"
-  "\n" src/softmax/softmax_f32_xsfvfexpa.c "XSFVFEXPA"
-  "\n" src/softmax/softmax_f32_zve32f.c "ZVE32F"
-
-  "\n" src/transpose/rvv/transpose_e16_zve32x.c "ZVE32X"
-  "\n" src/transpose/rvv/transpose_e32_zve32x.c "ZVE32X"
-  "\n" src/transpose/rvv/transpose_e8_zve32x.c "ZVE32X"
-  "\n" src/transpose/scalar/transpose_e16_scalar.c
-  "\n" src/transpose/scalar/transpose_e32_scalar.c
-  "\n" src/transpose/scalar/transpose_e8_scalar.c
-  "\n" src/transpose/xsfmm/transpose_e16_xsfmmbase.c "XSFMM"
-  "\n" src/transpose/xsfmm/transpose_e32_xsfmmbase.c "XSFMM"
-  "\n" src/transpose/xsfmm/transpose_e8_xsfmmbase.c "XSFMM"
-
-  "\n" # Final newline necessary for parsing.
-)
-
-set(REMAINING_ITEMS ${SKL_SRC_DEPS})
-while(REMAINING_ITEMS)
-  list(POP_FRONT REMAINING_ITEMS) # remove leading separator
-  list(FIND REMAINING_ITEMS "\n" END_INDEX)
-  list(SUBLIST REMAINING_ITEMS 0 ${END_INDEX} SRC_WITH_DEPS)
-  list(SUBLIST REMAINING_ITEMS ${END_INDEX} -1 REMAINING_ITEMS)
-
-  list(POP_FRONT SRC_WITH_DEPS SRC) # retrieve leading source file
-  set(DEPS ${SRC_WITH_DEPS}) # all remaining items are deps
-
-  set(DEP_NOT_MET FALSE)
-  foreach(DEP ${DEPS})
-    if(NOT DEP IN_LIST RISCV_EXTENSIONS)
-      set(DEP_NOT_MET TRUE)
-      break()
+function(add_skl_src SRC REQUIRED_EXTENSIONS)
+  # Add the source file SRC to the SKL_LIBRARY if all RISC-V
+  # extensions in REQUIRED_EXTENSIONS are present in RISCV_EXTENSIONS.
+  foreach(EXT ${REQUIRED_EXTENSIONS})
+    if(NOT EXT IN_LIST RISCV_EXTENSIONS)
+      return()
     endif()
   endforeach()
-  if(DEP_NOT_MET)
-    continue()
-  endif()
 
-  list(APPEND SKL_SRCS ${SRC})
-endwhile()
+  target_sources(${SKL_LIBRARY} PRIVATE ${SRC})
+endfunction()
 
-target_sources(${SKL_LIBRARY} PRIVATE ${SKL_SRCS})
-target_compile_options(${SKL_LIBRARY} PRIVATE ${SKL_COMPILE_OPTIONS})
+add_skl_src(src/cvt/cvt_zvfofp4min.c "ZVFOFP4MIN")
+add_skl_src(src/cvt/cvt_zvfofp8min.c "ZVFOFP8MIN")
+add_skl_src(src/cvt/cvt_zvfofp8min_zvfbfmin.c "ZVFOFP8MIN;ZVFBFMIN")
+
+add_skl_src(src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_scalar.c "ZFH")
+add_skl_src(src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_zvfh.c "ZVFH")
+add_skl_src(src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_scalar.c "")
+add_skl_src(src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_zve32f.c "ZVE32F")
+add_skl_src(src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_scalar.c "")
+add_skl_src(src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_zve32x.c "ZVE32X")
+
+add_skl_src(src/exp/exp_bf16_xsfvfbfa.c "XSFVFBFA")
+add_skl_src(src/exp/exp_bf16_xsfvfbfexp16e.c "XSFVFBFEXP16E")
+add_skl_src(src/exp/exp_bf16_xsfvfexpa_zvfbfmin.c "XSFVFEXPA;ZVFBFMIN")
+add_skl_src(src/exp/exp_bf16_zve32f.c "ZVE32F")
+add_skl_src(src/exp/exp_bf16_zvfbfmin.c "ZVFBFMIN")
+add_skl_src(src/exp/exp_f16_xsfvfexp16e.c "XSFVFEXP16E")
+add_skl_src(src/exp/exp_f16_xsfvfexpa_zvfh.c "XSFVFEXPA;ZVFH")
+add_skl_src(src/exp/exp_f16_zvfh.c "ZVFH")
+add_skl_src(src/exp/exp_f32_xsfvfexp32e.c "XSFVFEXP32E")
+add_skl_src(src/exp/exp_f32_xsfvfexpa.c "XSFVFEXPA")
+add_skl_src(src/exp/exp_f32_zve32f.c "ZVE32F")
+
+add_skl_src(src/gelu/gelu_f32_zve32f.c "ZVE32F")
+
+add_skl_src(src/gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma.c "ZVFBFWMA")
+add_skl_src(src/gemm/rvv/gemm_f16_f16_f16_zvfh_x390.c "ZVFH")
+add_skl_src(src/gemm/rvv/gemm_f16_f16_f32_zvfh_x390.c "ZVFH")
+add_skl_src(src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390.c "ZVE32F")
+add_skl_src(src/gemm/rvv/gemm_f64_f64_f64_zve64d_x390.c "ZVE64D")
+add_skl_src(src/gemm/rvv/gemm_i8_i8_i32_zve32x_x390.c "ZVE32X")
+add_skl_src(src/gemm/scalar/gemm_bf16rc_bf16rc_f32rc_scalar.c "")
+add_skl_src(src/gemm/scalar/gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar.c "")
+add_skl_src(src/gemm/scalar/gemm_f16rc_f16rc_f16rc_scalar.c "")
+add_skl_src(src/gemm/scalar/gemm_f16rc_f16rc_f32rc_scalar.c "")
+add_skl_src(src/gemm/scalar/gemm_f16rcprc_f16rcprc_f32rcprc_scalar.c "")
+add_skl_src(src/gemm/scalar/gemm_f32rc_f32rc_f32rc_scalar.c "")
+add_skl_src(src/gemm/scalar/gemm_f32rcprc_f32rcprc_f32rcprc_scalar.c "")
+add_skl_src(src/gemm/scalar/gemm_f64rc_f64rc_f64rc_scalar.c "")
+add_skl_src(src/gemm/scalar/gemm_f64rcprc_f64rcprc_f64rcprc_scalar.c "")
+add_skl_src(src/gemm/scalar/gemm_i8rc_i8rc_i32rc_scalar.c "")
+add_skl_src(src/gemm/scalar/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.c "")
+add_skl_src(src/gemm/xsfmm/gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f.c "XSFMM32A16F")
+add_skl_src(src/gemm/xsfmm/gemm_a1b01_f16c_f16_f32_xsfmm32a16f.c "XSFMM32A16F")
+add_skl_src(src/gemm/xsfmm/gemm_a1b01_f32c_f32_f32_xsfmm32a32f.c "XSFMM32A32F")
+add_skl_src(src/gemm/xsfmm/gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c "XSFMM32A8F")
+add_skl_src(src/gemm/xsfmm/gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c "XSFMM32A8F")
+add_skl_src(src/gemm/xsfmm/gemm_a1b01_i8c_i8_i32_xsfmm32a8i.c "XSFMM32A8I")
+add_skl_src(src/gemm/xsfvqdotq/gemm_i8_i8pc_i32_xsfvqdotq.c "XSFVQDOTQ")
+add_skl_src(src/gemm/xsfvqdotq/pack_b_xsfvqdotq.c "ZVE32X")
+
+add_skl_src(src/logistic/logistic_f16_scalar.c "")
+add_skl_src(src/logistic/logistic_f16_xsfvfexp16e.c "XSFVFEXP16E")
+add_skl_src(src/logistic/logistic_f16_zvfh.c "ZVFH")
+add_skl_src(src/logistic/logistic_f32_scalar.c "")
+add_skl_src(src/logistic/logistic_f32_xsfvfexpa.c "XSFVFEXPA")
+add_skl_src(src/logistic/logistic_f32_zve32f.c "ZVE32F")
+
+add_skl_src(src/silu/silu_f16_scalar.c "")
+add_skl_src(src/silu/silu_f16_xsfvfexp16e.c "XSFVFEXP16E")
+add_skl_src(src/silu/silu_f16_xsfvfexpa_zvfh.c "XSFVFEXPA;ZVFH")
+add_skl_src(src/silu/silu_f16_zvfh.c "ZVFH")
+add_skl_src(src/silu/silu_f32_scalar.c "")
+add_skl_src(src/silu/silu_f32_xsfvfexp32e.c "XSFVFEXP32E")
+add_skl_src(src/silu/silu_f32_xsfvfexpa.c "XSFVFEXPA")
+add_skl_src(src/silu/silu_f32_zve32f.c "ZVE32F")
+
+add_skl_src(src/softmax/softmax_bf16_scalar.c "")
+add_skl_src(src/softmax/softmax_bf16_xsfvfbfa.c "XSFVFBFA")
+add_skl_src(src/softmax/softmax_bf16_xsfvfbfexp16e_xsfvfbfa.c "XSFVFBFEXP16E;XSFVFBFA")
+add_skl_src(src/softmax/softmax_bf16_xsfvfbfexp16e_zvfbfmin.c "XSFVFBFEXP16E;ZVFBFMIN")
+add_skl_src(src/softmax/softmax_bf16_xsfvfexp32e_zvfbfmin.c "XSFVFEXP32E;ZVFBFMIN")
+add_skl_src(src/softmax/softmax_bf16_xsfvfexpa_xsfvfbfa.c "XSFVFEXPA;XSFVFBFA")
+add_skl_src(src/softmax/softmax_bf16_xsfvfexpa_zvfbfmin.c "XSFVFEXPA;ZVFBFMIN")
+add_skl_src(src/softmax/softmax_bf16_zve32f.c "ZVE32F")
+add_skl_src(src/softmax/softmax_bf16_zvfbfmin.c "ZVFBFMIN")
+add_skl_src(src/softmax/softmax_f16_scalar.c "")
+add_skl_src(src/softmax/softmax_f16_xsfvfexp16e.c "XSFVFEXP16E")
+add_skl_src(src/softmax/softmax_f16_xsfvfexpa_zvfh.c "XSFVFEXPA;ZVFH")
+add_skl_src(src/softmax/softmax_f16_zvfh.c "ZVFH")
+add_skl_src(src/softmax/softmax_f32_scalar.c "")
+add_skl_src(src/softmax/softmax_f32_xsfvfexp32e.c "XSFVFEXP32E")
+add_skl_src(src/softmax/softmax_f32_xsfvfexpa.c "XSFVFEXPA")
+add_skl_src(src/softmax/softmax_f32_zve32f.c "ZVE32F")
+
+add_skl_src(src/transpose/rvv/transpose_e16_zve32x.c "ZVE32X")
+add_skl_src(src/transpose/rvv/transpose_e32_zve32x.c "ZVE32X")
+add_skl_src(src/transpose/rvv/transpose_e8_zve32x.c "ZVE32X")
+add_skl_src(src/transpose/scalar/transpose_e16_scalar.c "")
+add_skl_src(src/transpose/scalar/transpose_e32_scalar.c "")
+add_skl_src(src/transpose/scalar/transpose_e8_scalar.c "")
+add_skl_src(src/transpose/xsfmm/transpose_e16_xsfmmbase.c "XSFMM")
+add_skl_src(src/transpose/xsfmm/transpose_e32_xsfmmbase.c "XSFMM")
+add_skl_src(src/transpose/xsfmm/transpose_e8_xsfmmbase.c "XSFMM")
 
 # Optionally build library tests
 
