@@ -30,6 +30,7 @@
 #define RUN_VFEXPA_VFBFA 1
 #define RUN_VFEXP_BFMIN 1
 #define RUN_VFEXP_VFBFA 1
+#define RUN_VFEXP32E_BFMIN 1
 #endif
 
 enum { ALIGN = 4096 };
@@ -111,10 +112,15 @@ int main(void) {
     defined(RUN_VFEXP_VFBFA)
   RUN(skl_softmax_bf16_xsfvfbfexp16e_xsfvfbfa, "xsfvfbfexp16e+xsfvfbfa", 16);
 #endif
+#if defined(__riscv_xsfvfexp32e) && defined(__riscv_zvfbfmin) &&               \
+    defined(RUN_VFEXP32E_BFMIN)
+  RUN(skl_softmax_bf16_xsfvfexp32e_zvfbfmin, "xsfvfbfexp32e+zvfbfmin", 1);
+#endif
 
 #if !(defined(RUN_SCALAR) || defined(RUN_VFBFA) || defined(RUN_VFEXP_VFBFA) || \
       defined(RUN_VFEXP_BFMIN) || defined(RUN_VFEXPA_VFBFA) ||                 \
-      defined(RUN_VFEXPA_BFMIN) || defined(RUN_ZVE32F) || defined(RUN_BFMIN))
+      defined(RUN_VFEXPA_BFMIN) || defined(RUN_ZVE32F) ||                      \
+      defined(RUN_BFMIN) || defined(RUN_VFEXP32E_BFMIN))
 #error No tests or benchmarks enabled!
 #endif
 
