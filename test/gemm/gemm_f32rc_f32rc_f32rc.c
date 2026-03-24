@@ -41,7 +41,7 @@ int gemm_f32rc_f32rc_f32rc_init(skl_test_t *t) {
   SKL_TEST_BUF_CREATE(t, float, &h->a);
   SKL_TEST_BUF_CREATE(t, float, &h->b);
   SKL_TEST_BUF_CREATE(t, float, &h->c);
-  if (h->verify) {
+  if (t->steps->verify) {
     // Only allocate if lengths are non-zero to avoid malloc(0)
     h->ctx.a_wide = h->a.len > 0 ? malloc(h->a.len * sizeof(double)) : NULL;
     h->ctx.b_wide = h->b.len > 0 ? malloc(h->b.len * sizeof(double)) : NULL;
@@ -54,20 +54,9 @@ int gemm_f32rc_f32rc_f32rc_init(skl_test_t *t) {
   return 0;
 }
 
-int gemm_f32rc_f32rc_f32rc_warmup(skl_test_t *t) {
-  gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
-  if (h->warmup) {
-    return t->suite->execute(t);
-  }
-  return 0;
-}
-
 int gemm_f32rc_f32rc_f32rc_verify(skl_test_t *t) {
   /* Compute the reference (scalar) matrix output. */
   gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
-  if (!h->verify) {
-    return 0;
-  }
 
   //
   // Compute the error bound array for comparing test vs reference results.
@@ -143,7 +132,7 @@ int gemm_f32rc_f32rc_f32rc_report(skl_test_t *t) {
   INFO("CSA: %zd, RSB: %zd, RSC: %zd\n", h->csa, h->rsb, h->rsc);
   INFO("Alpha: %f, Beta: %f\n", h->alpha, h->beta);
   INFO("%s", "\n");
-  INFO("Warmup: %s\n", h->warmup ? "yes" : "no");
+  INFO("Warmup: %s\n", t->steps->warmup ? "yes" : "no");
   INFO("Cycles: %zd\n", t->counters.cycles);
   INFO("Instructions: %zd\n", t->counters.instret);
   INFO("MACs/Cycle: %f\n", mpc);
@@ -158,7 +147,7 @@ int gemm_f32rc_f32rc_f32rc_cleanup(skl_test_t *t) {
   SKL_TEST_BUF_FREE(t, &h->a);
   SKL_TEST_BUF_FREE(t, &h->b);
   SKL_TEST_BUF_FREE(t, &h->c);
-  if (h->verify) {
+  if (t->steps->verify) {
     free(h->ctx.a_wide);
     free(h->ctx.b_wide);
     free(h->ctx.ref_c);

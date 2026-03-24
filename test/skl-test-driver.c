@@ -120,29 +120,32 @@ int skl_test_driver_run_suite(skl_test_suite_t *suite) {
 
 #define TRY(STEP)                                                              \
   do {                                                                         \
-    if (suite->STEP != NULL) {                                                 \
-      SKL_TEST_REQUIRE(&t, suite->STEP(&t) == 0);                              \
+    if (t.STEP != NULL) {                                                      \
+      SKL_TEST_REQUIRE(&t, t.STEP(&t) == 0);                                   \
       if (t.status != SKL_TEST_PASS)                                           \
         goto cleanup;                                                          \
     }                                                                          \
   } while (0)
 
-    TRY(init);
+    TRY(suite->steps);
+    TRY(steps->init);
 
     // Run the test, including optional cache warmup
-    TRY(warmup);
+    TRY(steps->warmup);
     skl_test_driver_update_counters(&t.counters);
-    TRY(execute);
+    TRY(steps->execute);
     skl_test_driver_update_counters(&t.counters);
 
     // Verify test results, if verification is enabled
-    TRY(verify);
-    SKL_TEST_LOG(&t, SKL_TEST_LOG_INFO, "Verification passed\n");
+    TRY(steps->verify);
+    if (t.steps->verify) {
+      SKL_TEST_LOG(&t, SKL_TEST_LOG_INFO, "Verification passed\n");
+    }
 
   cleanup:
     // Always run cleanup if provided
-    if (suite->cleanup != NULL) {
-      int cleanup_status = suite->cleanup(&t);
+    if (t.steps->cleanup != NULL) {
+      int cleanup_status = t.steps->cleanup(&t);
       if (cleanup_status != 0) {
         skl_test_driver_error(&t, "Cleanup function failed\n");
         t.status = SKL_TEST_FAIL;
@@ -150,8 +153,8 @@ int skl_test_driver_run_suite(skl_test_suite_t *suite) {
     }
 
     // Always run report if provided, even after failure
-    if (suite->report != NULL) {
-      int report_status = suite->report(&t);
+    if (t.steps->report != NULL) {
+      int report_status = t.steps->report(&t);
       if (report_status != 0) {
         skl_test_driver_error(&t, "Report function failed\n");
         t.status = SKL_TEST_FAIL;

@@ -23,9 +23,8 @@
 #include <stdint.h>
 
 typedef struct {
-  // Test mode
-  bool warmup;
-  bool verify;
+  // Test function pointers for various steps
+  skl_test_steps_t steps;
 
   // Configurable parameters (arguments to GEMM function)
   size_t m, n, k;
@@ -47,7 +46,6 @@ typedef struct {
 } gemm_f32rc_f32rc_f32rc_t;
 
 int gemm_f32rc_f32rc_f32rc_init(skl_test_t *t);
-int gemm_f32rc_f32rc_f32rc_warmup(skl_test_t *t);
 int gemm_f32rc_f32rc_f32rc_verify(skl_test_t *t);
 int gemm_f32rc_f32rc_f32rc_report(skl_test_t *t);
 int gemm_f32rc_f32rc_f32rc_cleanup(skl_test_t *t);

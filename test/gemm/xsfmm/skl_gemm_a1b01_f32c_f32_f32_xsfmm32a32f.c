@@ -25,9 +25,28 @@
  * The kernel computes C = A * B (beta=0) or C += A * B (beta=1).
  */
 
-#define TEST GEMM_F32RC_F32RC_F32RC_DEFAULTS, .warmup = false, .verify = true
-#define BENCH GEMM_F32RC_F32RC_F32RC_DEFAULTS, .warmup = true, .verify = false
+#define TEST                                                                   \
+  GEMM_F32RC_F32RC_F32RC_DEFAULTS,                                             \
+      .steps = {                                                               \
+          .init = gemm_f32rc_f32rc_f32rc_init,                                 \
+          .warmup = NULL,                                                      \
+          .execute = execute,                                                  \
+          .verify = gemm_f32rc_f32rc_f32rc_verify,                             \
+          .report = NULL,                                                      \
+          .cleanup = gemm_f32rc_f32rc_f32rc_cleanup,                           \
+  }
+#define BENCH                                                                  \
+  GEMM_F32RC_F32RC_F32RC_DEFAULTS,                                             \
+      .steps = {                                                               \
+          .init = gemm_f32rc_f32rc_f32rc_init,                                 \
+          .warmup = execute,                                                   \
+          .execute = execute,                                                  \
+          .verify = NULL,                                                      \
+          .report = gemm_f32rc_f32rc_f32rc_report,                             \
+          .cleanup = gemm_f32rc_f32rc_f32rc_cleanup,                           \
+  }
 static int execute(skl_test_t *t);
+static int steps(skl_test_t *t);
 
 // clang-format off
 gemm_f32rc_f32rc_f32rc_t tests[] = {
@@ -68,18 +87,18 @@ gemm_f32rc_f32rc_f32rc_t tests[] = {
 };
 // clang-format on
 
-static skl_test_suite_t suite = {
-    .name = "skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f",
-    .num_tests = sizeof(tests) / sizeof(tests[0]),
-    .test_size = sizeof(gemm_f32rc_f32rc_f32rc_t),
-    .tests = tests,
-    .init = gemm_f32rc_f32rc_f32rc_init,
-    .warmup = gemm_f32rc_f32rc_f32rc_warmup,
-    .execute = execute,
-    .verify = gemm_f32rc_f32rc_f32rc_verify,
-    .report = gemm_f32rc_f32rc_f32rc_report,
-    .cleanup = gemm_f32rc_f32rc_f32rc_cleanup,
-};
+static skl_test_suite_t suite = {.name =
+                                     "skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f",
+                                 .num_tests = sizeof(tests) / sizeof(tests[0]),
+                                 .test_size = sizeof(gemm_f32rc_f32rc_f32rc_t),
+                                 .tests = tests,
+                                 .steps = steps};
+
+static int steps(skl_test_t *t) {
+  const gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
+  t->steps = &h->steps;
+  return 0; // Success
+}
 
 static int execute(skl_test_t *t) {
   const gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
