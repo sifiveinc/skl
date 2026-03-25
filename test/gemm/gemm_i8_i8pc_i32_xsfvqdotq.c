@@ -9,7 +9,7 @@
 #error This source file requires compiler support for the Xsfvqdotq extension.
 #endif
 
-/* Test and benchmark for Xsfvqdotq GEMM: C = A * B + beta * C.
+/* Test and benchmark for Xsfvqdotq GEMM: C = alpha * A * B + beta * C.
  *
  * A is M x K row-major with row stride RSA.
  * B is K x N row-major with row stride RSB.
@@ -19,7 +19,8 @@
  *
  * Users must provide the values of the following as compiler flags using -D:
  *  - All dimensions M, N, and K
- *  - BETA, as an integer literal. BETA must be 0 or 1.
+ *  - ALPHA, as an integer literal.
+ *  - BETA, as an integer literal.
  *
  * Users may optionally provide the values of the following:
  *  - RSA, which must be >= K (the default is RSA = K)
@@ -43,6 +44,10 @@
 
 #ifndef K
 #error Must define K
+#endif
+
+#ifndef ALPHA
+#error Must define ALPHA
 #endif
 
 #ifndef BETA
@@ -85,13 +90,11 @@ enum {
   CSA = 1,
   CSB = 1,
   CSC = 1,
-  K0 = 4, // xsfvqdotq K0 constraint
+  K0 = 4, // Xsfvqdotq K0 constraint
   K1 = ((K + (K0 - 1)) / K0),
   ALEN = M * RSA,
   BLEN = K * RSB,
   CLEN = M * RSC,
-  ALPHA = 1,
-  ACCUM = (BETA == 1), // NOLINT(misc-redundant-expression)
   BLEN_PACKED = K1 * RSB1,
 };
 
@@ -139,8 +142,7 @@ int main(void) {
   SKL_TEST_REQUIRE(status, RSA >= K);
   SKL_TEST_REQUIRE(status, RSB >= N);
   SKL_TEST_REQUIRE(status, RSC >= N);
-  SKL_TEST_REQUIRE(status, RSB1 >= 4 * N);
-  SKL_TEST_REQUIRE(status, BETA == 0 || BETA == 1);
+  SKL_TEST_REQUIRE(status, RSB1 >= K0 * N);
   if (status) {
     exit(status);
   }
@@ -165,16 +167,15 @@ int main(void) {
   /* Make copies of C to write the reference and test outputs to. */
   memcpy(ref_c, c, CLEN * sizeof(int32_t));
   memcpy(test_c, c, CLEN * sizeof(int32_t));
-  skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(M, N, K, a, (size_t)RSA, b_pack,
-                                       (size_t)RSB1, test_c, (size_t)RSC,
-                                       ACCUM);
+  skl_gemm_i8_i8pc_i32_xsfvqdotq(M, N, K, ALPHA, a, (size_t)RSA, b_pack,
+                                 (size_t)RSB1, BETA, test_c, (size_t)RSC);
   res += check_error();
 #endif // ENABLE_TEST
 
-  SKL_BENCHMARK_RUN("skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq", M * N * K,
-                    SKL_TEST_WARMUP, skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq, M, N,
-                    K, a, (size_t)RSA, b_pack, (size_t)RSB1, c, (size_t)RSC,
-                    ACCUM);
+  SKL_BENCHMARK_RUN("skl_gemm_i8_i8pc_i32_xsfvqdotq", M * N * K,
+                    SKL_TEST_WARMUP, skl_gemm_i8_i8pc_i32_xsfvqdotq, M, N, K,
+                    ALPHA, a, (size_t)RSA, b_pack, (size_t)RSB1, BETA, c,
+                    (size_t)RSC);
 
   return res;
 }
