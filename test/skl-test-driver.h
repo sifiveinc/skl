@@ -319,6 +319,9 @@ skl_test_status_t skl_test_driver_status(skl_test_t *t);
 #define SKL_TEST_BUF_RANDOM_FLOAT_(TYPE, MIN, MAX, LEN)                        \
   ((TYPE)(TYPE)((MIN) + ((float)rand() / (float)RAND_MAX) * ((MAX) - (MIN))))
 
+#define SKL_TEST_BUF_RANDOM___bf16(TYPE, MIN, MAX, LEN)                        \
+  SKL_TEST_BUF_RANDOM_FLOAT_(TYPE, MIN, MAX, LEN)
+
 #define SKL_TEST_BUF_RANDOM__Float16(TYPE, MIN, MAX, LEN)                      \
   SKL_TEST_BUF_RANDOM_FLOAT_(TYPE, MIN, MAX, LEN)
 #define SKL_TEST_BUF_RANDOM_float(TYPE, MIN, MAX, LEN)                         \

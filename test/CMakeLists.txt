@@ -69,3 +69,10 @@ skl_add_test(
   "xsfmm32a32f"
   ""
 )
+skl_add_test(
+    cvt_ofp_zvfofp8min_zvfbfmin
+    cvt/cvt_ofp.c
+    cvt/cvt_ofp_zvfofp8min_zvfbfmin.c
+    "zvfofp8min;zvfbfmin"
+    ""
+)

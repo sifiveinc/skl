@@ -181,11 +181,13 @@ void SKL_TEST_PERF_REPORT(const char *name, uint64_t cycles, uint64_t insts,
  * @note Callers should set status to 0 before calling this macro, and
  * `exit(status)` afterwards if any requirements were not met.
  */
+#ifndef SKL_TEST_REQUIRE
 #define SKL_TEST_REQUIRE(status, requirement)                                  \
   if (!(requirement)) {                                                        \
     printf("Test %s requires " #requirement "\n", __func__);                   \
     status = 1;                                                                \
   }
+#endif
 
 #ifdef __riscv_xsfmmbase
 size_t skl_get_te_xsfmmbase(void) {
