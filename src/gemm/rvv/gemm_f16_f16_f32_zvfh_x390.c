@@ -251,8 +251,22 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
   _Float16 a31;
   _Float16 a41;
   _Float16 a51;
+  _Float16 a02;
+  _Float16 a12;
+  _Float16 a22;
+  _Float16 a32;
+  _Float16 a42;
+  _Float16 a52;
+  _Float16 a03;
+  _Float16 a13;
+  _Float16 a23;
+  _Float16 a33;
+  _Float16 a43;
+  _Float16 a53;
   vfloat16m2_t b00;
   vfloat16m2_t b10;
+  vfloat16m2_t b20;
+  vfloat16m2_t b30;
   vfloat32m4_t acc0;
   vfloat32m4_t acc1;
   vfloat32m4_t acc2;
@@ -263,6 +277,7 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
   vfloat16m2_t b0;
   vfloat32m4_t acc;
   vfloat32m4_t c0;
+  vfloat32m4_t c1;
 
   if (k == 0) {
     for (ii = 0; (ii + 1) <= m; ii = ii + 1) {
@@ -327,7 +342,10 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
         );
       }
 
-      if (12 + 2 < k) {
+      const size_t kk_unroll_degree = 12;
+      const size_t preload_distance = 4;
+
+      if (kk_unroll_degree + preload_distance < k) {
         const size_t offset = 1;
         const _Float16 *a_addr = a + ii * rsa + offset;
         const _Float16 *b_addr = b + offset * rsb + jj;
@@ -336,40 +354,68 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
             "\n\t"
 
             "vsetvli zero, %[jj_vl_in], e16, m2, ta, ma \n\t"
+
             "vle16.v %[b00], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-
             NTL_P1
             "flh %[a00], 0(%[a_addr]) \n\t"
             NTL_P1
             "flh %[a01], 2(%[a_addr]) \n\t"
+            NTL_P1
+            "flh %[a02], 4(%[a_addr]) \n\t"
+            NTL_P1
+            "flh %[a03], 6(%[a_addr]) \n\t"
             "add %[a_addr], %[a_addr], %[rsa2] \n\t"
             NTL_P1
             "flh %[a10], 0(%[a_addr]) \n\t"
             NTL_P1
             "flh %[a11], 2(%[a_addr]) \n\t"
+            NTL_P1
+            "flh %[a12], 4(%[a_addr]) \n\t"
+            NTL_P1
+            "flh %[a13], 6(%[a_addr]) \n\t"
             "add %[a_addr], %[a_addr], %[rsa2] \n\t"
+            "vle16.v %[b10], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
             NTL_P1
             "flh %[a20], 0(%[a_addr]) \n\t"
             NTL_P1
             "flh %[a21], 2(%[a_addr]) \n\t"
+            NTL_P1
+            "flh %[a22], 4(%[a_addr]) \n\t"
+            NTL_P1
+            "flh %[a23], 6(%[a_addr]) \n\t"
             "add %[a_addr], %[a_addr], %[rsa2] \n\t"
             NTL_P1
             "flh %[a30], 0(%[a_addr]) \n\t"
             NTL_P1
             "flh %[a31], 2(%[a_addr]) \n\t"
+            NTL_P1
+            "flh %[a32], 4(%[a_addr]) \n\t"
+            NTL_P1
+            "flh %[a33], 6(%[a_addr]) \n\t"
             "add %[a_addr], %[a_addr], %[rsa2] \n\t"
+            "vle16.v %[b20], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
             NTL_P1
             "flh %[a40], 0(%[a_addr]) \n\t"
             NTL_P1
             "flh %[a41], 2(%[a_addr]) \n\t"
+            NTL_P1
+            "flh %[a42], 4(%[a_addr]) \n\t"
+            NTL_P1
+            "flh %[a43], 6(%[a_addr]) \n\t"
             "add %[a_addr], %[a_addr], %[rsa2] \n\t"
             NTL_P1
             "flh %[a50], 0(%[a_addr]) \n\t"
             NTL_P1
             "flh %[a51], 2(%[a_addr]) \n\t"
+            NTL_P1
+            "flh %[a52], 4(%[a_addr]) \n\t"
+            NTL_P1
+            "flh %[a53], 6(%[a_addr]) \n\t"
+            "vle16.v %[b30], (%[b_addr]) \n\t"
 
-            "vle16.v %[b10], (%[b_addr]) \n\t"
           : [a00] "=&f"(a00),
             [a10] "=&f"(a10),
             [a20] "=&f"(a20),
@@ -382,9 +428,23 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
             [a31] "=&f"(a31),
             [a41] "=&f"(a41),
             [a51] "=&f"(a51),
+            [a02] "=&f"(a02),
+            [a12] "=&f"(a12),
+            [a22] "=&f"(a22),
+            [a32] "=&f"(a32),
+            [a42] "=&f"(a42),
+            [a52] "=&f"(a52),
+            [a03] "=&f"(a03),
+            [a13] "=&f"(a13),
+            [a23] "=&f"(a23),
+            [a33] "=&f"(a33),
+            [a43] "=&f"(a43),
+            [a53] "=&f"(a53),
             [a_addr] "+&r"(a_addr),
             [b00] "=&vr"(b00),
-            [b10] "=vr"(b10),
+            [b10] "=&vr"(b10),
+            [b20] "=&vr"(b20),
+            [b30] "=vr"(b30),
             [b_addr] "+&r"(b_addr)
           : [jj_vl_in] "r"(jj_vl),
             [rsa2] "r" (rsa * sizeof(_Float16)),
@@ -394,8 +454,9 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
         );
       }
 
-      for (kk = 1; (kk + 12 + 2) <= k; kk = kk + 12) {
-        const size_t offset = 2;
+      for (kk = 1; (kk + kk_unroll_degree + preload_distance) <= k;
+           kk += kk_unroll_degree) {
+        const size_t offset = preload_distance;
         const _Float16 *b_addr = b + (kk + offset) * rsb + jj;
         const _Float16 *a_addr_0 = a + (ii + 0) * rsa + kk + offset;
         const _Float16 *a_addr_1;
@@ -456,46 +517,46 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
             "vle16.v %[b10], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb2] \n\t"
 
-            "vfwmacc.vf %[acc0], %[a00], %[b00] \n\t"
-            "vfwmacc.vf %[acc1], %[a10], %[b00] \n\t"
+            "vfwmacc.vf %[acc0], %[a02], %[b20] \n\t"
+            "vfwmacc.vf %[acc1], %[a12], %[b20] \n\t"
             NTL_P1
-            "flh %[a00],  4(%[a_addr_0]) \n\t"
+            "flh %[a02],  4(%[a_addr_0]) \n\t"
             NTL_P1
-            "flh %[a10],  4(%[a_addr_1]) \n\t"
-            "vfwmacc.vf %[acc2], %[a20], %[b00] \n\t"
-            "vfwmacc.vf %[acc3], %[a30], %[b00] \n\t"
+            "flh %[a12],  4(%[a_addr_1]) \n\t"
+            "vfwmacc.vf %[acc2], %[a22], %[b20] \n\t"
+            "vfwmacc.vf %[acc3], %[a32], %[b20] \n\t"
             NTL_P1
-            "flh %[a20],  4(%[a_addr_2]) \n\t"
+            "flh %[a22],  4(%[a_addr_2]) \n\t"
             NTL_P1
-            "flh %[a30],  4(%[a_addr_3]) \n\t"
-            "vfwmacc.vf %[acc4], %[a40], %[b00] \n\t"
-            "vfwmacc.vf %[acc5], %[a50], %[b00] \n\t"
+            "flh %[a32],  4(%[a_addr_3]) \n\t"
+            "vfwmacc.vf %[acc4], %[a42], %[b20] \n\t"
+            "vfwmacc.vf %[acc5], %[a52], %[b20] \n\t"
             NTL_P1
-            "flh %[a40],  4(%[a_addr_4]) \n\t"
+            "flh %[a42],  4(%[a_addr_4]) \n\t"
             NTL_P1
-            "flh %[a50],  4(%[a_addr_5]) \n\t"
-            "vle16.v %[b00], (%[b_addr]) \n\t"
+            "flh %[a52],  4(%[a_addr_5]) \n\t"
+            "vle16.v %[b20], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb2] \n\t"
 
-            "vfwmacc.vf %[acc0], %[a01], %[b10] \n\t"
-            "vfwmacc.vf %[acc1], %[a11], %[b10] \n\t"
+            "vfwmacc.vf %[acc0], %[a03], %[b30] \n\t"
+            "vfwmacc.vf %[acc1], %[a13], %[b30] \n\t"
             NTL_P1
-            "flh %[a01],  6(%[a_addr_0]) \n\t"
+            "flh %[a03],  6(%[a_addr_0]) \n\t"
             NTL_P1
-            "flh %[a11],  6(%[a_addr_1]) \n\t"
-            "vfwmacc.vf %[acc2], %[a21], %[b10] \n\t"
-            "vfwmacc.vf %[acc3], %[a31], %[b10] \n\t"
+            "flh %[a13],  6(%[a_addr_1]) \n\t"
+            "vfwmacc.vf %[acc2], %[a23], %[b30] \n\t"
+            "vfwmacc.vf %[acc3], %[a33], %[b30] \n\t"
             NTL_P1
-            "flh %[a21],  6(%[a_addr_2]) \n\t"
+            "flh %[a23],  6(%[a_addr_2]) \n\t"
             NTL_P1
-            "flh %[a31],  6(%[a_addr_3]) \n\t"
-            "vfwmacc.vf %[acc4], %[a41], %[b10] \n\t"
-            "vfwmacc.vf %[acc5], %[a51], %[b10] \n\t"
+            "flh %[a33],  6(%[a_addr_3]) \n\t"
+            "vfwmacc.vf %[acc4], %[a43], %[b30] \n\t"
+            "vfwmacc.vf %[acc5], %[a53], %[b30] \n\t"
             NTL_P1
-            "flh %[a41],  6(%[a_addr_4]) \n\t"
+            "flh %[a43],  6(%[a_addr_4]) \n\t"
             NTL_P1
-            "flh %[a51],  6(%[a_addr_5]) \n\t"
-            "vle16.v %[b10], (%[b_addr]) \n\t"
+            "flh %[a53],  6(%[a_addr_5]) \n\t"
+            "vle16.v %[b30], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb2] \n\t"
 
             "vfwmacc.vf %[acc0], %[a00], %[b00] \n\t"
@@ -540,46 +601,46 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
             "vle16.v %[b10], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb2] \n\t"
 
-            "vfwmacc.vf %[acc0], %[a00], %[b00] \n\t"
-            "vfwmacc.vf %[acc1], %[a10], %[b00] \n\t"
+            "vfwmacc.vf %[acc0], %[a02], %[b20] \n\t"
+            "vfwmacc.vf %[acc1], %[a12], %[b20] \n\t"
             NTL_P1
-            "flh %[a00], 12(%[a_addr_0]) \n\t"
+            "flh %[a02], 12(%[a_addr_0]) \n\t"
             NTL_P1
-            "flh %[a10], 12(%[a_addr_1]) \n\t"
-            "vfwmacc.vf %[acc2], %[a20], %[b00] \n\t"
-            "vfwmacc.vf %[acc3], %[a30], %[b00] \n\t"
+            "flh %[a12], 12(%[a_addr_1]) \n\t"
+            "vfwmacc.vf %[acc2], %[a22], %[b20] \n\t"
+            "vfwmacc.vf %[acc3], %[a32], %[b20] \n\t"
             NTL_P1
-            "flh %[a20], 12(%[a_addr_2]) \n\t"
+            "flh %[a22], 12(%[a_addr_2]) \n\t"
             NTL_P1
-            "flh %[a30], 12(%[a_addr_3]) \n\t"
-            "vfwmacc.vf %[acc4], %[a40], %[b00] \n\t"
-            "vfwmacc.vf %[acc5], %[a50], %[b00] \n\t"
+            "flh %[a32], 12(%[a_addr_3]) \n\t"
+            "vfwmacc.vf %[acc4], %[a42], %[b20] \n\t"
+            "vfwmacc.vf %[acc5], %[a52], %[b20] \n\t"
             NTL_P1
-            "flh %[a40], 12(%[a_addr_4]) \n\t"
+            "flh %[a42], 12(%[a_addr_4]) \n\t"
             NTL_P1
-            "flh %[a50], 12(%[a_addr_5]) \n\t"
-            "vle16.v %[b00], (%[b_addr]) \n\t"
+            "flh %[a52], 12(%[a_addr_5]) \n\t"
+            "vle16.v %[b20], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb2] \n\t"
 
-            "vfwmacc.vf %[acc0], %[a01], %[b10] \n\t"
-            "vfwmacc.vf %[acc1], %[a11], %[b10] \n\t"
+            "vfwmacc.vf %[acc0], %[a03], %[b30] \n\t"
+            "vfwmacc.vf %[acc1], %[a13], %[b30] \n\t"
             NTL_P1
-            "flh %[a01], 14(%[a_addr_0]) \n\t"
+            "flh %[a03], 14(%[a_addr_0]) \n\t"
             NTL_P1
-            "flh %[a11], 14(%[a_addr_1]) \n\t"
-            "vfwmacc.vf %[acc2], %[a21], %[b10] \n\t"
-            "vfwmacc.vf %[acc3], %[a31], %[b10] \n\t"
+            "flh %[a13], 14(%[a_addr_1]) \n\t"
+            "vfwmacc.vf %[acc2], %[a23], %[b30] \n\t"
+            "vfwmacc.vf %[acc3], %[a33], %[b30] \n\t"
             NTL_P1
-            "flh %[a21], 14(%[a_addr_2]) \n\t"
+            "flh %[a23], 14(%[a_addr_2]) \n\t"
             NTL_P1
-            "flh %[a31], 14(%[a_addr_3]) \n\t"
-            "vfwmacc.vf %[acc4], %[a41], %[b10] \n\t"
-            "vfwmacc.vf %[acc5], %[a51], %[b10] \n\t"
+            "flh %[a33], 14(%[a_addr_3]) \n\t"
+            "vfwmacc.vf %[acc4], %[a43], %[b30] \n\t"
+            "vfwmacc.vf %[acc5], %[a53], %[b30] \n\t"
             NTL_P1
-            "flh %[a41], 14(%[a_addr_4]) \n\t"
+            "flh %[a43], 14(%[a_addr_4]) \n\t"
             NTL_P1
-            "flh %[a51], 14(%[a_addr_5]) \n\t"
-            "vle16.v %[b10], (%[b_addr]) \n\t"
+            "flh %[a53], 14(%[a_addr_5]) \n\t"
+            "vle16.v %[b30], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb2] \n\t"
 
             "vfwmacc.vf %[acc0], %[a00], %[b00] \n\t"
@@ -624,46 +685,46 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
             "vle16.v %[b10], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb2] \n\t"
 
-            "vfwmacc.vf %[acc0], %[a00], %[b00] \n\t"
-            "vfwmacc.vf %[acc1], %[a10], %[b00] \n\t"
+            "vfwmacc.vf %[acc0], %[a02], %[b20] \n\t"
+            "vfwmacc.vf %[acc1], %[a12], %[b20] \n\t"
             NTL_P1
-            "flh %[a00], 20(%[a_addr_0]) \n\t"
+            "flh %[a02], 20(%[a_addr_0]) \n\t"
             NTL_P1
-            "flh %[a10], 20(%[a_addr_1]) \n\t"
-            "vfwmacc.vf %[acc2], %[a20], %[b00] \n\t"
-            "vfwmacc.vf %[acc3], %[a30], %[b00] \n\t"
+            "flh %[a12], 20(%[a_addr_1]) \n\t"
+            "vfwmacc.vf %[acc2], %[a22], %[b20] \n\t"
+            "vfwmacc.vf %[acc3], %[a32], %[b20] \n\t"
             NTL_P1
-            "flh %[a20], 20(%[a_addr_2]) \n\t"
+            "flh %[a22], 20(%[a_addr_2]) \n\t"
             NTL_P1
-            "flh %[a30], 20(%[a_addr_3]) \n\t"
-            "vfwmacc.vf %[acc4], %[a40], %[b00] \n\t"
-            "vfwmacc.vf %[acc5], %[a50], %[b00] \n\t"
+            "flh %[a32], 20(%[a_addr_3]) \n\t"
+            "vfwmacc.vf %[acc4], %[a42], %[b20] \n\t"
+            "vfwmacc.vf %[acc5], %[a52], %[b20] \n\t"
             NTL_P1
-            "flh %[a40], 20(%[a_addr_4]) \n\t"
+            "flh %[a42], 20(%[a_addr_4]) \n\t"
             NTL_P1
-            "flh %[a50], 20(%[a_addr_5]) \n\t"
-            "vle16.v %[b00], (%[b_addr]) \n\t"
+            "flh %[a52], 20(%[a_addr_5]) \n\t"
+            "vle16.v %[b20], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb2] \n\t"
 
-            "vfwmacc.vf %[acc0], %[a01], %[b10] \n\t"
-            "vfwmacc.vf %[acc1], %[a11], %[b10] \n\t"
+            "vfwmacc.vf %[acc0], %[a03], %[b30] \n\t"
+            "vfwmacc.vf %[acc1], %[a13], %[b30] \n\t"
             NTL_P1
-            "flh %[a01], 22(%[a_addr_0]) \n\t"
+            "flh %[a03], 22(%[a_addr_0]) \n\t"
             NTL_P1
-            "flh %[a11], 22(%[a_addr_1]) \n\t"
-            "vfwmacc.vf %[acc2], %[a21], %[b10] \n\t"
-            "vfwmacc.vf %[acc3], %[a31], %[b10] \n\t"
+            "flh %[a13], 22(%[a_addr_1]) \n\t"
+            "vfwmacc.vf %[acc2], %[a23], %[b30] \n\t"
+            "vfwmacc.vf %[acc3], %[a33], %[b30] \n\t"
             NTL_P1
-            "flh %[a21], 22(%[a_addr_2]) \n\t"
+            "flh %[a23], 22(%[a_addr_2]) \n\t"
             NTL_P1
-            "flh %[a31], 22(%[a_addr_3]) \n\t"
-            "vfwmacc.vf %[acc4], %[a41], %[b10] \n\t"
-            "vfwmacc.vf %[acc5], %[a51], %[b10] \n\t"
+            "flh %[a33], 22(%[a_addr_3]) \n\t"
+            "vfwmacc.vf %[acc4], %[a43], %[b30] \n\t"
+            "vfwmacc.vf %[acc5], %[a53], %[b30] \n\t"
             NTL_P1
-            "flh %[a41], 22(%[a_addr_4]) \n\t"
+            "flh %[a43], 22(%[a_addr_4]) \n\t"
             NTL_P1
-            "flh %[a51], 22(%[a_addr_5]) \n\t"
-            "vle16.v %[b10], (%[b_addr]) \n\t"
+            "flh %[a53], 22(%[a_addr_5]) \n\t"
+            "vle16.v %[b30], (%[b_addr]) \n\t"
             : [a00] "+&f"(a00),
               [a10] "+&f"(a10),
               [a20] "+&f"(a20),
@@ -676,8 +737,22 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
               [a31] "+&f"(a31),
               [a41] "+&f"(a41),
               [a51] "+&f"(a51),
+              [a02] "+&f"(a02),
+              [a12] "+&f"(a12),
+              [a22] "+&f"(a22),
+              [a32] "+&f"(a32),
+              [a42] "+&f"(a42),
+              [a52] "+&f"(a52),
+              [a03] "+&f"(a03),
+              [a13] "+&f"(a13),
+              [a23] "+&f"(a23),
+              [a33] "+&f"(a33),
+              [a43] "+&f"(a43),
+              [a53] "+&f"(a53),
               [b00] "+&vr"(b00),
               [b10] "+&vr"(b10),
+              [b20] "+&vr"(b20),
+              [b30] "+&vr"(b30),
               [acc0] "+&vr"(acc0),
               [acc1] "+&vr"(acc1),
               [acc2] "+&vr"(acc2),
@@ -699,7 +774,7 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
         );
       }
 
-      if (12 + 2 < k) {
+      if (kk_unroll_degree + preload_distance < k) {
         __asm__ volatile(
             // clang-format off
             "\n\t"
@@ -718,6 +793,20 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
             "vfwmacc.vf %[acc3], %[a31], %[b10] \n\t"
             "vfwmacc.vf %[acc4], %[a41], %[b10] \n\t"
             "vfwmacc.vf %[acc5], %[a51], %[b10] \n\t"
+
+            "vfwmacc.vf %[acc0], %[a02], %[b20] \n\t"
+            "vfwmacc.vf %[acc1], %[a12], %[b20] \n\t"
+            "vfwmacc.vf %[acc2], %[a22], %[b20] \n\t"
+            "vfwmacc.vf %[acc3], %[a32], %[b20] \n\t"
+            "vfwmacc.vf %[acc4], %[a42], %[b20] \n\t"
+            "vfwmacc.vf %[acc5], %[a52], %[b20] \n\t"
+
+            "vfwmacc.vf %[acc0], %[a03], %[b30] \n\t"
+            "vfwmacc.vf %[acc1], %[a13], %[b30] \n\t"
+            "vfwmacc.vf %[acc2], %[a23], %[b30] \n\t"
+            "vfwmacc.vf %[acc3], %[a33], %[b30] \n\t"
+            "vfwmacc.vf %[acc4], %[a43], %[b30] \n\t"
+            "vfwmacc.vf %[acc5], %[a53], %[b30] \n\t"
             : [acc0] "+&vr" (acc0),
               [acc1] "+&vr" (acc1),
               [acc2] "+&vr" (acc2),
@@ -727,6 +816,8 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
             : [jj_vl_in] "r"(jj_vl),
               [b00] "vr" (b00),
               [b10] "vr" (b10),
+              [b20] "vr" (b20),
+              [b30] "vr" (b30),
               [a00] "f"(a00),
               [a10] "f"(a10),
               [a20] "f"(a20),
@@ -738,11 +829,23 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
               [a21] "f"(a21),
               [a31] "f"(a31),
               [a41] "f"(a41),
-              [a51] "f"(a51)
+              [a51] "f"(a51),
+              [a02] "f"(a02),
+              [a12] "f"(a12),
+              [a22] "f"(a22),
+              [a32] "f"(a32),
+              [a42] "f"(a42),
+              [a52] "f"(a52),
+              [a03] "f"(a03),
+              [a13] "f"(a13),
+              [a23] "f"(a23),
+              [a33] "f"(a33),
+              [a43] "f"(a43),
+              [a53] "f"(a53)
             : "vtype", "vl", "memory"
             // clang-format on
         );
-        kk += 2;
+        kk += preload_distance;
       }
 
       for (; kk < k; kk++) {
@@ -801,10 +904,10 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
           "vse32.v %[c0], (%[c_addr]) \n\t"
           "add %[c_addr], %[c_addr], %[rsc4] \n\t"
 
-          "vle32.v %[c0], (%[c_addr]) \n\t"
-          "vfmul.vf %[c0], %[c0], %[beta] \n\t"
-          "vfmacc.vf %[c0], %[alpha], %[acc1] \n\t"
-          "vse32.v %[c0], (%[c_addr]) \n\t"
+          "vle32.v %[c1], (%[c_addr]) \n\t"
+          "vfmul.vf %[c1], %[c1], %[beta] \n\t"
+          "vfmacc.vf %[c1], %[alpha], %[acc1] \n\t"
+          "vse32.v %[c1], (%[c_addr]) \n\t"
           "add %[c_addr], %[c_addr], %[rsc4] \n\t"
 
           "vle32.v %[c0], (%[c_addr]) \n\t"
@@ -813,10 +916,10 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
           "vse32.v %[c0], (%[c_addr]) \n\t"
           "add %[c_addr], %[c_addr], %[rsc4] \n\t"
 
-          "vle32.v %[c0], (%[c_addr]) \n\t"
-          "vfmul.vf %[c0], %[c0], %[beta] \n\t"
-          "vfmacc.vf %[c0], %[alpha], %[acc3] \n\t"
-          "vse32.v %[c0], (%[c_addr]) \n\t"
+          "vle32.v %[c1], (%[c_addr]) \n\t"
+          "vfmul.vf %[c1], %[c1], %[beta] \n\t"
+          "vfmacc.vf %[c1], %[alpha], %[acc3] \n\t"
+          "vse32.v %[c1], (%[c_addr]) \n\t"
           "add %[c_addr], %[c_addr], %[rsc4] \n\t"
 
           "vle32.v %[c0], (%[c_addr]) \n\t"
@@ -825,11 +928,12 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
           "vse32.v %[c0], (%[c_addr]) \n\t"
           "add %[c_addr], %[c_addr], %[rsc4] \n\t"
 
-          "vle32.v %[c0], (%[c_addr]) \n\t"
-          "vfmul.vf %[c0], %[c0], %[beta] \n\t"
-          "vfmacc.vf %[c0], %[alpha], %[acc5] \n\t"
-          "vse32.v %[c0], (%[c_addr]) \n\t"
+          "vle32.v %[c1], (%[c_addr]) \n\t"
+          "vfmul.vf %[c1], %[c1], %[beta] \n\t"
+          "vfmacc.vf %[c1], %[alpha], %[acc5] \n\t"
+          "vse32.v %[c1], (%[c_addr]) \n\t"
           : [c0] "=&vr"(c0),
+            [c1] "=&vr"(c1),
             [c_addr] "+&r"(c_addr)
           : [jj_vl_in] "r"(jj_vl),
             [beta] "f"(beta),
