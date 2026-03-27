@@ -61,7 +61,7 @@ The general form is `skl_pack_<layout>_<datatype>_<isa>`.
 
 > **Note**: As in other kernel families, the ISA suffix indicates the minimum requirement to execute the packing kernel itself (normally `zve32x`), but its primary intended use may be for a particular matrix extension. This is indicated in the documentation for each kernel (packing and GEMM).
 >
-> The `skl_pack_tex1_e8_xsfmm` function is an exception, as it uses the matrix engine to accelerate transposition within blocks.
+> The `skl_pack_tex1c_e8_xsfmm` function is an exception, as it uses the matrix engine to accelerate transposition within blocks.
 
 #### Layout Term
 
@@ -69,17 +69,17 @@ The layout term may further be decomposed as `<m0>x<n0>[<inner-block-order>][<bl
 
 It is assumed by default that the ordering of elements within a block is fixed to be row-major.
 If instead the layout within a block is column-major, the inner-block-rder term is `c`, and if it may be either, `rc` is used.
-Similarly, the ordering of blocks relative to each other is assumed to be row-major, but if it is either column-major or configurable, a block-order term of `bc` or `brc` is added to the end of the layout term.
+Similarly, the ordering of blocks relative to each other is assumed to be block-row-major, but if it is either block-column-major or configurable, a block-order term of `bc` or `brc` is added to the end of the layout term.
 
-When one of the dimensions is 1, neither `c` nor `rc` is added, as the two layouts are the same.
-If the second dimension (`n0`) is 1 and `m0` is not, a _transposition_ is implied relative to the original input, which is assumed to be row-major.
-(Use of `1` is equivalent to a "block dimension" of arbitrary size, as the block size is effectively ignored in that dimension.)
+When one of the dimensions is `1`, there is no difference in memory ordering between row- and column-major; however, the order is still said to be "column-major" when the second dimension is `1`, as this corresponds to the canonical layout of a column vector, and better indicates the transposition implied by the layout.
+
+Use of `1` for either block dimension effectively creates a block with one side of arbitrary size, referred to as a _panel_.
 
 The examples below illustrate these different layouts, and relation to the layout term.
 
 ## Packing Layout Examples
 
-### Example: 4x1 Block Layout (Block-Row-Major with Inner Transposition)
+### Example: 4x1c Block Layout (Block-Row-Major with Inner Transposition)
 ```
 Original row-major matrix (8x4):        Packed layout [m0=4, n0=1, m1=2, n1=4]:
 
@@ -170,7 +170,7 @@ It is for illustrative purposes only.
 All of these kernels are required for correct operation of the corresponding GEMM kernels.
 
 #### Xsfvqdotq
-- `skl_pack_4x1_e8_zve32x`: Pack the B matrix into 4x1 panels (4x1 block-row-major example above) to use `sf.vqdot.vx` without reduction summation.
+- `skl_pack_4x1c_e8_zve32x`: Pack the B matrix into 4x1 panels (4x1 block-row-major example above) to use `sf.vqdot.vx` without reduction summation.
 
 #### Xsfvqmaccqoq
 These kernels are required for use of the `sf.vqmacc.4x8x4` instruction.
@@ -183,7 +183,7 @@ Because the of the small block size, significant specialization is required to a
 ### Optional Packing Kernels
 None of these are strictly required for correct operation of the corresponding GEMM kernels, but they may be useful for performance or compatibility reasons.
 (For Xsfmm, it is never required to pack any matrix; only [transposition](../transpose/README.md) is required if that A matrix is in row-major format, or B is in column-major format.)
-- `skl_pack_tex1_e8_xsfmm`: Transpose (TE x K) panels using the matrix engine. Used on a row-major A matrix or column-major B matrix.
+- `skl_pack_tex1c_e8_xsfmm`: Transpose (TE x K) panels using the matrix engine. Used on a row-major A matrix or column-major B matrix.
 
 ### Packing Kernels That Do Not Exist
 These names refer to kernels that users might expect to exist, but do not, because they can be implemented with an appropriate block size in the generic RVV packing kernel at reasonable performance.
