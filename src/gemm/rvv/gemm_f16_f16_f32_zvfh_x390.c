@@ -10,6 +10,12 @@
 
 #include "skl-common.h"
 
+#if defined(__riscv_zihintntl)
+#define NTL_P1 "ntl.p1 \n\t"
+#else
+#define NTL_P1
+#endif
+
 /**
  * @brief RVV float16 vector-matrix multiply with float32 output for row-major
  * matrices, tuned for X390.
@@ -231,9 +237,6 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
   size_t jj;
   size_t kk;
   size_t jj_vl;
-  vfloat32m8_t acc0;
-  vfloat32m8_t acc1;
-  vfloat16m4_t b00;
   _Float16 a00;
   _Float16 a10;
   _Float16 a01;
@@ -250,6 +253,12 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
   _Float16 a16;
   _Float16 a07;
   _Float16 a17;
+  vfloat32m8_t acc0;
+  vfloat32m8_t acc1;
+  vfloat16m4_t b00;
+  vfloat16m4_t b10;
+  vfloat16m4_t b20;
+  vfloat16m4_t b30;
   vfloat32m8_t c00;
   vfloat32m8_t c01;
 
@@ -272,13 +281,13 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
           // clang-format off
           "\n\t"
           "flh %[a00], 0(%[a_addr_0]) \n\t"
-          "flh %[a01], 0(%[a_addr_1]) \n\t"
+          "flh %[a10], 0(%[a_addr_1]) \n\t"
           "vsetvli zero, %[jj_vl_in], e16, m4, ta, ma \n\t"
           "vle16.v %[b00], (%[b_addr]) \n\t"
           "vfwmul.vf %[acc0], %[b00], %[a00] \n\t"
-          "vfwmul.vf %[acc1], %[b00], %[a01] \n\t"
+          "vfwmul.vf %[acc1], %[b00], %[a10] \n\t"
           : [a00] "=&f"(a00),
-            [a01] "=&f"(a01),
+            [a10] "=&f"(a10),
             [b00] "=&vr"(b00),
             [acc0] "=&vr"(acc0),
             [acc1] "=vr"(acc1)
@@ -291,67 +300,39 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
           // clang-format on
       );
 
-      for (kk = 1; (kk + 8) <= k; kk += 8) {
-        const _Float16 *b_addr = b + (kk + 0) * rsb + jj;
+      /* A values will be preloaded at the full preload distance, but
+       * B vectors use a shorter distance due to limited registers.
+       */
+      const size_t kk_unroll_degree = 8;
+      const size_t a_preload_distance = 8;
+      const size_t b_preload_distance = 4;
+
+      if (kk_unroll_degree + a_preload_distance < k) {
         __asm__ volatile(
             // clang-format off
             "\n\t"
-            "vsetvli zero, %[jj_vl_in], e16, m4, ta, ma \n\t"
-
             "flh %[a00],  0(%[a_addr_0]) \n\t"
             "flh %[a10],  0(%[a_addr_1]) \n\t"
-            "vle16.v %[b00], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc0], %[a00], %[b00] \n\t"
-            "vfwmacc.vf %[acc1], %[a10], %[b00] \n\t"
-
             "flh %[a01],  2(%[a_addr_0]) \n\t"
             "flh %[a11],  2(%[a_addr_1]) \n\t"
-            "vle16.v %[b00], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc0], %[a01], %[b00] \n\t"
-            "vfwmacc.vf %[acc1], %[a11], %[b00] \n\t"
-
             "flh %[a02],  4(%[a_addr_0]) \n\t"
             "flh %[a12],  4(%[a_addr_1]) \n\t"
-            "vle16.v %[b00], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc0], %[a02], %[b00] \n\t"
-            "vfwmacc.vf %[acc1], %[a12], %[b00] \n\t"
-
             "flh %[a03],  6(%[a_addr_0]) \n\t"
             "flh %[a13],  6(%[a_addr_1]) \n\t"
-            "vle16.v %[b00], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc0], %[a03], %[b00] \n\t"
-            "vfwmacc.vf %[acc1], %[a13], %[b00] \n\t"
-
             "flh %[a04],  8(%[a_addr_0]) \n\t"
             "flh %[a14],  8(%[a_addr_1]) \n\t"
-            "vle16.v %[b00], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc0], %[a04], %[b00] \n\t"
-            "vfwmacc.vf %[acc1], %[a14], %[b00] \n\t"
-
             "flh %[a05], 10(%[a_addr_0]) \n\t"
             "flh %[a15], 10(%[a_addr_1]) \n\t"
-            "vle16.v %[b00], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc0], %[a05], %[b00] \n\t"
-            "vfwmacc.vf %[acc1], %[a15], %[b00] \n\t"
-
             "flh %[a06], 12(%[a_addr_0]) \n\t"
             "flh %[a16], 12(%[a_addr_1]) \n\t"
-            "vle16.v %[b00], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc0], %[a06], %[b00] \n\t"
-            "vfwmacc.vf %[acc1], %[a16], %[b00] \n\t"
-
             "flh %[a07], 14(%[a_addr_0]) \n\t"
             "flh %[a17], 14(%[a_addr_1]) \n\t"
-            "vle16.v %[b00], (%[b_addr]) \n\t"
-            "vfwmacc.vf %[acc0], %[a07], %[b00] \n\t"
-            "vfwmacc.vf %[acc1], %[a17], %[b00] \n\t"
+
+            "vsetvli zero, %[jj_vl_in], e16, m4, ta, ma \n\t"
+            "vle16.v %[b00], (%[b_addr_0]) \n\t"
+            "vle16.v %[b10], (%[b_addr_1]) \n\t"
+            "vle16.v %[b20], (%[b_addr_2]) \n\t"
+            "vle16.v %[b30], (%[b_addr_3]) \n\t"
             : [a00] "=&f"(a00),
               [a01] "=&f"(a01),
               [a02] "=&f"(a02),
@@ -369,17 +350,196 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
               [a16] "=&f"(a16),
               [a17] "=&f"(a17),
               [b00] "=&vr"(b00),
+              [b10] "=&vr"(b10),
+              [b20] "=&vr"(b20),
+              [b30] "=vr"(b30)
+            : [jj_vl_in] "r"(jj_vl),
+              [a_addr_0] "r"(a + (ii + 0) * rsa + 1),
+              [a_addr_1] "r"(a + (ii + 1) * rsa + 1),
+              [b_addr_0] "r"(b + (1 + 0) * rsb + jj),
+              [b_addr_1] "r"(b + (1 + 1) * rsb + jj),
+              [b_addr_2] "r"(b + (1 + 2) * rsb + jj),
+              [b_addr_3] "r"(b + (1 + 3) * rsb + jj)
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
+      }
+
+      for (kk = 1; (kk + kk_unroll_degree + a_preload_distance) <= k;
+           kk += kk_unroll_degree) {
+        const _Float16 *b_addr = b + (kk + b_preload_distance) * rsb + jj;
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "vsetvli zero, %[jj_vl_in], e16, m4, ta, ma \n\t"
+
+            "vfwmacc.vf %[acc0], %[a00], %[b00] \n\t"
+            "vfwmacc.vf %[acc1], %[a10], %[b00] \n\t"
+            NTL_P1
+            "flh %[a00],  0(%[a_addr_0]) \n\t"
+            NTL_P1
+            "flh %[a10],  0(%[a_addr_1]) \n\t"
+            "vle16.v %[b00], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc0], %[a01], %[b10] \n\t"
+            "vfwmacc.vf %[acc1], %[a11], %[b10] \n\t"
+            NTL_P1
+            "flh %[a01],  2(%[a_addr_0]) \n\t"
+            NTL_P1
+            "flh %[a11],  2(%[a_addr_1]) \n\t"
+            "vle16.v %[b10], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc0], %[a02], %[b20] \n\t"
+            "vfwmacc.vf %[acc1], %[a12], %[b20] \n\t"
+            NTL_P1
+            "flh %[a02],  4(%[a_addr_0]) \n\t"
+            NTL_P1
+            "flh %[a12],  4(%[a_addr_1]) \n\t"
+            "vle16.v %[b20], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc0], %[a03], %[b30] \n\t"
+            "vfwmacc.vf %[acc1], %[a13], %[b30] \n\t"
+            NTL_P1
+            "flh %[a03],  6(%[a_addr_0]) \n\t"
+            NTL_P1
+            "flh %[a13],  6(%[a_addr_1]) \n\t"
+            "vle16.v %[b30], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc0], %[a04], %[b00] \n\t"
+            "vfwmacc.vf %[acc1], %[a14], %[b00] \n\t"
+            NTL_P1
+            "flh %[a04],  8(%[a_addr_0]) \n\t"
+            NTL_P1
+            "flh %[a14],  8(%[a_addr_1]) \n\t"
+            "vle16.v %[b00], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc0], %[a05], %[b10] \n\t"
+            "vfwmacc.vf %[acc1], %[a15], %[b10] \n\t"
+            NTL_P1
+            "flh %[a05], 10(%[a_addr_0]) \n\t"
+            NTL_P1
+            "flh %[a15], 10(%[a_addr_1]) \n\t"
+            "vle16.v %[b10], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc0], %[a06], %[b20] \n\t"
+            "vfwmacc.vf %[acc1], %[a16], %[b20] \n\t"
+            NTL_P1
+            "flh %[a06], 12(%[a_addr_0]) \n\t"
+            NTL_P1
+            "flh %[a16], 12(%[a_addr_1]) \n\t"
+            "vle16.v %[b20], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc0], %[a07], %[b30] \n\t"
+            "vfwmacc.vf %[acc1], %[a17], %[b30] \n\t"
+            NTL_P1
+            "flh %[a07], 14(%[a_addr_0]) \n\t"
+            NTL_P1
+            "flh %[a17], 14(%[a_addr_1]) \n\t"
+            "vle16.v %[b30], (%[b_addr]) \n\t"
+            : [a00] "+&f"(a00),
+              [a01] "+&f"(a01),
+              [a02] "+&f"(a02),
+              [a03] "+&f"(a03),
+              [a04] "+&f"(a04),
+              [a05] "+&f"(a05),
+              [a06] "+&f"(a06),
+              [a07] "+&f"(a07),
+              [a10] "+&f"(a10),
+              [a11] "+&f"(a11),
+              [a12] "+&f"(a12),
+              [a13] "+&f"(a13),
+              [a14] "+&f"(a14),
+              [a15] "+&f"(a15),
+              [a16] "+&f"(a16),
+              [a17] "+&f"(a17),
+              [b00] "+&vr"(b00),
+              [b10] "+&vr"(b10),
+              [b20] "+&vr"(b20),
+              [b30] "+&vr"(b30),
               [acc0] "+&vr"(acc0),
               [acc1] "+&vr"(acc1),
               [b_addr] "+&r"(b_addr)
             : [jj_vl_in] "r"(jj_vl),
-              [a_addr_0]  "r"(a + (ii + 0) * rsa + kk),
-              [a_addr_1]  "r"(a + (ii + 1) * rsa + kk),
+              [a_addr_0]  "r"(a + (ii + 0) * rsa + kk + a_preload_distance),
+              [a_addr_1]  "r"(a + (ii + 1) * rsa + kk + a_preload_distance),
               [rsb2] "r"(rsb * sizeof(_Float16))
             : "vtype", "vl", "memory"
             // clang-format on
         );
       }
+
+      if (kk_unroll_degree + a_preload_distance < k) {
+        const _Float16 *b_addr = b + (kk + b_preload_distance) * rsb + jj;
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "vsetvli zero, %[jj_vl_in], e16, m4, ta, ma \n\t"
+
+            "vfwmacc.vf %[acc0], %[a00], %[b00] \n\t"
+            "vfwmacc.vf %[acc1], %[a10], %[b00] \n\t"
+            "vle16.v %[b00], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc0], %[a01], %[b10] \n\t"
+            "vfwmacc.vf %[acc1], %[a11], %[b10] \n\t"
+            "vle16.v %[b10], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc0], %[a02], %[b20] \n\t"
+            "vfwmacc.vf %[acc1], %[a12], %[b20] \n\t"
+            "vle16.v %[b20], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc0], %[a03], %[b30] \n\t"
+            "vfwmacc.vf %[acc1], %[a13], %[b30] \n\t"
+            "vle16.v %[b30], (%[b_addr]) \n\t"
+
+            "vfwmacc.vf %[acc0], %[a04], %[b00] \n\t"
+            "vfwmacc.vf %[acc1], %[a14], %[b00] \n\t"
+            "vfwmacc.vf %[acc0], %[a05], %[b10] \n\t"
+            "vfwmacc.vf %[acc1], %[a15], %[b10] \n\t"
+            "vfwmacc.vf %[acc0], %[a06], %[b20] \n\t"
+            "vfwmacc.vf %[acc1], %[a16], %[b20] \n\t"
+            "vfwmacc.vf %[acc0], %[a07], %[b30] \n\t"
+            "vfwmacc.vf %[acc1], %[a17], %[b30] \n\t"
+            : [acc0] "+&vr"(acc0),
+              [acc1] "+&vr"(acc1),
+              [b00] "+&vr"(b00),
+              [b10] "+&vr"(b10),
+              [b20] "+&vr"(b20),
+              [b30] "+&vr"(b30),
+              [b_addr] "+&r"(b_addr)
+            : [jj_vl_in] "r"(jj_vl),
+              [a00] "f"(a00),
+              [a01] "f"(a01),
+              [a02] "f"(a02),
+              [a03] "f"(a03),
+              [a04] "f"(a04),
+              [a05] "f"(a05),
+              [a06] "f"(a06),
+              [a07] "f"(a07),
+              [a10] "f"(a10),
+              [a11] "f"(a11),
+              [a12] "f"(a12),
+              [a13] "f"(a13),
+              [a14] "f"(a14),
+              [a15] "f"(a15),
+              [a16] "f"(a16),
+              [a17] "f"(a17),
+              [rsb2] "r"(rsb * sizeof(_Float16))
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
+        kk += a_preload_distance;
+      }
+
       for (; (kk + 1) <= k; kk++) {
         __asm__ volatile(
             // clang-format off
@@ -403,6 +563,7 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
             // clang-format on
         );
       }
+
       __asm__ volatile(
           // clang-format off
           "\n\t"
