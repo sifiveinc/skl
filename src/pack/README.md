@@ -71,7 +71,7 @@ It is assumed by default that the ordering of elements within a block is fixed t
 If instead the layout within a block is column-major, the inner-block-rder term is `c`, and if it may be either, `rc` is used.
 Similarly, the ordering of blocks relative to each other is assumed to be block-row-major, but if it is either block-column-major or configurable, a block-order term of `bc` or `brc` is added to the end of the layout term.
 
-When one of the dimensions is `1`, there is no difference in memory ordering between row- and column-major; however, the order is still said to be "column-major" when the second dimension is `1`, as this corresponds to the canonical layout of a column vector, and better indicates the transposition implied by the layout.
+When one of the dimensions is `1`, there is technically no difference in memory ordering between row- and column-major; however, the order is still said to be "column-major" when the second dimension is `1`, as this corresponds to the canonical layout of a column vector, and better communicates the transposition implied by the layout.
 
 Use of `1` for either block dimension effectively creates a block with one side of arbitrary size, referred to as a _panel_.
 
@@ -103,10 +103,10 @@ Memory layout: [0,4,8,12, 1,5,9,13, 2,6,10,14, 3,7,11,15, 16,20,24,28, 17,21,25,
                └─Block(0,0)┘ └─Block(0,1)┘ └─Block(0,2)┘ └─Block(0,3)┘ └─Block(1,0)─┘ └─Block(1,1)─┘
 
 Strides: rs0=1 (row stride within block), cs0=4 (column stride within block)
-         rs1=4 (row stride between blocks), cs1=16 (column stride between blocks)
+         rs1=16 (row stride between blocks), cs1=4 (column stride between blocks)
 ```
 
-### Example: 1x4 Block Layout (Block-Column-Major with Outer Transposition)
+### Example: 1x4bc Block Layout (Block-Column-Major with Outer Transposition)
 ```
 Original row-major matrix (4x8):        Packed layout [m0=1, n0=4, m1=4, n1=2]:
 
@@ -157,7 +157,7 @@ Memory layout: [0,4,1,5, 2,6,3,7, 8,12,9,13, 10,14,11,15]
                └Block(0,0)┘ └Block(0,1)┘ └─Block(1,0)─┘ └─Block(1,1)─┘
 
 Strides: rs0=1 (row stride within block), cs0=2 (column stride within block)
-         rs1=4 (row stride between blocks), cs1=4 (column stride between blocks)
+         rs1=8 (row stride between blocks), cs1=4 (column stride between blocks)
 ```
 Note: This layout does not occur in any of the current SKL GEMM kernels.
 It is for illustrative purposes only.
