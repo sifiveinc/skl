@@ -14,7 +14,7 @@ See the [list of packing kernels](#list-of-packing-kernels) for details.
 
 These functions specialize the general form:
 ```c
-void skl_pack_<m0xn0>_<datatype>_<isa>(
+void skl_pack_rcbrc_<datatype>_<isa>(
   size_t m,           // Num. rows in input matrix
   size_t n,           // Num. columns in input matrix
   const <type>* src,  // Input matrix
@@ -52,32 +52,30 @@ Unpacking functions work analogously.
 
 
 As in the case of GEMM kernels, most packing kernels will fully specialize or constrain most of the parameters, and they are thus omitted from the API.
-Usually, `m0`, `n0`, `rs0`, and `cs0` are all fixed by the target's layout, and indicated in the kernel's name.
+Usually, `m0`, `n0`, `rs0`, and `cs0` are all fixed by the target's layout, and indicated in the kernel's name as part of the _layout term_ (`_rcbrc_` in the generic case shown above).
 
 ### Naming Convention for Packing Kernels
 
 The name of the packing kernel indicates the block size and ISA extension required by the kernel, and whether it is required or optional.
-The general form is `skl_pack_<m0>x<n0>_<datatype>_<isa>`, where `<m0>` and `<n0>` are the block dimensions, `<datatype>` is the datatype of the matrix, and `<isa>` is the ISA extension required by the kernel.
+The general form is `skl_pack_<layout>_<datatype>_<isa>`.
 
 > **Note**: As in other kernel families, the ISA suffix indicates the minimum requirement to execute the packing kernel itself (normally `zve32x`), but its primary intended use may be for a particular matrix extension. This is indicated in the documentation for each kernel (packing and GEMM).
 >
 > The `skl_pack_tex1_e8_xsfmm` function is an exception, as it uses the matrix engine to accelerate transposition within blocks.
 
-If it is ever ambiguous whether the layout of elements within a block is row- or column-major, the layout term of the name will end in `c` in the case of column-major.
-However, this is omitted when one of the dimensions is 1, as the two layouts are the same.
-The ordering of blocks relative to each other is never reflected in the name, as this is always set by configurable block strides (there should be no performance advantage to fixing these at compile time).
+#### Layout Term
 
-The choice of block dimensions and block ordering determines the overall data layout and can achieve different effects:
+The layout term may further be decomposed as `<m0>x<n0>[<inner-block-order>][<block-order>]`, where `m0` and `n0` are the block dimensions (rows and columns per block, respectively).
 
-- A `4x1` block implies transposition when the input matrix is row-major, since elements from different rows are grouped together within each block. The blocks themselves can be stored in either block-row- or block-column-major order. Block-column-major ordering is equivalent to full matrix transposition, with the `4` dimension only affecting padding.
+It is assumed by default that the ordering of elements within a block is fixed to be row-major.
+If instead the layout within a block is column-major, the inner-block-rder term is `c`, and if it may be either, `rc` is used.
+Similarly, the ordering of blocks relative to each other is assumed to be row-major, but if it is either column-major or configurable, a block-order term of `bc` or `brc` is added to the end of the layout term.
 
-- A `1x4` block does not transpose row-major elements, but can arrange data into _panels_ of `m0 x 4` shape by using block-column-major layout (`rs1=4`, `cs1=4*m0*m1`). With block-row-major layout, this has no effect aside from padding.
+When one of the dimensions is 1, neither `c` nor `rc` is added, as the two layouts are the same.
+If the second dimension (`n0`) is 1 and `m0` is not, a _transposition_ is implied relative to the original input, which is assumed to be row-major.
+(Use of `1` is equivalent to a "block dimension" of arbitrary size, as the block size is effectively ignored in that dimension.)
 
-- A `2x2` (or larger square) block keeps elements in their original layout within blocks, but blocks can be stored in either block-row- or block-column-major order.
-
-- A `2x2c` (or larger square) block transposes row-major elements within blocks.
-
-The examples below illustrate these different layouts.
+The examples below illustrate these different layouts, and relation to the layout term.
 
 ## Packing Layout Examples
 
@@ -161,6 +159,8 @@ Memory layout: [0,4,1,5, 2,6,3,7, 8,12,9,13, 10,14,11,15]
 Strides: rs0=1 (row stride within block), cs0=2 (column stride within block)
          rs1=4 (row stride between blocks), cs1=4 (column stride between blocks)
 ```
+Note: This layout does not occur in any of the current SKL GEMM kernels.
+It is for illustrative purposes only.
 
 
 
@@ -170,7 +170,7 @@ Strides: rs0=1 (row stride within block), cs0=2 (column stride within block)
 All of these kernels are required for correct operation of the corresponding GEMM kernels.
 
 #### Xsfvqdotq
-- `skl_pack_4x1_e8_zve32x`: Pack the B matrix into column-major panels to use `sf.vqdot.vx` without reduction summation.
+- `skl_pack_4x1_e8_zve32x`: Pack the B matrix into 4x1 panels (4x1 block-row-major example above) to use `sf.vqdot.vx` without reduction summation.
 
 #### Xsfvqmaccqoq
 These kernels are required for use of the `sf.vqmacc.4x8x4` instruction.
