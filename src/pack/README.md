@@ -68,7 +68,7 @@ The general form is `skl_pack_<layout>_<datatype>_<isa>`.
 The layout term may further be decomposed as `<m0>x<n0>[<inner-block-order>][<block-order>]`, where `m0` and `n0` are the block dimensions (rows and columns per block, respectively).
 
 It is assumed by default that the ordering of elements within a block is fixed to be row-major.
-If instead the layout within a block is column-major, the inner-block-rder term is `c`, and if it may be either, `rc` is used.
+If instead the layout within a block is column-major, the inner-block-order term is `c`, and if it may be either, `rc` is used.
 Similarly, the ordering of blocks relative to each other is assumed to be block-row-major, but if it is either block-column-major or configurable, a block-order term of `bc` or `brc` is added to the end of the layout term.
 
 When one of the dimensions is `1`, there is technically no difference in memory ordering between row- and column-major; however, the order is still said to be "column-major" when the second dimension is `1`, as this corresponds to the canonical layout of a column vector, and better communicates the transposition implied by the layout.
@@ -182,7 +182,7 @@ Because the of the small block size, significant specialization is required to a
 
 ### Optional Packing Kernels
 None of these are strictly required for correct operation of the corresponding GEMM kernels, but they may be useful for performance or compatibility reasons.
-(For Xsfmm, it is never required to pack any matrix; only [transposition](../transpose/README.md) is required if that A matrix is in row-major format, or B is in column-major format.)
+(For Xsfmm, it is never required to pack any matrix; only [transposition](../transpose/README.md) is required if the A matrix is in row-major format, or B is in column-major format.)
 - `skl_pack_tex1c_e8_xsfmm`: Transpose (TE x K) panels using the matrix engine. Used on a row-major A matrix or column-major B matrix.
 
 ### Packing Kernels That Do Not Exist
