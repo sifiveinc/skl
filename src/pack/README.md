@@ -99,8 +99,9 @@ Original row-major matrix (8x4):        Packed layout [m0=4, n0=1, m1=2, n1=4]:
                                         │ 28  │     │ 29  │     │ 30  │     │ 31  │
                                         └─────┘     └─────┘     └─────┘     └─────┘
 
-Memory layout: [0,4,8,12, 1,5,9,13, 2,6,10,14, 3,7,11,15, 16,20,24,28, 17,21,25,29, ...]
-               └─Block(0,0)┘ └─Block(0,1)┘ └─Block(0,2)┘ └─Block(0,3)┘ └─Block(1,0)─┘ └─Block(1,1)─┘
+Memory layout:
+[ 0, 4, 8,12,  1, 5, 9,13,  2, 6,10,14,  3, 7,11,15, 16,20,24,28, 17,21,25,29, ...]
+ └Block(0,0)┘ └Block(0,1)┘ └Block(0,2)┘ └Block(0,3)┘ └Block(1,0)┘ └Block(1,1)┘
 
 Strides: rs0=1 (row stride within block), cs0=4 (column stride within block)
          rs1=16 (row stride between blocks), cs1=4 (column stride between blocks)
@@ -130,8 +131,9 @@ Original row-major matrix (4x8):        Packed layout [m0=1, n0=4, m1=4, n1=2]:
                                         │24 25 26 27│ │28 29 30 31│
                                         └───────────┘ └───────────┘
 
-Memory layout: [0,1,2,3, 8,9,10,11, 16,17,18,19, 24,25,26,27, 4,5,6,7, 12,13,14,15, ...]
-               └Block(0,0)┘ └Block(1,0)─┘ └─Block(2,0)─┘ └─Block(3,0)─┘ └Block(0,1)┘ └─Block(1,1)─┘
+Memory layout:
+[ 0, 1, 2, 3,  8, 9,10,11, 16,17,18,19, 24,25,26,27,  4, 5, 6, 7, 12,13,14,15, ...]
+ └Block(0,0)┘ └Block(1,0)┘ └Block(2,0)┘ └Block(3,0)┘ └Block(0,1)┘ └Block(1,1)┘
 
 Strides: rs0=4 (row stride within block), cs0=1 (column stride within block)
          rs1=4 (row stride between blocks), cs1=16 (column stride between blocks)
@@ -153,8 +155,9 @@ Original row-major matrix (4x4):        Packed layout [m0=2, n0=2, m1=2, n1=2]:
                                         │ 9 13  │   │11 15  │
                                         └───────┘   └───────┘
 
-Memory layout: [0,4,1,5, 2,6,3,7, 8,12,9,13, 10,14,11,15]
-               └Block(0,0)┘ └Block(0,1)┘ └─Block(1,0)─┘ └─Block(1,1)─┘
+Memory layout:
+[ 0, 4, 1, 5,  2, 6, 3, 7,  8,12, 9,13, 10,14,11,15 ]
+ └Block(0,0)┘ └Block(0,1)┘ └Block(1,0)┘ └Block(1,1)┘
 
 Strides: rs0=1 (row stride within block), cs0=2 (column stride within block)
          rs1=8 (row stride between blocks), cs1=4 (column stride between blocks)
