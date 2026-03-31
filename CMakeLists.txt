@@ -8,7 +8,10 @@ cmake_minimum_required(VERSION 3.21)
 # This option may affect the call to `project` and thus must come first.
 option(SKL_ENABLE_CLANG_TIDY "Enable linting with clang-tidy" ON)
 
-project(SKL)
+project(SKL
+  VERSION 3.0.0
+  LANGUAGES C
+)
 
 set(DEFAULT_CMAKE_BUILD_TYPE "Release")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
