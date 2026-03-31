@@ -148,7 +148,7 @@ int skl_test_driver_run_suite(skl_test_suite_t *suite) {
     // Always run cleanup if provided
     if (steps->cleanup != NULL) {
       int cleanup_status = steps->cleanup(&t);
-      if (cleanup_status != 0) {
+      if (cleanup_status != SKL_TEST_PASS) {
         skl_test_driver_error(&t, "Cleanup function failed\n");
         t.status = SKL_TEST_FAIL;
       }
@@ -157,7 +157,7 @@ int skl_test_driver_run_suite(skl_test_suite_t *suite) {
     // Always run report if provided, even after failure
     if (steps->report != NULL) {
       int report_status = steps->report(&t);
-      if (report_status != 0) {
+      if (report_status != SKL_TEST_PASS) {
         skl_test_driver_error(&t, "Report function failed\n");
         t.status = SKL_TEST_FAIL;
       }
