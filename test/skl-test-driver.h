@@ -50,11 +50,10 @@ typedef struct skl_test_t skl_test_t;
  * Describes a collection of related tests.
  */
 typedef struct {
-  const char *name;            /**< Name of the test suite */
-  size_t num_tests;            /**< Number of tests in the suite */
-  size_t test_size;            /**< Size of the test-specific data structure */
-  void *tests;                 /**< Array of test-specific data structures */
-  int (*steps)(skl_test_t *t); /**< Populates the steps field of t*/
+  const char *name; /**< Name of the test suite */
+  size_t num_tests; /**< Number of tests in the suite */
+  size_t test_size; /**< Size of the test-specific data structure */
+  void *tests;      /**< Array of test-specific data structures */
 } skl_test_suite_t;
 
 /**
@@ -98,13 +97,48 @@ typedef enum {
  * structure and passes it to all harness callback functions.
  */
 struct skl_test_t {
-  const skl_test_suite_t *suite; /**< Test suite (set by driver before init) */
-  const skl_test_steps_t
-      *steps;    /**< Pointers to test functions (set by test) */
-  void *harness; /**< Harness-specific data (set by harness in init) */
-  int log_level; /**< Logging verbosity level (set by driver before init) */
-  skl_test_counters_t counters; /**< Performance counters (updated by driver) */
-  skl_test_status_t status;     /**< Test pass/fail status */
+  /**
+   * @brief Harness-specific data.
+   *
+   * Pointer set by driver, with data accessible and modifiable by harness. The
+   * first member of the underlying struct must be of type `skl_test_steps_t`.
+   */
+  void *harness;
+
+  /**
+   * @brief Name of the suite this test is part of.
+   *
+   * Set by driver before init.
+   */
+  const char *suite_name;
+
+  /**
+   * @brief Identifier for this test within a suite.
+   *
+   * Set by driver before init.
+   */
+  unsigned int id;
+
+  /**
+   * @brief Logging verbosity level.
+   *
+   *  Set by driver before init.
+   */
+  int log_level;
+
+  /**
+   * @brief Performance counters.
+   *
+   * Set by driver after execute.
+   */
+  skl_test_counters_t counters;
+
+  /**
+   * @brief Test pass/fail status.
+   *
+   * Set by harness and checked by driver.
+   */
+  skl_test_status_t status;
 };
 
 //----- Functions provided by the driver -----
@@ -345,7 +379,7 @@ enum {
 #define SKL_TEST_REQUIRE(T, COND)                                              \
   do {                                                                         \
     if (!(COND)) {                                                             \
-      skl_test_driver_error((T), "%s: %s\n", (T)->suite->name, #COND);         \
+      skl_test_driver_error((T), "%s: %s\n", (T)->suite_name, #COND);          \
       skl_test_driver_error((T), "    %s:%d\n", __FILE__, __LINE__);           \
       (T)->status = SKL_TEST_FAIL;                                             \
     }                                                                          \

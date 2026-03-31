@@ -69,9 +69,7 @@ static size_t fprintf_prefix(FILE *stream, skl_test_t *t) {
   if (t == NULL) {
     return 0;
   }
-  size_t id =
-      ((char *)t->harness - (char *)t->suite->tests) / t->suite->test_size;
-  return fprintf(stream, "[%zd]: ", id);
+  return fprintf(stream, "[%ud]: ", t->id);
 }
 
 void skl_test_driver_error(skl_test_t *t, const char *fmt, ...) {
@@ -111,8 +109,9 @@ int skl_test_driver_run_suite(skl_test_suite_t *suite) {
 
   // Main loop over all tests
   for (size_t i = 0; i < suite->num_tests; ++i) {
-    skl_test_t t = {.suite = suite,
-                    .harness = (char *)suite->tests + i * suite->test_size,
+    skl_test_t t = {.harness = (char *)suite->tests + i * suite->test_size,
+                    .suite_name = suite->name,
+                    .id = i,
                     .log_level = log_level,
                     .counters = {.cycles = 0, .instret = 0},
                     .status = SKL_TEST_PASS};
@@ -120,14 +119,17 @@ int skl_test_driver_run_suite(skl_test_suite_t *suite) {
 
 #define TRY(STEP)                                                              \
   do {                                                                         \
-    if (t.STEP != NULL) {                                                      \
-      SKL_TEST_REQUIRE(&t, t.STEP(&t) == 0);                                   \
+    if ((STEP) != NULL) {                                                      \
+      SKL_TEST_REQUIRE(&t, (STEP)(&t) == 0);                                   \
       if (t.status != SKL_TEST_PASS)                                           \
         goto cleanup;                                                          \
     }                                                                          \
   } while (0)
 
-    TRY(suite->steps);
+    // Retrieve test steps: first harness struct member must be a
+    // skl_test_steps_t .
+    skl_test_steps_t *steps = (skl_test_steps_t *)t.harness;
+
     TRY(steps->init);
 
     // Run the test, including optional cache warmup
@@ -138,14 +140,14 @@ int skl_test_driver_run_suite(skl_test_suite_t *suite) {
 
     // Verify test results, if verification is enabled
     TRY(steps->verify);
-    if (t.steps->verify) {
+    if (steps->verify != NULL) {
       SKL_TEST_LOG(&t, SKL_TEST_LOG_INFO, "Verification passed\n");
     }
 
   cleanup:
     // Always run cleanup if provided
-    if (t.steps->cleanup != NULL) {
-      int cleanup_status = t.steps->cleanup(&t);
+    if (steps->cleanup != NULL) {
+      int cleanup_status = steps->cleanup(&t);
       if (cleanup_status != 0) {
         skl_test_driver_error(&t, "Cleanup function failed\n");
         t.status = SKL_TEST_FAIL;
@@ -153,8 +155,8 @@ int skl_test_driver_run_suite(skl_test_suite_t *suite) {
     }
 
     // Always run report if provided, even after failure
-    if (t.steps->report != NULL) {
-      int report_status = t.steps->report(&t);
+    if (steps->report != NULL) {
+      int report_status = steps->report(&t);
       if (report_status != 0) {
         skl_test_driver_error(&t, "Report function failed\n");
         t.status = SKL_TEST_FAIL;

@@ -37,7 +37,6 @@
   }
 
 static int execute(skl_test_t *t);
-static int steps(skl_test_t *t);
 
 // clang-format off
 gemm_f32rc_f32rc_f32rc_t tests[] = {
@@ -75,14 +74,7 @@ gemm_f32rc_f32rc_f32rc_t tests[] = {
 static skl_test_suite_t suite = {.name = "skl_gemm_f32_f32_f32_zve32f_x390",
                                  .num_tests = sizeof(tests) / sizeof(tests[0]),
                                  .test_size = sizeof(gemm_f32rc_f32rc_f32rc_t),
-                                 .tests = tests,
-                                 .steps = steps};
-
-static int steps(skl_test_t *t) {
-  const gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
-  t->steps = &h->steps;
-  return 0; // Success
-}
+                                 .tests = tests};
 
 static int execute(skl_test_t *t) {
   const gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;

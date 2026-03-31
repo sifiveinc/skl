@@ -24,6 +24,7 @@
 
 typedef struct {
   // Test function pointers for various steps
+  // *** This field must be placed first within this struct ***
   skl_test_steps_t steps;
 
   // Configurable parameters (arguments to GEMM function)
