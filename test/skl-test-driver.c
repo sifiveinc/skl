@@ -69,7 +69,7 @@ static size_t fprintf_prefix(FILE *stream, skl_test_t *t) {
   if (t == NULL) {
     return 0;
   }
-  return fprintf(stream, "[%ud]: ", t->id);
+  return fprintf(stream, "[%u]: ", t->id);
 }
 
 void skl_test_driver_error(skl_test_t *t, const char *fmt, ...) {
