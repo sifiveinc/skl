@@ -7,6 +7,7 @@
 #define NUM_ELEMS 1024
 #endif
 
+#include "skl-ref.h"
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>

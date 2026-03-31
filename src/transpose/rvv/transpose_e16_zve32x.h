@@ -7,6 +7,7 @@
 #error This file requires the Zve32x extension
 #endif
 
+#include "skl-common.h"
 #include <stddef.h>
 #include <stdint.h>
 

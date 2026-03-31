@@ -48,8 +48,9 @@ Users are expected to choose the appropriate kernel variant for their target har
 
 ### Scalar Reference Routines
 
-To explain the semantics of each kernel, SKL provides a set of scalar reference routines that implement the same functionality as the vectorized kernels, but in pure scalar C code.
-These are affixed with the `_scalar` suffix, and are intended as documentation and for use in correctness testing and debugging, but are not intended to provide high performance, even on scalar hardware.
+To explain the semantics of each kernel, SKL separately provides a set of scalar reference routines that implement the same functionality as the vectorized kernels, but in pure scalar C code.
+These are affixed with the `_scalar` suffix, built into `libskl-ref.a`, and provided by the `skl-ref.h` header.
+They are both intended as documentation and for use in correctness testing and debugging, but are not intended to provide high performance, even on scalar hardware.
 Each reference routine defines a _family_ of kernels that share the same underlying functionality, but may be specialized for particular ISA and CPU targets, or specfic combinations of parameters.
 The optimized kernels in a given family are described as calls to the reference routine with particular parameters fixed to specific values.
 
@@ -134,7 +135,7 @@ extern "C" {
 
 ## Examples
 
-In addition to the testsuite described below, SKL provides a set of example programs in the `example` directory that demonstrate how to combine multiple SKL kernels to implement more complex operations. 
+In addition to the testsuite described below, SKL provides a set of example programs in the `example` directory that demonstrate how to combine multiple SKL kernels to implement more complex operations.
 See the Examples [README.md](./example/README.md) for details.
 
 ## Testing and Benchmarking

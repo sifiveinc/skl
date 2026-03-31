@@ -11,6 +11,7 @@ endif()
 # Build the library itself
 
 set(SKL_LIBRARY skl)
+set(REF_LIBRARY skl-ref)
 
 add_library(${SKL_LIBRARY} STATIC)
 
@@ -23,37 +24,65 @@ set(SKL_COMPILE_OPTIONS
     ${SKL_COMPILE_OPTIONS}
 )
 
-target_include_directories(${SKL_LIBRARY} PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
+target_include_directories(${SKL_LIBRARY} PUBLIC include)
 
 set(SKL_SCALAR_SRCS
-  src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_scalar.c
-  src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_scalar.c
-  src/gemm/scalar/gemm_bf16rc_bf16rc_f32rc_scalar.c
-  src/gemm/scalar/gemm_f16rc_f16rc_f16rc_scalar.c
-  src/gemm/scalar/gemm_f16rc_f16rc_f32rc_scalar.c
-  src/gemm/scalar/gemm_f32rc_f32rc_f32rc_scalar.c
-  src/gemm/scalar/gemm_f64rc_f64rc_f64rc_scalar.c
-  src/gemm/scalar/gemm_i8rc_i8rc_i32rc_scalar.c
-  src/gemm/scalar/gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar.c
-  src/gemm/scalar/gemm_f16rcprc_f16rcprc_f32rcprc_scalar.c
-  src/gemm/scalar/gemm_f32rcprc_f32rcprc_f32rcprc_scalar.c
-  src/gemm/scalar/gemm_f64rcprc_f64rcprc_f64rcprc_scalar.c
-  src/gemm/scalar/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.c
-  src/logistic/logistic_f16_scalar.c
-  src/logistic/logistic_f32_scalar.c
-  src/softmax/softmax_f16_scalar.c
-  src/softmax/softmax_bf16_scalar.c
-  src/softmax/softmax_f32_scalar.c
-  src/transpose/scalar/transpose_e8_scalar.c
-  src/transpose/scalar/transpose_e16_scalar.c
-  src/transpose/scalar/transpose_e32_scalar.c
+  ref/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_scalar.c
+  ref/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_scalar.c
+  ref/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_scalar.c
+  ref/gemm/gemm_bf16rc_bf16rc_f32rc_scalar.c
+  ref/gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar.c
+  ref/gemm/gemm_f16rc_f16rc_f16rc_scalar.c
+  ref/gemm/gemm_f16rc_f16rc_f32rc_scalar.c
+  ref/gemm/gemm_f16rcprc_f16rcprc_f32rcprc_scalar.c
+  ref/gemm/gemm_f32rc_f32rc_f32rc_scalar.c
+  ref/gemm/gemm_f32rcprc_f32rcprc_f32rcprc_scalar.c
+  ref/gemm/gemm_f64rc_f64rc_f64rc_scalar.c
+  ref/gemm/gemm_f64rcprc_f64rcprc_f64rcprc_scalar.c
+  ref/gemm/gemm_i8rc_i8rc_i32rc_scalar.c
+  ref/gemm/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.c
+  ref/logistic/logistic_f16_scalar.c
+  ref/logistic/logistic_f32_scalar.c
+  ref/softmax/softmax_bf16_scalar.c
+  ref/softmax/softmax_f16_scalar.c
+  ref/softmax/softmax_f32_scalar.c
+  ref/transpose/transpose_e16_scalar.c
+  ref/transpose/transpose_e32_scalar.c
+  ref/transpose/transpose_e8_scalar.c
 )
 
-set(SKL_ZFH_SRCS
-  src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_scalar.c
+# Build the scalar reference library
+
+add_library(${REF_LIBRARY}
+  STATIC
+  EXCLUDE_FROM_ALL
+    ref/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_scalar.c
+    ref/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_scalar.c
+    ref/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_scalar.c
+    ref/gemm/gemm_bf16rc_bf16rc_f32rc_scalar.c
+    ref/gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar.c
+    ref/gemm/gemm_f16rc_f16rc_f16rc_scalar.c
+    ref/gemm/gemm_f16rc_f16rc_f32rc_scalar.c
+    ref/gemm/gemm_f16rcprc_f16rcprc_f32rcprc_scalar.c
+    ref/gemm/gemm_f32rc_f32rc_f32rc_scalar.c
+    ref/gemm/gemm_f32rcprc_f32rcprc_f32rcprc_scalar.c
+    ref/gemm/gemm_f64rc_f64rc_f64rc_scalar.c
+    ref/gemm/gemm_f64rcprc_f64rcprc_f64rcprc_scalar.c
+    ref/gemm/gemm_i8rc_i8rc_i32rc_scalar.c
+    ref/gemm/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.c
+    ref/logistic/logistic_f16_scalar.c
+    ref/logistic/logistic_f32_scalar.c
+    ref/softmax/softmax_bf16_scalar.c
+    ref/softmax/softmax_f16_scalar.c
+    ref/softmax/softmax_f32_scalar.c
+    ref/transpose/transpose_e16_scalar.c
+    ref/transpose/transpose_e32_scalar.c
+    ref/transpose/transpose_e8_scalar.c
 )
+
+target_include_directories(${REF_LIBRARY} PUBLIC include)
+target_compile_options(${REF_LIBRARY} PRIVATE ${SKL_COMPILE_OPTIONS})
+target_link_libraries(${REF_LIBRARY} PUBLIC m)
 
 set(SKL_ZVFH_SRCS
   src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_zvfh.c
@@ -189,10 +218,6 @@ set(SKL_XSFVQDOTQ_SRCS
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get-riscv-extensions.cmake)
 
-if(RISCV_ZFH)
-  target_sources(${SKL_LIBRARY} PRIVATE ${SKL_ZFH_SRCS})
-endif()
-
 if(RISCV_ZVFH)
   target_sources(${SKL_LIBRARY} PRIVATE ${SKL_ZVFH_SRCS})
 endif()
@@ -297,7 +322,6 @@ if(RISCV_XSFVQDOTQ)
   target_sources(${SKL_LIBRARY} PRIVATE ${SKL_XSFVQDOTQ_SRCS})
 endif()
 
-target_sources(${SKL_LIBRARY} PRIVATE ${SKL_SCALAR_SRCS})
 target_compile_options(${SKL_LIBRARY} PRIVATE ${SKL_COMPILE_OPTIONS})
 
 # Optionally build library tests
@@ -313,7 +337,12 @@ set(SKL_TEST_LIBS m)
 
 function(skl_add_test TEST_NAME TEST_SRC OPTS)
   add_executable(test-${TEST_NAME} test/${TEST_SRC})
-  target_link_libraries(test-${TEST_NAME} PRIVATE ${SKL_LIBRARY} ${SKL_TEST_LIBS})
+  target_link_libraries(test-${TEST_NAME}
+    PRIVATE
+      ${SKL_LIBRARY}
+      ${REF_LIBRARY}
+      ${SKL_TEST_LIBS}
+  )
   target_compile_options(test-${TEST_NAME} PRIVATE
     ${SKL_COMPILE_OPTIONS}
     ${SKL_TEST_COMPILE_OPTIONS}
@@ -347,7 +376,11 @@ function(skl_add_example EXAMPLE_NAME EXAMPLE_SRCS OPTS)
   endif()
 
   add_executable(example-${EXAMPLE_NAME} ${EXAMPLE_SRCS_LIST})
-  target_link_libraries(example-${EXAMPLE_NAME} PRIVATE ${SKL_LIBRARY} ${SKL_TEST_LIBS})
+  target_link_libraries(example-${EXAMPLE_NAME}
+    PRIVATE
+      ${SKL_LIBRARY}
+      ${REF_LIBRARY}
+      ${SKL_TEST_LIBS})
   target_compile_options(example-${EXAMPLE_NAME} PRIVATE
     ${SKL_COMPILE_OPTIONS}
     ${SKL_TEST_COMPILE_OPTIONS}

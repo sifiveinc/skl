@@ -14,6 +14,7 @@
 #define TOL_ULPS 64 // Error tolerance in ULPs
 #endif
 
+#include "skl-ref.h"
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>

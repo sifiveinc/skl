@@ -14,6 +14,7 @@
 #define BETA 1.0 // Exponential scaling factor
 #endif
 
+#include "skl-ref.h"
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>

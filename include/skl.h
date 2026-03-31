@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -8,19 +8,6 @@
 /*
  * GEMM Kernels
  */
-
-#include "../src/gemm/scalar/gemm_bf16rc_bf16rc_f32rc_scalar.h"
-#include "../src/gemm/scalar/gemm_f16rc_f16rc_f16rc_scalar.h"
-#include "../src/gemm/scalar/gemm_f16rc_f16rc_f32rc_scalar.h"
-#include "../src/gemm/scalar/gemm_f32rc_f32rc_f32rc_scalar.h"
-#include "../src/gemm/scalar/gemm_f64rc_f64rc_f64rc_scalar.h"
-#include "../src/gemm/scalar/gemm_i8rc_i8rc_i32rc_scalar.h"
-
-#include "../src/gemm/scalar/gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar.h"
-#include "../src/gemm/scalar/gemm_f16rcprc_f16rcprc_f32rcprc_scalar.h"
-#include "../src/gemm/scalar/gemm_f32rcprc_f32rcprc_f32rcprc_scalar.h"
-#include "../src/gemm/scalar/gemm_f64rcprc_f64rcprc_f64rcprc_scalar.h"
-#include "../src/gemm/scalar/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.h"
 
 #if defined(__riscv_zve32x)
 #include "../src/gemm/rvv/gemm_i8_i8_i32_zve32x_x390.h"
@@ -76,10 +63,6 @@
  * Transpose Kernels
  */
 
-#include "../src/transpose/scalar/transpose_e16_scalar.h"
-#include "../src/transpose/scalar/transpose_e32_scalar.h"
-#include "../src/transpose/scalar/transpose_e8_scalar.h"
-
 #if defined(__riscv_zve32x)
 #include "../src/transpose/rvv/transpose_e16_zve32x.h"
 #include "../src/transpose/rvv/transpose_e32_zve32x.h"
@@ -95,9 +78,6 @@
 /*
  * Exponential and Logistic Function Kernels
  */
-
-#include "../src/logistic/logistic_f16_scalar.h"
-#include "../src/logistic/logistic_f32_scalar.h"
 
 #if defined(__riscv_zvfbfmin)
 #include "../src/exp/exp_bf16_zvfbfmin.h"
@@ -163,13 +143,6 @@
  * Depthwise Convolution Kernels
  */
 
-#if defined(__riscv_zfh)
-#include "../src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_scalar.h"
-#endif
-
-#include "../src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_scalar.h"
-#include "../src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_scalar.h"
-
 #if defined(__riscv_zve32f)
 #include "../src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_zve32f.h"
 #endif
@@ -186,7 +159,6 @@
  * Softmax Kernels
  */
 
-#include "../src/softmax/softmax_f16_scalar.h"
 #if defined(__riscv_zvfh)
 #include "../src/softmax/softmax_f16_zvfh.h"
 #endif
@@ -197,7 +169,6 @@
 #include "../src/softmax/softmax_f16_xsfvfexpa_zvfh.h"
 #endif
 
-#include "../src/softmax/softmax_bf16_scalar.h"
 #if defined(__riscv_zve32f)
 #include "../src/softmax/softmax_bf16_zve32f.h"
 #endif
@@ -223,7 +194,6 @@
 #include "../src/softmax/softmax_bf16_zvfbfmin.h"
 #endif
 
-#include "../src/softmax/softmax_f32_scalar.h"
 #if defined(__riscv_zve32f)
 #include "../src/softmax/softmax_f32_zve32f.h"
 #endif
