@@ -45,6 +45,6 @@ add_library(skl-ref
     transpose/transpose_e8.c
 )
 
-target_include_directories(skl-ref PUBLIC ../include)
+target_include_directories(skl-ref PUBLIC ../include ..)
 target_compile_options(skl-ref PRIVATE ${SKL_COMPILE_OPTIONS})
 target_link_libraries(skl-ref PUBLIC m)

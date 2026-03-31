@@ -3,7 +3,7 @@
 # See LICENSE file in the project root for full license information.
 # SPDX-License-Identifier: MIT
 
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.23)
 
 # This option may affect the call to `project` and thus must come first.
 option(SKL_ENABLE_CLANG_TIDY "Enable linting with clang-tidy" ON)
@@ -48,8 +48,24 @@ set(SKL_COMPILE_OPTIONS
     ${SKL_COMPILE_OPTIONS}
 )
 
-target_include_directories(${SKL_LIBRARY} PUBLIC include)
 target_compile_options(${SKL_LIBRARY} PRIVATE ${SKL_COMPILE_OPTIONS})
+
+target_sources(${SKL_LIBRARY} PUBLIC FILE_SET HEADERS
+  BASE_DIRS
+    include
+  FILES
+    include/skl.h
+    include/skl-common.h
+)
+
+file(GLOB_RECURSE SKL_SRC_H LIST_DIRECTORIES FALSE CONFIGURE_DEPENDS "src/*.h")
+target_sources(${SKL_LIBRARY} PUBLIC FILE_SET source_HEADERS TYPE HEADERS
+  BASE_DIRS
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<INSTALL_INTERFACE:skl>
+  FILES
+    ${SKL_SRC_H}
+)
 
 # Build the reference library for functional testing
 add_subdirectory(ref)
@@ -185,7 +201,7 @@ function(skl_add_test_legacy TEST_NAME TEST_SRC OPTS)
   if (SKL_BUILD_BENCHMARKS)
     target_compile_definitions(test-${TEST_NAME} PRIVATE ENABLE_BENCHMARK)
   endif()
-  target_include_directories(test-${TEST_NAME} PRIVATE test src)
+  target_include_directories(test-${TEST_NAME} PRIVATE test)
   add_test(
     NAME test-${TEST_NAME}
     COMMAND

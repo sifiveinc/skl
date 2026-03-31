@@ -68,7 +68,7 @@ Additionally, appropriate `-march` strings should be used to enable the necessar
 
 SKL's collection of kernels can be compiled into a single static library for use as `-lskl`, and used with the single header `skl.h` that provides the declarations of all SKL kernel functions.
 
-For projects that support CMake version 3.21 or higher, SKL provides a basic build system consisting of a single, top-level [CMakeLists.txt](./CMakeLists.txt), which can be used to produce a static library `libskl.a` as a library dependency.
+For projects that support CMake version 3.23 or higher, SKL provides a basic build system consisting of a single, top-level [CMakeLists.txt](./CMakeLists.txt), which can be used to produce a static library `libskl.a` as a library dependency.
 
 The CMake build system can also be invoked manually using the following commands from the root SKL directory:
 ```shell
