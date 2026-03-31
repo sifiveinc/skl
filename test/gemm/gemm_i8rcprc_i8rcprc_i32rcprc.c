@@ -127,9 +127,9 @@ void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_wrapper(
   if (status) {
     exit(status);
   }
-  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(
-      m0 * m1, n0 * n1, k0 * k1, alpha, a_pack /* == a */, rsa1, csa1,
-      b_pack, rsb1, beta, c_pack /* == c */, rsc1 /* == rsc */);
+  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(m0 * m1, n0 * n1, k0 * k1, alpha,
+                                    a_pack /* == a */, rsa1, csa1, b_pack, rsb1,
+                                    beta, c_pack /* == c */, rsc1 /* == rsc */);
 }
 
 void skl_gemm_i8_i8pc_i32_xsfvqdotq_wrapper(
@@ -181,8 +181,8 @@ void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_x390_clp_wrapper(
     exit(status);
   }
   skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_x390_clp(
-      m0 * m1, n0 * n1, k0 * k1, alpha, a_pack /* == a */, rsa1, csa1,
-      b_pack, rsb1, beta, c_pack /* == c */, rsc1 /* == rsc */);
+      m0 * m1, n0 * n1, k0 * k1, alpha, a_pack /* == a */, rsa1, csa1, b_pack,
+      rsb1, beta, c_pack /* == c */, rsc1 /* == rsc */);
 }
 
 void skl_gemm_i8_i8pc_i32_xsfvqdotq_x390_clp_wrapper(

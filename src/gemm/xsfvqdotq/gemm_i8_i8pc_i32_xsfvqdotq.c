@@ -1202,9 +1202,9 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_aligned_i8i32_vqdotvx(
 }
 
 SKL_FUNC_PRIVATE void skl_gemm_i8_i8pc_i32_xsfvqdotq_dispatch(
-    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t rsa1,
-    size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c,
-    size_t rsc, bool x390_clp) {
+    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
+    size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
+    int32_t *c, size_t rsc, bool x390_clp) {
   const size_t m0 = 6;
   const size_t n0 = __riscv_vsetvlmax_e32m4();
   const size_t k0 = 4;
@@ -1214,9 +1214,9 @@ SKL_FUNC_PRIVATE void skl_gemm_i8_i8pc_i32_xsfvqdotq_dispatch(
       size_t csa1, const int8_t *b, size_t rsb1, int32_t beta, int32_t *c,
       size_t rsc, bool x390_clp);
   void (*skl_mm_lt6xe32m4_i8i32_vqdotvx_kernel)(
-      size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t rsa1,
-      size_t csa1, const int8_t *b, size_t rsb1, int32_t beta, int32_t *c,
-      size_t rsc);
+      size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
+      size_t rsa1, size_t csa1, const int8_t *b, size_t rsb1, int32_t beta,
+      int32_t *c, size_t rsc);
   void (*skl_vm_1xe32m4_i8i32_vqdotvx_kernel)(
       size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t csa1,
       const int8_t *b, size_t rsb1, int32_t beta, int32_t *c);
@@ -1273,22 +1273,20 @@ SKL_FUNC_PRIVATE void skl_gemm_i8_i8pc_i32_xsfvqdotq_dispatch(
   }
 }
 
-SKL_FUNC void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
-                                                int32_t alpha, const int8_t *a_pack,
-                                                size_t rsa1, size_t csa1,
-                                                const int8_t *b_pack,
-                                                size_t rsb1, int32_t beta,
-                                                int32_t *c, size_t rsc) {
-  skl_gemm_i8_i8pc_i32_xsfvqdotq_dispatch(m, n, k, alpha, a_pack, rsa1, csa1, b_pack,
-                                          rsb1, beta, c, rsc, false);
+SKL_FUNC void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(
+    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
+    size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
+    int32_t *c, size_t rsc) {
+  skl_gemm_i8_i8pc_i32_xsfvqdotq_dispatch(m, n, k, alpha, a_pack, rsa1, csa1,
+                                          b_pack, rsb1, beta, c, rsc, false);
 }
 
 SKL_FUNC void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_x390_clp(
-    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t rsa1,
-    size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c,
-    size_t rsc) {
-  skl_gemm_i8_i8pc_i32_xsfvqdotq_dispatch(m, n, k, alpha, a_pack, rsa1, csa1, b_pack,
-                                          rsb1, beta, c, rsc, true);
+    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
+    size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
+    int32_t *c, size_t rsc) {
+  skl_gemm_i8_i8pc_i32_xsfvqdotq_dispatch(m, n, k, alpha, a_pack, rsa1, csa1,
+                                          b_pack, rsb1, beta, c, rsc, true);
 }
 
 SKL_FUNC void skl_gemm_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
