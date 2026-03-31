@@ -26,7 +26,7 @@ set(SKL_ARCH_EXTENSIONS
   # xsfvfexp32e
   # xsfvfexpa
    zvfofp8min0p2
-  # zvfofp4min0p1
+   zvfofp4min0p1
   # xsfvqdotq
   zvfbfmin
   zvfbfwma

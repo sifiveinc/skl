@@ -83,3 +83,10 @@ skl_add_test(
     "zvfofp8min"
     ""
 )
+skl_add_test(
+    cvt_ofp_zvfofp4min
+    cvt/cvt_ofp.c
+    cvt/cvt_ofp_zvfofp4min.c
+    "zvfofp4min"
+    ""
+)
