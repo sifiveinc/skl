@@ -254,3 +254,40 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
       "-DM0=1;-DN0=1;-DK0=4;-DM1=128;-DN1=128;-DK1=8;-DCSA1=(2 * K0);-DRSA1=(K1 * CSA1);-DRSB0=1;-DCSB0=0;-DALPHA=1;-DBETA=0;")
   endif()
 endif()
+
+# Configure libskl installation
+
+include(GNUInstallDirs)
+
+install(
+  TARGETS ${SKL_LIBRARY}
+  EXPORT SklTargets
+  FILE_SET HEADERS
+  FILE_SET source_HEADERS
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/skl
+)
+
+install(
+  FILES LICENSE.txt
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/skl
+)
+
+install(
+  EXPORT SklTargets
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Skl
+  NAMESPACE Skl::
+)
+
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/SklConfigVersion.cmake
+  COMPATIBILITY SameMajorVersion
+)
+
+install(
+  FILES
+    cmake/SklConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/SklConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Skl
+)
