@@ -109,9 +109,10 @@ int gemm_f32rc_f32rc_f32rc_verify(skl_test_t *t) {
       size_t idx = i * h->rsc + j * h->csc;
       if (fabs((double)h->c.data[idx] - (double)h->ctx.ref_c[idx]) >
           h->ctx.bound[idx]) {
-        skl_test_driver_error(
-            t, "result [%zu, %zu] (%f) != reference (%f) [bound = %f]\n", i, j,
-            h->c.data[idx], h->ctx.ref_c[idx], h->ctx.bound[idx]);
+        SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
+                     "result [%zu, %zu] (%f) != reference (%f) [bound = %f]\n",
+                     i, j, h->c.data[idx], h->ctx.ref_c[idx],
+                     h->ctx.bound[idx]);
         return 1; // Error
       }
     }

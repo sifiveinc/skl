@@ -181,28 +181,17 @@ void skl_test_driver_free(size_t region, void *ptr);
 void skl_test_driver_update_counters(skl_test_counters_t *counters);
 
 /**
- * @brief Log an error message.
- *
- * @param t - Test context
- * @param fmt - Printf-style format string
- * @param ... - Format arguments
- *
- * Outputs an error message to stderr with test ID prefix.
- * Supports printf-style formatting.
- */
-void skl_test_driver_error(skl_test_t *t, const char *fmt, ...);
-
-/**
  * @brief Log an informational message.
  *
  * @param t - Test context
+ * @param stream - Output stream to log the message to.
  * @param fmt - Printf-style format string
  * @param ... - Format arguments
  *
  * Outputs a log message to stdout with test ID prefix.
  * Supports printf-style formatting.
  */
-void skl_test_driver_log(skl_test_t *t, const char *fmt, ...);
+void skl_test_driver_log(skl_test_t *t, FILE *stream, const char *fmt, ...);
 
 //----- Utility macros for use in tests -----
 
@@ -363,7 +352,8 @@ enum {
  */
 #define SKL_TEST_LOG(T, LEVEL, ...)                                            \
   if ((T)->log_level >= (LEVEL)) {                                             \
-    skl_test_driver_log((T), __VA_ARGS__);                                     \
+    FILE *stream = (LEVEL) == SKL_TEST_LOG_ERROR ? stderr : stdout;            \
+    skl_test_driver_log((T), stream, __VA_ARGS__);                             \
   }
 
 /**
@@ -379,8 +369,8 @@ enum {
 #define SKL_TEST_REQUIRE(T, COND)                                              \
   do {                                                                         \
     if (!(COND)) {                                                             \
-      skl_test_driver_error((T), "%s: %s\n", (T)->suite_name, #COND);          \
-      skl_test_driver_error((T), "    %s:%d\n", __FILE__, __LINE__);           \
+      skl_test_driver_log((T), stderr, "%s: %s\n", (T)->suite_name, #COND);    \
+      skl_test_driver_log((T), stderr, "    %s:%d\n", __FILE__, __LINE__);     \
       (T)->status = SKL_TEST_FAIL;                                             \
     }                                                                          \
   } while (0)

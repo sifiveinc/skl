@@ -72,19 +72,11 @@ static size_t fprintf_prefix(FILE *stream, skl_test_t *t) {
   return fprintf(stream, "[%u]: ", t->id);
 }
 
-void skl_test_driver_error(skl_test_t *t, const char *fmt, ...) {
+void skl_test_driver_log(skl_test_t *t, FILE *stream, const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
-  (void)fprintf_prefix(stderr, t);
-  (void)vfprintf(stderr, fmt, args);
-  va_end(args);
-}
-
-void skl_test_driver_log(skl_test_t *t, const char *fmt, ...) {
-  va_list args;
-  va_start(args, fmt);
-  (void)fprintf_prefix(stdout, t);
-  (void)vfprintf(stdout, fmt, args);
+  (void)fprintf_prefix(stream, t);
+  (void)vfprintf(stream, fmt, args);
   va_end(args);
 }
 
@@ -103,7 +95,7 @@ int skl_test_driver_run_suite(skl_test_suite_t *suite) {
   int log_level = SKL_TEST_LOG_LEVEL;
   if (suite->num_tests > 0 && suite->name != NULL &&
       log_level >= SKL_TEST_LOG_INFO) {
-    skl_test_driver_log(NULL, "Running test suite %s with %zd tests\n",
+    skl_test_driver_log(NULL, stdout, "Running test suite %s with %zd tests\n",
                         suite->name, suite->num_tests);
   }
 
@@ -149,7 +141,7 @@ int skl_test_driver_run_suite(skl_test_suite_t *suite) {
     if (steps->cleanup != NULL) {
       int cleanup_status = steps->cleanup(&t);
       if (cleanup_status != SKL_TEST_PASS) {
-        skl_test_driver_error(&t, "Cleanup function failed\n");
+        skl_test_driver_log(&t, stderr, "Cleanup function failed\n");
         t.status = SKL_TEST_FAIL;
       }
     }
@@ -158,7 +150,7 @@ int skl_test_driver_run_suite(skl_test_suite_t *suite) {
     if (steps->report != NULL) {
       int report_status = steps->report(&t);
       if (report_status != SKL_TEST_PASS) {
-        skl_test_driver_error(&t, "Report function failed\n");
+        skl_test_driver_log(&t, stderr, "Report function failed\n");
         t.status = SKL_TEST_FAIL;
       }
     }
@@ -173,7 +165,7 @@ int skl_test_driver_run_suite(skl_test_suite_t *suite) {
   }
 
   if (log_level >= SKL_TEST_LOG_INFO) {
-    skl_test_driver_log(NULL,
+    skl_test_driver_log(NULL, stdout,
                         "Test suite %s completed %zd tests with %d failures\n",
                         suite->name, suite->num_tests, failures);
   }
