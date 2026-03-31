@@ -92,8 +92,8 @@ static void log_separator(skl_test_t *t, char sep) {
   enum { SEP_LEN = 10 };
   char buf[SEP_LEN];
   memset(buf, sep, sizeof(buf));
-  buf[sizeof(buf) - 1] = '\n';
-  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "%s", buf);
+  buf[sizeof(buf) - 1] = '\0';
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "%s\n", buf);
 }
 
 int skl_test_driver_run_suite(skl_test_suite_t *suite) {
