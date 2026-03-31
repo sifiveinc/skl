@@ -48,7 +48,9 @@ int gemm_f32rc_f32rc_f32rc_init(skl_test_t *t) {
     h->ctx.ref_c = h->c.len > 0 ? malloc(h->c.len * sizeof(float)) : NULL;
     h->ctx.bound = h->c.len > 0 ? malloc(h->c.len * sizeof(double)) : NULL;
     // Copy initial C values to ref_c for the beta*C term in reference GEMM
-    memcpy(h->ctx.ref_c, h->c.data, h->c.len * sizeof(float));
+    if (h->c.len) {
+      memcpy(h->ctx.ref_c, h->c.data, h->c.len * sizeof(float));
+    }
   }
 
   return 0;
