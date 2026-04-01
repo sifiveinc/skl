@@ -33,9 +33,9 @@ A harness encapsulates all of the test logic for a given kernel family, and defi
 For example, the `gemm_f32rc_f32rc_f32rc` [harness](gemm/gemm_f32rc_f32rc_f32rc.h) defines a configuration structure that contains the matrix dimensions, strides, and scaling factors for a GEMM test case:
 ```c
 typedef struct {
-  // Test mode
-  bool warmup;
-  bool verify;
+  // Test function pointers for various steps
+  // *** This field must be placed first within this struct ***
+  skl_test_steps_t steps;
 
   // Configurable parameters (arguments to GEMM function)
   size_t m, n, k;
@@ -60,8 +60,9 @@ typedef struct {
 Generally, such structures will separate configurable settings from derived parameters and test state, with the latter contained in a nested structure as shown above.
 Test buffers are an exception, because the `SKL_TEST_BUFFER` structure contains both the buffer pointer and the configuration parameters for buffer generation (see [Buffer Management](#buffer-management) below).
 
-The harness must implement a set of _callback functions_ that are called by the driver to execute the test.
-The callback functions are:
+It is required that the first member of a harness struct be of type `skl_test_steps_t`,
+which contains pointers to a collection of _callback functions_.
+These callback functions are:
 - `init`: Initialization function called at the start of each test case.
   It is responsible for allocating and initializing the test data buffers, and for setting up any other test-specific state, as well as computing any derived parameters.
 - `warmup`: Warmup function called before the main test execution.
@@ -75,17 +76,24 @@ The callback functions are:
 - `cleanup`: Cleanup function called at the end of each test case.
   It is responsible for freeing any test-specific resources.
 
+The above callback functions are intended to be implemented by the harness;
+the typical exception to this is `execute`,
+which should likely be implemented the the test suite C file
+because it is the only one that is specific to a given kernel variant.
+These callbacks will be called by the driver to execute the test.
+
 Most of these functions should be reusable across different kernels in the same family, so only the `execute` function needs to be customized for each kernel variant to call the appropriate kernel function and pass it the correct parameters.
 
-All callback functions take a `skl_test_t` pointer as their only argument, which is a generic test context structure defined in [skl-test.h](skl-test.h).
+All callback functions take a `skl_test_t` pointer as their only argument, which is a generic test context structure defined in [skl-test-driver.h](skl-test-driver.h).
 The `skl_test_t` structure contains a pointer to the test configuration structure defined by the harness, as well as other fields used by the driver for bookkeeping and reporting:
 ```c
 typedef struct skl_test_t {
-  const skl_test_suite_t *suite;  // Test suite (set by driver before init)
   void *harness;                  // Harness-specific data (set by harness in init)
+  const char *suite_name;         // Name of the suite this test is part of (set by driver before init)
+  unsigned int id;                // Identifier for this test within a suite (set by driver before init)
   int log_level;                  // Logging verbosity level (set by driver before init)
   skl_test_counters_t counters;   // Performance counters (updated by driver)
-  skl_test_status_t status;       // Test pass/fail status
+  skl_test_step_status_t status;  // Status of each step of the test (set by harness, checked by driver)
 } skl_test_t;
 ```
 In order to access the test configuration structure, the callback function should cast the `harness` pointer to the appropriate type.
@@ -101,9 +109,27 @@ A test suite is a collection of related tests that share a common harness, and m
 These tests are enumerated in a C file as an array of test configuration structures.
 For example, the `skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f` [test suite](gemm/xsfmm/skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f.c) defines an array of `gemm_f32rc_f32rc_f32rc_t` structures, each of which configures a different set of matrix dimensions and strides for the GEMM test case:
 ```c
-#define TEST GEMM_F32RC_F32RC_F32RC_DEFAULTS, .warmup = false, .verify = true
-#define BENCH GEMM_F32RC_F32RC_F32RC_DEFAULTS, .warmup = true, .verify = false
-static int execute(skl_test_t *t);
+#define TEST                                                                   \
+  GEMM_F32RC_F32RC_F32RC_DEFAULTS,                                             \
+      .steps = {                                                               \
+          .init = gemm_f32rc_f32rc_f32rc_init,                                 \
+          .warmup = NULL,                                                      \
+          .execute = execute,                                                  \
+          .verify = gemm_f32rc_f32rc_f32rc_verify,                             \
+          .report = NULL,                                                      \
+          .cleanup = gemm_f32rc_f32rc_f32rc_cleanup,                           \
+  }
+#define BENCH                                                                  \
+  GEMM_F32RC_F32RC_F32RC_DEFAULTS,                                             \
+      .steps = {                                                               \
+          .init = gemm_f32rc_f32rc_f32rc_init,                                 \
+          .warmup = execute,                                                   \
+          .execute = execute,                                                  \
+          .verify = NULL,                                                      \
+          .report = gemm_f32rc_f32rc_f32rc_report,                             \
+          .cleanup = gemm_f32rc_f32rc_f32rc_cleanup,                           \
+  }
+static void execute(skl_test_t *t);
 
 // clang-format off
 gemm_f32rc_f32rc_f32rc_t tests[] = {
@@ -112,33 +138,22 @@ gemm_f32rc_f32rc_f32rc_t tests[] = {
     {BENCH, .m = 128, .n = 128, .k = 2048, .beta = 1.f},
     ...
     // Verification tests
-    {TEST, .m = 16,  .n = 16,  .k = 16},
-    {TEST, .m = 16,  .n = 16,  .k = 16,  .beta = 1.f},
+    {TEST, .rsa = 1, .m = 16,  .n = 16, .k = 16},
+    {TEST, .rsa = 1, .m = 16,  .n = 16, .k = 16, .beta = 1.f},
     ...
 };
 ```
-The list of test cases may include both correctness tests and performance benchmarks, distinguished by harness-specific flags such as `warmup` and `verify` in the example above.
-That pattern is considered idiomatic for this repository.
+The list of test cases may include both correctness tests and performance benchmarks, distinguished by the callback functions they specify.
+Any callback except `execute` may be provided as `NULL` to skip the execution of such step.
 
 The test suite must also define a `skl_test_suite_t` structure that describes the test suite to the driver, and includes the array of test configurations:
 ```c
-skl_test_suite_t suite = {
-    .name = "skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f",
-    .tests = tests,
-    .num_tests = sizeof(tests) / sizeof(tests[0]),
-    .test_size = sizeof(tests[0]),
-    .init = init,
-    .warmup = gemm_f32rc_f32rc_f32rc_warmup, // defined in the harness
-    .execute = execute, // defined in the test suite C file
-    .verify = gemm_f32rc_f32rc_f32rc_verify, // defined in the harness
-    .report = gemm_f32rc_f32rc_f32rc_report, // defined in the harness
-    .cleanup = gemm_f32rc_f32rc_f32rc_cleanup, // defined in the harness
+skl_test_suite_t suite = {.name = "skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f",
+                          .num_tests = sizeof(tests) / sizeof(tests[0]),
+                          .test_size = sizeof(gemm_f32rc_f32rc_f32rc_t),
+                          .tests = tests};
 };
 ```
-The suite struct definition sets pointers to callback functions, most of which are implemented in the harness.
-The `execute` function is the generally only one that needs to be implemented in the test suite C file, because it is the only one that is specific to a given kernel variant, but it is possible to override any of the harness callbacks by setting them to non-NULL values in the suite struct.
-(Some harnesses may want to override the report function to customize output formatting for parsing by automatic test runners etc.)
-
 The test suite C file must also call `skl_test_driver_run_suite` to execute the test suite, generally inside its own `main` function:
 ```c
 int main() {
@@ -161,7 +176,6 @@ Functions provided by the driver are:
 - `skl_test_driver_free`: Frees memory for a test buffer.
 - `skl_test_driver_update_counters`: Reads the current values of the performance counters and records the delta since the last update.
 - `skl_test_driver_log`: Prints a log message with a given log level.
-- `skl_test_driver_error`: Prints an error message and sets the test status to `SKL_TEST_FAIL`.
 
 
 ### Buffer Management
