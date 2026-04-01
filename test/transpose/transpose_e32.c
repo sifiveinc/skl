@@ -7,6 +7,7 @@
 
 #include "skl-test.h"
 
+// NOLINTNEXTLINE(misc-include-cleaner)
 #include "skl-ref.h"
 // NOLINTNEXTLINE(misc-include-cleaner)
 #include "skl.h"

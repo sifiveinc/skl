@@ -58,6 +58,7 @@
 #define SKL_TEST_PERF_REPORT report_perf_mpc
 #endif
 
+// NOLINTNEXTLINE(misc-include-cleaner)
 #include "skl-ref.h"
 #include "skl-test.h"
 #include "skl.h"

@@ -18,6 +18,7 @@ enum {
   DEPTH_MULTIPLIER = 1
 };
 
+// NOLINTNEXTLINE(misc-include-cleaner)
 #include "skl-ref.h"
 #include "skl-test.h"
 #include "skl.h"
