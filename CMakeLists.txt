@@ -291,3 +291,21 @@ install(
     ${CMAKE_CURRENT_BINARY_DIR}/SklConfigVersion.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Skl
 )
+
+# Configure libskl packaging
+
+set(CPACK_PACKAGE_VENDOR "SiFive, Inc")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
+set(CPACK_GENERATOR "TGZ;STGZ" CACHE STRING
+    "List of CPack binary generators to use.")
+set(CPACK_SOURCE_GENERATOR TGZ CACHE STRING
+    "List of CPack source generators to use.")
+set(CPACK_SOURCE_IGNORE_FILES
+  ".git*"
+  build/
+  ".*~$"    # Emacs backup files
+  ".*sw[a-p]$"  # Vim swap files
+  "*.orig$"  # Git mergetool backup files
+)
+set(CPACK_VERBATIM_VARIABLES YES)
+include(CPack)
