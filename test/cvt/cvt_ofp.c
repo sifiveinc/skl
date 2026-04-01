@@ -58,88 +58,120 @@ static void init_special_values_bf16(__bf16 *data, size_t len) {
     data[2] = (__bf16)-INFINITY;
 }
 
+static int init_input_f32(skl_test_t *t, cvt_ofp_t *h) {
+  SKL_TEST_BUFFER(float)
+  in = {.region = h->in_region,
+        .len = h->len,
+        .max = 512.0f,
+        .min = -512.0f,
+        .mode = SKL_TEST_RANDOM};
+  SKL_TEST_BUF_CREATE(t, float, &in);
+  h->in = in.data;
+  init_special_values_f32(in.data, h->len);
+  return 0;
+}
+
+static int init_input_bf16(skl_test_t *t, cvt_ofp_t *h) {
+  SKL_TEST_BUFFER(__bf16)
+  in = {.region = h->in_region,
+        .len = h->len,
+        .max = (__bf16)512.0f,
+        .min = (__bf16)-512.0f,
+        .mode = SKL_TEST_RANDOM};
+  SKL_TEST_BUF_CREATE(t, __bf16, &in);
+  h->in = in.data;
+  init_special_values_bf16(in.data, h->len);
+  return 0;
+}
+
+static int init_input_ofp8(skl_test_t *t, cvt_ofp_t *h) {
+  SKL_TEST_BUFFER(uint8_t)
+  in = {.region = h->in_region,
+        .len = h->len,
+        .max = 0,
+        .min = 255,
+        .mode = SKL_TEST_SEQ};
+  SKL_TEST_BUF_CREATE(t, uint8_t, &in);
+  h->in = in.data;
+  return 0;
+}
+
+static int init_input_f4e2m1(skl_test_t *t, cvt_ofp_t *h) {
+  SKL_TEST_BUFFER(uint8_t)
+  in = {.region = h->in_region,
+        .len = (h->len + 1) / 2,
+        .max = 0,
+        .min = 255,
+        .mode = SKL_TEST_SEQ};
+  SKL_TEST_BUF_CREATE(t, uint8_t, &in);
+  h->in = in.data;
+  return 0;
+}
+
 static int init_input_buffer(skl_test_t *t, cvt_ofp_t *h) {
-  if (h->in_type == F32) {
-    SKL_TEST_BUFFER(float)
-    in = {.region = h->in_region,
-          .len = h->len,
-          .max = 512.0f,
-          .min = -512.0f,
-          .mode = SKL_TEST_RANDOM};
-    SKL_TEST_BUF_CREATE(t, float, &in);
-    h->in = in.data;
-    init_special_values_f32(in.data, h->len);
-  } else if (h->in_type == BF16) {
-    SKL_TEST_BUFFER(__bf16)
-    in = {.region = h->in_region,
-          .len = h->len,
-          .max = (__bf16)512.0f,
-          .min = (__bf16)-512.0f,
-          .mode = SKL_TEST_RANDOM};
-    SKL_TEST_BUF_CREATE(t, __bf16, &in);
-    h->in = in.data;
-    init_special_values_bf16(in.data, h->len);
-  } else if (h->in_type == F8E4M3 || h->in_type == F8E5M2) {
-    SKL_TEST_BUFFER(uint8_t)
-    in = {.region = h->in_region,
-          .len = h->len,
-          .max = 0,
-          .min = 255,
-          .mode = SKL_TEST_SEQ};
-    SKL_TEST_BUF_CREATE(t, uint8_t, &in);
-    h->in = in.data;
-  } else if (h->in_type == F4E2M1) {
-    SKL_TEST_BUFFER(uint8_t)
-    in = {.region = h->in_region,
-          .len = (h->len + 1) / 2,
-          .max = 0,
-          .min = 255,
-          .mode = SKL_TEST_SEQ};
-    SKL_TEST_BUF_CREATE(t, uint8_t, &in);
-    h->in = in.data;
-  } else {
+  switch (h->in_type) {
+  case F32:
+    return init_input_f32(t, h);
+  case BF16:
+    return init_input_bf16(t, h);
+  case F8E4M3:
+  case F8E5M2:
+    return init_input_ofp8(t, h);
+  case F4E2M1:
+    return init_input_f4e2m1(t, h);
+  default:
     SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR, "Unsupported input type\n");
     return 1;
+  }
+}
+
+static int init_output_bf16(skl_test_t *t, cvt_ofp_t *h) {
+  SKL_TEST_BUFFER(__bf16)
+  out = {.region = h->out_region,
+         .len = h->len,
+         .data = NULL,
+         .mode = SKL_TEST_SEQ,
+         .min = (__bf16)0.0f,
+         .max = (__bf16)(h->len - 1)};
+  if (h->len > 0) {
+    SKL_TEST_BUF_CREATE(t, __bf16, &out);
+    h->out = out.data;
+  }
+  if (h->steps.verify) {
+    h->ref = h->len > 0 ? malloc(h->len * sizeof(__bf16)) : NULL;
+  }
+  return 0;
+}
+
+static int init_output_ofp8(skl_test_t *t, cvt_ofp_t *h) {
+  SKL_TEST_BUFFER(uint8_t)
+  out = {.region = h->out_region,
+         .len = h->len,
+         .data = NULL,
+         .mode = SKL_TEST_SEQ,
+         .min = 0,
+         .max = (uint8_t)(h->len - 1)};
+  if (h->len > 0) {
+    SKL_TEST_BUF_CREATE(t, uint8_t, &out);
+    h->out = out.data;
+  }
+  if (h->steps.verify) {
+    h->ref = h->len > 0 ? malloc(h->len * sizeof(uint8_t)) : NULL;
   }
   return 0;
 }
 
 static int init_output_buffer(skl_test_t *t, cvt_ofp_t *h) {
-  if (h->out_type == BF16) {
-    SKL_TEST_BUFFER(__bf16)
-    out = {.region = h->out_region,
-           .len = h->len,
-           .data = NULL,
-           .mode = SKL_TEST_SEQ,
-           .min = (__bf16)0.0f,
-           .max = (__bf16)(h->len - 1)};
-    if (h->len > 0) {
-      SKL_TEST_BUF_CREATE(t, __bf16, &out);
-      h->out = out.data;
-    }
-    if (h->steps.verify) {
-      h->ref = h->len > 0 ? malloc(h->len * sizeof(__bf16)) : NULL;
-    }
-  } else if (h->out_type == F8E4M3 || h->out_type == F8E5M2) {
-    SKL_TEST_BUFFER(uint8_t)
-    out = {.region = h->out_region,
-           .len = h->len,
-           .data = NULL,
-           .mode = SKL_TEST_SEQ,
-           .min = 0,
-           .max = (uint8_t)(h->len - 1)};
-    if (h->len > 0) {
-      SKL_TEST_BUF_CREATE(t, uint8_t, &out);
-      h->out = out.data;
-    }
-    if (h->steps.verify) {
-      h->ref = h->len > 0 ? malloc(h->len * sizeof(uint8_t)) : NULL;
-    }
-  } else {
+  switch (h->out_type) {
+  case BF16:
+    return init_output_bf16(t, h);
+  case F8E4M3:
+  case F8E5M2:
+    return init_output_ofp8(t, h);
+  default:
     SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR, "Unsupported output type\n");
     return 1;
   }
-  return 0;
 }
 
 int cvt_ofp_init(skl_test_t *t) {
@@ -180,17 +212,26 @@ static void compute_reference_ofp8_to_bf16(cvt_ofp_t *h) {
   }
 }
 
+static void compute_reference_f4e2m1_to_f8e4m3(cvt_ofp_t *h) {
+  golden_cvt_f4e2m1_f8e4m3((uint8_t *)h->ref, (uint8_t *)h->in, h->len);
+}
+
 static void compute_reference(cvt_ofp_t *h) {
   if (h->in_type == F32 && (h->out_type == F8E4M3 || h->out_type == F8E5M2)) {
     compute_reference_f32_to_ofp8(h);
-  } else if (h->in_type == BF16 &&
-             (h->out_type == F8E4M3 || h->out_type == F8E5M2)) {
+    return;
+  }
+  if (h->in_type == BF16 && (h->out_type == F8E4M3 || h->out_type == F8E5M2)) {
     compute_reference_bf16_to_ofp8(h);
-  } else if ((h->in_type == F8E4M3 || h->in_type == F8E5M2) &&
-             h->out_type == BF16) {
+    return;
+  }
+  if ((h->in_type == F8E4M3 || h->in_type == F8E5M2) && h->out_type == BF16) {
     compute_reference_ofp8_to_bf16(h);
-  } else if (h->in_type == F4E2M1 && h->out_type == F8E4M3) {
-    golden_cvt_f4e2m1_f8e4m3((uint8_t *)h->ref, (uint8_t *)h->in, h->len);
+    return;
+  }
+  if (h->in_type == F4E2M1 && h->out_type == F8E4M3) {
+    compute_reference_f4e2m1_to_f8e4m3(h);
+    return;
   }
 }
 
@@ -222,22 +263,24 @@ static int compare_outputs_bf16(skl_test_t *t, cvt_ofp_t *h, size_t i) {
   return 0;
 }
 
-int cvt_ofp_verify(skl_test_t *t) {
-  cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
-  int result = 0;
-  compute_reference(h);
-
+static int verify_outputs(skl_test_t *t, cvt_ofp_t *h) {
   for (size_t i = 0; i < h->len; ++i) {
+    int result = 0;
     if (h->out_type == F8E4M3 || h->out_type == F8E5M2) {
-      result += compare_outputs_uint8(t, h, i);
+      result = compare_outputs_uint8(t, h, i);
     } else if (h->out_type == BF16) {
-      result += compare_outputs_bf16(t, h, i);
+      result = compare_outputs_bf16(t, h, i);
     }
     if (result != 0)
       return 1;
   }
+  return 0;
+}
 
-  return result;
+int cvt_ofp_verify(skl_test_t *t) {
+  cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
+  compute_reference(h);
+  return verify_outputs(t, h);
 }
 
 static const char *type_to_str(cvt_ofp_type_t type) {
@@ -280,36 +323,63 @@ int cvt_ofp_report(skl_test_t *t) {
   return 0;
 }
 
+static int cleanup_input_f32(skl_test_t *t, cvt_ofp_t *h) {
+  SKL_TEST_BUFFER(float) in = {.region = h->in_region, .data = h->in};
+  SKL_TEST_BUF_FREE(t, &in);
+  return 0;
+}
+
+static int cleanup_input_bf16(skl_test_t *t, cvt_ofp_t *h) {
+  SKL_TEST_BUFFER(__bf16) in = {.region = h->in_region, .data = h->in};
+  SKL_TEST_BUF_FREE(t, &in);
+  return 0;
+}
+
+static int cleanup_input_uint8(skl_test_t *t, cvt_ofp_t *h) {
+  SKL_TEST_BUFFER(uint8_t) in = {.region = h->in_region, .data = h->in};
+  SKL_TEST_BUF_FREE(t, &in);
+  return 0;
+}
+
 static int cleanup_input_buffer(skl_test_t *t, cvt_ofp_t *h) {
-  if (h->in_type == F32) {
-    SKL_TEST_BUFFER(float) in = {.region = h->in_region, .data = h->in};
-    SKL_TEST_BUF_FREE(t, &in);
-  } else if (h->in_type == BF16) {
-    SKL_TEST_BUFFER(__bf16) in = {.region = h->in_region, .data = h->in};
-    SKL_TEST_BUF_FREE(t, &in);
-  } else if (h->in_type == F8E4M3 || h->in_type == F8E5M2 ||
-             h->in_type == F4E2M1) {
-    SKL_TEST_BUFFER(uint8_t) in = {.region = h->in_region, .data = h->in};
-    SKL_TEST_BUF_FREE(t, &in);
-  } else {
+  switch (h->in_type) {
+  case F32:
+    return cleanup_input_f32(t, h);
+  case BF16:
+    return cleanup_input_bf16(t, h);
+  case F8E4M3:
+  case F8E5M2:
+  case F4E2M1:
+    return cleanup_input_uint8(t, h);
+  default:
     SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR, "Unsupported input type\n");
     return 1;
   }
+}
+
+static int cleanup_output_bf16(skl_test_t *t, cvt_ofp_t *h) {
+  SKL_TEST_BUFFER(__bf16) out = {.region = h->out_region, .data = h->out};
+  SKL_TEST_BUF_FREE(t, &out);
+  return 0;
+}
+
+static int cleanup_output_uint8(skl_test_t *t, cvt_ofp_t *h) {
+  SKL_TEST_BUFFER(uint8_t) out = {.region = h->out_region, .data = h->out};
+  SKL_TEST_BUF_FREE(t, &out);
   return 0;
 }
 
 static int cleanup_output_buffer(skl_test_t *t, cvt_ofp_t *h) {
-  if (h->out_type == BF16) {
-    SKL_TEST_BUFFER(__bf16) out = {.region = h->out_region, .data = h->out};
-    SKL_TEST_BUF_FREE(t, &out);
-  } else if (h->out_type == F8E4M3 || h->out_type == F8E5M2) {
-    SKL_TEST_BUFFER(uint8_t) out = {.region = h->out_region, .data = h->out};
-    SKL_TEST_BUF_FREE(t, &out);
-  } else {
+  switch (h->out_type) {
+  case BF16:
+    return cleanup_output_bf16(t, h);
+  case F8E4M3:
+  case F8E5M2:
+    return cleanup_output_uint8(t, h);
+  default:
     SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR, "Unsupported output type\n");
     return 1;
   }
-  return 0;
 }
 
 int cvt_ofp_cleanup(skl_test_t *t) {
