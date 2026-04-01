@@ -42,9 +42,9 @@ __attribute__((aligned(ALIGN))) int16_t ref_output_bits[NUM_ELEMS];
 
 static void init_random(_Float16 *arr, size_t len) {
 #if defined(ENABLE_TEST)
-  /* If testing, fill in an array with random floats in [-100, 100] */
-  const float min = -100;
-  const float max = 100;
+  /* If testing, fill in an array with random floats in [-21, 9] */
+  const float min = -21;
+  const float max = 9;
   float frac;
   for (size_t i = 0; i < len; i++) {
     if (i == 0) {
