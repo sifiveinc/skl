@@ -60,16 +60,96 @@ typedef struct {
  *  @brief Function pointers determining each step ran by the driver.
  */
 typedef struct {
-  void (*init)(
-      skl_test_t *t); /**< Optional initialization function, NULL to skip */
-  void (*warmup)(skl_test_t *t);  /**< Optional warmup function, NULL to skip */
-  void (*execute)(skl_test_t *t); /**< Required execution function */
-  void (*verify)(
-      skl_test_t *t); /**< Optional verification function, NULL to skip */
-  void (*report)(
-      skl_test_t *t); /**< Optional reporting function, NULL to skip */
-  void (*cleanup)(
-      skl_test_t *t); /**< Optional cleanup function, NULL to skip */
+  /**
+   * @brief Test initialization callback.
+   *
+   * @param t - Test context.
+   *
+   * This step should prepare the test for execution, including allocating and
+   * initializing all appropriate buffers.
+   *
+   * This function should set the init_status member of a skl_test_step_status_t
+   * to indicate its pass/fail result.
+   *
+   * This step is optional and the callback can be set to NULL to skip its call.
+   */
+  void (*init)(skl_test_t *t);
+
+  /**
+   * @brief Test warmup callback.
+   *
+   * @param t - Test context.
+   *
+   * This step can be used as a warmup before the execute step, such as for
+   * making certain data cache-resident.
+   *
+   * This function should set the warmup_status member of a
+   * skl_test_step_status_t to indicate its pass/fail result.
+   *
+   * This step is optional and the callback can be set to NULL to skip its call.
+   */
+  void (*warmup)(skl_test_t *t);
+
+  /**
+   * @brief Test execution callback.
+   *
+   * @param t - Test context.
+   *
+   * This step should perform the actual test execution, which is typically
+   * calling into the underlying kernel with appropriate values.
+   *
+   * This function should set the execute_status member of a
+   * skl_test_step_status_t to indicate its pass/fail result.
+   *
+   * This step is mandatory and the callback cannot be NULL.
+   */
+  void (*execute)(skl_test_t *t);
+
+  /**
+   * @brief Test verification callback.
+   *
+   * @param t - Test context.
+   *
+   * This step should verify that execution performed as expected, such as for
+   * correctness testing.
+   *
+   * This function should set the verify_status member of a
+   * skl_test_step_status_t to indicate its pass/fail result.
+   *
+   * This step is optional and the callback can be set to NULL to skip its call.
+   */
+  void (*verify)(skl_test_t *t);
+
+  /**
+   * @brief Test reporting callback.
+   *
+   * @param t - Test context.
+   *
+   * This step should log any desired information using the skl_test_driver_log
+   * function, such as test parameters or performance results.
+   *
+   * This function should set the report_status member of a
+   * skl_test_step_status_t to indicate its pass/fail result.
+   *
+   * This step is optional and the callback can be set to NULL to skip its call.
+   */
+  void (*report)(skl_test_t *t);
+
+  /**
+   * @brief Test cleanup callback.
+   *
+   * @param t - Test context.
+   *
+   * This step should perform any cleanup required to end the test, such as
+   * freeing any buffers allocated in a previous step.
+   *
+   * This function should set the cleanup_status member of a
+   * skl_test_step_status_t to indicate its pass/fail result.
+   *
+   * This step is optional and the callback can be set to NULL to skip its call.
+   */
+  void (*cleanup)(skl_test_t *t);
+
 } skl_test_steps_t;
 
 /**
