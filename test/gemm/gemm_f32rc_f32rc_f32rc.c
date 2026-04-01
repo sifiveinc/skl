@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int gemm_f32rc_f32rc_f32rc_init(skl_test_t *t) {
+void gemm_f32rc_f32rc_f32rc_init(skl_test_t *t) {
   gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
 
   // Allow default strides:
@@ -52,11 +52,9 @@ int gemm_f32rc_f32rc_f32rc_init(skl_test_t *t) {
       memcpy(h->ctx.ref_c, h->c.data, h->c.len * sizeof(float));
     }
   }
-
-  return 0;
 }
 
-int gemm_f32rc_f32rc_f32rc_verify(skl_test_t *t) {
+void gemm_f32rc_f32rc_f32rc_verify(skl_test_t *t) {
   /* Compute the reference (scalar) matrix output. */
   gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
 
@@ -115,15 +113,14 @@ int gemm_f32rc_f32rc_f32rc_verify(skl_test_t *t) {
                      "result [%zu, %zu] (%f) != reference (%f) [bound = %f]\n",
                      i, j, h->c.data[idx], h->ctx.ref_c[idx],
                      h->ctx.bound[idx]);
-        return 1; // Error
+        t->status.verify_status = SKL_TEST_FAIL;
+        return;
       }
     }
   }
-
-  return 0; // Success
 }
 
-int gemm_f32rc_f32rc_f32rc_report(skl_test_t *t) {
+void gemm_f32rc_f32rc_f32rc_report(skl_test_t *t) {
   gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
 
   size_t maccs = h->m * h->n * h->k;
@@ -139,11 +136,9 @@ int gemm_f32rc_f32rc_f32rc_report(skl_test_t *t) {
   INFO("Cycles: %zd\n", t->counters.cycles);
   INFO("Instructions: %zd\n", t->counters.instret);
   INFO("MACs/Cycle: %f\n", mpc);
-
-  return 0;
 }
 
-int gemm_f32rc_f32rc_f32rc_cleanup(skl_test_t *t) {
+void gemm_f32rc_f32rc_f32rc_cleanup(skl_test_t *t) {
   gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
 
   // Free buffers
@@ -156,5 +151,4 @@ int gemm_f32rc_f32rc_f32rc_cleanup(skl_test_t *t) {
     free(h->ctx.ref_c);
     free(h->ctx.bound);
   }
-  return 0;
 }

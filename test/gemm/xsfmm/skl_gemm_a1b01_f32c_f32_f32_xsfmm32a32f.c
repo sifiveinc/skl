@@ -45,7 +45,7 @@
           .report = gemm_f32rc_f32rc_f32rc_report,                             \
           .cleanup = gemm_f32rc_f32rc_f32rc_cleanup,                           \
   }
-static int execute(skl_test_t *t);
+static void execute(skl_test_t *t);
 
 // clang-format off
 gemm_f32rc_f32rc_f32rc_t tests[] = {
@@ -92,14 +92,14 @@ static skl_test_suite_t suite = {.name =
                                  .test_size = sizeof(gemm_f32rc_f32rc_f32rc_t),
                                  .tests = tests};
 
-static int execute(skl_test_t *t) {
+static void execute(skl_test_t *t) {
   const gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
 
-  SKL_TEST_REQUIRE(t, h->rsa == 1); // Note: column-major
-  SKL_TEST_REQUIRE(t, h->csb == 1);
-  SKL_TEST_REQUIRE(t, h->csc == 1);
-  SKL_TEST_REQUIRE(t, h->alpha == 1.f);
-  SKL_TEST_REQUIRE(t, h->beta == 0.f || h->beta == 1.f);
+  SKL_TEST_REQUIRE(t, execute_status, h->rsa == 1); // Note: column-major
+  SKL_TEST_REQUIRE(t, execute_status, h->csb == 1);
+  SKL_TEST_REQUIRE(t, execute_status, h->csc == 1);
+  SKL_TEST_REQUIRE(t, execute_status, h->alpha == 1.f);
+  SKL_TEST_REQUIRE(t, execute_status, h->beta == 0.f || h->beta == 1.f);
 
   // Call the kernel with the appropriate parameters
   // The kernel signature is: (m, n, k, a, csa, b, rsb, c, rsc, accum)
@@ -107,7 +107,6 @@ static int execute(skl_test_t *t) {
   skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(h->m, h->n, h->k, h->a.data, h->csa,
                                           h->b.data, h->rsb, h->c.data, h->rsc,
                                           h->beta != 0.f);
-  return (t->status == SKL_TEST_PASS) ? 0 : 1;
 }
 
 int main(void) {

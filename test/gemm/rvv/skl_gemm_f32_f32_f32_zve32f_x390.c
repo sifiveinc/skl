@@ -36,7 +36,7 @@
           .cleanup = gemm_f32rc_f32rc_f32rc_cleanup,                           \
   }
 
-static int execute(skl_test_t *t);
+static void execute(skl_test_t *t);
 
 // clang-format off
 gemm_f32rc_f32rc_f32rc_t tests[] = {
@@ -76,16 +76,15 @@ static skl_test_suite_t suite = {.name = "skl_gemm_f32_f32_f32_zve32f_x390",
                                  .test_size = sizeof(gemm_f32rc_f32rc_f32rc_t),
                                  .tests = tests};
 
-static int execute(skl_test_t *t) {
+static void execute(skl_test_t *t) {
   const gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
 
-  SKL_TEST_REQUIRE(t, h->csa == 1);
-  SKL_TEST_REQUIRE(t, h->csb == 1);
-  SKL_TEST_REQUIRE(t, h->csc == 1);
+  SKL_TEST_REQUIRE(t, execute_status, h->csa == 1);
+  SKL_TEST_REQUIRE(t, execute_status, h->csb == 1);
+  SKL_TEST_REQUIRE(t, execute_status, h->csc == 1);
   skl_gemm_f32_f32_f32_zve32f_x390(h->m, h->n, h->k, h->alpha, h->a.data,
                                    h->rsa, h->b.data, h->rsb, h->beta,
                                    h->c.data, h->rsc);
-  return (t->status == SKL_TEST_PASS) ? 0 : 1;
 }
 
 int main(void) {

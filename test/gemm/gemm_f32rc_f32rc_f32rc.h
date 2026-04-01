@@ -46,10 +46,10 @@ typedef struct {
   } ctx;
 } gemm_f32rc_f32rc_f32rc_t;
 
-int gemm_f32rc_f32rc_f32rc_init(skl_test_t *t);
-int gemm_f32rc_f32rc_f32rc_verify(skl_test_t *t);
-int gemm_f32rc_f32rc_f32rc_report(skl_test_t *t);
-int gemm_f32rc_f32rc_f32rc_cleanup(skl_test_t *t);
+void gemm_f32rc_f32rc_f32rc_init(skl_test_t *t);
+void gemm_f32rc_f32rc_f32rc_verify(skl_test_t *t);
+void gemm_f32rc_f32rc_f32rc_report(skl_test_t *t);
+void gemm_f32rc_f32rc_f32rc_cleanup(skl_test_t *t);
 
 #define GEMM_F32RC_F32RC_F32RC_DEFAULTS                                        \
   .a = {.min = -1.0f, .max = 1.0f, .mode = SKL_TEST_RANDOM},                   \

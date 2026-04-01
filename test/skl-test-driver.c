@@ -80,6 +80,19 @@ void skl_test_driver_log(skl_test_t *t, FILE *stream, const char *fmt, ...) {
   va_end(args);
 }
 
+skl_test_status_t skl_test_driver_status(skl_test_t *t) {
+
+#define STEP_PASSED(STEP) (t->status.STEP == SKL_TEST_PASS)
+  if (STEP_PASSED(init_status) && STEP_PASSED(warmup_status) &&
+      STEP_PASSED(execute_status) && STEP_PASSED(verify_status) &&
+      STEP_PASSED(report_status) && STEP_PASSED(cleanup_status)) {
+    return SKL_TEST_PASS;
+  }
+  return SKL_TEST_FAIL;
+
+#undef STEP_PASSED
+}
+
 static void log_separator(skl_test_t *t, char sep) {
   enum { SEP_LEN = 10 };
   char buf[SEP_LEN];
@@ -101,62 +114,68 @@ int skl_test_driver_run_suite(skl_test_suite_t *suite) {
 
   // Main loop over all tests
   for (size_t i = 0; i < suite->num_tests; ++i) {
+
     skl_test_t t = {.harness = (char *)suite->tests + i * suite->test_size,
                     .suite_name = suite->name,
                     .id = i,
                     .log_level = log_level,
                     .counters = {.cycles = 0, .instret = 0},
-                    .status = SKL_TEST_PASS};
+                    .status = {.init_status = SKL_TEST_PASS,
+                               .warmup_status = SKL_TEST_PASS,
+                               .execute_status = SKL_TEST_PASS,
+                               .verify_status = SKL_TEST_PASS,
+                               .report_status = SKL_TEST_PASS,
+                               .cleanup_status = SKL_TEST_PASS}};
     log_separator(&t, '=');
-
-#define TRY(STEP)                                                              \
-  do {                                                                         \
-    if ((STEP) != NULL) {                                                      \
-      SKL_TEST_REQUIRE(&t, (STEP)(&t) == 0);                                   \
-      if (t.status != SKL_TEST_PASS)                                           \
-        goto cleanup;                                                          \
-    }                                                                          \
-  } while (0)
 
     // Retrieve test steps: first harness struct member must be a
     // skl_test_steps_t .
     skl_test_steps_t *steps = (skl_test_steps_t *)t.harness;
 
-    TRY(steps->init);
+#define LOG_STEP(STEP_STATUS, STEP_STR)                                        \
+  SKL_TEST_LOG(&t, SKL_TEST_LOG_DEBUG, STEP_STR ": %s.\n",                     \
+               (t.status.STEP_STATUS == SKL_TEST_PASS ? "passed" : "FAILED"))
 
-    // Run the test, including optional cache warmup
-    TRY(steps->warmup);
-    skl_test_driver_update_counters(&t.counters);
-    TRY(steps->execute);
-    skl_test_driver_update_counters(&t.counters);
-
-    // Verify test results, if verification is enabled
-    TRY(steps->verify);
-    if (steps->verify != NULL) {
-      SKL_TEST_LOG(&t, SKL_TEST_LOG_INFO, "Verification passed\n");
+    // Initialize
+    if (steps->init != NULL) {
+      steps->init(&t);
+      LOG_STEP(init_status, "Init");
     }
 
-  cleanup:
-    // Always run report if provided, even after failure
+    // Warmup
+    if (skl_test_driver_status(&t) == SKL_TEST_PASS && steps->warmup != NULL) {
+      steps->warmup(&t);
+      LOG_STEP(warmup_status, "Warmup");
+    }
+
+    // Execute
+    if (skl_test_driver_status(&t) == SKL_TEST_PASS) {
+      skl_test_driver_update_counters(&t.counters);
+      steps->execute(&t);
+      skl_test_driver_update_counters(&t.counters);
+      LOG_STEP(execute_status, "Execute");
+    }
+
+    // Verify
+    if (skl_test_driver_status(&t) == SKL_TEST_PASS && steps->verify != NULL) {
+      steps->verify(&t);
+      LOG_STEP(verify_status, "Verify");
+    }
+
+    // Report
     if (steps->report != NULL) {
-      int report_status = steps->report(&t);
-      if (report_status != SKL_TEST_PASS) {
-        skl_test_driver_log(&t, stderr, "Report function failed\n");
-        t.status = SKL_TEST_FAIL;
-      }
+      steps->report(&t);
+      LOG_STEP(report_status, "Report");
     }
 
-    // Always run cleanup if provided
+    // Cleanup
     if (steps->cleanup != NULL) {
-      int cleanup_status = steps->cleanup(&t);
-      if (cleanup_status != SKL_TEST_PASS) {
-        skl_test_driver_log(&t, stderr, "Cleanup function failed\n");
-        t.status = SKL_TEST_FAIL;
-      }
+      steps->cleanup(&t);
+      LOG_STEP(cleanup_status, "Cleanup");
     }
 
     // Check final status and update failure count
-    if (t.status != SKL_TEST_PASS) {
+    if (skl_test_driver_status(&t) != SKL_TEST_PASS) {
       SKL_TEST_LOG(&t, SKL_TEST_LOG_ERROR, "Test failed\n");
       failures++;
     }

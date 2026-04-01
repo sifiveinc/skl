@@ -60,16 +60,37 @@ typedef struct {
  *  @brief Function pointers determining each step ran by the driver.
  */
 typedef struct {
-  int (*init)(
+  void (*init)(
       skl_test_t *t); /**< Optional initialization function, NULL to skip */
-  int (*warmup)(skl_test_t *t);  /**< Optional warmup function, NULL to skip */
-  int (*execute)(skl_test_t *t); /**< Required execution function */
-  int (*verify)(
+  void (*warmup)(skl_test_t *t);  /**< Optional warmup function, NULL to skip */
+  void (*execute)(skl_test_t *t); /**< Required execution function */
+  void (*verify)(
       skl_test_t *t); /**< Optional verification function, NULL to skip */
-  int (*report)(
+  void (*report)(
       skl_test_t *t); /**< Optional reporting function, NULL to skip */
-  int (*cleanup)(skl_test_t *t); /**< Optional cleanup function, NULL to skip */
+  void (*cleanup)(
+      skl_test_t *t); /**< Optional cleanup function, NULL to skip */
 } skl_test_steps_t;
+
+/**
+ * @brief Test status values.
+ */
+typedef enum {
+  SKL_TEST_PASS = 0, /**< Test passed */
+  SKL_TEST_FAIL = 1, /**< Test failed */
+} skl_test_status_t;
+
+/**
+ * @brief Status values for each step of skl_test_steps_t.
+ */
+typedef struct {
+  skl_test_status_t init_status;
+  skl_test_status_t warmup_status;
+  skl_test_status_t execute_status;
+  skl_test_status_t verify_status;
+  skl_test_status_t report_status;
+  skl_test_status_t cleanup_status;
+} skl_test_step_status_t;
 
 /**
  * @brief Performance counter values.
@@ -80,14 +101,6 @@ typedef struct {
   uint64_t cycles;  /**< Number of CPU cycles elapsed */
   uint64_t instret; /**< Number of instructions retired */
 } skl_test_counters_t;
-
-/**
- * @brief Test status values.
- */
-typedef enum {
-  SKL_TEST_PASS = 0, /**< Test passed */
-  SKL_TEST_FAIL = 1, /**< Test failed */
-} skl_test_status_t;
 
 /**
  * @brief Test context structure.
@@ -134,11 +147,11 @@ struct skl_test_t {
   skl_test_counters_t counters;
 
   /**
-   * @brief Test pass/fail status.
+   * @brief Status of each step of the test.
    *
-   * Set by harness and checked by driver.
+   * Set by harness and checked by driver between each step.
    */
-  skl_test_status_t status;
+  skl_test_step_status_t status;
 };
 
 //----- Functions provided by the driver -----
@@ -192,6 +205,15 @@ void skl_test_driver_update_counters(skl_test_counters_t *counters);
  * Supports printf-style formatting.
  */
 void skl_test_driver_log(skl_test_t *t, FILE *stream, const char *fmt, ...);
+
+/**
+ * @brief Returns the current status of the overall test.
+ *
+ * @param t - Test context
+ * @return Returns SKL_TEST_PASS if all values in t->status are SKL_TEST_PASS,
+ * and SKL_TEST_FAIL otherwise.
+ */
+skl_test_status_t skl_test_driver_status(skl_test_t *t);
 
 //----- Utility macros for use in tests -----
 
@@ -359,18 +381,19 @@ enum {
 /**
  * @brief Assert a condition and set error status.
  *
- * @param T - Test context pointer
- * @param COND - Condition to check
+ * @param T - Test context pointer.
+ * @param STATUS - The member of skl_test_step_status_t to set upon failure.
+ * @param COND - Condition to check.
  *
  * If COND is false, logs an error message with the test name, condition,
  * file, and line number, then sets T->status to SKL_TEST_FAIL. Does not
  * return early, allowing multiple requirements to be checked.
  */
-#define SKL_TEST_REQUIRE(T, COND)                                              \
+#define SKL_TEST_REQUIRE(T, STATUS, COND)                                      \
   do {                                                                         \
     if (!(COND)) {                                                             \
       skl_test_driver_log((T), stderr, "%s: %s\n", (T)->suite_name, #COND);    \
       skl_test_driver_log((T), stderr, "    %s:%d\n", __FILE__, __LINE__);     \
-      (T)->status = SKL_TEST_FAIL;                                             \
+      (T)->status.STATUS = SKL_TEST_FAIL;                                      \
     }                                                                          \
   } while (0)
