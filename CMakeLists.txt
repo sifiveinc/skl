@@ -59,9 +59,41 @@ add_library(${REF_LIBRARY}
     ref/transpose/transpose_e8_scalar.c
 )
 
+<<<<<<< HEAD
 target_include_directories(${REF_LIBRARY} PUBLIC include)
 target_compile_options(${REF_LIBRARY} PRIVATE ${SKL_COMPILE_OPTIONS})
 target_link_libraries(${REF_LIBRARY} PUBLIC m)
+=======
+set(SKL_SCALAR_SRCS
+  src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_scalar.c
+  src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_scalar.c
+  src/gemm/scalar/gemm_bf16rc_bf16rc_f32rc_scalar.c
+  src/gemm/scalar/gemm_f16rc_f16rc_f16rc_scalar.c
+  src/gemm/scalar/gemm_f16rc_f16rc_f32rc_scalar.c
+  src/gemm/scalar/gemm_f32rc_f32rc_f32rc_scalar.c
+  src/gemm/scalar/gemm_f64rc_f64rc_f64rc_scalar.c
+  src/gemm/scalar/gemm_i8rc_i8rc_i32rc_scalar.c
+  src/gemm/scalar/gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar.c
+  src/gemm/scalar/gemm_f16rcprc_f16rcprc_f32rcprc_scalar.c
+  src/gemm/scalar/gemm_f32rcprc_f32rcprc_f32rcprc_scalar.c
+  src/gemm/scalar/gemm_f64rcprc_f64rcprc_f64rcprc_scalar.c
+  src/gemm/scalar/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.c
+  src/logistic/logistic_f16_scalar.c
+  src/logistic/logistic_f32_scalar.c
+  src/silu/silu_f16_scalar.c
+  src/silu/silu_f32_scalar.c
+  src/softmax/softmax_f16_scalar.c
+  src/softmax/softmax_bf16_scalar.c
+  src/softmax/softmax_f32_scalar.c
+  src/transpose/scalar/transpose_e8_scalar.c
+  src/transpose/scalar/transpose_e16_scalar.c
+  src/transpose/scalar/transpose_e32_scalar.c
+)
+
+set(SKL_ZFH_SRCS
+  src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_scalar.c
+)
+>>>>>>> main
 
 set(SKL_ZVFH_SRCS
   src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_zvfh.c
@@ -69,6 +101,7 @@ set(SKL_ZVFH_SRCS
   src/gemm/rvv/gemm_f16_f16_f16_zvfh_x390.c
   src/gemm/rvv/gemm_f16_f16_f32_zvfh_x390.c
   src/logistic/logistic_f16_zvfh.c
+  src/silu/silu_f16_zvfh.c
   src/softmax/softmax_f16_zvfh.c
 )
 
@@ -82,6 +115,7 @@ set(SKL_ZVE32F_SRCS
   src/exp/exp_f32_zve32f.c
   src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390.c
   src/logistic/logistic_f32_zve32f.c
+  src/silu/silu_f32_zve32f.c
   src/softmax/softmax_bf16_zve32f.c
   src/softmax/softmax_f32_zve32f.c
   src/gelu/gelu_f32_zve32f.c
@@ -104,6 +138,7 @@ set(SKL_XSFMM_SRCS
 
 set (SKL_XSFMM32A8F_SRCS
   src/gemm/xsfmm/gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c
+  src/gemm/xsfmm/gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c
 )
 
 set(SKL_XSFMM32A8I_SRCS
@@ -126,6 +161,7 @@ set(SKL_XSFVFBFA_SRCS
 
 set(SKL_XSFVFEXPA_ZVFH_SRCS
   src/exp/exp_f16_xsfvfexpa_zvfh.c
+  src/silu/silu_f16_xsfvfexpa_zvfh.c
   src/softmax/softmax_f16_xsfvfexpa_zvfh.c
 )
 
@@ -141,12 +177,14 @@ set(SKL_XSFVFEXPA_ZVFBFMIN_SRCS
 set(SKL_XSFVFEXPA_SRCS
   src/exp/exp_f32_xsfvfexpa.c
   src/logistic/logistic_f32_xsfvfexpa.c
+  src/silu/silu_f32_xsfvfexpa.c
   src/softmax/softmax_f32_xsfvfexpa.c
 )
 
 set(SKL_XSFVFEXP16E_SRCS
   src/exp/exp_f16_xsfvfexp16e.c
   src/logistic/logistic_f16_xsfvfexp16e.c
+  src/silu/silu_f16_xsfvfexp16e.c
   src/softmax/softmax_f16_xsfvfexp16e.c
 )
 
@@ -164,6 +202,7 @@ set(SKL_XSFVFBFEXP16E_ZVFBFMIN_SRCS
 
 set(SKL_XSFVFEXP32E_SRCS
   src/exp/exp_f32_xsfvfexp32e.c
+  src/silu/silu_f32_xsfvfexp32e.c
   src/softmax/softmax_f32_xsfvfexp32e.c
 )
 
@@ -405,7 +444,8 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
       "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
     skl_add_test(skl_gemm_f16_f16_f32_zvfh_x390_wrapper gemm/gemm_f16rc_f16rc_f32rc.c
       "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
-    skl_add_test(logistic_f16 logistic/logistic_f16.c "-DRUN_ALL")
+    skl_add_test(logistic_f16_zvfh logistic/logistic_f16.c "-DRUN_ALL")
+    skl_add_test(silu_f16_zvfh silu/silu_f16.c "-DRUN_ALL")
   endif()
   if(RISCV_ZVFBFWMA)
     skl_add_test(skl_gemm_bf16_bf16_f32_zvfbfwma_wrapper gemm/gemm_bf16rc_bf16rc_f32rc.c
@@ -424,6 +464,7 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
       "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
     skl_add_test(logistic_f32_zve32f logistic/logistic_f32.c "-DRUN_ALL")
     skl_add_test(gelu_f32 gelu/gelu_f32.c "")
+    skl_add_test(silu_f32_zve32f silu/silu_f32.c "-DRUN_ALL")
   endif()
   if(RISCV_ZVE64D)
     skl_add_test(skl_gemm_f64_f64_f64_zve64d_x390_wrapper gemm/gemm_f64rc_f64rc_f64rc.c
@@ -433,6 +474,10 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test(skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f_wrapper gemm/gemm_f8e4m3rc_f8e4m3rc_f32rc.c
       "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1.f;-DBETA=0.f")
     skl_add_test(skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f_wrapper gemm/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc.c
+      "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
+    skl_add_test(skl_gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f_wrapper gemm/gemm_f8e5m2rc_f8e5m2rc_f32rc.c
+      "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1.f;-DBETA=0.f")
+    skl_add_test(skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f_wrapper gemm/gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc.c
       "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
   endif()
   if(RISCV_XSFMM32A8I)
