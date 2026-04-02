@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -105,4 +105,11 @@
  */
 SKL_FUNC_UTIL void skl_instruction_schedule_barrier(void) {
   __asm__ volatile("" ::: "memory");
+}
+
+/** @brief Reinterprets an unsigned 32-bit integer as an IEEE FP32. */
+static inline float skl_u32_as_float(uint32_t x) {
+  float y;
+  __builtin_memcpy(&y, &x, sizeof(float));
+  return y;
 }
