@@ -11,7 +11,6 @@
 #error This source file requires compiler support for the Xsfvqdotq extension.
 #endif
 
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
