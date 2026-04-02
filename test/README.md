@@ -175,6 +175,7 @@ Functions provided by the driver are:
 - `skl_test_driver_free`: Frees memory for a test buffer.
 - `skl_test_driver_update_counters`: Reads the current values of the performance counters and records the delta since the last update.
 - `skl_test_driver_log`: Prints a log message with a given log level.
+- `skl_test_driver_status`: Returns the current pass/fail status of the test.
 
 
 ### Buffer Management
