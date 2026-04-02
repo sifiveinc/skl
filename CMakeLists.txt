@@ -40,6 +40,8 @@ add_library(${REF_LIBRARY}
     ref/gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar.c
     ref/gemm/gemm_f8e4m3rc_f8e4m3rc_f32rc_scalar.c
     ref/gemm/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_scalar.c
+    ref/gemm/gemm_f8e5m2rc_f8e5m2rc_f32rc_scalar.c
+    ref/gemm/gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc_scalar.c
     ref/gemm/gemm_f16rc_f16rc_f16rc_scalar.c
     ref/gemm/gemm_f16rc_f16rc_f32rc_scalar.c
     ref/gemm/gemm_f16rcprc_f16rcprc_f32rcprc_scalar.c
@@ -51,6 +53,8 @@ add_library(${REF_LIBRARY}
     ref/gemm/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.c
     ref/logistic/logistic_f16_scalar.c
     ref/logistic/logistic_f32_scalar.c
+    ref/silu/silu_f16_scalar.c
+    ref/silu/silu_f32_scalar.c
     ref/softmax/softmax_bf16_scalar.c
     ref/softmax/softmax_f16_scalar.c
     ref/softmax/softmax_f32_scalar.c
@@ -59,41 +63,9 @@ add_library(${REF_LIBRARY}
     ref/transpose/transpose_e8_scalar.c
 )
 
-<<<<<<< HEAD
 target_include_directories(${REF_LIBRARY} PUBLIC include)
 target_compile_options(${REF_LIBRARY} PRIVATE ${SKL_COMPILE_OPTIONS})
 target_link_libraries(${REF_LIBRARY} PUBLIC m)
-=======
-set(SKL_SCALAR_SRCS
-  src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_scalar.c
-  src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_scalar.c
-  src/gemm/scalar/gemm_bf16rc_bf16rc_f32rc_scalar.c
-  src/gemm/scalar/gemm_f16rc_f16rc_f16rc_scalar.c
-  src/gemm/scalar/gemm_f16rc_f16rc_f32rc_scalar.c
-  src/gemm/scalar/gemm_f32rc_f32rc_f32rc_scalar.c
-  src/gemm/scalar/gemm_f64rc_f64rc_f64rc_scalar.c
-  src/gemm/scalar/gemm_i8rc_i8rc_i32rc_scalar.c
-  src/gemm/scalar/gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar.c
-  src/gemm/scalar/gemm_f16rcprc_f16rcprc_f32rcprc_scalar.c
-  src/gemm/scalar/gemm_f32rcprc_f32rcprc_f32rcprc_scalar.c
-  src/gemm/scalar/gemm_f64rcprc_f64rcprc_f64rcprc_scalar.c
-  src/gemm/scalar/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.c
-  src/logistic/logistic_f16_scalar.c
-  src/logistic/logistic_f32_scalar.c
-  src/silu/silu_f16_scalar.c
-  src/silu/silu_f32_scalar.c
-  src/softmax/softmax_f16_scalar.c
-  src/softmax/softmax_bf16_scalar.c
-  src/softmax/softmax_f32_scalar.c
-  src/transpose/scalar/transpose_e8_scalar.c
-  src/transpose/scalar/transpose_e16_scalar.c
-  src/transpose/scalar/transpose_e32_scalar.c
-)
-
-set(SKL_ZFH_SRCS
-  src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_scalar.c
-)
->>>>>>> main
 
 set(SKL_ZVFH_SRCS
   src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_zvfh.c

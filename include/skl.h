@@ -129,7 +129,6 @@
  * SiLU Function Kernels
  */
 
-#include "../src/silu/silu_f16_scalar.h"
 #if defined(__riscv_zvfh)
 #include "../src/silu/silu_f16_zvfh.h"
 #endif
@@ -140,7 +139,6 @@
 #include "../src/silu/silu_f16_xsfvfexpa_zvfh.h"
 #endif
 
-#include "../src/silu/silu_f32_scalar.h"
 #if defined(__riscv_zve32f)
 #include "../src/silu/silu_f32_zve32f.h"
 #endif
