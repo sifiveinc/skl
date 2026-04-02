@@ -1207,15 +1207,15 @@ SKL_FUNC_PRIVATE void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_dispatch(
 
   void (*skl_mm_6xe32m4_i8i32_vqdotvx_kernel)(
       size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t rsa1,
-      size_t csa1, const int8_t *b, size_t rsb1, int32_t beta, int32_t *c,
+      size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c,
       size_t rsc, bool x390_clp);
   void (*skl_mm_lt6xe32m4_i8i32_vqdotvx_kernel)(
       size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
-      size_t rsa1, size_t csa1, const int8_t *b, size_t rsb1, int32_t beta,
+      size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
       int32_t *c, size_t rsc);
   void (*skl_vm_1xe32m4_i8i32_vqdotvx_kernel)(
       size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t csa1,
-      const int8_t *b, size_t rsb1, int32_t beta, int32_t *c);
+      const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c);
 
   if ((uintptr_t)a_pack % (k0 * sizeof(int8_t)) == 0 && rsa1 % k0 == 0 &&
       csa1 % k0 == 0) {
