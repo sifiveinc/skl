@@ -255,7 +255,7 @@ SKL_FUNC_PRIVATE void skl_mm_6xe32m4_i8i32_vqdotvx(
     }
   }
 
-  // write result back to c tile.
+  // write result back to C tile
   __riscv_vse32_v_i32m4(c, vec0, n);
   c += rsc;
   __riscv_vse32_v_i32m4(c, vec1, n);
@@ -269,7 +269,7 @@ SKL_FUNC_PRIVATE void skl_mm_6xe32m4_i8i32_vqdotvx(
   __riscv_vse32_v_i32m4(c, vec5, n);
 }
 
-// a is 4-byte aligned and rsa1 is a multiple of 4
+// a_pack is 4-byte aligned and rsa1 and csa1 are multiples of 4
 // If x390_clp == true, uses an inner loop tuned for the CLP on x390.
 SKL_FUNC_PRIVATE void skl_mm_6xe32m4_aligned_i8i32_vqdotvx(
     size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t rsa1,
@@ -566,7 +566,7 @@ SKL_FUNC_PRIVATE void skl_mm_6xe32m4_aligned_i8i32_vqdotvx(
     }
   }
 
-  // write result back to c tile.
+  // write result back to C tile
   __riscv_vse32_v_i32m4(c, vec0, n);
   c += rsc;
   __riscv_vse32_v_i32m4(c, vec1, n);
@@ -603,9 +603,9 @@ skl_mm_lt6xe32m4_i8i32_vqdotvx(size_t m, size_t n, size_t k, int32_t alpha,
   uint32_t a0_3;
   uint32_t a0_4;
 
-  // compute 1 micro-tile at once.
+  // compute 1 micro-tile at once
   while (k >= 4) {
-    // load one B tile (4xn).
+    // load one B tile (4xn)
     vint8m4_t bvec = __riscv_vle8_v_i8m4(b_pack, 4 * n);
     b_pack += rsb1;
 
@@ -634,7 +634,7 @@ skl_mm_lt6xe32m4_i8i32_vqdotvx(size_t m, size_t n, size_t k, int32_t alpha,
       break;
     }
 
-    // compute micro-tile.
+    // compute micro-tile
     switch (m) {
     case 5:
       vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec, a0_4, n);
@@ -658,7 +658,7 @@ skl_mm_lt6xe32m4_i8i32_vqdotvx(size_t m, size_t n, size_t k, int32_t alpha,
     k -= 4;
   }
 
-  // handle k dimension of `a` is not the multiple of 4.
+  // handle k not a multiple of 4
   if (k) {
     uint32_t mask = 0xFFFFFFFF >> (8 * (4 - k));
     vint8m4_t bvec = __riscv_vle8_v_i8m4(b_pack, 4 * n);
@@ -683,7 +683,7 @@ skl_mm_lt6xe32m4_i8i32_vqdotvx(size_t m, size_t n, size_t k, int32_t alpha,
       break;
     }
 
-    // compute micro-tile.
+    // compute micro-tile
     switch (m) {
     case 5:
       vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec, a0_4 & mask, n);
@@ -788,7 +788,7 @@ skl_mm_lt6xe32m4_i8i32_vqdotvx(size_t m, size_t n, size_t k, int32_t alpha,
     }
   }
 
-  // write result back to c tile.
+  // write result back to C tile
   c += (m - 1) * rsc;
   switch (m) {
   case 5:
@@ -815,7 +815,7 @@ skl_mm_lt6xe32m4_i8i32_vqdotvx(size_t m, size_t n, size_t k, int32_t alpha,
   }
 }
 
-// a is 4-byte aligned and rsa1 is a multiple of 4
+// a_pack is 4-byte aligned and rsa1 and csa1 are multiples of 4
 SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_aligned_i8i32_vqdotvx(
     size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
     size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
@@ -832,13 +832,13 @@ SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_aligned_i8i32_vqdotvx(
   const int8_t *a3 = a_pack + 3 * rsa1;
   const int8_t *a4 = a_pack + 4 * rsa1;
 
-  // compute 1 micro-tile at once.
+  // compute 1 micro-tile at once
   while (k >= 4) {
-    // load one B tile (4xn).
+    // load one B tile (4xn)
     vint8m4_t bvec = __riscv_vle8_v_i8m4(b_pack, 4 * n);
     b_pack += rsb1;
 
-    // compute micro-tile.
+    // compute micro-tile
     switch (m) {
     case 5:
       vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec, *(uint32_t *)a4, n);
@@ -867,12 +867,12 @@ SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_aligned_i8i32_vqdotvx(
     k -= 4;
   }
 
-  // handle k dimension of `a` is not the multiple of 4.
+  // handle k not a multiple of 4
   if (k) {
     uint32_t mask = 0xFFFFFFFF >> (8 * (4 - k));
     vint8m4_t bvec = __riscv_vle8_v_i8m4(b_pack, 4 * n);
 
-    // compute micro-tile.
+    // compute micro-tile
     switch (m) {
     case 5:
       vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec, *(uint32_t *)a4 & mask, n);
@@ -977,7 +977,7 @@ SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_aligned_i8i32_vqdotvx(
     }
   }
 
-  // write result back to c tile.
+  // write result back to C tile
   c += (m - 1) * rsc;
   switch (m) {
   case 5:
@@ -1007,7 +1007,7 @@ SKL_FUNC_PRIVATE void skl_mm_lt6xe32m4_aligned_i8i32_vqdotvx(
 SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(
     size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t csa1,
     const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c) {
-  // init 2 int32m4_t accumulators.
+  // init 2 int32m4_t accumulators
   vint32m4_t vec0 = __riscv_vmv_v_x_i32m4(0, n);
   vint32m4_t vec1 = __riscv_vmv_v_x_i32m4(0, n);
 
@@ -1017,7 +1017,7 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(
   uint32_t a3;
 
   while (k >= 16) {
-    // load 4 words from A.
+    // load 4 words from A
     __builtin_memcpy(&a0, a_pack, 4);
     a_pack += csa1;
     __builtin_memcpy(&a1, a_pack, 4);
@@ -1027,7 +1027,7 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(
     __builtin_memcpy(&a3, a_pack, 4);
     a_pack += csa1;
 
-    // load 4 B tiles (4xn).
+    // load 4 B tiles (4xn)
     vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b_pack, 4 * n);
     b_pack += rsb1;
     vint8m4_t bvec1 = __riscv_vle8_v_i8m4(b_pack, 4 * n);
@@ -1046,13 +1046,13 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(
   }
 
   while (k >= 8) {
-    // load 2 words from A.
+    // load 2 words from A
     __builtin_memcpy(&a0, a_pack, 4);
     a_pack += csa1;
     __builtin_memcpy(&a1, a_pack, 4);
     a_pack += csa1;
 
-    // load 2 B tiles (4xn).
+    // load 2 B tiles (4xn)
     vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b_pack, 4 * n);
     b_pack += rsb1;
     vint8m4_t bvec1 = __riscv_vle8_v_i8m4(b_pack, 4 * n);
@@ -1065,11 +1065,11 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(
   }
 
   while (k >= 4) {
-    // load 1 word from A.
+    // load 1 word from A
     __builtin_memcpy(&a0, a_pack, 4);
     a_pack += csa1;
 
-    // load 1 B tile (4xn).
+    // load 1 B tile (4xn)
     vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b_pack, 4 * n);
     b_pack += rsb1;
 
@@ -1103,15 +1103,16 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_i8i32_vqdotvx(
   __riscv_vse32_v_i32m4(c, vec0, n);
 }
 
+// a_pack is 4-byte aligned and csa1 is a multiple of 4
 SKL_FUNC_PRIVATE void skl_vm_1xe32m4_aligned_i8i32_vqdotvx(
     size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t csa1,
     const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c) {
-  // init 2 int32m4_t accumulators.
+  // init 2 int32m4_t accumulators
   vint32m4_t vec0 = __riscv_vmv_v_x_i32m4(0, n);
   vint32m4_t vec1 = __riscv_vmv_v_x_i32m4(0, n);
 
   while (k >= 16) {
-    // load 4 words from A.
+    // load 4 words from A
     uint32_t a0 = *(uint32_t *)a_pack;
     a_pack += csa1;
     uint32_t a1 = *(uint32_t *)a_pack;
@@ -1121,7 +1122,7 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_aligned_i8i32_vqdotvx(
     uint32_t a3 = *(uint32_t *)a_pack;
     a_pack += csa1;
 
-    // load 4 B tiles (4xn).
+    // load 4 B tiles (4xn)
     vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b_pack, 4 * n);
     b_pack += rsb1;
     vint8m4_t bvec1 = __riscv_vle8_v_i8m4(b_pack, 4 * n);
@@ -1140,13 +1141,13 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_aligned_i8i32_vqdotvx(
   }
 
   while (k >= 8) {
-    // load 2 words from A.
+    // load 2 words from A
     uint32_t a0 = *(uint32_t *)a_pack;
     a_pack += csa1;
     uint32_t a1 = *(uint32_t *)a_pack;
     a_pack += csa1;
 
-    // load 2 B tiles (4xn).
+    // load 2 B tiles (4xn)
     vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b_pack, 4 * n);
     b_pack += rsb1;
     vint8m4_t bvec1 = __riscv_vle8_v_i8m4(b_pack, 4 * n);
@@ -1159,11 +1160,11 @@ SKL_FUNC_PRIVATE void skl_vm_1xe32m4_aligned_i8i32_vqdotvx(
   }
 
   while (k >= 4) {
-    // load 1 word from A.
+    // load 1 word from A
     uint32_t a0 = *(uint32_t *)a_pack;
     a_pack += csa1;
 
-    // load 1 B tile (4xn).
+    // load 1 B tile (4xn)
     vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b_pack, 4 * n);
     b_pack += rsb1;
 
@@ -1229,7 +1230,7 @@ SKL_FUNC_PRIVATE void skl_gemm_i8_i8pc_i32_xsfvqdotq_dispatch(
   }
 
   if (m == 1) {
-    // dispatch to GEMV kernel for better performance.
+    // dispatch to GEMV kernel for better performance
     for (size_t n_idx = 0; n_idx < n; n_idx += n0) {
       int32_t *c_write = c + n_idx;
       const int8_t *b_tile_ptr = b_pack + k0 * n_idx;
