@@ -1,6 +1,8 @@
 // Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+#pragma once
+
 /**
  * @brief Test and benchmark for GEMM: C = alpha * A * B + beta * C.
  *
