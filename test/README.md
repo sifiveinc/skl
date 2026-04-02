@@ -152,7 +152,6 @@ skl_test_suite_t suite = {.name = "skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f",
                           .num_tests = sizeof(tests) / sizeof(tests[0]),
                           .test_size = sizeof(gemm_f32rc_f32rc_f32rc_t),
                           .tests = tests};
-};
 ```
 The test suite C file must also call `skl_test_driver_run_suite` to execute the test suite, generally inside its own `main` function:
 ```c
