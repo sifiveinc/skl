@@ -136,6 +136,7 @@ void gemm_f32rc_f32rc_f32rc_report(skl_test_t *t) {
   INFO("Cycles: %zd\n", t->counters.cycles);
   INFO("Instructions: %zd\n", t->counters.instret);
   INFO("MACs/Cycle: %f\n", mpc);
+#undef INFO
 }
 
 void gemm_f32rc_f32rc_f32rc_cleanup(skl_test_t *t) {

@@ -174,6 +174,8 @@ int skl_test_driver_run_suite(skl_test_suite_t *suite) {
       LOG_STEP(cleanup_status, "Cleanup");
     }
 
+#undef LOG_STEP
+
     // Check final status and update failure count
     if (skl_test_driver_status(&t) != SKL_TEST_PASS) {
       SKL_TEST_LOG(&t, SKL_TEST_LOG_ERROR, "Test failed\n");
