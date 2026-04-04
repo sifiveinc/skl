@@ -1,154 +1,62 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-/* Test and benchmark for GEMM: C = alpha * A * B + beta * C.
+/**
+ * @brief Implementation of the gemm_f32rc_f32rc_f32rc test harness.
  *
- * A is M x K with row stride RSA and column stride CSA.
- * B is K x N with row stride RSB and column stride CSB.
- * C is M x N with row stride RSC and column stride CSC.
- *
- * Users must provide the values of the following as compiler flags using -D:
- *  - All dimensions M, N, and K;
- *  - Both RSA and CSA; or neither (implying RSA = K, CSA = 1)
- *  - Both RSB and CSB; or neither (implying RSB = N, CSB = 1)
- *  - Both RSC and CSC; or neither (implying RSC = N, CSC = 1)
- *  - Both ALPHA and BETA, as floating point literals.
+ * This file defines all harness functions _except_ `skl_test_execute`, which is
+ * defined in the test file (e.g. rvv/skl_gemm_f32_f32_f32_zve32f_x390.c).
  */
 
-#if !(defined(ENABLE_TEST) || defined(ENABLE_BENCHMARK))
-#error Must define at least one of ENABLE_TEST and ENABLE_BENCHMARK
-#endif
-
-#ifndef M
-#error Must define M
-#endif
-
-#ifndef N
-#error Must define N
-#endif
-
-#ifndef K
-#error Must define K
-#endif
-
-#ifndef ALPHA
-#error Must define ALPHA
-#endif
-
-#ifndef BETA
-#error Must define BETA
-#endif
-
-#if defined(ENABLE_TEST)
-#include <math.h>
-#endif
-
-#ifndef SKL_TEST_PERF_REPORT
-#define SKL_TEST_PERF_REPORT report_perf_mpc
-#endif
-
-#include "skl-test.h"
+#include "gemm_f32rc_f32rc_f32rc.h"
+#include "skl-test-driver.h"
 #include "skl.h"
 #include <inttypes.h>
+#include <math.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__riscv_zve32f)
-void skl_gemm_f32_f32_f32_zve32f_x390_wrapper(size_t m, size_t n, size_t k,
-                                              float alpha, const float *a,
-                                              size_t rsa, size_t csa,
-                                              const float *b, size_t rsb,
-                                              size_t csb, float beta, float *c,
-                                              size_t rsc, size_t csc) {
-  int status = 0;
-  SKL_TEST_REQUIRE(status, csa == 1);
-  SKL_TEST_REQUIRE(status, csb == 1);
-  SKL_TEST_REQUIRE(status, csc == 1);
-  if (status) {
-    exit(status);
+void gemm_f32rc_f32rc_f32rc_init(skl_test_t *t) {
+  gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
+
+  // Allow default strides:
+  // Handle zero dimensions to avoid size_t underflow in (dim - 1) expressions
+  if (h->m == 0 || h->n == 0 || h->k == 0) {
+    h->a.len = 0;
+    h->b.len = 0;
+  } else {
+    h->a.len = (h->m - 1) * h->rsa + (h->k - 1) * h->csa + 1;
+    h->b.len = (h->k - 1) * h->rsb + (h->n - 1) * h->csb + 1;
   }
-  skl_gemm_f32_f32_f32_zve32f_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c,
-                                   rsc);
-}
-#endif
-
-#if defined(__riscv_xsfmm32a32f)
-void skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f_wrapper(
-    size_t m, size_t n, size_t k, float alpha, const float *a, size_t rsa,
-    size_t csa, const float *b, size_t rsb, size_t csb, float beta, float *c,
-    size_t rsc, size_t csc) {
-  int status = 0;
-  SKL_TEST_REQUIRE(status, rsa == 1);
-  SKL_TEST_REQUIRE(status, csb == 1);
-  SKL_TEST_REQUIRE(status, csc == 1);
-  SKL_TEST_REQUIRE(status, alpha == 1.f);
-  SKL_TEST_REQUIRE(status, beta == 0.f || beta == 1.f);
-  if (status) {
-    exit(status);
+  if (h->m == 0 || h->n == 0) {
+    h->c.len = 0;
+  } else {
+    h->c.len = (h->m - 1) * h->rsc + (h->n - 1) * h->csc + 1;
   }
-  skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(m, n, k, a, csa, b, rsb, c, rsc,
-                                          beta != 0.f);
+
+  // Allocate buffers
+  SKL_TEST_BUF_CREATE(t, float, &h->a);
+  SKL_TEST_BUF_CREATE(t, float, &h->b);
+  SKL_TEST_BUF_CREATE(t, float, &h->c);
+  if (h->steps.verify) {
+    // Only allocate if lengths are non-zero to avoid malloc(0)
+    h->ctx.a_wide = h->a.len > 0 ? malloc(h->a.len * sizeof(double)) : NULL;
+    h->ctx.b_wide = h->b.len > 0 ? malloc(h->b.len * sizeof(double)) : NULL;
+    h->ctx.ref_c = h->c.len > 0 ? malloc(h->c.len * sizeof(float)) : NULL;
+    h->ctx.bound = h->c.len > 0 ? malloc(h->c.len * sizeof(double)) : NULL;
+    // Copy initial C values to ref_c for the beta*C term in reference GEMM
+    if (h->c.len) {
+      memcpy(h->ctx.ref_c, h->c.data, h->c.len * sizeof(float));
+    }
+  }
 }
-#endif
 
-/* The macros below set the matrix strides. */
-#if !defined(RSA) && !defined(CSA)
-#define RSA K // Default to row major
-#define CSA 1
-#elif !defined(RSA) || !defined(CSA)
-#error Must define both RSA and CSA, or neither
-#endif
-#if !defined(RSB) && !defined(CSB)
-#define RSB N // Default to row major
-#define CSB 1
-#elif !defined(RSB) || !defined(CSB)
-#error Must define both RSB and CSB, or neither
-#endif
-#if !defined(RSC) && !defined(CSC)
-#define RSC N // Default to row major
-#define CSC 1
-#elif !defined(RSC) || !defined(CSC)
-#error Must define both RSC and CSC, or neither
-#endif
-
-/* Input, output, reference, and error bound arrays */
-enum {
-  ALIGN = 4096,
-  CLEN = ((M - 1) * RSC + (N - 1) * CSC + 1),
-  ALEN = ((M - 1) * RSA + (K - 1) * CSA + 1),
-  BLEN = ((K - 1) * RSB + (N - 1) * CSB + 1),
-};
-
-#if defined(SKL_TEST_MALLOC)
-float *a;
-float *b;
-float *c;
-#else
-_Alignas(ALIGN) float a[ALEN];
-_Alignas(ALIGN) float b[BLEN];
-_Alignas(ALIGN) float c[CLEN];
-#endif
-
-#if defined(ENABLE_TEST)
-double a_wide[ALEN];
-double b_wide[BLEN];
-float ref_c[CLEN], test_c[CLEN];
-double bound[CLEN];
-#endif // ENABLE_TEST
-
-#if defined(ENABLE_TEST)
-/* Check result after executing test and reference functions.
- *
- * Compares the test_c and ref_c matrices based on a bound derived from
- * problem parameters. Returns nonzero in case of an error, and prints
- * first incorrect output matrix element. */
-int check_error(void) {
+void gemm_f32rc_f32rc_f32rc_verify(skl_test_t *t) {
   /* Compute the reference (scalar) matrix output. */
-  skl_gemm_f32rc_f32rc_f32rc_scalar(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB,
-                                    BETA, ref_c, RSC, CSC);
+  gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
 
   //
   // Compute the error bound array for comparing test vs reference results.
@@ -166,78 +74,82 @@ int check_error(void) {
   // Since both test and reference results have roundoff errors, we double this
   // bound using the triangle inequality to get the final comparison threshold.
   //
-  for (size_t i = 0; i < ALEN; ++i) {
-    a_wide[i] = fabsf(a[i]);
+  // Note: h->ctx.ref_c contains the original C values (copied in
+  // skl_test_init) which are needed for the |beta| * |C| term in the error
+  // bound.
+  //
+  for (size_t i = 0; i < h->a.len; ++i) {
+    h->ctx.a_wide[i] = fabsf(h->a.data[i]);
   }
-  for (size_t i = 0; i < BLEN; ++i) {
-    b_wide[i] = fabsf(b[i]);
+  for (size_t i = 0; i < h->b.len; ++i) {
+    h->ctx.b_wide[i] = fabsf(h->b.data[i]);
   }
-  for (size_t i = 0; i < CLEN; ++i) {
-    bound[i] = fabs((double)c[i]);
+  for (size_t i = 0; i < h->c.len; ++i) {
+    h->ctx.bound[i] = fabsf(h->ctx.ref_c[i]);
   }
   const int P = 24; // 23 bits of mantissa for float32 accumulator
   const double u = ldexp(1.0, -P); // Maximum relative roundoff error
   // Compute 2 * ((1 + u)^(K + 2) - 1) by change of base formula:
-  const double roundoff_scaling = 2 * expm1((K + 2) * log1p(u));
+  const double roundoff_scaling = 2 * expm1((double)(h->k + 2) * log1p(u));
   skl_gemm_f64rc_f64rc_f64rc_scalar(
-      M, N, K, roundoff_scaling * fabs((double)ALPHA), a_wide, RSA, CSA, b_wide,
-      RSB, CSB, roundoff_scaling * fabs((double)BETA), bound, RSC, CSC);
+      h->m, h->n, h->k, roundoff_scaling * fabs((double)h->alpha),
+      h->ctx.a_wide, h->rsa, h->csa, h->ctx.b_wide, h->rsb, h->csb,
+      roundoff_scaling * fabs((double)h->beta), h->ctx.bound, h->rsc, h->csc);
+
+  // Compute the reference result using h->ctx.ref_c
+  // h->ctx.ref_c contains the original C values (copied in skl_test_init)
+  // After this call, h->ctx.ref_c will contain the reference result
+  skl_gemm_f32rc_f32rc_f32rc_scalar(h->m, h->n, h->k, h->alpha, h->a.data,
+                                    h->rsa, h->csa, h->b.data, h->rsb, h->csb,
+                                    h->beta, h->ctx.ref_c, h->rsc, h->csc);
 
   /* Compare the reference and test outputs. */
-  for (size_t i = 0; i < M; ++i) {
-    for (size_t j = 0; j < N; ++j) {
-      size_t idx = i * RSC + j * CSC;
-      if (fabs((double)test_c[idx] - (double)ref_c[idx]) > bound[idx]) {
-        printf("result [%zu, %zu] (%f) != reference (%f)\n", i, j, test_c[idx],
-               ref_c[idx]);
-        return 1;
+  for (size_t i = 0; i < h->m; ++i) {
+    for (size_t j = 0; j < h->n; ++j) {
+      size_t idx = i * h->rsc + j * h->csc;
+      if (fabs((double)h->c.data[idx] - (double)h->ctx.ref_c[idx]) >
+          h->ctx.bound[idx]) {
+        SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
+                     "result [%zu, %zu] (%f) != reference (%f) [bound = %f]\n",
+                     i, j, h->c.data[idx], h->ctx.ref_c[idx],
+                     h->ctx.bound[idx]);
+        t->status.verify_status = SKL_TEST_FAIL;
+        return;
       }
     }
   }
-
-  return 0;
 }
-#endif // ENABLE_TEST
 
-int main(void) {
-  int res = EXIT_SUCCESS;
+void gemm_f32rc_f32rc_f32rc_report(skl_test_t *t) {
+  gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
 
-#if defined(SKL_TEST_MALLOC)
-  a = (float *)SKL_TEST_MALLOC(ALIGN, ALEN * sizeof(float));
-  b = (float *)SKL_TEST_MALLOC(ALIGN, BLEN * sizeof(float));
-  c = (float *)SKL_TEST_MALLOC(ALIGN, CLEN * sizeof(float));
-#endif
+  size_t maccs = h->m * h->n * h->k;
+  float mpc = (float)maccs / (float)t->counters.cycles;
 
-  printf("%s:\n", skl_test_name);
-  printf("M = %u, N = %u, K = %u\n", M, N, K);
-  printf("ALPHA = %f, BETA = %f\n", ALPHA, BETA);
-  printf("RSA = %u, CSA = %u\n", RSA, CSA);
-  printf("RSB = %u, CSB = %u\n", RSB, CSB);
-  printf("RSC = %u, CSC = %u\n", RSC, CSC);
-  printf("a = %p, b = %p, c = %p\n", (void *)a, (void *)b, (void *)c);
+#define INFO(fmt, ...) SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, fmt, __VA_ARGS__)
 
-  /* Populate the matrices. */
-  SKL_TEST_INIT_F32(a, ALEN);
-  SKL_TEST_INIT_F32(b, BLEN);
-  SKL_TEST_INIT_F32(c, CLEN);
+  INFO("M: %zd, N: %zd, K: %zd\n", h->m, h->n, h->k);
+  INFO("CSA: %zd, RSB: %zd, RSC: %zd\n", h->csa, h->rsb, h->rsc);
+  INFO("Alpha: %f, Beta: %f\n", h->alpha, h->beta);
+  INFO("%s", "\n");
+  INFO("Warmup: %s\n", h->steps.warmup ? "yes" : "no");
+  INFO("Cycles: %zd\n", t->counters.cycles);
+  INFO("Instructions: %zd\n", t->counters.instret);
+  INFO("MACs/Cycle: %f\n", mpc);
+#undef INFO
+}
 
-#if defined(ENABLE_TEST)
-  /* Make copies of C to write the reference and test outputs to. */
-  memcpy(ref_c, c, CLEN * sizeof(float));
-  memcpy(test_c, c, CLEN * sizeof(float));
-  SKL_TEST_NAME(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA, test_c, RSC,
-                CSC);
-  res += check_error();
-#endif // ENABLE_TEST
+void gemm_f32rc_f32rc_f32rc_cleanup(skl_test_t *t) {
+  gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
 
-  SKL_BENCHMARK_RUN(skl_test_name, M * N * K, SKL_TEST_WARMUP, SKL_TEST_NAME, M,
-                    N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA, c, RSC, CSC);
-
-#if defined(SKL_TEST_MALLOC) && defined(SKL_TEST_FREE)
-  SKL_TEST_FREE(a);
-  SKL_TEST_FREE(b);
-  SKL_TEST_FREE(c);
-#endif
-
-  return res;
+  // Free buffers
+  SKL_TEST_BUF_FREE(t, &h->a);
+  SKL_TEST_BUF_FREE(t, &h->b);
+  SKL_TEST_BUF_FREE(t, &h->c);
+  if (h->steps.verify) {
+    free(h->ctx.a_wide);
+    free(h->ctx.b_wide);
+    free(h->ctx.ref_c);
+    free(h->ctx.bound);
+  }
 }
