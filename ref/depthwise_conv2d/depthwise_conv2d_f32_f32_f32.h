@@ -4,14 +4,14 @@
 #pragma once
 
 /**
- * @file depthwise_conv2d_f16_f16_f16_scalar.h
- * @brief Scalar float16 depthwise convolution 2D kernels.
+ * @file depthwise_conv2d_f32_f32_f32.h
+ * @brief Scalar float32 depthwise convolution 2D kernels.
  *
  * This header provides scalar reference implementations of depthwise
- * convolution 2D operations for IEEE 754 binary16 (_Float16)
- * input/filter/output data. Depthwise convolution is a specialized convolution
- * where each input channel is convolved with a dedicated filter, reducing
- * computational cost compared to standard convolution operations.
+ * convolution 2D operations for float32 input/filter/output data. Depthwise
+ * convolution is a specialized convolution where each input channel is
+ * convolved with a dedicated filter, reducing computational cost compared to
+ * standard convolution operations.
  *
  * The scalar implementation provides the reference semantics for all optimized
  * depthwise convolution kernels and supports configurable stride, dilation, and
@@ -25,16 +25,12 @@
 
 #include <stddef.h>
 
-#if !defined(__riscv_zfh)
-#error This file requires the Zfh extension
-#endif
-
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
 /**
- * @brief Scalar float16 depthwise convolution 2D.
+ * @brief Scalar float32 depthwise convolution 2D.
  *
  * @param output - Pointer to output tensor (HWC layout).
  * @param input - Pointer to input tensor (HWC layout).
@@ -60,17 +56,17 @@ extern "C" {
  * @param output_col_stride - Output's column stride in elements.
  *
  * This generic scalar implementation defines the semantics of all optimized
- * float16 depthwise convolution kernels that use HWC data layout.
+ * float32 depthwise convolution kernels that use HWC data layout.
  *
  * @note This function is for API documentation and test purposes only, and
  * should not be used to obtain good performance.
  */
-void skl_depthwise_conv2d_hwc_f16_f16_f16_scalar(
-    _Float16 *output, const _Float16 *input, const _Float16 *filter,
-    size_t input_height, size_t input_width, size_t input_channel,
-    size_t filter_height, size_t filter_width, size_t output_height,
-    size_t output_width, size_t output_channel, size_t depth_multiplier,
-    size_t stride_height, size_t stride_width, size_t dilation_height_factor,
+void skl_depthwise_conv2d_hwc_f32_f32_f32_scalar(
+    float *output, const float *input, const float *filter, size_t input_height,
+    size_t input_width, size_t input_channel, size_t filter_height,
+    size_t filter_width, size_t output_height, size_t output_width,
+    size_t output_channel, size_t depth_multiplier, size_t stride_height,
+    size_t stride_width, size_t dilation_height_factor,
     size_t dilation_width_factor, size_t input_row_stride,
     size_t input_col_stride, size_t filter_row_stride, size_t filter_col_stride,
     size_t output_row_stride, size_t output_col_stride);

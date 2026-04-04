@@ -31,36 +31,36 @@ target_include_directories(${SKL_LIBRARY} PUBLIC include)
 add_library(${REF_LIBRARY}
   STATIC
   EXCLUDE_FROM_ALL
-    ref/cvt/cvt_f4e2m1_f8e4m3_scalar.c
-    ref/cvt/cvt_ofp8_scalar.c
-    ref/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_scalar.c
-    ref/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_scalar.c
-    ref/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_scalar.c
-    ref/gemm/gemm_bf16rc_bf16rc_f32rc_scalar.c
-    ref/gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar.c
-    ref/gemm/gemm_f8e4m3rc_f8e4m3rc_f32rc_scalar.c
-    ref/gemm/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_scalar.c
-    ref/gemm/gemm_f8e5m2rc_f8e5m2rc_f32rc_scalar.c
-    ref/gemm/gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc_scalar.c
-    ref/gemm/gemm_f16rc_f16rc_f16rc_scalar.c
-    ref/gemm/gemm_f16rc_f16rc_f32rc_scalar.c
-    ref/gemm/gemm_f16rcprc_f16rcprc_f32rcprc_scalar.c
-    ref/gemm/gemm_f32rc_f32rc_f32rc_scalar.c
-    ref/gemm/gemm_f32rcprc_f32rcprc_f32rcprc_scalar.c
-    ref/gemm/gemm_f64rc_f64rc_f64rc_scalar.c
-    ref/gemm/gemm_f64rcprc_f64rcprc_f64rcprc_scalar.c
-    ref/gemm/gemm_i8rc_i8rc_i32rc_scalar.c
-    ref/gemm/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.c
-    ref/logistic/logistic_f16_scalar.c
-    ref/logistic/logistic_f32_scalar.c
-    ref/silu/silu_f16_scalar.c
-    ref/silu/silu_f32_scalar.c
-    ref/softmax/softmax_bf16_scalar.c
-    ref/softmax/softmax_f16_scalar.c
-    ref/softmax/softmax_f32_scalar.c
-    ref/transpose/transpose_e16_scalar.c
-    ref/transpose/transpose_e32_scalar.c
-    ref/transpose/transpose_e8_scalar.c
+    ref/cvt/cvt_f4e2m1_f8e4m3.c
+    ref/cvt/cvt_ofp8.c
+    ref/depthwise_conv2d/depthwise_conv2d_f16_f16_f16.c
+    ref/depthwise_conv2d/depthwise_conv2d_f32_f32_f32.c
+    ref/depthwise_conv2d/depthwise_conv2d_i8_i8_i32.c
+    ref/gemm/gemm_bf16rc_bf16rc_f32rc.c
+    ref/gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc.c
+    ref/gemm/gemm_f8e4m3rc_f8e4m3rc_f32rc.c
+    ref/gemm/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc.c
+    ref/gemm/gemm_f8e5m2rc_f8e5m2rc_f32rc.c
+    ref/gemm/gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc.c
+    ref/gemm/gemm_f16rc_f16rc_f16rc.c
+    ref/gemm/gemm_f16rc_f16rc_f32rc.c
+    ref/gemm/gemm_f16rcprc_f16rcprc_f32rcprc.c
+    ref/gemm/gemm_f32rc_f32rc_f32rc.c
+    ref/gemm/gemm_f32rcprc_f32rcprc_f32rcprc.c
+    ref/gemm/gemm_f64rc_f64rc_f64rc.c
+    ref/gemm/gemm_f64rcprc_f64rcprc_f64rcprc.c
+    ref/gemm/gemm_i8rc_i8rc_i32rc.c
+    ref/gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+    ref/logistic/logistic_f16.c
+    ref/logistic/logistic_f32.c
+    ref/silu/silu_f16.c
+    ref/silu/silu_f32.c
+    ref/softmax/softmax_bf16.c
+    ref/softmax/softmax_f16.c
+    ref/softmax/softmax_f32.c
+    ref/transpose/transpose_e16.c
+    ref/transpose/transpose_e32.c
+    ref/transpose/transpose_e8.c
 )
 
 target_include_directories(${REF_LIBRARY} PUBLIC include)
