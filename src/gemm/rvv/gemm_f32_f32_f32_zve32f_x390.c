@@ -34,7 +34,7 @@
  *
  * Functionally equivalent to scalar call:
  * ```
- * skl_gemm_f32rc_f32rc_f32rc_scalar(
+ * skl_gemm_f32rc_f32rc_f32rc_ref(
  *     1, n, k,
  *     alpha,
  *     a, 1, 1,
@@ -218,7 +218,7 @@ skl_gemm_1x2m8x2_f32_f32_f32_zve32f_x390(size_t n, size_t k, float alpha,
  *
  * Functionally equivalent to the scalar call:
  * ```
- * skl_gemm_f32rc_f32rc_f32rc_scalar(
+ * skl_gemm_f32rc_f32rc_f32rc_ref(
  *     m, n, k,
  *     alpha,
  *     a, rsa, 1,
@@ -786,7 +786,7 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
  *
  * Functionally equivalent to the scalar call:
  * ```
- * skl_gemm_f32rc_f32rc_f32rc_scalar(
+ * skl_gemm_f32rc_f32rc_f32rc_ref(
  *     m, n, k,
  *     alpha,
  *     a, rsa, 1,

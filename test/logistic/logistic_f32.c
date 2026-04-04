@@ -74,7 +74,7 @@ int main(void) {
 #endif
 
 #if defined(RUN_SCALAR)
-  RUN(skl_logistic_3u_f32_scalar, "scalar", 3)
+  RUN(skl_logistic_3u_f32_ref, "scalar", 3)
 #endif
 
 #if !(defined(RUN_RVV) || defined(RUN_SCALAR) || defined(RUN_XSFVFEXPA))

@@ -5,7 +5,7 @@
 #include <math.h>
 #include <stddef.h>
 
-SKL_FUNC void skl_silu_52u_f32_scalar(float *out, const float *in, size_t n) {
+SKL_FUNC void skl_silu_52u_f32_ref(float *out, const float *in, size_t n) {
   for (size_t i = 0; i < n; i++) {
     float x = in[i];
     if (x <= 0.0f) {

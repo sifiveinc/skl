@@ -103,7 +103,7 @@ int main(void) {
 
 #if defined(ENABLE_TEST)
   memset(ref_output, -1, sizeof ref_output);
-  DWCONV2D_KERNEL(skl_depthwise_conv2d_hwc_i8_i8_i32_scalar, ref_output,
+  DWCONV2D_KERNEL(skl_depthwise_conv2d_hwc_i8_i8_i32_ref, ref_output,
                   DWCONV2D_GENERAL_ARGS);
 #endif
 

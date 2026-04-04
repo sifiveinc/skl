@@ -32,7 +32,7 @@
  *
  * Functionally equivalent to scalar call:
  * ```
- * skl_gemm_i8rc_i8rc_i32rc_scalar(
+ * skl_gemm_i8rc_i8rc_i32rc_ref(
  *     m, n, k,
  *     alpha,
  *     a, rsa, 1,

@@ -29,7 +29,7 @@ extern "C" {
  * This function is for API documentation purposes only, and should not be used
  * for performance applications.
  */
-void skl_softmax_bf16_scalar(__bf16 *pDst, const __bf16 *pSrc,
+void skl_softmax_bf16_ref(__bf16 *pDst, const __bf16 *pSrc,
                              const __bf16 beta, const size_t n);
 
 #if defined(__cplusplus)

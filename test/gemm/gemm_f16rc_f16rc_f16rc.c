@@ -119,7 +119,7 @@ float bound[CLEN];
  * first incorrect output matrix element. */
 int check_error(void) {
   /* Compute the reference (scalar) matrix output. */
-  skl_gemm_f16rc_f16rc_f16rc_scalar(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB,
+  skl_gemm_f16rc_f16rc_f16rc_ref(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB,
                                     BETA, ref_c, RSC, CSC);
 
   //
@@ -151,7 +151,7 @@ int check_error(void) {
   const float u = ldexpf(1.0f, -P); // Maximum relative roundoff error
   // Compute 2 * ((1 + u)^(K + 2) - 1) by change of base formula:
   const float roundoff_scaling = 2 * expm1f((K + 2) * log1pf(u));
-  skl_gemm_f32rc_f32rc_f32rc_scalar(
+  skl_gemm_f32rc_f32rc_f32rc_ref(
       M, N, K, roundoff_scaling * fabsf(ALPHA), a_wide, RSA, CSA, b_wide, RSB,
       CSB, roundoff_scaling * fabsf(BETA), bound, RSC, CSC);
 

@@ -30,7 +30,7 @@
  *
  * Functionally equivalent to scalar call:
  * ```
- * skl_gemm_f64rc_f64rc_f64rc_scalar(
+ * skl_gemm_f64rc_f64rc_f64rc_ref(
  *     m, n, k,
  *     alpha,
  *     a, rsa, 1,

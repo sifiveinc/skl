@@ -39,7 +39,7 @@ extern "C" {
  *
  * When k % 4 == 0, equivalent to scalar call:
  * ```
- * skl_gemm_i8rcprc_i8rcprc_i32rcprc_scalar(
+ * skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
  *     1, 1, 4, m, n, k / 4,   // m0, n0, k0, m1, n1, k1
  *     alpha,                  // alpha
  *     a, 0, 1, rsa, 4,        // a_pack, rsa0, csa0, rsa1, csa1
@@ -58,7 +58,7 @@ extern "C" {
  * ```
  * is equivalent to scalar call:
  * ```
- * skl_gemm_i8_i32_scalar(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc);
+ * skl_gemm_i8_i32_ref(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc);
  * ```
  *
  * This kernel uses the SiFive Xsfvqdotq extension for vector quad widening 4D
@@ -97,7 +97,7 @@ void skl_gemm_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k, int32_t alpha,
  *
  * When k % 4 == 0, equivalent to scalar call:
  * ```
- * skl_gemm_i8rcprc_i8rcprc_i32rcprc_scalar(
+ * skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
  *     1, 1, 4, m, n, k / 4,   // m0, n0, k0, m1, n1, k1
  *     alpha,                  // alpha
  *     a, 0, 1, rsa, 4,        // a_pack, rsa0, csa0, rsa1, csa1
@@ -116,7 +116,7 @@ void skl_gemm_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k, int32_t alpha,
  * ```
  * is equivalent to scalar call:
  * ```
- * skl_gemm_i8_i32_scalar(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc);
+ * skl_gemm_i8_i32_ref(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc);
  * ```
  *
  * This kernel uses the SiFive Xsfvqdotq extension for vector quad widening 4D

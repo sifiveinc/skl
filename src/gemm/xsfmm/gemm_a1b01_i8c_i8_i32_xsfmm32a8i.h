@@ -36,7 +36,7 @@ extern "C" {
  *
  * Equivalent to scalar call:
  * ```
- * skl_gemm_i8rc_i8rc_i32rc_scalar(
+ * skl_gemm_i8rc_i8rc_i32rc_ref(
  *     m, n, k,       // m, n, k
  *     1,             // alpha
  *     a, 1, csa,     // a, rsa, csa
@@ -79,7 +79,7 @@ void skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i(size_t m, size_t n, size_t k,
  *
  * Equivalent to scalar call:
  * ```
- * skl_gemm_i8rcprc_i8rcprc_i32rcprc_scalar(
+ * skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
  *     TE, TE, 1, m1, n1, k,     // m0, n0, k0, m1, n1, k1
  *     1,                        // alpha
  *     a_pack, 1, 0, rsa1, TE,   // a_pack, rsa0, csa0, rsa1, csa1

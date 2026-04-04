@@ -165,7 +165,7 @@ void init_random_f8e4m3(uint8_t *arr, size_t len) {
  * first incorrect output matrix element. */
 int check_error(void) {
   /* Compute the reference (scalar) matrix output. */
-  skl_gemm_f8e4m3rc_f8e4m3rc_f32rc_scalar(M, N, K, ALPHA, a, RSA, CSA, b, RSB,
+  skl_gemm_f8e4m3rc_f8e4m3rc_f32rc_ref(M, N, K, ALPHA, a, RSA, CSA, b, RSB,
                                           CSB, BETA, ref_c, RSC, CSC);
 
   //
@@ -197,7 +197,7 @@ int check_error(void) {
   const double u = ldexp(1.0, -P); // Maximum relative roundoff error
   // Compute 2 * ((1 + u)^(K + 2) - 1) by change of base formula:
   const double roundoff_scaling = 2 * expm1((K + 2) * log1p(u));
-  skl_gemm_f64rc_f64rc_f64rc_scalar(
+  skl_gemm_f64rc_f64rc_f64rc_ref(
       M, N, K, roundoff_scaling * fabs((double)ALPHA), a_wide, RSA, CSA, b_wide,
       RSB, CSB, roundoff_scaling * fabs((double)BETA), bound, RSC, CSC);
 

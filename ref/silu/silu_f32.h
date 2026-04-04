@@ -26,7 +26,7 @@ extern "C" {
  * This function is for API documentation purposes only, and should not be used
  * for performance applications.
  */
-void skl_silu_52u_f32_scalar(float *out, const float *in, size_t n);
+void skl_silu_52u_f32_ref(float *out, const float *in, size_t n);
 
 #ifdef __cplusplus
 } // extern "C"

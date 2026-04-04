@@ -5,7 +5,7 @@
 #include <math.h>
 #include <stddef.h>
 
-SKL_FUNC void skl_softmax_f16_scalar(_Float16 *pDst, const _Float16 *pSrc,
+SKL_FUNC void skl_softmax_f16_ref(_Float16 *pDst, const _Float16 *pSrc,
                                      _Float16 beta, size_t n) {
   if (n < 1) {
     return;

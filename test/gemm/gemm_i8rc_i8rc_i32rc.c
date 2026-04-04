@@ -130,7 +130,7 @@ int32_t ref_c[CLEN], test_c[CLEN];
  * and prints first incorrect output matrix element. */
 int check_error(void) {
   /* Compute the reference (scalar) matrix output. */
-  skl_gemm_i8rc_i8rc_i32rc_scalar(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB,
+  skl_gemm_i8rc_i8rc_i32rc_ref(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB,
                                   BETA, ref_c, RSC, CSC);
 
   /* Compare the reference and test outputs. */

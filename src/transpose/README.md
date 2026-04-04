@@ -23,22 +23,22 @@ Currently supports 8-bit, 16-bit, and 32-bit element transpose operations.
 ## Kernel List
 
 ### Scalar Implementations
-#### **`skl_transpose_e8_scalar`**
+#### **`skl_transpose_e8_ref`**
 - Generic scalar implementation for 8-bit elements
 
-#### **`skl_transpose_e16_scalar`**
+#### **`skl_transpose_e16_ref`**
 - Generic scalar implementation for 16-bit elements
 
-#### **`skl_transpose_e32_scalar`**
+#### **`skl_transpose_e32_ref`**
 - Generic scalar implementation for 32-bit elements
 
 ```c
-void skl_transpose_e8_scalar(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
+void skl_transpose_e8_ref(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
                              size_t rsa, uint8_t *SKL_RESTRICT at, size_t rsat);
-void skl_transpose_e16_scalar(size_t m, size_t n,
+void skl_transpose_e16_ref(size_t m, size_t n,
                               const uint16_t *SKL_RESTRICT a, size_t rsa,
                               uint16_t *SKL_RESTRICT at, size_t rsat);
-void skl_transpose_e32_scalar(size_t m, size_t n,
+void skl_transpose_e32_ref(size_t m, size_t n,
                               const uint32_t *SKL_RESTRICT a, size_t rsa,
                               uint32_t *SKL_RESTRICT at, size_t rsat);
 ```

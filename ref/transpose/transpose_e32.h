@@ -27,7 +27,7 @@ extern "C" {
  *
  * @note Input and output matrices must not overlap.
  */
-void skl_transpose_e32_scalar(size_t m, size_t n,
+void skl_transpose_e32_ref(size_t m, size_t n,
                               const uint32_t *SKL_RESTRICT a, size_t rsa,
                               uint32_t *SKL_RESTRICT at, size_t rsat);
 

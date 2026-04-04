@@ -84,7 +84,7 @@ Specialization does _not_ currently extend to fixed-size matrix dimensions such 
 Public SKL GEMM functions are dispatch functions that choose between one or more internal kernels, as described below.
 
 #### Examples:
-- `skl_gemm_f32rc_f32rc_f32rc_scalar(m, n, k, alpha, a, rsa, csa, b, rsb, csb, beta, c, rsc, csc)`
+- `skl_gemm_f32rc_f32rc_f32rc_ref(m, n, k, alpha, a, rsa, csa, b, rsb, csb, beta, c, rsc, csc)`
 - `skl_gemm_f32_f32_f32_zve32f_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc)`
 - `skl_gemm_i8_i8_i32_zve32x_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc)`
 - `skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(m, n, k, a, csa, b, rsb, c, rsc, accum)`

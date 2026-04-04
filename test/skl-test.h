@@ -197,7 +197,7 @@ size_t skl_get_te_xsfmmbase(void) {
 
 // Higher precision GEMM for computing bounds for GEMMs with float64
 // accumulators
-static inline void skl_gemm_f128rc_f128rc_f128rc_scalar(
+static inline void skl_gemm_f128rc_f128rc_f128rc_ref(
     size_t m, size_t n, size_t k, long double alpha, const long double *a,
     size_t rsa, size_t csa, const long double *b, size_t rsb, size_t csb,
     long double beta, long double *c, size_t rsc, size_t csc) {

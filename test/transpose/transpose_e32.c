@@ -41,7 +41,7 @@ float ref_at[ATLEN], test_at[ATLEN];
 #if defined(ENABLE_TEST)
 int check_error(void) {
   /* Compute the reference (scalar) matrix output. */
-  skl_transpose_e32_scalar(M, N, (uint32_t *)a, RSA, (uint32_t *)ref_at, RSAT);
+  skl_transpose_e32_ref(M, N, (uint32_t *)a, RSA, (uint32_t *)ref_at, RSAT);
 
   /* Compare the reference and test outputs. */
   for (size_t i = 0; i < N; ++i) {

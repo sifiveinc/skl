@@ -35,7 +35,7 @@
  *
  * Functionally equivalent to scalar call:
  * ```
- * skl_gemm_bf16rc_bf16rc_f32rc_scalar(
+ * skl_gemm_bf16rc_bf16rc_f32rc_ref(
  *     m, n, k,
  *     alpha,
  *     a, rsa, 1,

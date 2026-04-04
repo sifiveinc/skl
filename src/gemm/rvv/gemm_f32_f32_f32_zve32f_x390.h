@@ -33,7 +33,7 @@ extern "C" {
  *
  * Functionally equivalent to the scalar call:
  * ```
- * skl_gemm_f32rc_f32rc_f32rc_scalar(
+ * skl_gemm_f32rc_f32rc_f32rc_ref(
  *     m, n, k,
  *     alpha,
  *     a, rsa, 1,

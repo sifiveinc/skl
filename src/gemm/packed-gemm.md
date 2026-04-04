@@ -254,7 +254,7 @@ void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(
   // K-fringe elements; this is just for illustration
   size_t k1 = k / 4;
   size_t kfix = k % 4;
-  skl_gemm_i8rcprc_i8rcprc_i32rcprc_scalar(
+  skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
     1, 1, 4, m, n, k1,      // m0, n0, k0, m1, n1, k1
     1,                      // alpha
     a, 0, 1, rsa, 4,        // a_pack, rsa0, csa0, rsa1, csa1

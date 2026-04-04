@@ -23,7 +23,7 @@ extern "C" {
  *
  * Computes the softmax function equivalent to the scalar call:
  * ```
- * skl_softmax_bf16_scalar(pDst, pSrc, beta, n);
+ * skl_softmax_bf16_ref(pDst, pSrc, beta, n);
  * ```
  */
 void skl_softmax_bf16_xsfvfbfa(__bf16 *pDst, const __bf16 *pSrc,

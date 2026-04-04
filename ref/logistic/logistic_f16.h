@@ -23,7 +23,7 @@ extern "C" {
  * This function is for API documentation purposes only, and should not be used
  * for performance applications.
  */
-void skl_logistic_1u_f16_scalar(_Float16 *out, const _Float16 *in, size_t n);
+void skl_logistic_1u_f16_ref(_Float16 *out, const _Float16 *in, size_t n);
 
 #ifdef __cplusplus
 } // extern "C"

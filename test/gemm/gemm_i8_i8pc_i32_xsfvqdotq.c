@@ -116,7 +116,7 @@ _Alignas(ALIGN) int32_t test_c[CLEN];
  * and prints first incorrect output matrix element. */
 int check_error(void) {
   /* Compute the reference (scalar) matrix output. */
-  skl_gemm_i8rc_i8rc_i32rc_scalar(M, N, K, ALPHA, a, (size_t)RSA, (size_t)CSA,
+  skl_gemm_i8rc_i8rc_i32rc_ref(M, N, K, ALPHA, a, (size_t)RSA, (size_t)CSA,
                                   b, (size_t)RSB, (size_t)CSB, BETA, ref_c,
                                   (size_t)RSC, (size_t)CSC);
 

@@ -43,7 +43,7 @@ extern "C" {
  * This function is for API documentation purposes only, and should not be used
  * for performance applications.
  */
-void skl_gemm_f32rcprc_f32rcprc_f32rcprc_scalar(
+void skl_gemm_f32rcprc_f32rcprc_f32rcprc_ref(
     size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
     float alpha, const float *a_pack, size_t rsa0, size_t csa0, size_t rsa1,
     size_t csa1, const float *b_pack, size_t rsb0, size_t csb0, size_t rsb1,

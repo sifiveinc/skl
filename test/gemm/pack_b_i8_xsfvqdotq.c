@@ -77,7 +77,7 @@ _Alignas(ALIGN) int8_t test_b_pack[BLEN_PACKED];
 #endif // ENABLE_TEST
 
 #if defined(ENABLE_TEST)
-void skl_pack_i8_scalar(size_t m, size_t n, const int8_t *c, size_t rsc,
+void skl_pack_i8_ref(size_t m, size_t n, const int8_t *c, size_t rsc,
                         size_t csc, size_t m0, size_t n0, int8_t *c_pack,
                         size_t rsc0, size_t csc0, size_t rsc1, size_t csc1) {
   size_t m1 = (m + m0 - 1) / m0; // ceil(m / m0)
@@ -103,7 +103,7 @@ void skl_pack_i8_scalar(size_t m, size_t n, const int8_t *c, size_t rsc,
 
 int check_error(void) {
   /* Compute the reference (scalar) matrix output. */
-  skl_pack_i8_scalar(K, N, b, RSB, CSB, K0, N0, ref_b_pack, RSB0, CSB0,
+  skl_pack_i8_ref(K, N, b, RSB, CSB, K0, N0, ref_b_pack, RSB0, CSB0,
                      (size_t)RSB1, CSB1);
 
   /* Compare the reference and test outputs. */

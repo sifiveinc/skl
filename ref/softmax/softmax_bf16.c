@@ -5,7 +5,7 @@
 #include <math.h>
 #include <stddef.h>
 
-SKL_FUNC void skl_softmax_bf16_scalar(__bf16 *pDst, const __bf16 *pSrc,
+SKL_FUNC void skl_softmax_bf16_ref(__bf16 *pDst, const __bf16 *pSrc,
                                       __bf16 beta, size_t n) {
   if (n < 1) {
     return;

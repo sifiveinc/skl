@@ -4,7 +4,7 @@
 #include "skl-common.h"
 #include <stddef.h>
 
-SKL_FUNC void skl_gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar(
+SKL_FUNC void skl_gemm_bf16rcprc_bf16rcprc_f32rcprc_ref(
     size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
     float alpha, const __bf16 *a_pack, size_t rsa0, size_t csa0, size_t rsa1,
     size_t csa1, const __bf16 *b_pack, size_t rsb0, size_t csb0, size_t rsb1,

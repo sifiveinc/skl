@@ -40,7 +40,7 @@ extern "C" {
  * This function is for API documentation purposes only, and should not be used
  * for performance applications.
  */
-void skl_gemm_f32rc_f32rc_f32rc_scalar(size_t m, size_t n, size_t k,
+void skl_gemm_f32rc_f32rc_f32rc_ref(size_t m, size_t n, size_t k,
                                        float alpha, const float *a, size_t rsa,
                                        size_t csa, const float *b, size_t rsb,
                                        size_t csb, float beta, float *c,

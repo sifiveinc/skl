@@ -33,7 +33,7 @@ extern "C" {
  *
  * Functionally equivalent to scalar call:
  * ```
- * skl_gemm_f16rc_f16rc_f16rc_scalar(
+ * skl_gemm_f16rc_f16rc_f16rc_ref(
  *     m, n, k,
  *     alpha,
  *     a, rsa, 1,

@@ -85,7 +85,7 @@ int main(void) {
 #endif
 
 #if defined(RUN_SCALAR)
-  RUN(skl_logistic_1u_f16_scalar, "scalar", 1)
+  RUN(skl_logistic_1u_f16_ref, "scalar", 1)
 #endif
 
 #if !(defined(RUN_RVV) || defined(RUN_XSFVFEXP16E) || defined(RUN_SCALAR))
