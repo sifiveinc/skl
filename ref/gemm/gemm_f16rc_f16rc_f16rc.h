@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar float16 matrix-matrix multiplication (HGEMM).
+ * @brief Reference float16 matrix-matrix multiplication (HGEMM).
  *
  * @param m - Number of rows in matrices A and C.
  * @param n - Number of columns in matrices B and C.

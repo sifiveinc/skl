@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar matrix transposition for 8-bit matrices.
+ * @brief Reference matrix transposition for 8-bit matrices.
  *
  * @param m - Number of rows in A and columns in A^T.
  * @param n - Number of columns in A and rows in A^T.

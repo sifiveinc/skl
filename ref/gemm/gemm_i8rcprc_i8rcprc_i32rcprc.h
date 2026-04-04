@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar int8 packed matrix-matrix multiplication with int32
+ * @brief Reference int8 packed matrix-matrix multiplication with int32
  * accumulator.
  *
  * @param m0 - Number of rows in each block of matrices A and C.

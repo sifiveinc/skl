@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar 1D unit-strided stable softmax.
+ * @brief Reference 1D unit-strided stable softmax.
  *
  * @param pDst - Array of output elements.
  * @param pSrc - Array of input elements.
@@ -33,7 +33,7 @@ void skl_softmax_f32_ref(float *pDst, const float *pSrc, float beta,
                             size_t n);
 
 /**
- * @brief Scalar 2D stable softmax, reducing rows.
+ * @brief Reference 2D stable softmax, reducing rows.
  *
  * @param s - Pointer to output matrix S.
  * @param rss - Row stride of S (stride between rows) in elements.

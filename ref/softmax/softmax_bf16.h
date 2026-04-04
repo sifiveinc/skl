@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar BFloat16 1D unit-strided softmax.
+ * @brief Reference BFloat16 1D unit-strided softmax.
  *
  * @param pDst - Array of output elements.
  * @param pSrc - Array of input elements.

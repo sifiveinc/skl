@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar float32 matrix-matrix multiplication (SGEMM).
+ * @brief Reference float32 matrix-matrix multiplication (SGEMM).
  *
  * @param m - Number of rows in matrices A and C.
  * @param n - Number of columns in matrices B and C.

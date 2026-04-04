@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar OFP8 E5M2 matrix-matrix multiplication with float32
+ * @brief Reference OFP8 E5M2 matrix-matrix multiplication with float32
  * accumulator.
  *
  * @param m - Number of rows in matrices A and C.

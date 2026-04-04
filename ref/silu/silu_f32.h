@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar 52-ULP FP32 Sigmoid Linear Unit.
+ * @brief Reference 52-ULP FP32 Sigmoid Linear Unit.
  *
  * @param out - Array of output elements.
  * @param in - Array of input elements.

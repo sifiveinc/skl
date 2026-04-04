@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar 1D unit-strided stable softmax.
+ * @brief Reference 1D unit-strided stable softmax.
  *
  * @param pDst - Array of output elements.
  * @param pSrc - Array of input elements.

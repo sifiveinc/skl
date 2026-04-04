@@ -5,7 +5,7 @@
 
 /**
  * @file depthwise_conv2d_i8_i8_i32.h
- * @brief Scalar int8 depthwise convolution 2D kernels with int32 accumulator.
+ * @brief Reference int8 depthwise convolution 2D kernels with int32 accumulator.
  *
  * This header provides scalar reference implementations of depthwise
  * convolution 2D operations for int8 input/filter data with int32 output
@@ -35,7 +35,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar int8 depthwise convolution 2D with int32 accumulator.
+ * @brief Reference int8 depthwise convolution 2D with int32 accumulator.
  *
  * @param output - Pointer to output tensor (HWC layout).
  * @param input - Pointer to input tensor (HWC layout).

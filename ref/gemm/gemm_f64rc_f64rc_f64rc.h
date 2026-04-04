@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar float64 matrix-matrix multiplication (DGEMM).
+ * @brief Reference float64 matrix-matrix multiplication (DGEMM).
  *
  * @param m - Number of rows in matrices A and C.
  * @param n - Number of columns in matrices B and C.

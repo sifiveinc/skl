@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar float32 packed matrix-matrix multiplication.
+ * @brief Reference float32 packed matrix-matrix multiplication.
  *
  * @param m0 - Number of rows in each block of matrices A and C.
  * @param n0 - Number of columns in each block of matrices B and C.

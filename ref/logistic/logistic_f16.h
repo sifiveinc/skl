@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar 1-ULP FP16 logistic.
+ * @brief Reference 1-ULP FP16 logistic.
  *
  * @param out - Array of output elements.
  * @param in - Array of input elements.

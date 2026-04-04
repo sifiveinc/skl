@@ -5,7 +5,7 @@
 
 /**
  * @file depthwise_conv2d_f32_f32_f32.h
- * @brief Scalar float32 depthwise convolution 2D kernels.
+ * @brief Reference float32 depthwise convolution 2D kernels.
  *
  * This header provides scalar reference implementations of depthwise
  * convolution 2D operations for float32 input/filter/output data. Depthwise
@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar float32 depthwise convolution 2D.
+ * @brief Reference float32 depthwise convolution 2D.
  *
  * @param output - Pointer to output tensor (HWC layout).
  * @param input - Pointer to input tensor (HWC layout).

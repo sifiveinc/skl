@@ -5,7 +5,7 @@
 
 /**
  * @file depthwise_conv2d_f16_f16_f16.h
- * @brief Scalar float16 depthwise convolution 2D kernels.
+ * @brief Reference float16 depthwise convolution 2D kernels.
  *
  * This header provides scalar reference implementations of depthwise
  * convolution 2D operations for IEEE 754 binary16 (_Float16)
@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar float16 depthwise convolution 2D.
+ * @brief Reference float16 depthwise convolution 2D.
  *
  * @param output - Pointer to output tensor (HWC layout).
  * @param input - Pointer to input tensor (HWC layout).

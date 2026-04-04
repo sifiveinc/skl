@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Scalar int8 matrix-matrix multiplication with int32 accumulator.
+ * @brief Reference int8 matrix-matrix multiplication with int32 accumulator.
  *
  * @param m - Number of rows in matrices A and C.
  * @param n - Number of columns in matrices B and C.
