@@ -20,7 +20,14 @@ target_compile_options(
   PRIVATE ${SKL_COMPILE_OPTIONS} ${SKL_TEST_COMPILE_OPTIONS}
 )
 
-function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC OPTS)
+function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
+  # Only add the test if all extensions in REQUIRED_EXTENSIONS are present.
+  foreach(EXT ${REQUIRED_EXTENSIONS})
+    if(NOT EXT IN_LIST RISCV_EXTENSIONS)
+      return()
+    endif()
+  endforeach()
+
   add_executable(test-${TEST_NAME} ${HARNESS_SRC} ${TEST_SRC})
   target_link_libraries(
     test-${TEST_NAME}
@@ -46,19 +53,18 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC OPTS)
   )
 endfunction()
 
-if(RISCV_ZVE32F)
-  skl_add_test(
-    skl_gemm_f32_f32_f32_zve32f_x390
-    gemm/gemm_f32rc_f32rc_f32rc.c
-    gemm/rvv/skl_gemm_f32_f32_f32_zve32f_x390.c
-    ""
-  )
-endif()
-if(RISCV_XSFMM32A32F)
-  skl_add_test(
-    skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f
-    gemm/gemm_f32rc_f32rc_f32rc.c
-    gemm/xsfmm/skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f.c
-    ""
-  )
-endif()
+
+skl_add_test(
+  skl_gemm_f32_f32_f32_zve32f_x390
+  gemm/gemm_f32rc_f32rc_f32rc.c
+  gemm/rvv/skl_gemm_f32_f32_f32_zve32f_x390.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f
+  gemm/gemm_f32rc_f32rc_f32rc.c
+  gemm/xsfmm/skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f.c
+  "xsfmm32a32f"
+  ""
+)
