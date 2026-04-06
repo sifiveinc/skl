@@ -24,13 +24,13 @@ Currently supports 8-bit, 16-bit, and 32-bit element transpose operations.
 
 ### Scalar Implementations
 #### **`skl_transpose_e8_ref`**
-- Generic scalar implementation for 8-bit elements
+- Generic implementation for 8-bit elements
 
 #### **`skl_transpose_e16_ref`**
-- Generic scalar implementation for 16-bit elements
+- Generic implementation for 16-bit elements
 
 #### **`skl_transpose_e32_ref`**
-- Generic scalar implementation for 32-bit elements
+- Generic implementation for 32-bit elements
 
 ```c
 void skl_transpose_e8_ref(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,

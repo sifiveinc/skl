@@ -27,7 +27,7 @@ extern "C" {
 /**
  * @brief Scalar reference implementation of 2D convolution
  *
- * Naive scalar implementation for correctness verification and testing.
+ * Naive implementation for correctness verification and testing.
  * Uses nested loops without any optimization.
  *
  * @param output Output tensor buffer [batches, output_height, output_width,

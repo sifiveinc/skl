@@ -21,7 +21,7 @@ Currently supports `int8` input/filter with `int32` output, as well as `float16`
 
 ### Scalar Implementation (Int8)
 #### **`skl_depthwise_conv2d_hwc_i8_i8_i32_ref`**
-- Generic scalar implementation
+- Generic implementation
 - Data layout: Input (HWC), Filter (HWIM), Output (HWC)
 
 ```c
@@ -55,7 +55,7 @@ void skl_depthwise_conv2d_hwc_i8_i8_i32_ref(
 
 ### Scalar Implementation (Float16)
 #### `skl_depthwise_conv2d_hwc_f16_f16_f16_ref`
-- Generic scalar implementation
+- Generic implementation
 - Data layout: Input (HWC), Filter (HWIM), Output (HWC)
 
 ```c
@@ -72,7 +72,7 @@ void skl_depthwise_conv2d_hwc_f16_f16_f16_ref(
 
 ### Scalar Implementation (Float32)
 #### `skl_depthwise_conv2d_hwc_f32_f32_f32_ref`
-- Generic scalar implementation
+- Generic implementation
 - Data layout: Input (HWC), Filter (HWIM), Output (HWC)
 
 ```c
