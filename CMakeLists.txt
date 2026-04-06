@@ -91,7 +91,7 @@ add_skl_src(src/gemm/xsfmm/gemm_a1b01_f32c_f32_f32_xsfmm32a32f.c "xsfmm32a32f")
 add_skl_src(src/gemm/xsfmm/gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c "xsfmm32a8f")
 add_skl_src(src/gemm/xsfmm/gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c "xsfmm32a8f")
 add_skl_src(src/gemm/xsfmm/gemm_a1b01_i8c_i8_i32_xsfmm32a8i.c "xsfmm32a8i")
-add_skl_src(src/gemm/xsfvqdotq/gemm_i8_i8pc_i32_xsfvqdotq.c "xsfvqdotq")
+add_skl_src(src/gemm/xsfvqdotq/gemm_i8rcp_i8pc_i32_xsfvqdotq.c "xsfvqdotq")
 add_skl_src(src/gemm/xsfvqdotq/pack_b_xsfvqdotq.c "zve32x")
 
 add_skl_src(src/logistic/logistic_f16_scalar.c "")
