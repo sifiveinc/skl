@@ -1288,21 +1288,3 @@ SKL_FUNC void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_x390_clp(
   skl_gemm_i8_i8pc_i32_xsfvqdotq_dispatch(m, n, k, alpha, a_pack, rsa1, csa1,
                                           b_pack, rsb1, beta, c, rsc, true);
 }
-
-SKL_FUNC void skl_gemm_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
-                                             int32_t alpha, const int8_t *a,
-                                             size_t rsa, const int8_t *b_pack,
-                                             size_t rsb1, int32_t beta,
-                                             int32_t *c, size_t rsc) {
-  const size_t k0 = 4;
-  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(m, n, k, alpha, a, rsa, k0, b_pack, rsb1,
-                                    beta, c, rsc);
-}
-
-SKL_FUNC void skl_gemm_i8_i8pc_i32_xsfvqdotq_x390_clp(
-    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a, size_t rsa,
-    const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c, size_t rsc) {
-  const size_t k0 = 4;
-  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_x390_clp(m, n, k, alpha, a, rsa, k0, b_pack,
-                                             rsb1, beta, c, rsc);
-}

@@ -311,10 +311,6 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
       "-DM0=1;-DN0=1;-DK0=4;-DM1=12;-DN1=128;-DK1=8;-DCSA1=(2 * K0);-DRSA1=(K1 * CSA1);-DRSB0=1;-DCSB0=0;-DALPHA=1;-DBETA=0;")
     skl_add_test_legacy(skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_x390_clp_wrapper gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
       "-DM0=1;-DN0=1;-DK0=4;-DM1=12;-DN1=128;-DK1=8;-DCSA1=(2 * K0);-DRSA1=(K1 * CSA1);-DRSB0=1;-DCSB0=0;-DALPHA=1;-DBETA=0;")
-    skl_add_test_legacy(skl_gemm_i8_i8pc_i32_xsfvqdotq_wrapper gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
-      "-DM0=1;-DN0=1;-DK0=4;-DM1=12;-DN1=128;-DK1=8;-DRSB0=1;-DCSB0=0;-DALPHA=1;-DBETA=0;")
-    skl_add_test_legacy(skl_gemm_i8_i8pc_i32_xsfvqdotq_x390_clp_wrapper gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
-      "-DM0=1;-DN0=1;-DK0=4;-DM1=12;-DN1=128;-DK1=8;-DRSB0=1;-DCSB0=0;-DALPHA=1;-DBETA=0;")
   endif()
 
   add_subdirectory(test)
