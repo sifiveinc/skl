@@ -1147,7 +1147,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
   __riscv_vse32_v_i32m4(c, vec0, n);
 }
 
-SKL_FUNC_PRIVATE void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_dispatch(
+SKL_FUNC void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(
     size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
     size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
     int32_t *c, size_t rsc) {
@@ -1222,12 +1222,4 @@ SKL_FUNC_PRIVATE void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_dispatch(
       }
     }
   }
-}
-
-SKL_FUNC void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(
-    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
-    size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
-    int32_t *c, size_t rsc) {
-  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_dispatch(m, n, k, alpha, a_pack, rsa1, csa1,
-                                             b_pack, rsb1, beta, c, rsc);
 }
