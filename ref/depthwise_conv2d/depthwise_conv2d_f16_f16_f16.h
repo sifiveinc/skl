@@ -25,10 +25,6 @@
 
 #include <stddef.h>
 
-#if !defined(__riscv_zfh)
-#error This file requires the Zfh extension
-#endif
-
 #if defined(__cplusplus)
 extern "C" {
 #endif

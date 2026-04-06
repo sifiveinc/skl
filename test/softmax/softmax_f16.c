@@ -16,6 +16,7 @@
 
 #include "skl-ref.h"
 #include "skl-test.h"
+// NOLINTNEXTLINE(misc-include-cleaner)
 #include "skl.h"
 #include <inttypes.h>
 #if defined(ENABLE_TEST)

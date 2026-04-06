@@ -1,10 +1,6 @@
 // Copyright 2025 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-#if !defined(__riscv_zfh)
-#error This file requires the Zfh extension
-#endif
-
 #include <stddef.h>
 #include <stdint.h>
 
