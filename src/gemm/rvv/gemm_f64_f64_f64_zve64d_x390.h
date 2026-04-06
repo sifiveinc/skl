@@ -31,7 +31,7 @@ extern "C" {
  *
  * Computes `C = alpha * A * B + beta * C` for F64 row-major matrices.
  *
- * Functionally equivalent to scalar call:
+ * Functionally equivalent to calling:
  * ```
  * skl_gemm_f64rc_f64rc_f64rc_ref(
  *     m, n, k,

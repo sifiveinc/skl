@@ -33,7 +33,7 @@ extern "C" {
  * true`) for FP16 column-major matrix A, FP16 row-major matrix B, and FP32
  * row-major matrix C.
  *
- * Equivalent to scalar call:
+ * Equivalent to calling:
  * ```
  * skl_gemm_f16rc_f16rc_f32rc_ref(
  *     m, n, k,       // m, n, k
@@ -76,7 +76,7 @@ void skl_gemm_a1b01_f16c_f16_f32_xsfmm32a16f(size_t m, size_t n, size_t k,
  * Computes `C = A * B` (if `accum == false`) or `C += A * B` (if `accum ==
  * true`) for packed FP16 matrices A and B and packed FP32 matrix C.
  *
- * Equivalent to scalar call:
+ * Equivalent to calling:
  * ```
  * skl_gemm_f16rcprc_f16rcprc_f32rcprc_ref(
  *     TE, TE, 1, m1, n1, k,     // m0, n0, k0, m1, n1, k1

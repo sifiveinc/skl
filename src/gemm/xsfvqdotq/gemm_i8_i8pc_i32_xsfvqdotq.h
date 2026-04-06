@@ -37,7 +37,7 @@ extern "C" {
  * Computes `C = alpha * A * B_pack + beta * C` for int8 matrix A, packed int8
  * matrix B_pack, and int32 output matrix C.
  *
- * When k % 4 == 0, equivalent to scalar call:
+ * When k % 4 == 0, equivalent to calling:
  * ```
  * skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
  *     1, 1, 4, m, n, k / 4,   // m0, n0, k0, m1, n1, k1
@@ -56,7 +56,7 @@ extern "C" {
  * skl_gemm_i8_i8pc_i32_xsfvqdotq(m, n, k, alpha, a, rsa, b_pack, rsb1, beta, c,
  *                                rsc);
  * ```
- * is equivalent to scalar call:
+ * is equivalent to calling:
  * ```
  * skl_gemm_i8_i32_ref(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc);
  * ```
@@ -95,7 +95,7 @@ void skl_gemm_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k, int32_t alpha,
  * Computes `C = alpha * A * B_pack + beta * C` for int8 matrix A, packed int8
  * matrix B_pack, and int32 output matrix C.
  *
- * When k % 4 == 0, equivalent to scalar call:
+ * When k % 4 == 0, equivalent to calling:
  * ```
  * skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
  *     1, 1, 4, m, n, k / 4,   // m0, n0, k0, m1, n1, k1
@@ -114,7 +114,7 @@ void skl_gemm_i8_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k, int32_t alpha,
  * skl_gemm_i8_i8pc_i32_xsfvqdotq_x390_clp(m, n, k, alpha, a, rsa, b_pack, rsb1,
  *                                         beta, c, rsc);
  * ```
- * is equivalent to scalar call:
+ * is equivalent to calling:
  * ```
  * skl_gemm_i8_i32_ref(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc);
  * ```

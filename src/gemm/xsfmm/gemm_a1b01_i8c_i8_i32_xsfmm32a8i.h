@@ -34,7 +34,7 @@ extern "C" {
  * true`) for int8 column-major matrix A, int8 row-major matrix B, and int32
  * row-major matrix C.
  *
- * Equivalent to scalar call:
+ * Equivalent to calling:
  * ```
  * skl_gemm_i8rc_i8rc_i32rc_ref(
  *     m, n, k,       // m, n, k
@@ -77,7 +77,7 @@ void skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i(size_t m, size_t n, size_t k,
  * Computes `C = A * B` (if `accum == false`) or `C += A * B` (if `accum ==
  * true`) for packed int8 matrices A and B and packed int32 matrix C.
  *
- * Equivalent to scalar call:
+ * Equivalent to calling:
  * ```
  * skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
  *     TE, TE, 1, m1, n1, k,     // m0, n0, k0, m1, n1, k1

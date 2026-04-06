@@ -28,7 +28,7 @@
  *
  * Computes `C = alpha * A * B + beta * C` for FP16 row-major matrices.
  *
- * Functionally equivalent to scalar call:
+ * Functionally equivalent to calling:
  * ```
  * skl_gemm_f16rc_f16rc_f16rc_ref(
  *     m, n, k,

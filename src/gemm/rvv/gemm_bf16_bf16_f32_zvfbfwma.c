@@ -33,7 +33,7 @@
  * Computes `C = alpha * A * B + beta * C` for BF16 row-major matrices A and B
  * and FP32 row-major output matrix C.
  *
- * Functionally equivalent to scalar call:
+ * Functionally equivalent to calling:
  * ```
  * skl_gemm_bf16rc_bf16rc_f32rc_ref(
  *     m, n, k,

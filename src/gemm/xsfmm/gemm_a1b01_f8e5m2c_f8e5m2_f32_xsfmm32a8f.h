@@ -35,7 +35,7 @@ extern "C" {
  * FP32 row-major matrix C. The entries of A and B are type-punned as 8-bit
  * unsigned integers.
  *
- * Equivalent to scalar call:
+ * Equivalent to calling:
  * ```
  * skl_gemm_f8e5m2rc_f8e5m2rc_f32rc_ref(
  *     m, n, k,       // m, n, k
@@ -80,7 +80,7 @@ void skl_gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f(size_t m, size_t n, size_t k,
  * true`) for packed OFP8 E5M2 matrices A and B and packed FP32 matrix C. The
  * entries of A and B are type-punned as 8-bit unsigned integers.
  *
- * Equivalent to scalar call:
+ * Equivalent to calling:
  * ```
  * skl_gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc_ref(
  *     TE, TE, 1, m1, n1, k,     // m0, n0, k0, m1, n1, k1

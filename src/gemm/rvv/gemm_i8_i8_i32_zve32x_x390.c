@@ -30,7 +30,7 @@
  * Computes `C = alpha * A * B + beta * C` for int8 row-major matrices A and B
  * and int32 output matrix C.
  *
- * Functionally equivalent to scalar call:
+ * Functionally equivalent to calling:
  * ```
  * skl_gemm_i8rc_i8rc_i32rc_ref(
  *     m, n, k,

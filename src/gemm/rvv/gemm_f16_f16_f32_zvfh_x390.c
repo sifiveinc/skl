@@ -25,7 +25,7 @@
  *
  * Computes `C = alpha * A * B + beta * C` for FP16 unit-stride vector A and
  * row-major matrix B and FP32 unit-stride output vector C.
- * Functionally equivalent to scalar call:
+ * Functionally equivalent to calling:
  * ```
  * skl_gemm_f16rc_f16rc_f32rc_ref(
  *     1, n, k,
@@ -208,7 +208,7 @@ skl_gemm_1xm8x16_f16_f16_f32_zvfh_x390(size_t n, size_t k, float alpha,
  * Computes `C = alpha * A * B + beta * C` for FP16 row-major matrices A and B
  * and FP32 row-major output matrix C.
  *
- * Functionally equivalent to scalar call:
+ * Functionally equivalent to calling:
  * ```
  * skl_gemm_f16rc_f16rc_f32rc_ref(
  *     m, n, k,

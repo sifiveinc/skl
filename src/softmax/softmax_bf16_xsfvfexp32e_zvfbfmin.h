@@ -22,7 +22,7 @@ extern "C" {
  * @param beta - Scaling factor for exponential function arguments.
  * @param n - Number of elements to process.
  *
- * Computes the softmax function equivalent to the scalar call:
+ * Computes the softmax function equivalent to the calling:
  * ```
  * skl_softmax_bf16_ref(pDst, pSrc, beta, n);
  * ```
