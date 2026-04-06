@@ -7,18 +7,18 @@
  * @file depthwise_conv2d_i8_i8_i32.h
  * @brief Reference int8 depthwise convolution 2D kernels with int32 accumulator.
  *
- * This header provides scalar reference implementations of depthwise
- * convolution 2D operations for int8 input/filter data with int32 output
- * accumulation. Depthwise convolution is a specialized convolution where each
- * input channel is convolved with a dedicated filter, reducing computational
- * cost compared to standard convolution operations.
+ * This header provides reference implementations of depthwise convolution 2D
+ * operations for int8 input/filter data with int32 output accumulation.
+ * Depthwise convolution is a specialized convolution where each input channel
+ * is convolved with a dedicated filter, reducing computational cost compared to
+ * standard convolution operations.
  *
- * The scalar implementation provides the reference semantics for all optimized
+ * The implementation provides the reference semantics for all optimized
  * depthwise convolution kernels and supports configurable stride, dilation, and
  * depth multiplier parameters. This implementation is primarily intended for
  * API documentation and correctness verification rather than performance.
  *
- * The input and output tensors of the scalar function are formated in HWC
+ * The input and output tensors of the function are formated in HWC
  * (Height-Width-Channel) data layout, while the filter tensor is formated in
  * HWIM (Height-Width-Input Channel-Depth Multiplier) layout.
  *
@@ -61,9 +61,9 @@ extern "C" {
  * @param output_col_stride - Output's column stride in elements.
  * @param input_zero_point - Input's zero-point for quantization.
  *
- * This generic scalar implementation defines the semantics of all optimized
- * int8 depthwise convolution kernels with int32 accumulators that use HWC
- * data layout.
+ * This generic implementation defines the semantics of all optimized int8
+ * depthwise convolution kernels with int32 accumulators that use HWC data
+ * layout.
  *
  * @note This function is for API documentation and test purposes only, and
  * should not be used to obtain good performance.

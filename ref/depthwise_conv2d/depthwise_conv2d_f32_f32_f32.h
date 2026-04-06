@@ -7,18 +7,18 @@
  * @file depthwise_conv2d_f32_f32_f32.h
  * @brief Reference float32 depthwise convolution 2D kernels.
  *
- * This header provides scalar reference implementations of depthwise
- * convolution 2D operations for float32 input/filter/output data. Depthwise
- * convolution is a specialized convolution where each input channel is
- * convolved with a dedicated filter, reducing computational cost compared to
- * standard convolution operations.
+ * This header provides reference implementations of depthwise convolution 2D
+ * operations for float32 input/filter/output data. Depthwise convolution is a
+ * specialized convolution where each input channel is convolved with a
+ * dedicated filter, reducing computational cost compared to standard
+ * convolution operations.
  *
- * The scalar implementation provides the reference semantics for all optimized
+ * The implementation provides the reference semantics for all optimized
  * depthwise convolution kernels and supports configurable stride, dilation, and
  * depth multiplier parameters. This implementation is primarily intended for
  * API documentation and correctness verification rather than performance.
  *
- * The input and output tensors of the scalar function are formatted in HWC
+ * The input and output tensors of the function are formatted in HWC
  * (Height-Width-Channel) data layout, while the filter tensor is formatted in
  * HWIM (Height-Width-Input Channel-Depth Multiplier) layout.
  */
@@ -55,8 +55,8 @@ extern "C" {
  * @param output_row_stride - Output's row stride in elements.
  * @param output_col_stride - Output's column stride in elements.
  *
- * This generic scalar implementation defines the semantics of all optimized
- * float32 depthwise convolution kernels that use HWC data layout.
+ * This generic implementation defines the semantics of all optimized float32
+ * depthwise convolution kernels that use HWC data layout.
  *
  * @note This function is for API documentation and test purposes only, and
  * should not be used to obtain good performance.
