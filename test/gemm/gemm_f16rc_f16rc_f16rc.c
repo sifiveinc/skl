@@ -118,7 +118,7 @@ float bound[CLEN];
  * problem parameters. Returns nonzero in case of an error, and prints
  * first incorrect output matrix element. */
 int check_error(void) {
-  /* Compute the reference (scalar) matrix output. */
+  /* Compute the reference matrix output. */
   skl_gemm_f16rc_f16rc_f16rc_ref(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB,
                                     BETA, ref_c, RSC, CSC);
 

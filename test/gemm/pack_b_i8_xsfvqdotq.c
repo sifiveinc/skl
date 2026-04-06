@@ -102,7 +102,7 @@ void skl_pack_i8_ref(size_t m, size_t n, const int8_t *c, size_t rsc,
 }
 
 int check_error(void) {
-  /* Compute the reference (scalar) matrix output. */
+  /* Compute the reference matrix output. */
   skl_pack_i8_ref(K, N, b, RSB, CSB, K0, N0, ref_b_pack, RSB0, CSB0,
                      (size_t)RSB1, CSB1);
 

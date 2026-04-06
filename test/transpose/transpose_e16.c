@@ -40,7 +40,7 @@ _Float16 ref_at[ATLEN], test_at[ATLEN];
 
 #if defined(ENABLE_TEST)
 int check_error(void) {
-  /* Compute the reference (scalar) matrix output. */
+  /* Compute the reference matrix output. */
   skl_transpose_e16_ref(M, N, (uint16_t *)a, RSA, (uint16_t *)ref_at, RSAT);
 
   /* Compare the reference and test outputs. */

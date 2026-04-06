@@ -81,7 +81,7 @@ int main(void) {
 
   // Run subset of functions depending on ISA compatibility
 #if defined(RUN_SCALAR)
-  RUN(skl_softmax_f32_ref, "scalar");
+  RUN(skl_softmax_f32_ref, "reference");
 #endif
 #if defined(__riscv_zve32f) && defined(RUN_ZVE32F)
   RUN(skl_softmax_f32_zve32f, "zve32f");

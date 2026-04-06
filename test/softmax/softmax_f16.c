@@ -85,7 +85,7 @@ int main(void) {
 
   // Run subset of functions depending on ISA compatibility
 #if defined(RUN_SCALAR)
-  RUN(skl_softmax_f16_ref, "scalar");
+  RUN(skl_softmax_f16_ref, "reference");
 #endif
 #if defined(__riscv_xsfvfexp16e) && defined(RUN_VFEXP)
   RUN(skl_softmax_f16_xsfvfexp16e, "xsfvfexp16e");

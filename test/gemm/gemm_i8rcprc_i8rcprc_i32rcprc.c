@@ -227,7 +227,7 @@ int32_t ref_c[CLEN], test_c[CLEN];
  * problem parameters. Returns nonzero in case of an error, and prints
  * first incorrect output matrix element. */
 int check_error(void) {
-  /* Compute the reference (scalar) matrix output. */
+  /* Compute the reference matrix output. */
   skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
       M0, N0, K0, M1, N1, K1, ALPHA, a, (size_t)RSA0, (size_t)CSA0,
       (size_t)RSA1, (size_t)CSA1, b, (size_t)RSB0, (size_t)CSB0, (size_t)RSB1,
