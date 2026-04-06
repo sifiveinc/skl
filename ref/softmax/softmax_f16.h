@@ -30,7 +30,7 @@ extern "C" {
  * for performance applications.
  */
 void skl_softmax_f16_ref(_Float16 *pDst, const _Float16 *pSrc, _Float16 beta,
-                            size_t n);
+                         size_t n);
 
 #if defined(__cplusplus)
 } // extern "C"

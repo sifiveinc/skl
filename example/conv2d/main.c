@@ -158,8 +158,8 @@ int main(void) {
 
 #if defined(ENABLE_TEST)
   memset(ref_output, -1, sizeof ref_output);
-  DIRECT_CONV2D_KERNEL(conv2d_io_nhwc_filter_hwio_f32_f32_f32_ref,
-                       ref_output, CONV2D_GENERAL_ARGS)
+  DIRECT_CONV2D_KERNEL(conv2d_io_nhwc_filter_hwio_f32_f32_f32_ref, ref_output,
+                       CONV2D_GENERAL_ARGS)
 #endif
 
 #if defined(ENABLE_BENCHMARK)

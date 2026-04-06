@@ -133,8 +133,8 @@ double bound[CLEN];
  * first incorrect output matrix element. */
 int check_error(void) {
   /* Compute the reference matrix output. */
-  skl_gemm_f8e5m2rc_f8e5m2rc_f32rc_ref(M, N, K, ALPHA, a, RSA, CSA, b, RSB,
-                                          CSB, BETA, ref_c, RSC, CSC);
+  skl_gemm_f8e5m2rc_f8e5m2rc_f32rc_ref(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB,
+                                       BETA, ref_c, RSC, CSC);
 
   //
   // Compute the error bound array for comparing test vs reference results.

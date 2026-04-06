@@ -29,8 +29,7 @@ extern "C" {
  * This function is for API documentation purposes only, and should not be used
  * for performance applications.
  */
-void skl_softmax_f32_ref(float *pDst, const float *pSrc, float beta,
-                            size_t n);
+void skl_softmax_f32_ref(float *pDst, const float *pSrc, float beta, size_t n);
 
 /**
  * @brief Reference 2D stable softmax, reducing rows.
@@ -52,7 +51,7 @@ void skl_softmax_f32_ref(float *pDst, const float *pSrc, float beta,
  * not be used for performance applications.
  */
 void skl_softmax_2d_f32_ref(float *s, size_t rss, const float *a, size_t rsa,
-                               float beta, size_t m, size_t n);
+                            float beta, size_t m, size_t n);
 
 #if defined(__cplusplus)
 } // extern "C"

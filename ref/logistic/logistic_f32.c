@@ -5,8 +5,7 @@
 #include <math.h>
 #include <stddef.h>
 
-SKL_FUNC void skl_logistic_3u_f32_ref(float *out, const float *in,
-                                         size_t n) {
+SKL_FUNC void skl_logistic_3u_f32_ref(float *out, const float *in, size_t n) {
   for (size_t i = 0; i < n; i++) {
     float x = in[i];
     if (!isnan(x)) {

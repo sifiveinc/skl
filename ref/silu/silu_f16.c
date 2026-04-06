@@ -6,8 +6,7 @@
 #include <math.h>
 #include <stddef.h>
 
-SKL_FUNC void skl_silu_1u_f16_ref(_Float16 *out, const _Float16 *in,
-                                     size_t n) {
+SKL_FUNC void skl_silu_1u_f16_ref(_Float16 *out, const _Float16 *in, size_t n) {
   for (size_t i = 0; i < n; i++) {
     out[i] = (_Float16)(in[i] / (1.0f + expf(-in[i])));
   }

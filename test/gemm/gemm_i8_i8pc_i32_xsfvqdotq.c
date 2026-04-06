@@ -116,9 +116,9 @@ _Alignas(ALIGN) int32_t test_c[CLEN];
  * and prints first incorrect output matrix element. */
 int check_error(void) {
   /* Compute the reference matrix output. */
-  skl_gemm_i8rc_i8rc_i32rc_ref(M, N, K, ALPHA, a, (size_t)RSA, (size_t)CSA,
-                                  b, (size_t)RSB, (size_t)CSB, BETA, ref_c,
-                                  (size_t)RSC, (size_t)CSC);
+  skl_gemm_i8rc_i8rc_i32rc_ref(M, N, K, ALPHA, a, (size_t)RSA, (size_t)CSA, b,
+                               (size_t)RSB, (size_t)CSB, BETA, ref_c,
+                               (size_t)RSC, (size_t)CSC);
 
   /* Compare the reference and test outputs. */
   for (size_t i = 0; i < M; ++i) {

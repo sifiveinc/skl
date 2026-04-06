@@ -4,10 +4,12 @@
 #include "skl-common.h"
 #include <stddef.h>
 
-SKL_FUNC void skl_gemm_bf16rc_bf16rc_f32rc_ref(
-    size_t m, size_t n, size_t k, float alpha, const __bf16 *a, size_t rsa,
-    size_t csa, const __bf16 *b, size_t rsb, size_t csb, float beta, float *c,
-    size_t rsc, size_t csc) {
+SKL_FUNC void skl_gemm_bf16rc_bf16rc_f32rc_ref(size_t m, size_t n, size_t k,
+                                               float alpha, const __bf16 *a,
+                                               size_t rsa, size_t csa,
+                                               const __bf16 *b, size_t rsb,
+                                               size_t csb, float beta, float *c,
+                                               size_t rsc, size_t csc) {
   for (size_t ii = 0; ii < m; ii++) {
     for (size_t jj = 0; jj < n; jj++) {
       float acc = 0;

@@ -99,9 +99,9 @@ void gemm_f32rc_f32rc_f32rc_verify(skl_test_t *t) {
   // Compute the reference result using h->ctx.ref_c
   // h->ctx.ref_c contains the original C values (copied in skl_test_init)
   // After this call, h->ctx.ref_c will contain the reference result
-  skl_gemm_f32rc_f32rc_f32rc_ref(h->m, h->n, h->k, h->alpha, h->a.data,
-                                 h->rsa, h->csa, h->b.data, h->rsb, h->csb,
-                                 h->beta, h->ctx.ref_c, h->rsc, h->csc);
+  skl_gemm_f32rc_f32rc_f32rc_ref(h->m, h->n, h->k, h->alpha, h->a.data, h->rsa,
+                                 h->csa, h->b.data, h->rsb, h->csb, h->beta,
+                                 h->ctx.ref_c, h->rsc, h->csc);
 
   /* Compare the reference and test outputs. */
   for (size_t i = 0; i < h->m; ++i) {

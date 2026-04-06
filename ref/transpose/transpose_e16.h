@@ -27,9 +27,8 @@ extern "C" {
  *
  * @note Input and output matrices must not overlap.
  */
-void skl_transpose_e16_ref(size_t m, size_t n,
-                              const uint16_t *SKL_RESTRICT a, size_t rsa,
-                              uint16_t *SKL_RESTRICT at, size_t rsat);
+void skl_transpose_e16_ref(size_t m, size_t n, const uint16_t *SKL_RESTRICT a,
+                           size_t rsa, uint16_t *SKL_RESTRICT at, size_t rsat);
 
 #if defined(__cplusplus)
 } // extern "C"

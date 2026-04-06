@@ -6,7 +6,7 @@
 #include <stddef.h>
 
 SKL_FUNC void skl_softmax_f32_ref(float *pDst, const float *pSrc, float beta,
-                                     size_t n) {
+                                  size_t n) {
   if (n < 1) {
     return;
   }
@@ -28,10 +28,9 @@ SKL_FUNC void skl_softmax_f32_ref(float *pDst, const float *pSrc, float beta,
   }
 }
 
-SKL_FUNC void skl_softmax_2d_f32_ref(float *s, const size_t rss,
-                                        const float *a, const size_t rsa,
-                                        const float beta, const size_t m,
-                                        const size_t n) {
+SKL_FUNC void skl_softmax_2d_f32_ref(float *s, const size_t rss, const float *a,
+                                     const size_t rsa, const float beta,
+                                     const size_t m, const size_t n) {
   for (size_t i = 0; i < m; ++i) {
     skl_softmax_f32_ref(s + i * rss, a + i * rsa, beta, n);
   }

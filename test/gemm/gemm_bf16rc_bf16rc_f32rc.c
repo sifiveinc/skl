@@ -141,7 +141,7 @@ double bound[CLEN];
 int check_error(void) {
   /* Compute the reference matrix output. */
   skl_gemm_bf16rc_bf16rc_f32rc_ref(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB,
-                                      BETA, ref_c, RSC, CSC);
+                                   BETA, ref_c, RSC, CSC);
 
   //
   // Compute the error bound array for comparing test vs reference results.
