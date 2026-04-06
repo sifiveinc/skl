@@ -207,7 +207,6 @@ function(skl_add_example EXAMPLE_NAME EXAMPLE_SRCS OPTS)
   target_link_libraries(example-${EXAMPLE_NAME}
     PRIVATE
       ${SKL_LIBRARY}
-      ${REF_LIBRARY}
       ${SKL_TEST_LIBS})
   target_compile_options(example-${EXAMPLE_NAME} PRIVATE
     ${SKL_COMPILE_OPTIONS}
