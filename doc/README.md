@@ -22,8 +22,8 @@ If the function uses multiple parameters, they should be described in the same o
 The `<param-name>` should match the name of the parameter in the prototype (including casing).
 5. The next line should be empty.
 6. The next line(s) should express any additional information needed to describe the function or its usage.
-If a kernel specializes a generic function (like the GEMM kernels specialize their scalar references), show the equivalent function call using markdown (```) blocks.
-Do not use `@details` -- this is implied.
+If a kernel specializes a generic function (like the GEMM kernels specialize their references), show the equivalent function call using markdown (\`\`\`) blocks.
+Do not use `\@details` -- this is implied.
 7. [Optional] The next line(s) may contain one or more `@note` blocks, with each `@note` block beginning on its own line and an empty line between successive notes.
 This is good for notes about input ranges for which the kernel is most suitable, or for emphasizing an important API constraint.
 8. The next line should be the final line containing exactly ` */` to end the block comment.
