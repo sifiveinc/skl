@@ -26,7 +26,7 @@ set(SKL_COMPILE_OPTIONS
 
 target_include_directories(${SKL_LIBRARY} PUBLIC include)
 
-# Build the scalar reference library
+# Build the reference library
 
 add_library(${REF_LIBRARY}
   STATIC
