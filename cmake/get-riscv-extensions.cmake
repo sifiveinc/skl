@@ -25,10 +25,20 @@ endif()
 
 set(RISCV_EXTENSIONS "")
 
+if (${SKL_PREPROCESSOR_OUTPUT} MATCHES "__riscv_zfhmin")
+  list(APPEND SKL_QEMU_CPU_OPTIONS "zfhmin=true")
+  list(APPEND RISCV_EXTENSIONS "zfhmin")
+endif()
+
 if (${SKL_PREPROCESSOR_OUTPUT} MATCHES "__riscv_zfh ")
   # The above space is necessary to distinguish from zfhmin
   list(APPEND SKL_QEMU_CPU_OPTIONS "zfh=true")
   list(APPEND RISCV_EXTENSIONS "zfh")
+endif()
+
+if (${SKL_PREPROCESSOR_OUTPUT} MATCHES "__riscv_zvfhmin")
+  list(APPEND SKL_QEMU_CPU_OPTIONS "zvfhmin=true")
+  list(APPEND RISCV_EXTENSIONS "zvfhmin")
 endif()
 
 if (${SKL_PREPROCESSOR_OUTPUT} MATCHES "__riscv_zvfh ")
