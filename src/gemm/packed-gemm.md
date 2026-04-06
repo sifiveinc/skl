@@ -10,7 +10,7 @@ It also describes the packing and unpacking routines that convert matrices betwe
    - [Example: Matrix A Packing with Padding](#example-matrix-a-packing-with-padding)
    - [Stride Relationships](#stride-relationships)
 2. [APIs for Packed GEMM Kernels](#apis-for-packed-gemm-kernels)
-   - [Generic Packed GEMM Semantics (Scalar Reference Implementation)](#generic-packed-gemm-semantics-scalar-reference-implementation)
+   - [Generic Packed GEMM Semantics (Reference Implementation)](#generic-packed-gemm-semantics-reference-implementation)
    - [Naming Convention](#naming-convention)
 3. [APIs for Packing & Unpacking Kernels](#apis-for-packing--unpacking-kernels)
 4. [Application to Specific ISAs and Frameworks](#application-to-specific-isas-and-frameworks)
@@ -115,7 +115,7 @@ However, in some cases not every dimension will be packed, in which case the ori
 
 As in the case of basic GEMM, the various stride parameters suffice to describe arbitrary transpositions (row- and column-major) both of blocks and within them.
 
-### Generic Packed GEMM Semantics (Scalar Reference Implementation)
+### Generic Packed GEMM Semantics (Reference Implementation)
 For the sake of completeness, the above API's semantics are defined by the following reference implementation:
 ```c
 // Loops over blocks (done by software)
