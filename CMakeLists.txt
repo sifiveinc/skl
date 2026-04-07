@@ -29,7 +29,7 @@ target_include_directories(${SKL_LIBRARY} PUBLIC
 
 target_compile_options(${SKL_LIBRARY} PRIVATE ${SKL_COMPILE_OPTIONS})
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get-riscv-extensions.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/detect_riscv_extensions.cmake)
 
 function(add_skl_src SRC REQUIRED_EXTENSIONS)
   # Add the source file SRC to the SKL_LIBRARY if all RISC-V
