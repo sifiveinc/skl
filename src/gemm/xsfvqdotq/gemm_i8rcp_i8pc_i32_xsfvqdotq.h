@@ -38,7 +38,7 @@ extern "C" {
  * Computes `C = alpha * A_pack * B_pack + beta * C` for packed int8 matrices
  * A_pack and B_pack and int32 output matrix C.
  *
- * When k % 4 == 0, equivalent to scalar call:
+ * When k % 4 == 0, equivalent to calling:
  * ```
  * skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
  *     1, 1, 4, m, n, k / 4,     // m0, n0, k0, m1, n1, k1
@@ -68,9 +68,16 @@ extern "C" {
  * skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(m, n, k, alpha, a_pack, rsa1, csa1, b_pack,
  *                                   rsb1, beta, c, rsc);
  * ```
- * is equivalent to scalar call:
+ * is equivalent to calling:
  * ```
- * skl_gemm_i8_i32_ref(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc);
+ * skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
+ *     1, 1, 1, m, n, k,    // m0, n0, k0, m1, n1, k1
+ *     alpha,               // alpha
+ *     a, 0, 0, rsa, 1,     // a, rsa0, csa0, rsa1, csa1
+ *     b, 0, 0, rsb, 1,     // b, rsb0, csb0, rsb1, csb1
+ *     beta,                // beta
+ *     c, 0, 0, rsc, 1      // c, rsc0, csc0, rsc1, csc1
+ * );
  * ```
  *
  * This kernel uses the SiFive Xsfvqdotq extension for vector quad widening 4D
@@ -111,7 +118,7 @@ void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
  * Computes `C = alpha * A_pack * B_pack + beta * C` for packed int8 matrices
  * A_pack and B_pack and int32 output matrix C.
  *
- * When k % 4 == 0, equivalent to scalar call:
+ * When k % 4 == 0, equivalent to calling:
  * ```
  * skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
  *     1, 1, 4, m, n, k / 4,     // m0, n0, k0, m1, n1, k1
@@ -141,9 +148,16 @@ void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
  * skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_x390_clp(m, n, k, alpha, a_pack, rsa1,
  *                                            csa1, b_pack, rsb1, beta, c, rsc);
  * ```
- * is equivalent to scalar call:
+ * is equivalent to calling:
  * ```
- * skl_gemm_i8_i32_ref(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc);
+ * skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
+ *     1, 1, 1, m, n, k,    // m0, n0, k0, m1, n1, k1
+ *     alpha,               // alpha
+ *     a, 0, 0, rsa, 1,     // a, rsa0, csa0, rsa1, csa1
+ *     b, 0, 0, rsb, 1,     // b, rsb0, csb0, rsb1, csb1
+ *     beta,                // beta
+ *     c, 0, 0, rsc, 1      // c, rsc0, csc0, rsc1, csc1
+ * );
  * ```
  *
  * This kernel uses the SiFive Xsfvqdotq extension for vector quad widening 4D
