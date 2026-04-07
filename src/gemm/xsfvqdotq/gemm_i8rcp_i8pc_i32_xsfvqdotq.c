@@ -25,120 +25,184 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_i8rcp_i8pc_i32_xsfvqdotq(
   vint32m4_t vec1 = __riscv_vmv_v_x_i32m4(0, n);
   vint32m4_t vec2 = __riscv_vmv_v_x_i32m4(0, n);
   vint32m4_t vec3 = __riscv_vmv_v_x_i32m4(0, n);
-  vint32m4_t vec4 = __riscv_vmv_v_x_i32m4(0, n);
-  vint32m4_t vec5 = __riscv_vmv_v_x_i32m4(0, n);
 
   const int8_t *a0 = a_pack + 0 * rsa1;
   const int8_t *a1 = a_pack + 1 * rsa1;
   const int8_t *a2 = a_pack + 2 * rsa1;
   const int8_t *a3 = a_pack + 3 * rsa1;
-  const int8_t *a4 = a_pack + 4 * rsa1;
-  const int8_t *a5 = a_pack + 5 * rsa1;
 
   uint32_t a0_0;
   uint32_t a0_1;
   uint32_t a0_2;
   uint32_t a0_3;
-  uint32_t a0_4;
-  uint32_t a0_5;
   uint32_t a1_0;
   uint32_t a1_1;
   uint32_t a1_2;
   uint32_t a1_3;
-  uint32_t a1_4;
-  uint32_t a1_5;
+
+  uint32_t *a0_0t = &a0_0;
+  uint32_t *a0_1t = &a0_1;
+  uint32_t *a0_2t = &a0_2;
+  uint32_t *a0_3t = &a0_3;
+  uint32_t *a1_0t = &a1_0;
+  uint32_t *a1_1t = &a1_1;
+  uint32_t *a1_2t = &a1_2;
+  uint32_t *a1_3t = &a1_3;
+
+  vint8m1_t tmp0;
+  vint8m1_t tmp1;
+  vint8m1_t tmp2;
+  vint8m1_t tmp3;
 
   // process the first (k / 4) * 4 elements of the inner dimension
-  if (k >= 4) {
-    __builtin_memcpy(&a0_0, a0, 4);
-    a0 += csa1;
-    __builtin_memcpy(&a0_1, a1, 4);
-    a1 += csa1;
-    __builtin_memcpy(&a0_2, a2, 4);
-    a2 += csa1;
-    __builtin_memcpy(&a0_3, a3, 4);
-    a3 += csa1;
-    __builtin_memcpy(&a0_4, a4, 4);
-    a4 += csa1;
-    __builtin_memcpy(&a0_5, a5, 4);
-    a5 += csa1;
+  if (k >= 8) {
+    __asm__ volatile(
+        // compute first tile
+        "vsetivli x0, 4, e8, m1, ta, ma\n"
+        "vle8.v %[tmp0], (%[a0])\n"
+        "add %[a0], %[a0], %[csa1]\n"
+        "vle8.v %[tmp1], (%[a1])\n"
+        "add %[a1], %[a1], %[csa1]\n"
+        "vle8.v %[tmp2], (%[a2])\n"
+        "add %[a2], %[a2], %[csa1]\n"
+        "vle8.v %[tmp3], (%[a3])\n"
+        "add %[a3], %[a3], %[csa1]\n"
 
-    // load first B tile (4xn)
-    vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b_pack, 4 * n);
-    b_pack += rsb1;
+        "vse8.v %[tmp0], (%[a0_0t])\n"
+        "vse8.v %[tmp1], (%[a0_1t])\n"
+        "vse8.v %[tmp2], (%[a0_2t])\n"
+        "vse8.v %[tmp3], (%[a0_3t])\n"
+
+        "ntl.p1\n"
+        "lw %[a0_0], 0(%[a0_0t])\n"
+        "ntl.p1\n"
+        "lw %[a0_1], 0(%[a0_1t])\n"
+        "ntl.p1\n"
+        "lw %[a0_2], 0(%[a0_2t])\n"
+        "ntl.p1\n"
+        "lw %[a0_3], 0(%[a0_3t])\n"
+
+        // load second B tile (4xn)
+        "vsetvli x0, %[n4], e8, m4, ta, ma\n"
+        "vle8.v %[bvec0], (%[b_pack])\n"
+        "add %[b_pack], %[b_pack], %[rsb1]\n"
+
+        "vsetivli x0, 4, e8, m1, ta, ma\n"
+        "vle8.v %[tmp0], (%[a0])\n"
+        "add %[a0], %[a0], %[csa1]\n"
+        "vle8.v %[tmp1], (%[a1])\n"
+        "add %[a1], %[a1], %[csa1]\n"
+        "vle8.v %[tmp2], (%[a2])\n"
+        "add %[a2], %[a2], %[csa1]\n"
+        "vle8.v %[tmp3], (%[a3])\n"
+        "add %[a3], %[a3], %[csa1]\n"
+
+        "vse8.v %[tmp0], (%[a1_0t])\n"
+        "vse8.v %[tmp1], (%[a1_1t])\n"
+        "vse8.v %[tmp2], (%[a1_2t])\n"
+        "vse8.v %[tmp3], (%[a1_3t])\n"
+        : [tmp0] "=&vr"(tmp0), [tmp1] "=&vr"(tmp1), [tmp2] "=&vr"(tmp2),
+          [tmp3] "=&vr"(tmp3), [bvec0] "=&vr"(bvec0), [a0_0] "=&r"(a0_0),
+          [a0_1] "=&r"(a0_1), [a0_2] "=&r"(a0_2), [a0_3] "=&r"(a0_3)
+        : [a0] "r"(a0), [a0] "r"(a0), [a0] "r"(a0), [a0] "r"(a0),
+          [a0_0t] "r"(a0_0t), [a0_1t] "r"(a0_1t), [a0_2t] "r"(a0_2t),
+          [a0_3t] "r"(a0_3t), [a1_0t] "r"(a1_0t), [a1_1t] "r"(a1_1t),
+          [a1_2t] "r"(a1_2t), [a1_3t] "r"(a1_3t), [csa1] "r"(csa1)
+        : "vl", "vtype", "memory");
 
     while (k >= 12) {
       vint8m4_t bvec1;
       __asm__ volatile(
-          // compute first tile
-          "vsetvli x0, %[n], e32, m4, ta, ma\n"
-          "sf.vqdot.vx %[vec0], %[bvec0], %[a0_0]\n"
-          "sf.vqdot.vx %[vec1], %[bvec0], %[a0_1]\n"
-          "sf.vqdot.vx %[vec2], %[bvec0], %[a0_2]\n"
-          "sf.vqdot.vx %[vec3], %[bvec0], %[a0_3]\n"
+          "ntl.p1\n"
+          "lw %[a1_0], 0(%[a1_0t])\n"
+          "ntl.p1\n"
+          "lw %[a1_1], 0(%[a1_1t])\n"
+          "ntl.p1\n"
+          "lw %[a1_2], 0(%[a1_2t])\n"
+          "ntl.p1\n"
+          "lw %[a1_3], 0(%[a1_3t])\n"
 
           // load second B tile (4xn)
           "vsetvli x0, %[n4], e8, m4, ta, ma\n"
           "vle8.v %[bvec1], (%[b_pack])\n"
           "add %[b_pack], %[b_pack], %[rsb1]\n"
-          : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
-            [vec3] "+&vr"(vec3), [bvec1] "=&vr"(bvec1), [b_pack] "+&r"(b_pack)
-          : [bvec0] "vr"(bvec0), [a0_0] "r"(a0_0), [a0_1] "r"(a0_1),
-            [a0_2] "r"(a0_2), [a0_3] "r"(a0_3),
-            [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n), [n4] "r"(4 * n)
-          : "vl", "vtype", "memory");
 
-      __builtin_memcpy(&a1_0, a0, 4);
-      a0 += csa1;
-      __builtin_memcpy(&a1_1, a1, 4);
-      a1 += csa1;
-      __builtin_memcpy(&a1_2, a2, 4);
-      a2 += csa1;
-      __builtin_memcpy(&a1_3, a3, 4);
-      a3 += csa1;
-      __builtin_memcpy(&a1_4, a4, 4);
-      a4 += csa1;
-      __builtin_memcpy(&a1_5, a5, 4);
-      a5 += csa1;
-
-      __asm__ volatile(
+          // compute first tile
           "vsetvli x0, %[n], e32, m4, ta, ma\n"
-          "sf.vqdot.vx %[vec4], %[bvec0], %[a0_4]\n"
-          "sf.vqdot.vx %[vec5], %[bvec0], %[a0_5]\n"
+          "sf.vqdot.vx %[vec0], %[bvec0], %[a0_0]\n"
+          "sf.vqdot.vx %[vec1], %[bvec0], %[a0_1]\n"
+          "vsetivli x0, 4, e8, m1, ta, ma\n"
+          "vle8.v %[tmp0], (%[a0])\n"
+          "add %[a0], %[a0], %[csa1]\n"
+          "vle8.v %[tmp1], (%[a1])\n"
+          "add %[a1], %[a1], %[csa1]\n"
+          "vse8.v %[tmp0], (%[a0_0t])\n"
 
-          // compute second tile
-          "sf.vqdot.vx %[vec0], %[bvec1], %[a1_0]\n"
-          "sf.vqdot.vx %[vec1], %[bvec1], %[a1_1]\n"
-          "sf.vqdot.vx %[vec2], %[bvec1], %[a1_2]\n"
-          "sf.vqdot.vx %[vec3], %[bvec1], %[a1_3]\n"
-          "sf.vqdot.vx %[vec4], %[bvec1], %[a1_4]\n"
-          "sf.vqdot.vx %[vec5], %[bvec1], %[a1_5]\n"
+          "vsetvli x0, %[n], e32, m4, ta, ma\n"
+          "sf.vqdot.vx %[vec2], %[bvec0], %[a0_2]\n"
+          "vsetivli x0, 4, e8, m1, ta, ma\n"
+          "vle8.v %[tmp2], (%[a2])\n"
+          "add %[a2], %[a2], %[csa1]\n"
+          "vse8.v %[tmp1], (%[a0_1t])\n"
 
-          // pre-load first B tile (4xn) of next iteration
+          "vsetvli x0, %[n], e32, m4, ta, ma\n"
+          "sf.vqdot.vx %[vec3], %[bvec0], %[a0_3]\n"
+          "vsetivli x0, 4, e8, m1, ta, ma\n"
+          "vle8.v %[tmp3], (%[a3])\n"
+          "add %[a3], %[a3], %[csa1]\n"
+          "vse8.v %[tmp2], (%[a0_2t])\n"
+          "vse8.v %[tmp3], (%[a0_3t])\n"
+
+          "ntl.p1\n"
+          "lw %[a0_0], 0(%[a0_0t])\n"
+          "ntl.p1\n"
+          "lw %[a0_1], 0(%[a0_1t])\n"
+          "ntl.p1\n"
+          "lw %[a0_2], 0(%[a0_2t])\n"
+          "ntl.p1\n"
+          "lw %[a0_3], 0(%[a0_3t])\n"
+
           "vsetvli x0, %[n4], e8, m4, ta, ma\n"
           "vle8.v %[bvec0], (%[b_pack])\n"
           "add %[b_pack], %[b_pack], %[rsb1]\n"
-          : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
-            [vec3] "+&vr"(vec3), [vec4] "+&vr"(vec4), [vec5] "+&vr"(vec5),
-            [bvec0] "+&vr"(bvec0), [b_pack] "+&r"(b_pack)
-          : [bvec1] "vr"(bvec1), [a0_4] "r"(a0_4), [a0_5] "r"(a0_5),
-            [a1_0] "r"(a1_0), [a1_1] "r"(a1_1), [a1_2] "r"(a1_2),
-            [a1_3] "r"(a1_3), [a1_4] "r"(a1_4), [a1_5] "r"(a1_5),
-            [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n), [n4] "r"(4 * n)
-          : "vl", "vtype", "memory");
 
-      __builtin_memcpy(&a0_0, a0, 4);
-      a0 += csa1;
-      __builtin_memcpy(&a0_1, a1, 4);
-      a1 += csa1;
-      __builtin_memcpy(&a0_2, a2, 4);
-      a2 += csa1;
-      __builtin_memcpy(&a0_3, a3, 4);
-      a3 += csa1;
-      __builtin_memcpy(&a0_4, a4, 4);
-      a4 += csa1;
-      __builtin_memcpy(&a0_5, a5, 4);
-      a5 += csa1;
+          // compute first tile
+          "vsetvli x0, %[n], e32, m4, ta, ma\n"
+          "sf.vqdot.vx %[vec0], %[bvec1], %[a1_0]\n"
+          "sf.vqdot.vx %[vec1], %[bvec1], %[a1_1]\n"
+          "vsetivli x0, 4, e8, m1, ta, ma\n"
+          "vle8.v %[tmp0], (%[a0])\n"
+          "add %[a0], %[a0], %[csa1]\n"
+          "vle8.v %[tmp1], (%[a1])\n"
+          "add %[a1], %[a1], %[csa1]\n"
+          "vse8.v %[tmp0], (%[a1_0t])\n"
+
+          "vsetvli x0, %[n], e32, m4, ta, ma\n"
+          "sf.vqdot.vx %[vec2], %[bvec1], %[a1_2]\n"
+          "vsetivli x0, 4, e8, m1, ta, ma\n"
+          "vle8.v %[tmp2], (%[a2])\n"
+          "add %[a2], %[a2], %[csa1]\n"
+          "vse8.v %[tmp1], (%[a1_1t])\n"
+
+          "vsetvli x0, %[n], e32, m4, ta, ma\n"
+          "sf.vqdot.vx %[vec3], %[bvec1], %[a1_3]\n"
+          "vsetivli x0, 4, e8, m1, ta, ma\n"
+          "vle8.v %[tmp3], (%[a3])\n"
+          "add %[a3], %[a3], %[csa1]\n"
+          "vse8.v %[tmp2], (%[a1_2t])\n"
+          "vse8.v %[tmp3], (%[a1_3t])\n"
+          : [tmp0] "=&vr"(tmp0), [tmp1] "=&vr"(tmp1), [tmp2] "=&vr"(tmp2),
+            [tmp3] "=&vr"(tmp3), [bvec0] "=&vr"(bvec0), [a0_0] "=&r"(a0_0),
+            [a0_1] "=&r"(a0_1), [a0_2] "=&r"(a0_2), [a0_3] "=&r"(a0_3),
+            [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
+            [vec3] "+&vr"(vec3), [bvec1] "=&vr"(bvec1), [b_pack] "+&r"(b_pack)
+          : [bvec0] "vr"(bvec0), [a0] "r"(a0), [a0] "r"(a0), [a0] "r"(a0),
+            [a0] "r"(a0), [a0_0t] "r"(a0_0t), [a0_1t] "r"(a0_1t),
+            [a0_2t] "r"(a0_2t), [a0_3t] "r"(a0_3t), [a1_0t] "r"(a1_0t),
+            [a1_1t] "r"(a1_1t), [a1_2t] "r"(a1_2t), [a1_3t] "r"(a1_3t),
+            [csa1] "r"(csa1), [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n),
+            [n4] "r"(4 * n)
+          : "vl", "vtype", "memory");
 
       k -= 8;
     }
