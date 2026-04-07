@@ -116,7 +116,7 @@ add_skl_src(src/gemm/xsfmm/gemm_a1b01_f32c_f32_f32_xsfmm32a32f.c "xsfmm32a32f")
 add_skl_src(src/gemm/xsfmm/gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c "xsfmm32a8f")
 add_skl_src(src/gemm/xsfmm/gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c "xsfmm32a8f")
 add_skl_src(src/gemm/xsfmm/gemm_a1b01_i8c_i8_i32_xsfmm32a8i.c "xsfmm32a8i")
-add_skl_src(src/gemm/xsfvqdotq/gemm_i8_i8pc_i32_xsfvqdotq.c "xsfvqdotq")
+add_skl_src(src/gemm/xsfvqdotq/gemm_i8rcp_i8pc_i32_xsfvqdotq.c "xsfvqdotq")
 add_skl_src(src/gemm/xsfvqdotq/pack_b_xsfvqdotq.c "zve32x")
 
 add_skl_src(src/logistic/logistic_f16_xsfvfexp16e.c "xsfvfexp16e")
@@ -329,10 +329,10 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   endif()
   if("xsfvqdotq" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_i8_i8pc_i32_xsfvqdotq gemm/gemm_i8_i8pc_i32_xsfvqdotq.c "-DM=128;-DN=128;-DK=256;-DALPHA=1;-DBETA=1")
-    skl_add_test_legacy(skl_gemm_i8_i8pc_i32_xsfvqdotq_wrapper gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
-      "-DM0=1;-DN0=1;-DK0=4;-DM1=12;-DN1=128;-DK1=8;-DRSB0=1;-DCSB0=0;-DALPHA=1;-DBETA=0;")
-    skl_add_test_legacy(skl_gemm_i8_i8pc_i32_xsfvqdotq_x390_clp_wrapper gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
-      "-DM0=1;-DN0=1;-DK0=4;-DM1=12;-DN1=128;-DK1=8;-DRSB0=1;-DCSB0=0;-DALPHA=1;-DBETA=0;")
+    skl_add_test_legacy(skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_wrapper gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+      "-DM0=1;-DN0=1;-DK0=4;-DM1=12;-DN1=128;-DK1=8;-DCSA1=(2 * K0);-DRSA1=(K1 * CSA1);-DRSB0=1;-DCSB0=0;-DALPHA=1;-DBETA=0;")
+    skl_add_test_legacy(skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_x390_clp_wrapper gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+      "-DM0=1;-DN0=1;-DK0=4;-DM1=12;-DN1=128;-DK1=8;-DCSA1=(2 * K0);-DRSA1=(K1 * CSA1);-DRSB0=1;-DCSB0=0;-DALPHA=1;-DBETA=0;")
   endif()
 
   add_subdirectory(test)

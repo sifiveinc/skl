@@ -169,14 +169,14 @@ int main(void) {
   /* Make copies of C to write the reference and test outputs to. */
   memcpy(ref_c, c, CLEN * sizeof(int32_t));
   memcpy(test_c, c, CLEN * sizeof(int32_t));
-  skl_gemm_i8_i8pc_i32_xsfvqdotq(M, N, K, ALPHA, a, (size_t)RSA, b_pack,
-                                 (size_t)RSB1, BETA, test_c, (size_t)RSC);
+  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(M, N, K, ALPHA, a, (size_t)RSA, K0, b_pack,
+                                    (size_t)RSB1, BETA, test_c, (size_t)RSC);
   res += check_error();
 #endif // ENABLE_TEST
 
   SKL_BENCHMARK_RUN("skl_gemm_i8_i8pc_i32_xsfvqdotq", M * N * K,
-                    SKL_TEST_WARMUP, skl_gemm_i8_i8pc_i32_xsfvqdotq, M, N, K,
-                    ALPHA, a, (size_t)RSA, b_pack, (size_t)RSB1, BETA, c,
+                    SKL_TEST_WARMUP, skl_gemm_i8rcp_i8pc_i32_xsfvqdotq, M, N, K,
+                    ALPHA, a, (size_t)RSA, K0, b_pack, (size_t)RSB1, BETA, c,
                     (size_t)RSC);
 
   return res;
