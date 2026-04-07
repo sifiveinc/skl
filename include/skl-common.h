@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <riscv_vector.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -106,3 +107,23 @@
 SKL_FUNC_UTIL void skl_instruction_schedule_barrier(void) {
   __asm__ volatile("" ::: "memory");
 }
+
+#ifdef __riscv_zve32x
+/**
+ * @brief RVV memcpy
+ */
+SKL_FUNC_UTIL void *skl_memcpy_zve32x(void *dest, const void *src, size_t n) {
+  uint8_t *dest_cast = (uint8_t *)dest;
+  uint8_t *src_cast = (uint8_t *)src;
+  size_t avl = n;
+  while (avl) {
+    size_t vl = __riscv_vsetvl_e8m8(avl);
+    vuint8m8_t vec = __riscv_vle8_v_u8m8(src_cast, vl);
+    __riscv_vse8_v_u8m8(dest_cast, vec, vl);
+    src_cast += vl;
+    dest_cast += vl;
+    avl -= vl;
+  }
+  return dest;
+}
+#endif
