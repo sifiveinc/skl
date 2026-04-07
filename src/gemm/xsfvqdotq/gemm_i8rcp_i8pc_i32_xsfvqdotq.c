@@ -29,6 +29,11 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_i8rcp_i8pc_i32_xsfvqdotq(
   vint32m4_t vec5 = __riscv_vmv_v_x_i32m4(0, n);
 
   const int8_t *a0 = a_pack + 0 * rsa1;
+  const int8_t *a1 = a_pack + 1 * rsa1;
+  const int8_t *a2 = a_pack + 2 * rsa1;
+  const int8_t *a3 = a_pack + 3 * rsa1;
+  const int8_t *a4 = a_pack + 4 * rsa1;
+  const int8_t *a5 = a_pack + 5 * rsa1;
 
   uint32_t a0_0;
   uint32_t a0_1;
@@ -46,17 +51,17 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_i8rcp_i8pc_i32_xsfvqdotq(
   // process the first (k / 4) * 4 elements of the inner dimension
   if (k >= 4) {
     __builtin_memcpy(&a0_0, a0, 4);
-    a0 += rsa1;
-    __builtin_memcpy(&a0_1, a0, 4);
-    a0 += rsa1;
-    __builtin_memcpy(&a0_2, a0, 4);
-    a0 += rsa1;
-    __builtin_memcpy(&a0_3, a0, 4);
-    a0 += rsa1;
-    __builtin_memcpy(&a0_4, a0, 4);
-    a0 += rsa1;
-    __builtin_memcpy(&a0_5, a0, 4);
-    a0 += csa1 - 5 * rsa1;
+    a0 += csa1;
+    __builtin_memcpy(&a0_1, a1, 4);
+    a1 += csa1;
+    __builtin_memcpy(&a0_2, a2, 4);
+    a2 += csa1;
+    __builtin_memcpy(&a0_3, a3, 4);
+    a3 += csa1;
+    __builtin_memcpy(&a0_4, a4, 4);
+    a4 += csa1;
+    __builtin_memcpy(&a0_5, a5, 4);
+    a5 += csa1;
 
     // load first B tile (4xn)
     vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b_pack, 4 * n);
@@ -64,308 +69,76 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_i8rcp_i8pc_i32_xsfvqdotq(
 
     while (k >= 12) {
       vint8m4_t bvec1;
-      int32_t in1;
-      int32_t in2;
-      int32_t in3;
       __asm__ volatile(
+          // compute first tile
+          "vsetvli x0, %[n], e32, m4, ta, ma\n"
+          "sf.vqdot.vx %[vec0], %[bvec0], %[a0_0]\n"
+          "sf.vqdot.vx %[vec1], %[bvec0], %[a0_1]\n"
+          "sf.vqdot.vx %[vec2], %[bvec0], %[a0_2]\n"
+          "sf.vqdot.vx %[vec3], %[bvec0], %[a0_3]\n"
+
           // load second B tile (4xn)
           "vsetvli x0, %[n4], e8, m4, ta, ma\n"
           "vle8.v %[bvec1], (%[b_pack])\n"
           "add %[b_pack], %[b_pack], %[rsb1]\n"
-          : [bvec1] "=&vr"(bvec1), [b_pack] "+&r"(b_pack)
-          : [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n4] "r"(4 * n)
+          : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
+            [vec3] "+&vr"(vec3), [bvec1] "=&vr"(bvec1), [b_pack] "+&r"(b_pack)
+          : [bvec0] "vr"(bvec0), [a0_0] "r"(a0_0), [a0_1] "r"(a0_1),
+            [a0_2] "r"(a0_2), [a0_3] "r"(a0_3),
+            [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n), [n4] "r"(4 * n)
           : "vl", "vtype", "memory");
-      __asm__ volatile("vsetvli x0, %[n], e32, m4, ta, ma" : : [n] "r"(n));
-      /*
+
       __builtin_memcpy(&a1_0, a0, 4);
-      a0 += rsa1;
-      __builtin_memcpy(&a1_1, a0, 4);
-      a0 += rsa1;
-      __builtin_memcpy(&a1_2, a0, 4);
-      a0 += rsa1;
-      __builtin_memcpy(&a1_3, a0, 4);
-      a0 += rsa1;
-      __builtin_memcpy(&a1_4, a0, 4);
-      a0 += rsa1;
-      __builtin_memcpy(&a1_5, a0, 4);
-      a0 += csa1 - 5 * rsa1;
-      */
-      __asm__ volatile("ntl.p1\n"
-                       "lbu %[a1_0], 0(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in1], 1(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in2], 2(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in3], 3(%[a0])\n"
-                       "slli %[in1], %[in1], 8\n"
-                       "slli %[in2], %[in2], 16\n"
-                       "slli %[in3], %[in3], 24\n"
-                       "or %[a1_0], %[a1_0], %[in1]\n"
-                       "or %[in2], %[in2], %[in3]\n"
-                       "add %[a0], %[a0], %[rsa1]\n"
-                       "or %[a1_0], %[a1_0], %[in2]\n"
-                       : [a1_0] "=&r"(a1_0), [in1] "=&r"(in1), [in2] "=&r"(in2),
-                         [in3] "=&r"(in3), [a0] "+&r"(a0)
-                       : [rsa1] "r"(rsa1));
-      __asm__ volatile("sf.vqdot.vx %[vec0], %[bvec0], %[a0_0]\n"
-                       : [vec0] "+&vr"(vec0)
-                       : [bvec0] "vr"(bvec0), [a0_0] "r"(a0_0));
-      __asm__ volatile("ntl.p1\n"
-                       "lbu %[a1_1], 0(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in1], 1(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in2], 2(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in3], 3(%[a0])\n"
-                       "slli %[in1], %[in1], 8\n"
-                       "slli %[in2], %[in2], 16\n"
-                       "slli %[in3], %[in3], 24\n"
-                       "or %[a1_1], %[a1_1], %[in1]\n"
-                       "or %[in2], %[in2], %[in3]\n"
-                       "add %[a0], %[a0], %[rsa1]\n"
-                       "or %[a1_1], %[a1_1], %[in2]\n"
-                       : [a1_1] "=&r"(a1_1), [in1] "=&r"(in1), [in2] "=&r"(in2),
-                         [in3] "=&r"(in3), [a0] "+&r"(a0)
-                       : [rsa1] "r"(rsa1));
-      __asm__ volatile("sf.vqdot.vx %[vec1], %[bvec0], %[a0_1]\n"
-                       : [vec1] "+&vr"(vec1)
-                       : [bvec0] "vr"(bvec0), [a0_1] "r"(a0_1));
-      __asm__ volatile("ntl.p1\n"
-                       "lbu %[a1_2], 0(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in1], 1(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in2], 2(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in3], 3(%[a0])\n"
-                       "slli %[in1], %[in1], 8\n"
-                       "slli %[in2], %[in2], 16\n"
-                       "slli %[in3], %[in3], 24\n"
-                       "or %[a1_2], %[a1_2], %[in1]\n"
-                       "or %[in2], %[in2], %[in3]\n"
-                       "add %[a0], %[a0], %[rsa1]\n"
-                       "or %[a1_2], %[a1_2], %[in2]\n"
-                       : [a1_2] "=&r"(a1_2), [in1] "=&r"(in1), [in2] "=&r"(in2),
-                         [in3] "=&r"(in3), [a0] "+&r"(a0)
-                       : [rsa1] "r"(rsa1));
-      __asm__ volatile("sf.vqdot.vx %[vec2], %[bvec0], %[a0_2]\n"
-                       : [vec2] "+&vr"(vec2)
-                       : [bvec0] "vr"(bvec0), [a0_2] "r"(a0_2));
-      __asm__ volatile("ntl.p1\n"
-                       "lbu %[a1_3], 0(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in1], 1(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in2], 2(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in3], 3(%[a0])\n"
-                       "slli %[in1], %[in1], 8\n"
-                       "slli %[in2], %[in2], 16\n"
-                       "slli %[in3], %[in3], 24\n"
-                       "or %[a1_3], %[a1_3], %[in1]\n"
-                       "or %[in2], %[in2], %[in3]\n"
-                       "add %[a0], %[a0], %[rsa1]\n"
-                       "or %[a1_3], %[a1_3], %[in2]\n"
-                       : [a1_3] "=&r"(a1_3), [in1] "=&r"(in1), [in2] "=&r"(in2),
-                         [in3] "=&r"(in3), [a0] "+&r"(a0)
-                       : [rsa1] "r"(rsa1));
-      __asm__ volatile("sf.vqdot.vx %[vec3], %[bvec0], %[a0_3]\n"
-                       : [vec3] "+&vr"(vec3)
-                       : [bvec0] "vr"(bvec0), [a0_3] "r"(a0_3));
-      __asm__ volatile("ntl.p1\n"
-                       "lbu %[a1_4], 0(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in1], 1(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in2], 2(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in3], 3(%[a0])\n"
-                       "slli %[in1], %[in1], 8\n"
-                       "slli %[in2], %[in2], 16\n"
-                       "slli %[in3], %[in3], 24\n"
-                       "or %[a1_4], %[a1_4], %[in1]\n"
-                       "or %[in2], %[in2], %[in3]\n"
-                       "add %[a0], %[a0], %[rsa1]\n"
-                       "or %[a1_4], %[a1_4], %[in2]\n"
-                       : [a1_4] "=&r"(a1_4), [in1] "=&r"(in1), [in2] "=&r"(in2),
-                         [in3] "=&r"(in3), [a0] "+&r"(a0)
-                       : [rsa1] "r"(rsa1));
-      __asm__ volatile("sf.vqdot.vx %[vec4], %[bvec0], %[a0_4]\n"
-                       : [vec4] "+&vr"(vec4)
-                       : [bvec0] "vr"(bvec0), [a0_4] "r"(a0_4));
-      __asm__ volatile("ntl.p1\n"
-                       "lbu %[a1_5], 0(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in1], 1(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in2], 2(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in3], 3(%[a0])\n"
-                       "slli %[in1], %[in1], 8\n"
-                       "slli %[in2], %[in2], 16\n"
-                       "slli %[in3], %[in3], 24\n"
-                       "or %[a1_5], %[a1_5], %[in1]\n"
-                       "or %[in2], %[in2], %[in3]\n"
-                       "add %[a0], %[a0], %[rsa1]\n"
-                       "or %[a1_5], %[a1_5], %[in2]\n"
-                       : [a1_5] "=&r"(a1_5), [in1] "=&r"(in1), [in2] "=&r"(in2),
-                         [in3] "=&r"(in3), [a0] "+&r"(a0)
-                       : [rsa1] "r"(csa1 - 5 * rsa1));
-      __asm__ volatile("sf.vqdot.vx %[vec5], %[bvec0], %[a0_5]\n"
-                       : [vec5] "+&vr"(vec5)
-                       : [bvec0] "vr"(bvec0), [a0_5] "r"(a0_5));
+      a0 += csa1;
+      __builtin_memcpy(&a1_1, a1, 4);
+      a1 += csa1;
+      __builtin_memcpy(&a1_2, a2, 4);
+      a2 += csa1;
+      __builtin_memcpy(&a1_3, a3, 4);
+      a3 += csa1;
+      __builtin_memcpy(&a1_4, a4, 4);
+      a4 += csa1;
+      __builtin_memcpy(&a1_5, a5, 4);
+      a5 += csa1;
 
       __asm__ volatile(
-          // load second B tile (4xn)
+          "vsetvli x0, %[n], e32, m4, ta, ma\n"
+          "sf.vqdot.vx %[vec4], %[bvec0], %[a0_4]\n"
+          "sf.vqdot.vx %[vec5], %[bvec0], %[a0_5]\n"
+
+          // compute second tile
+          "sf.vqdot.vx %[vec0], %[bvec1], %[a1_0]\n"
+          "sf.vqdot.vx %[vec1], %[bvec1], %[a1_1]\n"
+          "sf.vqdot.vx %[vec2], %[bvec1], %[a1_2]\n"
+          "sf.vqdot.vx %[vec3], %[bvec1], %[a1_3]\n"
+          "sf.vqdot.vx %[vec4], %[bvec1], %[a1_4]\n"
+          "sf.vqdot.vx %[vec5], %[bvec1], %[a1_5]\n"
+
+          // pre-load first B tile (4xn) of next iteration
           "vsetvli x0, %[n4], e8, m4, ta, ma\n"
           "vle8.v %[bvec0], (%[b_pack])\n"
           "add %[b_pack], %[b_pack], %[rsb1]\n"
-          : [bvec0] "=&vr"(bvec0), [b_pack] "+&r"(b_pack)
-          : [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n4] "r"(4 * n)
+          : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
+            [vec3] "+&vr"(vec3), [vec4] "+&vr"(vec4), [vec5] "+&vr"(vec5),
+            [bvec0] "+&vr"(bvec0), [b_pack] "+&r"(b_pack)
+          : [bvec1] "vr"(bvec1), [a0_4] "r"(a0_4), [a0_5] "r"(a0_5),
+            [a1_0] "r"(a1_0), [a1_1] "r"(a1_1), [a1_2] "r"(a1_2),
+            [a1_3] "r"(a1_3), [a1_4] "r"(a1_4), [a1_5] "r"(a1_5),
+            [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n), [n4] "r"(4 * n)
           : "vl", "vtype", "memory");
-      __asm__ volatile("vsetvli x0, %[n], e32, m4, ta, ma" : : [n] "r"(n));
-      /*
+
       __builtin_memcpy(&a0_0, a0, 4);
-      a0 += rsa1;
-      __builtin_memcpy(&a0_1, a0, 4);
-      a0 += rsa1;
-      __builtin_memcpy(&a0_2, a0, 4);
-      a0 += rsa1;
-      __builtin_memcpy(&a0_3, a0, 4);
-      a0 += rsa1;
-      __builtin_memcpy(&a0_4, a0, 4);
-      a0 += rsa1;
-      __builtin_memcpy(&a0_5, a0, 4);
-      a0 += csa1 - 5 * rsa1;
-      */
-      __asm__ volatile("ntl.p1\n"
-                       "lbu %[a0_0], 0(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in1], 1(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in2], 2(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in3], 3(%[a0])\n"
-                       "slli %[in1], %[in1], 8\n"
-                       "slli %[in2], %[in2], 16\n"
-                       "slli %[in3], %[in3], 24\n"
-                       "or %[a0_0], %[a0_0], %[in1]\n"
-                       "or %[in2], %[in2], %[in3]\n"
-                       "add %[a0], %[a0], %[rsa1]\n"
-                       "or %[a0_0], %[a0_0], %[in2]\n"
-                       : [a0_0] "=&r"(a0_0), [in1] "=&r"(in1), [in2] "=&r"(in2),
-                         [in3] "=&r"(in3), [a0] "+&r"(a0)
-                       : [rsa1] "r"(rsa1));
-      __asm__ volatile("sf.vqdot.vx %[vec0], %[bvec1], %[a1_0]\n"
-                       : [vec0] "+&vr"(vec0)
-                       : [bvec1] "vr"(bvec1), [a1_0] "r"(a1_0));
-      __asm__ volatile("ntl.p1\n"
-                       "lbu %[a0_1], 0(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in1], 1(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in2], 2(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in3], 3(%[a0])\n"
-                       "slli %[in1], %[in1], 8\n"
-                       "slli %[in2], %[in2], 16\n"
-                       "slli %[in3], %[in3], 24\n"
-                       "or %[a0_1], %[a0_1], %[in1]\n"
-                       "or %[in2], %[in2], %[in3]\n"
-                       "add %[a0], %[a0], %[rsa1]\n"
-                       "or %[a0_1], %[a0_1], %[in2]\n"
-                       : [a0_1] "=&r"(a0_1), [in1] "=&r"(in1), [in2] "=&r"(in2),
-                         [in3] "=&r"(in3), [a0] "+&r"(a0)
-                       : [rsa1] "r"(rsa1));
-      __asm__ volatile("sf.vqdot.vx %[vec1], %[bvec1], %[a1_1]\n"
-                       : [vec1] "+&vr"(vec1)
-                       : [bvec1] "vr"(bvec1), [a1_1] "r"(a1_1));
-      __asm__ volatile("ntl.p1\n"
-                       "lbu %[a0_2], 0(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in1], 1(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in2], 2(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in3], 3(%[a0])\n"
-                       "slli %[in1], %[in1], 8\n"
-                       "slli %[in2], %[in2], 16\n"
-                       "slli %[in3], %[in3], 24\n"
-                       "or %[a0_2], %[a0_2], %[in1]\n"
-                       "or %[in2], %[in2], %[in3]\n"
-                       "add %[a0], %[a0], %[rsa1]\n"
-                       "or %[a0_2], %[a0_2], %[in2]\n"
-                       : [a0_2] "=&r"(a0_2), [in1] "=&r"(in1), [in2] "=&r"(in2),
-                         [in3] "=&r"(in3), [a0] "+&r"(a0)
-                       : [rsa1] "r"(rsa1));
-      __asm__ volatile("sf.vqdot.vx %[vec2], %[bvec1], %[a1_2]\n"
-                       : [vec2] "+&vr"(vec2)
-                       : [bvec1] "vr"(bvec1), [a1_2] "r"(a1_2));
-      __asm__ volatile("ntl.p1\n"
-                       "lbu %[a0_3], 0(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in1], 1(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in2], 2(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in3], 3(%[a0])\n"
-                       "slli %[in1], %[in1], 8\n"
-                       "slli %[in2], %[in2], 16\n"
-                       "slli %[in3], %[in3], 24\n"
-                       "or %[a0_3], %[a0_3], %[in1]\n"
-                       "or %[in2], %[in2], %[in3]\n"
-                       "add %[a0], %[a0], %[rsa1]\n"
-                       "or %[a0_3], %[a0_3], %[in2]\n"
-                       : [a0_3] "=&r"(a0_3), [in1] "=&r"(in1), [in2] "=&r"(in2),
-                         [in3] "=&r"(in3), [a0] "+&r"(a0)
-                       : [rsa1] "r"(rsa1));
-      __asm__ volatile("sf.vqdot.vx %[vec3], %[bvec1], %[a1_3]\n"
-                       : [vec3] "+&vr"(vec3)
-                       : [bvec1] "vr"(bvec1), [a1_3] "r"(a1_3));
-      __asm__ volatile("ntl.p1\n"
-                       "lbu %[a0_4], 0(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in1], 1(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in2], 2(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in3], 3(%[a0])\n"
-                       "slli %[in1], %[in1], 8\n"
-                       "slli %[in2], %[in2], 16\n"
-                       "slli %[in3], %[in3], 24\n"
-                       "or %[a0_4], %[a0_4], %[in1]\n"
-                       "or %[in2], %[in2], %[in3]\n"
-                       "add %[a0], %[a0], %[rsa1]\n"
-                       "or %[a0_4], %[a0_4], %[in2]\n"
-                       : [a0_4] "=&r"(a0_4), [in1] "=&r"(in1), [in2] "=&r"(in2),
-                         [in3] "=&r"(in3), [a0] "+&r"(a0)
-                       : [rsa1] "r"(rsa1));
-      __asm__ volatile("sf.vqdot.vx %[vec4], %[bvec1], %[a1_4]\n"
-                       : [vec4] "+&vr"(vec4)
-                       : [bvec1] "vr"(bvec1), [a1_4] "r"(a1_4));
-      __asm__ volatile("ntl.p1\n"
-                       "lbu %[a0_5], 0(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in1], 1(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in2], 2(%[a0])\n"
-                       "ntl.p1\n"
-                       "lbu %[in3], 3(%[a0])\n"
-                       "slli %[in1], %[in1], 8\n"
-                       "slli %[in2], %[in2], 16\n"
-                       "slli %[in3], %[in3], 24\n"
-                       "or %[a0_5], %[a0_5], %[in1]\n"
-                       "or %[in2], %[in2], %[in3]\n"
-                       "add %[a0], %[a0], %[rsa1]\n"
-                       "or %[a0_5], %[a0_5], %[in2]\n"
-                       : [a0_5] "=&r"(a0_5), [in1] "=&r"(in1), [in2] "=&r"(in2),
-                         [in3] "=&r"(in3), [a0] "+&r"(a0)
-                       : [rsa1] "r"(csa1 - 5 * rsa1));
-      __asm__ volatile("sf.vqdot.vx %[vec5], %[bvec1], %[a1_5]\n"
-                       : [vec5] "+&vr"(vec5)
-                       : [bvec1] "vr"(bvec1), [a1_5] "r"(a1_5));
+      a0 += csa1;
+      __builtin_memcpy(&a0_1, a1, 4);
+      a1 += csa1;
+      __builtin_memcpy(&a0_2, a2, 4);
+      a2 += csa1;
+      __builtin_memcpy(&a0_3, a3, 4);
+      a3 += csa1;
+      __builtin_memcpy(&a0_4, a4, 4);
+      a4 += csa1;
+      __builtin_memcpy(&a0_5, a5, 4);
+      a5 += csa1;
 
       k -= 8;
     }
@@ -374,27 +147,27 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_i8rcp_i8pc_i32_xsfvqdotq(
       // compute first tile
       vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0_0, n);
       __builtin_memcpy(&a1_0, a0, 4);
-      a0 += rsa1;
+      a0 += csa1;
       vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec0, a0_1, n);
-      __builtin_memcpy(&a1_1, a0, 4);
-      a0 += rsa1;
+      __builtin_memcpy(&a1_1, a1, 4);
+      a1 += csa1;
 
       // load second B tile (4xn)
       vint8m4_t bvec1 = __riscv_vle8_v_i8m4(b_pack, 4 * n);
       b_pack += rsb1;
 
       vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec0, a0_2, n);
-      __builtin_memcpy(&a1_2, a0, 4);
-      a0 += rsa1;
+      __builtin_memcpy(&a1_2, a2, 4);
+      a2 += csa1;
       vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec0, a0_3, n);
-      __builtin_memcpy(&a1_3, a0, 4);
-      a0 += rsa1;
+      __builtin_memcpy(&a1_3, a3, 4);
+      a3 += csa1;
       vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec0, a0_4, n);
-      __builtin_memcpy(&a1_4, a0, 4);
-      a0 += rsa1;
+      __builtin_memcpy(&a1_4, a4, 4);
+      a4 += csa1;
       vec5 = __riscv_sf_vqdot_vx_i32m4(vec5, bvec0, a0_5, n);
-      __builtin_memcpy(&a1_5, a0, 4);
-      a0 += csa1 - 5 * rsa1;
+      __builtin_memcpy(&a1_5, a5, 4);
+      a5 += csa1;
 
       // compute second tile
       vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec1, a1_0, n);
@@ -425,11 +198,11 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_i8rcp_i8pc_i32_xsfvqdotq(
     vint8m4_t bvec = __riscv_vle8_v_i8m4(b_pack, 4 * n);
 
     __builtin_memcpy(&a0_0, a0, k);
-    __builtin_memcpy(&a0_1, a0 + rsa1, k);
-    __builtin_memcpy(&a0_2, a0 + 2 * rsa1, k);
-    __builtin_memcpy(&a0_3, a0 + 3 * rsa1, k);
-    __builtin_memcpy(&a0_4, a0 + 4 * rsa1, k);
-    __builtin_memcpy(&a0_5, a0 + 5 * rsa1, k);
+    __builtin_memcpy(&a0_1, a1, k);
+    __builtin_memcpy(&a0_2, a2, k);
+    __builtin_memcpy(&a0_3, a3, k);
+    __builtin_memcpy(&a0_4, a4, k);
+    __builtin_memcpy(&a0_5, a5, k);
 
     vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec, a0_0 & mask, n);
     vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec, a0_1 & mask, n);
@@ -497,8 +270,7 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_i8rcp_i8pc_i32_xsfvqdotq(
 }
 
 // a_pack is 4-byte aligned and rsa1 and csa1 are multiples of 4
-__attribute__((unused)) SKL_FUNC_PRIVATE void
-skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
+SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
     size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t rsa1,
     size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c,
     size_t rsc) {
@@ -1398,7 +1170,7 @@ SKL_FUNC void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(
   if ((uintptr_t)a_pack % (k0 * sizeof(int8_t)) == 0 && rsa1 % k0 == 0 &&
       csa1 % k0 == 0) {
     skl_gemm_6xm4_i8rcp_i8pc_i32_xsfvqdotq_kernel =
-        &skl_gemm_6xm4_i8rcp_i8pc_i32_xsfvqdotq;
+        &skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq;
     skl_gemm_lt6xm4_i8rcp_i8pc_i32_xsfvqdotq_kernel =
         &skl_gemm_lt6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq;
     skl_gemm_1xm4_i8rcp_i8pc_i32_xsfvqdotq_kernel =
