@@ -51,7 +51,9 @@ endfunction()
 
 
 detect_riscv_extension("zfh" "zfh=true")
+detect_riscv_extension("zfhmin" "zfhmin=true")
 detect_riscv_extension("zvfh" "zvfh=true")
+detect_riscv_extension("zvfhmin" "zvfhmin=true")
 detect_riscv_extension("zvfbfwma" "zvfbfwma=true")
 detect_riscv_extension("zvfbfmin" "zvfbfmin=true")
 detect_riscv_extension("zve32f" "zve32f=true")
