@@ -106,7 +106,7 @@ void skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i_wrapper(
 
 /* Include various int8 GEMM kernels depending on ISA compatibility. */
 #if defined(__riscv_xsfvqdotq)
-void skl_gemm_i8_i8pc_i32_xsfvqdotq_wrapper(
+void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_wrapper(
     size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
     int32_t alpha, const int8_t *a_pack, __attribute__((unused)) size_t rsa0,
     size_t csa0, size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb0,
@@ -118,8 +118,11 @@ void skl_gemm_i8_i8pc_i32_xsfvqdotq_wrapper(
   SKL_TEST_REQUIRE(status, n0 == 1);
   SKL_TEST_REQUIRE(status, k0 == 4);
   SKL_TEST_REQUIRE(status, csa0 == 1);
-  SKL_TEST_REQUIRE(status, rsa1 >= k1 * csa1);
-  SKL_TEST_REQUIRE(status, csa1 == m0 * k0);
+  if (rsa1 >= csa1) {
+    SKL_TEST_REQUIRE(status, rsa1 >= k1 * csa1);
+  } else {
+    SKL_TEST_REQUIRE(status, csa1 >= m1 * rsa1);
+  }
   SKL_TEST_REQUIRE(status, rsb0 == 1);
   SKL_TEST_REQUIRE(status, rsb1 >= n1 * csb1);
   SKL_TEST_REQUIRE(status, csb1 == k0 * n0);
@@ -128,12 +131,12 @@ void skl_gemm_i8_i8pc_i32_xsfvqdotq_wrapper(
   if (status) {
     exit(status);
   }
-  skl_gemm_i8_i8pc_i32_xsfvqdotq(
-      m0 * m1, n0 * n1, k0 * k1, alpha, a_pack /* == a */, rsa1 /* == rsa */,
-      b_pack, rsb1, beta, c_pack /* == c */, rsc1 /* == rsc */);
+  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(m0 * m1, n0 * n1, k0 * k1, alpha, a_pack,
+                                    rsa1, csa1, b_pack, rsb1, beta,
+                                    c_pack /* == c */, rsc1 /* == rsc */);
 }
 
-void skl_gemm_i8_i8pc_i32_xsfvqdotq_x390_clp_wrapper(
+void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_x390_clp_wrapper(
     size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
     int32_t alpha, const int8_t *a_pack, __attribute__((unused)) size_t rsa0,
     size_t csa0, size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb0,
@@ -145,8 +148,11 @@ void skl_gemm_i8_i8pc_i32_xsfvqdotq_x390_clp_wrapper(
   SKL_TEST_REQUIRE(status, n0 == 1);
   SKL_TEST_REQUIRE(status, k0 == 4);
   SKL_TEST_REQUIRE(status, csa0 == 1);
-  SKL_TEST_REQUIRE(status, rsa1 >= k1 * csa1);
-  SKL_TEST_REQUIRE(status, csa1 == m0 * k0);
+  if (rsa1 >= csa1) {
+    SKL_TEST_REQUIRE(status, rsa1 >= k1 * csa1);
+  } else {
+    SKL_TEST_REQUIRE(status, csa1 >= m1 * rsa1);
+  }
   SKL_TEST_REQUIRE(status, rsb0 == 1);
   SKL_TEST_REQUIRE(status, rsb1 >= n1 * csb1);
   SKL_TEST_REQUIRE(status, csb1 == k0 * n0);
@@ -155,9 +161,9 @@ void skl_gemm_i8_i8pc_i32_xsfvqdotq_x390_clp_wrapper(
   if (status) {
     exit(status);
   }
-  skl_gemm_i8_i8pc_i32_xsfvqdotq_x390_clp(
-      m0 * m1, n0 * n1, k0 * k1, alpha, a_pack /* == a */, rsa1 /* == rsa */,
-      b_pack, rsb1, beta, c_pack /* == c */, rsc1 /* == rsc */);
+  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_x390_clp(
+      m0 * m1, n0 * n1, k0 * k1, alpha, a_pack, rsa1, csa1, b_pack, rsb1, beta,
+      c_pack /* == c */, rsc1 /* == rsc */);
 }
 #endif
 
