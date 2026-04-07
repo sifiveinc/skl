@@ -6,6 +6,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/** @brief Reinterprets an unsigned 32-bit integer as an IEEE FP32. */
+SKL_FUNC_PRIVATE float skl_u32_as_float(uint32_t x) {
+  float y;
+  __builtin_memcpy(&y, &x, sizeof(float));
+  return y;
+}
+
 SKL_FUNC float skl_cvt_f8e4m3_f32(uint8_t in) {
   uint32_t result = 0; // Initialize to zero
 
