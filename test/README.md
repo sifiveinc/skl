@@ -78,7 +78,7 @@ These callback functions are:
 
 The above callback functions are intended to be implemented by the harness;
 the typical exception to this is `execute`,
-which should likely be implemented the the test suite C file
+which should likely be implemented by the test suite C file
 because it is the only one that is specific to a given kernel variant.
 These callbacks will be called by the driver to execute the test.
 
@@ -201,9 +201,8 @@ struct {
 Test configurations will populate the `len`, `mode`, `min`, and `max` fields typically, though some harnesses may also provide configuration options for `static_data` and `region` as well.
 The range fields allow targeted test specification, while static data serves two purposes:
 - It allows for the definition of "special" input patterns that are difficult to express with ranges alone, such as all-zero or all-one vectors.
-- It allows for fast initialization by memcpy, and avoids constly calls to `rand()` in slow simulation environments.
+- It allows for fast initialization by memcpy, and avoids costly calls to `rand()` in slow simulation environments.
 
 The `SKL_TEST_BUF_CREATE` macro should be called in the `init` function of the test harness to allocate and initialize each test buffer.
 It injects type-dependent code to initialize the buffer according to the `mode` field of the `SKL_TEST_BUFFER` structure.
 All buffers must be freed in the `cleanup` function with the `SKL_TEST_BUF_FREE` macro.
-

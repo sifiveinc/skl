@@ -89,3 +89,24 @@ skl_add_test(
   "xsfmm32a32f"
   ""
 )
+skl_add_test(
+  skl_exp_f32_zve32f
+  math/unary_f32.c
+  exp/exp_f32_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_exp_f32_xsfvfexpa
+  math/unary_f32.c
+  exp/exp_f32_xsfvfexpa.c
+  "xsfvfexpa"
+  ""
+)
+skl_add_test(
+  skl_exp_f32_xsfvfexp32e
+  math/unary_f32.c
+  exp/exp_f32_xsfvfexp32e.c
+  "xsfvfexp32e"
+  ""
+)
