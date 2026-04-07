@@ -6,39 +6,37 @@
 #include <stddef.h>
 #include <stdint.h>
 
-// NOLINTBEGIN(*)
-// TODO(fix linting errors)
 SKL_FUNC float skl_cvt_f8e4m3_f32(uint8_t in) {
   uint32_t result = 0; // Initialize to zero
 
   // Extract sign bit (bit 7)
-  uint32_t sign = (in & 0x80) << 24; // Shift to FP32 sign position
+  uint32_t sign = ((uint32_t)in & 0x80U) << 24U; // Shift to FP32 sign position
 
   // E4M3: 1 sign bit, 4 exponent bits, 3 mantissa bits
-  uint32_t exponent = (in >> 3) & 0x0F; // Bits 6-3
-  uint32_t mantissa = in & 0x07;        // Bits 2-0
+  uint32_t exponent = ((uint32_t)in >> 3U) & 0x0FU; // Bits 6-3
+  uint32_t mantissa = (uint32_t)in & 0x07U;         // Bits 2-0
 
-  if (exponent == 0) {
+  if (exponent == 0U) {
     // Subnormal numbers
-    if (mantissa != 0) {
+    if (mantissa != 0U) {
       // Subnormal E4M3: value = 2^(-6) * (mantissa / 2^3)
-      int lz = __builtin_clz(mantissa << 29);
-      uint32_t msk = ~(uint32_t)0 << (2 - lz);
-      uint32_t man = (mantissa & ~msk) << (20 + lz + 1);
-      uint32_t exp = (1 - (lz + 1) - 7 + 127) << 23;
+      int lz = __builtin_clz(mantissa << 29U);
+      uint32_t msk = ~0U << (uint32_t)(2 - lz);
+      uint32_t man = (mantissa & ~msk) << (uint32_t)(20 + lz + 1);
+      uint32_t exp = (uint32_t)(1 - (lz + 1) - 7 + 127) << 23U;
       result = sign | exp | man;
     } else {
       // Zero
       result = sign;
     }
-  } else if (exponent == 0x0F && mantissa == 0x7) {
+  } else if (exponent == 0x0FU && mantissa == 0x7U) {
     // RISC-V qNaN
-    result = (0xFF << 23) | (0x1 << 22);
+    result = (0xFFU << 23U) | (0x1U << 22U);
   } else {
     // Normal numbers
     // Bias: E4M3 uses 7, FP32 uses 127
-    int32_t unbiased_exp = exponent - 7 + 127;
-    result = sign | (unbiased_exp << 23) | (mantissa << 20);
+    uint32_t unbiased_exp = exponent - 7U + 127U;
+    result = sign | (unbiased_exp << 23U) | (mantissa << 20U);
   }
 
   return skl_u32_as_float(result);
@@ -48,40 +46,40 @@ SKL_FUNC float skl_cvt_f8e5m2_f32(uint8_t in) {
   uint32_t result = 0; // Initialize to zero
 
   // Extract sign bit (bit 7)
-  uint32_t sign = (in & 0x80) << 24; // Shift to FP32 sign position
+  uint32_t sign = ((uint32_t)in & 0x80U) << 24U; // Shift to FP32 sign position
 
   // E5M2: 1 sign bit, 5 exponent bits, 2 mantissa bits
-  uint32_t exponent = (in >> 2) & 0x1F; // Bits 6-2
-  uint32_t mantissa = in & 0x03;        // Bits 1-0
+  uint32_t exponent = ((uint32_t)in >> 2U) & 0x1FU; // Bits 6-2
+  uint32_t mantissa = (uint32_t)in & 0x03U;         // Bits 1-0
 
-  if (exponent == 0) {
+  if (exponent == 0U) {
     // Subnormal numbers
-    if (mantissa != 0) {
+    if (mantissa != 0U) {
       // Subnormal E5M2: value = 2^(-14) * (mantissa / 2^2)
-      int lz = __builtin_clz(mantissa << 30);
-      uint32_t msk = ~(uint32_t)0 << (1 - lz);
-      uint32_t man = (mantissa & ~msk) << (20 + lz + 2);
-      uint32_t exp = (1 - (lz + 1) - 15 + 127) << 23;
+      int lz = __builtin_clz(mantissa << 30U);
+      uint32_t msk = ~0U << (uint32_t)(1 - lz);
+      uint32_t man = (mantissa & ~msk) << (uint32_t)(20 + lz + 2);
+      uint32_t exp = (uint32_t)(1 - (lz + 1) - 15 + 127) << 23U;
       result = sign | exp | man;
 
     } else {
       // Zero
       result = sign;
     }
-  } else if (exponent == 0x1F) {
+  } else if (exponent == 0x1FU) {
     // Infinity or NaN
-    if (mantissa == 0) {
+    if (mantissa == 0U) {
       // Infinity
-      result = sign | (0xFF << 23); // FP32 infinity
+      result = sign | (0xFFU << 23U); // FP32 infinity
     } else {
       // RISC-V qNaN
-      result = (0xFF << 23) | (0x1 << 22);
+      result = (0xFFU << 23U) | (0x1U << 22U);
     }
   } else {
     // Normal numbers
     // Bias: E5M2 uses 15, FP32 uses 127
-    int32_t unbiased_exp = exponent - 15 + 127;
-    result = sign | (unbiased_exp << 23) | (mantissa << 21);
+    uint32_t unbiased_exp = exponent - 15U + 127U;
+    result = sign | (unbiased_exp << 23U) | (mantissa << 21U);
   }
 
   return skl_u32_as_float(result);
@@ -163,4 +161,3 @@ SKL_FUNC uint8_t skl_cvt_f32_f8e5m2(float in, bool is_sat) {
   }
   return sign_bits | mag_bits;
 }
-// NOLINTEND(*)
