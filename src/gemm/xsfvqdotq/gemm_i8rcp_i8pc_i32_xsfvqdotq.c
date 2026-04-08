@@ -17,6 +17,12 @@
 
 #include "skl-common.h"
 
+#if defined(__riscv_zihintntl)
+#define NTL_P1 "ntl.p1\n"
+#else
+#define NTL_P1
+#endif
+
 // a_pack is 4-byte aligned and rsa1 and csa1 are multiples of 4
 SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
     size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t rsa1,
@@ -66,27 +72,27 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
     while (k >= 12) {
       vint8m4_t bvec1;
       __asm__ volatile(
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_0], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_1], 0(%[a1])\n"
           "add %[a1], %[a1], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_2], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_3], 0(%[a1])\n"
           "add %[a1], %[a1], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_4], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_1]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_5], 0(%[a1])\n"
           "add %[a1], %[a1], %[rsa1_1]\n"
 
@@ -104,27 +110,27 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
           "sf.vqdot.vx %[vec4], %[bvec0], %[a0_4]\n"
           "sf.vqdot.vx %[vec5], %[bvec0], %[a0_5]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a0_0], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a0_1], 0(%[a1])\n"
           "add %[a1], %[a1], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a0_2], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a0_3], 0(%[a1])\n"
           "add %[a1], %[a1], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a0_4], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_1]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a0_5], 0(%[a1])\n"
           "add %[a1], %[a1], %[rsa1_1]\n"
 
