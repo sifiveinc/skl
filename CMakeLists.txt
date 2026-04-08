@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 project(SKL)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(DEFAULT_CMAKE_BUILD_TYPE "Release")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "No build type selected, default to ${DEFAULT_CMAKE_BUILD_TYPE}")
