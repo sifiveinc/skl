@@ -50,17 +50,17 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_i8rcp_i8pc_i32_xsfvqdotq(
 
   // process the first (k / 4) * 4 elements of the inner dimension
   if (k >= 4) {
-    __builtin_memcpy(&a0_0, a0, 4);
+    skl_memcpy(&a0_0, a0, 4);
     a0 += csa1;
-    __builtin_memcpy(&a0_1, a1, 4);
+    skl_memcpy(&a0_1, a1, 4);
     a1 += csa1;
-    __builtin_memcpy(&a0_2, a2, 4);
+    skl_memcpy(&a0_2, a2, 4);
     a2 += csa1;
-    __builtin_memcpy(&a0_3, a3, 4);
+    skl_memcpy(&a0_3, a3, 4);
     a3 += csa1;
-    __builtin_memcpy(&a0_4, a4, 4);
+    skl_memcpy(&a0_4, a4, 4);
     a4 += csa1;
-    __builtin_memcpy(&a0_5, a5, 4);
+    skl_memcpy(&a0_5, a5, 4);
     a5 += csa1;
 
     // load first B tile (4xn)
@@ -88,17 +88,17 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_i8rcp_i8pc_i32_xsfvqdotq(
             [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n), [n4] "r"(4 * n)
           : "vl", "vtype", "memory");
 
-      __builtin_memcpy(&a1_0, a0, 4);
+      skl_memcpy(&a1_0, a0, 4);
       a0 += csa1;
-      __builtin_memcpy(&a1_1, a1, 4);
+      skl_memcpy(&a1_1, a1, 4);
       a1 += csa1;
-      __builtin_memcpy(&a1_2, a2, 4);
+      skl_memcpy(&a1_2, a2, 4);
       a2 += csa1;
-      __builtin_memcpy(&a1_3, a3, 4);
+      skl_memcpy(&a1_3, a3, 4);
       a3 += csa1;
-      __builtin_memcpy(&a1_4, a4, 4);
+      skl_memcpy(&a1_4, a4, 4);
       a4 += csa1;
-      __builtin_memcpy(&a1_5, a5, 4);
+      skl_memcpy(&a1_5, a5, 4);
       a5 += csa1;
 
       __asm__ volatile(
@@ -127,17 +127,17 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_i8rcp_i8pc_i32_xsfvqdotq(
             [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n), [n4] "r"(4 * n)
           : "vl", "vtype", "memory");
 
-      __builtin_memcpy(&a0_0, a0, 4);
+      skl_memcpy(&a0_0, a0, 4);
       a0 += csa1;
-      __builtin_memcpy(&a0_1, a1, 4);
+      skl_memcpy(&a0_1, a1, 4);
       a1 += csa1;
-      __builtin_memcpy(&a0_2, a2, 4);
+      skl_memcpy(&a0_2, a2, 4);
       a2 += csa1;
-      __builtin_memcpy(&a0_3, a3, 4);
+      skl_memcpy(&a0_3, a3, 4);
       a3 += csa1;
-      __builtin_memcpy(&a0_4, a4, 4);
+      skl_memcpy(&a0_4, a4, 4);
       a4 += csa1;
-      __builtin_memcpy(&a0_5, a5, 4);
+      skl_memcpy(&a0_5, a5, 4);
       a5 += csa1;
 
       k -= 8;
@@ -146,10 +146,10 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_i8rcp_i8pc_i32_xsfvqdotq(
     if (k >= 8) { // 8 <= k < 11
       // compute first tile
       vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0_0, n);
-      __builtin_memcpy(&a1_0, a0, 4);
+      skl_memcpy(&a1_0, a0, 4);
       a0 += csa1;
       vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec0, a0_1, n);
-      __builtin_memcpy(&a1_1, a1, 4);
+      skl_memcpy(&a1_1, a1, 4);
       a1 += csa1;
 
       // load second B tile (4xn)
@@ -157,16 +157,16 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_i8rcp_i8pc_i32_xsfvqdotq(
       b_pack += rsb1;
 
       vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec0, a0_2, n);
-      __builtin_memcpy(&a1_2, a2, 4);
+      skl_memcpy(&a1_2, a2, 4);
       a2 += csa1;
       vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec0, a0_3, n);
-      __builtin_memcpy(&a1_3, a3, 4);
+      skl_memcpy(&a1_3, a3, 4);
       a3 += csa1;
       vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec0, a0_4, n);
-      __builtin_memcpy(&a1_4, a4, 4);
+      skl_memcpy(&a1_4, a4, 4);
       a4 += csa1;
       vec5 = __riscv_sf_vqdot_vx_i32m4(vec5, bvec0, a0_5, n);
-      __builtin_memcpy(&a1_5, a5, 4);
+      skl_memcpy(&a1_5, a5, 4);
       a5 += csa1;
 
       // compute second tile
@@ -197,12 +197,12 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_i8rcp_i8pc_i32_xsfvqdotq(
 
     vint8m4_t bvec = __riscv_vle8_v_i8m4(b_pack, 4 * n);
 
-    __builtin_memcpy(&a0_0, a0, k);
-    __builtin_memcpy(&a0_1, a1, k);
-    __builtin_memcpy(&a0_2, a2, k);
-    __builtin_memcpy(&a0_3, a3, k);
-    __builtin_memcpy(&a0_4, a4, k);
-    __builtin_memcpy(&a0_5, a5, k);
+    skl_memcpy(&a0_0, a0, k);
+    skl_memcpy(&a0_1, a1, k);
+    skl_memcpy(&a0_2, a2, k);
+    skl_memcpy(&a0_3, a3, k);
+    skl_memcpy(&a0_4, a4, k);
+    skl_memcpy(&a0_5, a5, k);
 
     vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec, a0_0 & mask, n);
     vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec, a0_1 & mask, n);
@@ -610,23 +610,23 @@ SKL_FUNC_PRIVATE void skl_gemm_lt6xm4_i8rcp_i8pc_i32_xsfvqdotq(
 
     switch (m) {
     case 5:
-      __builtin_memcpy(&a0_4, a4, 4);
+      skl_memcpy(&a0_4, a4, 4);
       a4 += csa1;
       __attribute__((fallthrough));
     case 4:
-      __builtin_memcpy(&a0_3, a3, 4);
+      skl_memcpy(&a0_3, a3, 4);
       a3 += csa1;
       __attribute__((fallthrough));
     case 3:
-      __builtin_memcpy(&a0_2, a2, 4);
+      skl_memcpy(&a0_2, a2, 4);
       a2 += csa1;
       __attribute__((fallthrough));
     case 2:
-      __builtin_memcpy(&a0_1, a1, 4);
+      skl_memcpy(&a0_1, a1, 4);
       a1 += csa1;
       __attribute__((fallthrough));
     case 1:
-      __builtin_memcpy(&a0_0, a0, 4);
+      skl_memcpy(&a0_0, a0, 4);
       a0 += csa1;
       __attribute__((fallthrough));
     default:
@@ -664,19 +664,19 @@ SKL_FUNC_PRIVATE void skl_gemm_lt6xm4_i8rcp_i8pc_i32_xsfvqdotq(
 
     switch (m) {
     case 5:
-      __builtin_memcpy(&a0_4, a4, k);
+      skl_memcpy(&a0_4, a4, k);
       __attribute__((fallthrough));
     case 4:
-      __builtin_memcpy(&a0_3, a3, k);
+      skl_memcpy(&a0_3, a3, k);
       __attribute__((fallthrough));
     case 3:
-      __builtin_memcpy(&a0_2, a2, k);
+      skl_memcpy(&a0_2, a2, k);
       __attribute__((fallthrough));
     case 2:
-      __builtin_memcpy(&a0_1, a1, k);
+      skl_memcpy(&a0_1, a1, k);
       __attribute__((fallthrough));
     case 1:
-      __builtin_memcpy(&a0_0, a0, k);
+      skl_memcpy(&a0_0, a0, k);
       __attribute__((fallthrough));
     default:
       break;
@@ -1017,13 +1017,13 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_i8rcp_i8pc_i32_xsfvqdotq(
 
   while (k >= 16) {
     // load 4 words from A
-    __builtin_memcpy(&a0, a_pack, 4);
+    skl_memcpy(&a0, a_pack, 4);
     a_pack += csa1;
-    __builtin_memcpy(&a1, a_pack, 4);
+    skl_memcpy(&a1, a_pack, 4);
     a_pack += csa1;
-    __builtin_memcpy(&a2, a_pack, 4);
+    skl_memcpy(&a2, a_pack, 4);
     a_pack += csa1;
-    __builtin_memcpy(&a3, a_pack, 4);
+    skl_memcpy(&a3, a_pack, 4);
     a_pack += csa1;
 
     // load 4 B tiles (4xn)
@@ -1046,9 +1046,9 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_i8rcp_i8pc_i32_xsfvqdotq(
 
   while (k >= 8) {
     // load 2 words from A
-    __builtin_memcpy(&a0, a_pack, 4);
+    skl_memcpy(&a0, a_pack, 4);
     a_pack += csa1;
-    __builtin_memcpy(&a1, a_pack, 4);
+    skl_memcpy(&a1, a_pack, 4);
     a_pack += csa1;
 
     // load 2 B tiles (4xn)
@@ -1065,7 +1065,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_i8rcp_i8pc_i32_xsfvqdotq(
 
   while (k >= 4) {
     // load 1 word from A
-    __builtin_memcpy(&a0, a_pack, 4);
+    skl_memcpy(&a0, a_pack, 4);
     a_pack += csa1;
 
     // load 1 B tile (4xn)
@@ -1079,7 +1079,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_i8rcp_i8pc_i32_xsfvqdotq(
 
   if (k) {
     uint32_t mask = 0xFFFFFFFF >> (8 * (4 - k));
-    __builtin_memcpy(&a0, a_pack, k);
+    skl_memcpy(&a0, a_pack, k);
     vint8m4_t bvec = __riscv_vle8_v_i8m4(b_pack, 4 * n);
     vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec, a0 & mask, n);
   }
