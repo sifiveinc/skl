@@ -49,7 +49,29 @@ transpose_e8_t tests[] = {
 
 #ifdef SKL_ENABLE_TESTS
   // Verification tests
-  {TEST, .m = 32, .n = 32},
+  /* Edge cases */
+  {TEST, .m =   0, .n =   0},
+  {TEST, .m =   0, .n =   1},
+  {TEST, .m =   1, .n =   0},
+  {TEST, .m =   1, .n =   1},
+
+  /* e8m1 boundary*/
+  {TEST, .m =  31, .n =  32},
+  {TEST, .m =  32, .n =  31},
+  {TEST, .m =  32, .n =  32},
+  {TEST, .m =  32, .n =  33},
+  {TEST, .m =  33, .n =  32},
+
+  /* Wide/tall matrices */
+  {TEST, .m =   1, .n =  32},
+  {TEST, .m =   2, .n =  32},
+  {TEST, .m =  32, .n =   1},
+  {TEST, .m =  32, .n =   2},
+
+  /* Nontrivial leading dimensions */
+  {TEST, .m =  32, .n =  32, .rsa =  64, .rsat =  64},
+  {TEST, .m =  64, .n =  32, .rsa =  64, .rsat =  64},
+  {TEST, .m =  32, .n =  64, .rsa =  64, .rsat =  64},
 #endif
 };
 // clang-format on
