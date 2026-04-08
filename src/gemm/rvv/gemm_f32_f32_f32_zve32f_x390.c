@@ -216,7 +216,7 @@ skl_gemm_1x2m8x2_f32_f32_f32_zve32f_x390(size_t n, size_t k, float alpha,
  *
  * Computes `C = alpha * A * B + beta * C` for FP32 row-major matrices.
  *
- * Functionally equivalent to the calling:
+ * Functionally equivalent to calling:
  * ```
  * skl_gemm_f32rc_f32rc_f32rc_ref(
  *     m, n, k,
@@ -784,7 +784,7 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
  *
  * Computes `C = alpha * A * B + beta * C` for FP32 row-major matrices.
  *
- * Functionally equivalent to the calling:
+ * Functionally equivalent to calling:
  * ```
  * skl_gemm_f32rc_f32rc_f32rc_ref(
  *     m, n, k,

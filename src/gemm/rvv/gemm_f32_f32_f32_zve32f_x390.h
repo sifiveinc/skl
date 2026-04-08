@@ -31,7 +31,7 @@ extern "C" {
  *
  * Computes `C = alpha * A * B + beta * C` for FP32 row-major matrices.
  *
- * Functionally equivalent to the calling:
+ * Functionally equivalent to calling:
  * ```
  * skl_gemm_f32rc_f32rc_f32rc_ref(
  *     m, n, k,
