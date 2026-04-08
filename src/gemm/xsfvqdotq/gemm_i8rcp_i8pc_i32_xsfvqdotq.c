@@ -479,7 +479,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
 
   while (k >= 4) {
     // load 1 word from A
-    __builtin_memcpy(&a0, a_pack, 4);
+    skl_memcpy(&a0, a_pack, 4);
     a_pack += csa1;
 
     // load 1 B tile (4xn)
@@ -493,7 +493,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
 
   if (k) {
     uint32_t mask = 0xFFFFFFFF >> (8 * (4 - k));
-    __builtin_memcpy(&a0, a_pack, k);
+    skl_memcpy(&a0, a_pack, k);
     vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b_pack, 4 * n);
     vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0 & mask, n);
   }

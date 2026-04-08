@@ -4,6 +4,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 /**
@@ -105,4 +106,18 @@
  */
 SKL_FUNC_UTIL void skl_instruction_schedule_barrier(void) {
   __asm__ volatile("" ::: "memory");
+}
+
+/**
+ * @brief SKL memcpy
+ *
+ * This version of memcpy is provided so that kernels requiring it can avoid a
+ * dependency on libc.
+ */
+SKL_FUNC_UTIL void *skl_memcpy(void *dest, const void *src, size_t n) {
+  for (size_t i = 0; i < n; ++i) {
+    ((uint8_t *)dest)[i] = ((uint8_t *)src)[i];
+  }
+
+  return dest;
 }
