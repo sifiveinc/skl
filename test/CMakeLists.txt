@@ -41,6 +41,7 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
 
   if(SKL_ENABLE_TESTS)
     target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_TESTS)
+    target_link_libraries(test-${TEST_NAME} PRIVATE skl-ref)
   endif()
   if(SKL_ENABLE_BENCHMARKS)
     target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_BENCHMARKS)

@@ -11,7 +11,6 @@ endif()
 # Build the library itself
 
 set(SKL_LIBRARY skl)
-set(REF_LIBRARY skl-ref)
 
 add_library(${SKL_LIBRARY} STATIC)
 
@@ -27,46 +26,10 @@ set(SKL_COMPILE_OPTIONS
 target_include_directories(${SKL_LIBRARY} PUBLIC include)
 target_compile_options(${SKL_LIBRARY} PRIVATE ${SKL_COMPILE_OPTIONS})
 
-# Build the reference library
-
-add_library(${REF_LIBRARY}
-  STATIC
-  EXCLUDE_FROM_ALL
-    ref/cvt/cvt_f4e2m1_f8e4m3.c
-    ref/cvt/cvt_ofp8.c
-    ref/depthwise_conv2d/depthwise_conv2d_f16_f16_f16.c
-    ref/depthwise_conv2d/depthwise_conv2d_f32_f32_f32.c
-    ref/depthwise_conv2d/depthwise_conv2d_i8_i8_i32.c
-    ref/gemm/gemm_bf16rc_bf16rc_f32rc.c
-    ref/gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc.c
-    ref/gemm/gemm_f8e4m3rc_f8e4m3rc_f32rc.c
-    ref/gemm/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc.c
-    ref/gemm/gemm_f8e5m2rc_f8e5m2rc_f32rc.c
-    ref/gemm/gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc.c
-    ref/gemm/gemm_f16rc_f16rc_f16rc.c
-    ref/gemm/gemm_f16rc_f16rc_f32rc.c
-    ref/gemm/gemm_f16rcprc_f16rcprc_f32rcprc.c
-    ref/gemm/gemm_f32rc_f32rc_f32rc.c
-    ref/gemm/gemm_f32rcprc_f32rcprc_f32rcprc.c
-    ref/gemm/gemm_f64rc_f64rc_f64rc.c
-    ref/gemm/gemm_f64rcprc_f64rcprc_f64rcprc.c
-    ref/gemm/gemm_i8rc_i8rc_i32rc.c
-    ref/gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
-    ref/logistic/logistic_f16.c
-    ref/logistic/logistic_f32.c
-    ref/silu/silu_f16.c
-    ref/silu/silu_f32.c
-    ref/softmax/softmax_bf16.c
-    ref/softmax/softmax_f16.c
-    ref/softmax/softmax_f32.c
-    ref/transpose/transpose_e16.c
-    ref/transpose/transpose_e32.c
-    ref/transpose/transpose_e8.c
-)
-
-target_include_directories(${REF_LIBRARY} PUBLIC include)
-target_compile_options(${REF_LIBRARY} PRIVATE ${SKL_COMPILE_OPTIONS})
-target_link_libraries(${REF_LIBRARY} PUBLIC m)
+# Build the reference library for functional testing
+if(SKL_BUILD_TESTS)
+  add_subdirectory(ref)
+endif()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get-riscv-extensions.cmake)
 
@@ -162,7 +125,7 @@ if(NOT DEFINED SKL_TESTER_OPTIONS)
   set(SKL_TESTER_OPTIONS ${SKL_QEMU_OPTIONS})
 endif()
 
-set(SKL_TEST_LIBS ${REF_LIBRARY} m)
+set(SKL_TEST_LIBS m)
 
 function(skl_add_test_legacy TEST_NAME TEST_SRC OPTS)
   add_executable(test-${TEST_NAME} test/${TEST_SRC})
@@ -179,6 +142,7 @@ function(skl_add_test_legacy TEST_NAME TEST_SRC OPTS)
   target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_TEST_NAME=${TEST_NAME})
   if (SKL_BUILD_TESTS)
     target_compile_definitions(test-${TEST_NAME} PRIVATE ENABLE_TEST)
+    target_link_libraries(test-${TEST_NAME} PRIVATE skl-ref)
   endif()
   if (SKL_BUILD_BENCHMARKS)
     target_compile_definitions(test-${TEST_NAME} PRIVATE ENABLE_BENCHMARK)
