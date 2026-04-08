@@ -27,9 +27,7 @@ target_include_directories(${SKL_LIBRARY} PUBLIC include)
 target_compile_options(${SKL_LIBRARY} PRIVATE ${SKL_COMPILE_OPTIONS})
 
 # Build the reference library for functional testing
-if(SKL_BUILD_TESTS)
-  add_subdirectory(ref)
-endif()
+add_subdirectory(ref)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get-riscv-extensions.cmake)
 
@@ -125,7 +123,7 @@ if(NOT DEFINED SKL_TESTER_OPTIONS)
   set(SKL_TESTER_OPTIONS ${SKL_QEMU_OPTIONS})
 endif()
 
-set(SKL_TEST_LIBS m)
+set(SKL_TEST_LIBS skl-ref m)
 
 function(skl_add_test_legacy TEST_NAME TEST_SRC OPTS)
   add_executable(test-${TEST_NAME} test/${TEST_SRC})
@@ -142,7 +140,6 @@ function(skl_add_test_legacy TEST_NAME TEST_SRC OPTS)
   target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_TEST_NAME=${TEST_NAME})
   if (SKL_BUILD_TESTS)
     target_compile_definitions(test-${TEST_NAME} PRIVATE ENABLE_TEST)
-    target_link_libraries(test-${TEST_NAME} PRIVATE skl-ref)
   endif()
   if (SKL_BUILD_BENCHMARKS)
     target_compile_definitions(test-${TEST_NAME} PRIVATE ENABLE_BENCHMARK)
