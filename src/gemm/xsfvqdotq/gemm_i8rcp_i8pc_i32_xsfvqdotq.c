@@ -72,6 +72,7 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
     while (k >= 12) {
       vint8m4_t bvec1;
       __asm__ volatile(
+          // clang-format off
           NTL_P1
           "lw %[a1_0], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_0]\n"
@@ -147,6 +148,7 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
           "sf.vqdot.vx %[vec3], %[bvec1], %[a1_3]\n"
           "sf.vqdot.vx %[vec4], %[bvec1], %[a1_4]\n"
           "sf.vqdot.vx %[vec5], %[bvec1], %[a1_5]\n"
+          // clang-format on
           : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
             [vec3] "+&vr"(vec3), [vec4] "+&vr"(vec4), [vec5] "+&vr"(vec5),
             [bvec0] "+&vr"(bvec0), [bvec1] "=&vr"(bvec1), [a0_0] "+&r"(a0_0),
