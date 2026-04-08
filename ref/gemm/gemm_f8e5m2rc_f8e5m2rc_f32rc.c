@@ -21,7 +21,3 @@ SKL_FUNC void skl_gemm_f8e5m2rc_f8e5m2rc_f32rc_ref(
     }
   }
 }
-
-#if defined(__cplusplus)
-} // extern "C"
-#endif
