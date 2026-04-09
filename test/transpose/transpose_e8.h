@@ -24,6 +24,10 @@ typedef struct {
   } ctx;
 } transpose_e8_t;
 
+#define TRANSPOSE_E8_DEFAULTS                                                  \
+  .a = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM},                        \
+  .at = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM}
+
 void transpose_e8_init(skl_test_t *t);
 void transpose_e8_verify(skl_test_t *t);
 void transpose_e8_report(skl_test_t *t);

@@ -19,23 +19,23 @@
  */
 
 #define TEST                                                                   \
-  .steps = {                                                                   \
-      .init = transpose_e8_init,                                               \
-      .warmup = NULL,                                                          \
-      .execute = execute,                                                      \
-      .verify = transpose_e8_verify,                                           \
-      .report = NULL,                                                          \
-      .cleanup = transpose_e8_cleanup,                                         \
+  TRANSPOSE_E8_DEFAULTS, .steps = {                                            \
+                             .init = transpose_e8_init,                        \
+                             .warmup = NULL,                                   \
+                             .execute = execute,                               \
+                             .verify = transpose_e8_verify,                    \
+                             .report = NULL,                                   \
+                             .cleanup = transpose_e8_cleanup,                  \
   }
 
 #define BENCH                                                                  \
-  .steps = {                                                                   \
-      .init = transpose_e8_init,                                               \
-      .warmup = execute,                                                       \
-      .execute = execute,                                                      \
-      .verify = NULL,                                                          \
-      .report = transpose_e8_report,                                           \
-      .cleanup = transpose_e8_cleanup,                                         \
+  TRANSPOSE_E8_DEFAULTS, .steps = {                                            \
+                             .init = transpose_e8_init,                        \
+                             .warmup = execute,                                \
+                             .execute = execute,                               \
+                             .verify = NULL,                                   \
+                             .report = transpose_e8_report,                    \
+                             .cleanup = transpose_e8_cleanup,                  \
   }
 
 static void execute(skl_test_t *t);
