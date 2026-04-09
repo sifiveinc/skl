@@ -3,12 +3,6 @@
 set(SKL_TEST_LOG_LEVEL SKL_TEST_LOG_INFO CACHE STRING "Test log level")
 message(STATUS "SKL_TEST_LOG_LEVEL: ${SKL_TEST_LOG_LEVEL}")
 
-set(SKL_ENABLE_TESTS ON CACHE STRING "Enabling of verification testing.")
-message(STATUS "SKL_ENABLE_TESTS: ${SKL_ENABLE_TESTS}")
-
-set(SKL_ENABLE_BENCHMARKS ON CACHE STRING "Enabling of performance testing.")
-message(STATUS "SKL_ENABLE_BENCHMARKS: ${SKL_ENABLE_BENCHMARKS}")
-
 
 add_library(skl-test-driver OBJECT skl-test-driver.c)
 target_compile_definitions(
@@ -40,11 +34,11 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
   )
   target_include_directories(test-${TEST_NAME} PRIVATE . ../src)
 
-  if(SKL_ENABLE_TESTS)
-    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_TESTS)
+  if(SKL_BUILD_TESTS)
+    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_BUILD_TESTS)
   endif()
-  if(SKL_ENABLE_BENCHMARKS)
-    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_BENCHMARKS)
+  if(SKL_BUILD_BENCHMARKS)
+    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_BUILD_BENCHMARKS)
   endif()
 
   add_test(
