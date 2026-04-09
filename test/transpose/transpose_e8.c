@@ -53,8 +53,9 @@ void transpose_e8_verify(skl_test_t *t) {
     for (size_t j = 0; j < rsat; ++j) {
       size_t idx = i * rsat + j;
       if (at[idx] != ref_at[idx]) {
-        printf("position [%zu, %zu]: %hhu != ref %hhu%s\n", i, j, at[idx],
-               ref_at[idx], j > m ? " (clobbered)" : "");
+        SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
+                     "position [%zu, %zu]: %hhu != ref %hhu%s\n", i, j, at[idx],
+                     ref_at[idx], j > m ? " (clobbered)" : "");
         t->status.verify_status = SKL_TEST_FAIL;
         return;
       }
