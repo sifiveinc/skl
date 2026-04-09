@@ -44,7 +44,7 @@ static void execute(skl_test_t *t);
 transpose_e8_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
   // Benchmark tests
-  {BENCH, .m = 64, .n = 128},
+  {BENCH, .m = 128, .n = 128},
 #endif
 
 #ifdef SKL_ENABLE_TESTS
@@ -56,22 +56,22 @@ transpose_e8_t tests[] = {
   {TEST, .m =   1, .n =   1},
 
   /* e8m1 boundary*/
-  {TEST, .m =  31, .n =  32},
-  {TEST, .m =  32, .n =  31},
-  {TEST, .m =  32, .n =  32},
-  {TEST, .m =  32, .n =  33},
-  {TEST, .m =  33, .n =  32},
+  {TEST, .m = 127, .n = 128},
+  {TEST, .m = 128, .n = 127},
+  {TEST, .m = 128, .n = 128},
+  {TEST, .m = 128, .n = 129},
+  {TEST, .m = 129, .n = 128},
 
   /* Wide/tall matrices */
-  {TEST, .m =   1, .n =  32},
-  {TEST, .m =   2, .n =  32},
-  {TEST, .m =  32, .n =   1},
-  {TEST, .m =  32, .n =   2},
+  {TEST, .m =   1, .n = 128},
+  {TEST, .m =   2, .n = 128},
+  {TEST, .m = 128, .n =   1},
+  {TEST, .m = 128, .n =   2},
 
   /* Nontrivial leading dimensions */
-  {TEST, .m =  32, .n =  32, .rsa =  64, .rsat =  64},
-  {TEST, .m =  64, .n =  32, .rsa =  64, .rsat =  64},
-  {TEST, .m =  32, .n =  64, .rsa =  64, .rsat =  64},
+  {TEST, .m = 128, .n = 128, .rsa = 256, .rsat = 256},
+  {TEST, .m = 256, .n = 128, .rsa = 256, .rsat = 256},
+  {TEST, .m = 128, .n = 256, .rsa = 256, .rsat = 256},
 #endif
 };
 // clang-format on
