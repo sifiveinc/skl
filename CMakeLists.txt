@@ -29,12 +29,13 @@ target_include_directories(${SKL_LIBRARY} PUBLIC
 
 target_compile_options(${SKL_LIBRARY} PRIVATE ${SKL_COMPILE_OPTIONS})
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get-riscv-extensions.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/detect_riscv_extensions.cmake)
 
 function(add_skl_src SRC REQUIRED_EXTENSIONS)
   # Add the source file SRC to the SKL_LIBRARY if all RISC-V
   # extensions in REQUIRED_EXTENSIONS are present in RISCV_EXTENSIONS.
   foreach(EXT ${REQUIRED_EXTENSIONS})
+    assert_extension_valid(${EXT})
     if(NOT EXT IN_LIST RISCV_EXTENSIONS)
       return()
     endif()
@@ -134,9 +135,9 @@ add_skl_src(src/transpose/rvv/transpose_e8_zve32x.c "zve32x")
 add_skl_src(src/transpose/scalar/transpose_e16_scalar.c "")
 add_skl_src(src/transpose/scalar/transpose_e32_scalar.c "")
 add_skl_src(src/transpose/scalar/transpose_e8_scalar.c "")
-add_skl_src(src/transpose/xsfmm/transpose_e16_xsfmmbase.c "xsfmm")
-add_skl_src(src/transpose/xsfmm/transpose_e32_xsfmmbase.c "xsfmm")
-add_skl_src(src/transpose/xsfmm/transpose_e8_xsfmmbase.c "xsfmm")
+add_skl_src(src/transpose/xsfmm/transpose_e16_xsfmmbase.c "xsfmmbase")
+add_skl_src(src/transpose/xsfmm/transpose_e32_xsfmmbase.c "xsfmmbase")
+add_skl_src(src/transpose/xsfmm/transpose_e8_xsfmmbase.c "xsfmmbase")
 
 # Optionally build library tests
 
@@ -285,7 +286,7 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test_legacy(skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f_wrapper gemm/gemm_f32rcprc_f32rcprc_f32rcprc.c
       "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
   endif()
-  if("xsfmm" IN_LIST RISCV_EXTENSIONS)
+  if("xsfmmbase" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_transpose_e8_xsfmmbase transpose/transpose_e8.c "")
     skl_add_test_legacy(skl_transpose_e16_xsfmmbase transpose/transpose_e16.c "")
     skl_add_test_legacy(skl_transpose_e32_xsfmmbase transpose/transpose_e32.c "")
