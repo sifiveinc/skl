@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -22,9 +22,9 @@ extern "C" {
  * @param beta - Scaling factor for exponential function arguments.
  * @param n - Number of elements to process.
  *
- * Computes the softmax function equivalent to the scalar call:
+ * Computes the softmax function equivalent to calling:
  * ```
- * skl_softmax_bf16_scalar(pDst, pSrc, beta, n);
+ * skl_softmax_bf16_ref(pDst, pSrc, beta, n);
  * ```
  *
  * This function uses the SiFive vector floating-point exponential

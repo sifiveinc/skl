@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -21,9 +21,9 @@ extern "C" {
  * @param beta - Scaling factor for exponential function arguments.
  * @param n - Number of elements to process.
  *
- * Computes the softmax function equivalent to the scalar call:
+ * Computes the softmax function equivalent to calling:
  * ```
- * skl_softmax_f32_scalar(pDst, pSrc, beta, n);
+ * skl_softmax_f32_ref(pDst, pSrc, beta, n);
  * ```
  *
  * Exploits the SiFive vector floating-point exponential approximation
@@ -48,7 +48,7 @@ void skl_softmax_f32_xsfvfexpa(float *pDst, const float *pSrc, const float beta,
  * Computes row-wise softmax equivalent to:
  * ```
  * for (i = 0; i < m; i++)
- *   skl_softmax_f32_scalar(s + i * rss, a + i * rsa, beta, n);
+ *   skl_softmax_f32_ref(s + i * rss, a + i * rsa, beta, n);
  * ```
  *
  * Exploits the SiFive vector floating-point exponential approximation

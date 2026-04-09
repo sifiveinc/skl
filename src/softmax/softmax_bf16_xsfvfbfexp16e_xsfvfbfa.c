@@ -17,7 +17,7 @@
  * instruction to compute the e^x part of softmax.
  *
  * Equivalent to:
- * skl_softmax_bf16_scalar(pDst, pSrc, beta, n);
+ * skl_softmax_bf16_ref(pDst, pSrc, beta, n);
  */
 SKL_FUNC void skl_softmax_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *pDst,
                                                       const __bf16 *pSrc,

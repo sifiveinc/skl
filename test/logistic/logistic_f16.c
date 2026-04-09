@@ -1,4 +1,4 @@
-// Copyright (c) 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 #if !defined(ENABLE_TEST) && !defined(ENABLE_BENCHMARK)
 #error Must define at least one of ENABLE_TEST or ENABLE_BENCHMARK
 #endif
@@ -7,6 +7,7 @@
 #define NUM_ELEMS 1024
 #endif
 
+#include "skl-ref.h"
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>
@@ -84,7 +85,7 @@ int main(void) {
 #endif
 
 #if defined(RUN_SCALAR)
-  RUN(skl_logistic_1u_f16_scalar, "scalar", 1)
+  RUN(skl_logistic_1u_f16_ref, "reference", 1)
 #endif
 
 #if !(defined(RUN_RVV) || defined(RUN_XSFVFEXP16E) || defined(RUN_SCALAR))

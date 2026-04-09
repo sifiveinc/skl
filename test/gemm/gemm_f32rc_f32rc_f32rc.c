@@ -9,8 +9,8 @@
  */
 
 #include "gemm_f32rc_f32rc_f32rc.h"
+#include "skl-ref.h"
 #include "skl-test-driver.h"
-#include "skl.h"
 #include <inttypes.h>
 #include <math.h>
 #include <stddef.h>
@@ -55,7 +55,7 @@ void gemm_f32rc_f32rc_f32rc_init(skl_test_t *t) {
 }
 
 void gemm_f32rc_f32rc_f32rc_verify(skl_test_t *t) {
-  /* Compute the reference (scalar) matrix output. */
+  /* Compute the reference matrix output. */
   gemm_f32rc_f32rc_f32rc_t *h = (gemm_f32rc_f32rc_f32rc_t *)t->harness;
 
   //
@@ -91,7 +91,7 @@ void gemm_f32rc_f32rc_f32rc_verify(skl_test_t *t) {
   const double u = ldexp(1.0, -P); // Maximum relative roundoff error
   // Compute 2 * ((1 + u)^(K + 2) - 1) by change of base formula:
   const double roundoff_scaling = 2 * expm1((double)(h->k + 2) * log1p(u));
-  skl_gemm_f64rc_f64rc_f64rc_scalar(
+  skl_gemm_f64rc_f64rc_f64rc_ref(
       h->m, h->n, h->k, roundoff_scaling * fabs((double)h->alpha),
       h->ctx.a_wide, h->rsa, h->csa, h->ctx.b_wide, h->rsb, h->csb,
       roundoff_scaling * fabs((double)h->beta), h->ctx.bound, h->rsc, h->csc);
@@ -99,9 +99,9 @@ void gemm_f32rc_f32rc_f32rc_verify(skl_test_t *t) {
   // Compute the reference result using h->ctx.ref_c
   // h->ctx.ref_c contains the original C values (copied in skl_test_init)
   // After this call, h->ctx.ref_c will contain the reference result
-  skl_gemm_f32rc_f32rc_f32rc_scalar(h->m, h->n, h->k, h->alpha, h->a.data,
-                                    h->rsa, h->csa, h->b.data, h->rsb, h->csb,
-                                    h->beta, h->ctx.ref_c, h->rsc, h->csc);
+  skl_gemm_f32rc_f32rc_f32rc_ref(h->m, h->n, h->k, h->alpha, h->a.data, h->rsa,
+                                 h->csa, h->b.data, h->rsb, h->csb, h->beta,
+                                 h->ctx.ref_c, h->rsc, h->csc);
 
   /* Compare the reference and test outputs. */
   for (size_t i = 0; i < h->m; ++i) {

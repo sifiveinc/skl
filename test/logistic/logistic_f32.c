@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 #if !defined(ENABLE_TEST) && !defined(ENABLE_BENCHMARK)
@@ -9,6 +9,7 @@
 #define NUM_ELEMS 1024
 #endif
 
+#include "skl-ref.h"
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>
@@ -73,7 +74,7 @@ int main(void) {
 #endif
 
 #if defined(RUN_SCALAR)
-  RUN(skl_logistic_3u_f32_scalar, "scalar", 3)
+  RUN(skl_logistic_3u_f32_ref, "reference", 3)
 #endif
 
 #if !(defined(RUN_RVV) || defined(RUN_SCALAR) || defined(RUN_XSFVFEXPA))

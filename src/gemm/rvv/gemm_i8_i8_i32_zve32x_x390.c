@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 #if !defined(__riscv_zve32x) || __riscv_zve32x < 1000000
@@ -30,9 +30,9 @@
  * Computes `C = alpha * A * B + beta * C` for int8 row-major matrices A and B
  * and int32 output matrix C.
  *
- * Functionally equivalent to scalar call:
+ * Functionally equivalent to calling:
  * ```
- * skl_gemm_i8rc_i8rc_i32rc_scalar(
+ * skl_gemm_i8rc_i8rc_i32rc_ref(
  *     m, n, k,
  *     alpha,
  *     a, rsa, 1,

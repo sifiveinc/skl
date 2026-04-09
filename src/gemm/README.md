@@ -53,7 +53,7 @@ Others require specific memory layouts, such as packing or transposition.
 These constraints are indicated in the function name, as described below (e.g. `skl_gemm_a1b01_f32c_f32_f32_xsfmm`).
 
 __When a kernel's specialization fixes a parameter to a specific value, that parameter is omitted from the API.__
-Since most kernels, aside from scalar reference functions, support only row-major matrices, they do not have both `rsa` and `csa` parameters, for example.
+Since most kernels, aside from reference functions, support only row-major matrices, they do not have both `rsa` and `csa` parameters, for example.
 
 ### Naming Convention
 
@@ -68,7 +68,7 @@ Each matrix type specifier is further decomposed as `<type>[<packed?>][<col-majo
 - `<type>`: one of the [type specifiers](../README.md#type-specifier-convention) defined in the SKL API design document
 - `<packed?>`: `p` if the matrix is packed, omitted otherwise
 - `<col-major?>`: `c` if the matrix is stored in column-major format (row stride = 1), `rc` if it may be row-major or column-major (both strides are passed), omitted otherwise
-The `rc` specifier is only used in scalar reference functions provided for testing purposes.
+The `rc` specifier is only used in reference functions provided for testing purposes.
 
 #### `<specialization>` Field
 The `<specialization>` field is used only to indicate alpha/beta scaling constraints as `[a<value>][b<value>]`.
@@ -84,7 +84,7 @@ Specialization does _not_ currently extend to fixed-size matrix dimensions such 
 Public SKL GEMM functions are dispatch functions that choose between one or more internal kernels, as described below.
 
 #### Examples:
-- `skl_gemm_f32rc_f32rc_f32rc_scalar(m, n, k, alpha, a, rsa, csa, b, rsb, csb, beta, c, rsc, csc)`
+- `skl_gemm_f32rc_f32rc_f32rc_ref(m, n, k, alpha, a, rsa, csa, b, rsb, csb, beta, c, rsc, csc)`
 - `skl_gemm_f32_f32_f32_zve32f_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc)`
 - `skl_gemm_i8_i8_i32_zve32x_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc)`
 - `skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(m, n, k, a, csa, b, rsb, c, rsc, accum)`

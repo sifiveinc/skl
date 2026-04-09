@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -33,9 +33,9 @@ extern "C" {
  * true`) for BF16 column-major matrix A, BF16 row-major matrix B, and FP32
  * row-major matrix C.
  *
- * Equivalent to scalar call:
+ * Equivalent to calling:
  * ```
- * skl_gemm_bf16rc_bf16rc_f32rc_scalar(
+ * skl_gemm_bf16rc_bf16rc_f32rc_ref(
  *     m, n, k,       // m, n, k
  *     1,             // alpha
  *     a, 1, csa,     // a, rsa, csa
@@ -77,9 +77,9 @@ void skl_gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f(size_t m, size_t n, size_t k,
  * Computes `C = A * B` (if `accum == false`) or `C += A * B` (if `accum ==
  * true`) for packed BF16 matrices A and B and packed FP32 matrix C.
  *
- * Equivalent to scalar call:
+ * Equivalent to calling:
  * ```
- * skl_gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar(
+ * skl_gemm_bf16rcprc_bf16rcprc_f32rcprc_ref(
  *     TE, TE, 1, m1, n1, k,     // m0, n0, k0, m1, n1, k1
  *     1,                        // alpha
  *     a_pack, 1, 0, rsa1, TE,   // a_pack, rsa0, csa0, rsa1, csa1

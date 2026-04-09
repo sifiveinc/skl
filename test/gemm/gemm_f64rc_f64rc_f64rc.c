@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 /* Test and benchmark for GEMM: C = alpha * A * B + beta * C.
@@ -47,6 +47,8 @@
 #define SKL_TEST_PERF_REPORT report_perf_mpc
 #endif
 
+// NOLINTNEXTLINE(misc-include-cleaner)
+#include "skl-ref.h"
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>
@@ -117,9 +119,9 @@ long double bound[CLEN];
  * problem parameters. Returns nonzero in case of an error, and prints
  * first incorrect output matrix element. */
 int check_error(void) {
-  /* Compute the reference (scalar) matrix output. */
-  skl_gemm_f64rc_f64rc_f64rc_scalar(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB,
-                                    BETA, ref_c, RSC, CSC);
+  /* Compute the reference matrix output. */
+  skl_gemm_f64rc_f64rc_f64rc_ref(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA,
+                                 ref_c, RSC, CSC);
 
   //
   // Compute the error bound array for comparing test vs reference results.
@@ -150,7 +152,7 @@ int check_error(void) {
   const long double u = ldexpl(1.0, -P); // Maximum relative roundoff error
   // Compute 2 * ((1 + u)^(K + 2) - 1) by change of base formula:
   const long double roundoff_scaling = 2 * expm1l((K + 2) * log1pl(u));
-  skl_gemm_f128rc_f128rc_f128rc_scalar(
+  skl_gemm_f128rc_f128rc_f128rc_ref(
       M, N, K, roundoff_scaling * fabsl(ALPHA), a_wide, RSA, CSA, b_wide, RSB,
       CSB, roundoff_scaling * fabsl(BETA), bound, RSC, CSC);
 

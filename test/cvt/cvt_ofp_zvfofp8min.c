@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 #if !defined(__riscv_zvfofp8min)
@@ -34,6 +34,8 @@
 #define SKL_TEST_RAND_MIN_F32 (-512.0f)
 #define SKL_TEST_RAND_MAX_F32 (512.0f)
 
+// NOLINTNEXTLINE(misc-include-cleaner)
+#include "skl-ref.h"
 #include "skl-test.h"
 #include "skl.h"
 

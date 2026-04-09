@@ -10,7 +10,7 @@ It also describes the packing and unpacking routines that convert matrices betwe
    - [Example: Matrix A Packing with Padding](#example-matrix-a-packing-with-padding)
    - [Stride Relationships](#stride-relationships)
 2. [APIs for Packed GEMM Kernels](#apis-for-packed-gemm-kernels)
-   - [Generic Packed GEMM Semantics (Scalar Reference Implementation)](#generic-packed-gemm-semantics-scalar-reference-implementation)
+   - [Generic Packed GEMM Semantics (Reference Implementation)](#generic-packed-gemm-semantics-reference-implementation)
    - [Naming Convention](#naming-convention)
 3. [APIs for Packing & Unpacking Kernels](#apis-for-packing--unpacking-kernels)
 4. [Application to Specific ISAs and Frameworks](#application-to-specific-isas-and-frameworks)
@@ -115,7 +115,7 @@ However, in some cases not every dimension will be packed, in which case the ori
 
 As in the case of basic GEMM, the various stride parameters suffice to describe arbitrary transpositions (row- and column-major) both of blocks and within them.
 
-### Generic Packed GEMM Semantics (Scalar Reference Implementation)
+### Generic Packed GEMM Semantics (Reference Implementation)
 For the sake of completeness, the above API's semantics are defined by the following reference implementation:
 ```c
 // Loops over blocks (done by software)
@@ -254,7 +254,7 @@ void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(
   // K-fringe elements; this is just for illustration
   size_t k1 = k / 4;
   size_t kfix = k % 4;
-  skl_gemm_i8rcprc_i8rcprc_i32rcprc_scalar(
+  skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
     1, 1, 4, m, n, k1,      // m0, n0, k0, m1, n1, k1
     1,                      // alpha
     a, 0, 1, rsa, 4,        // a_pack, rsa0, csa0, rsa1, csa1

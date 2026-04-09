@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 #if !(defined(ENABLE_TEST) || defined(ENABLE_BENCHMARK))
@@ -7,6 +7,8 @@
 
 #include "skl-test.h"
 
+// NOLINTNEXTLINE(misc-include-cleaner)
+#include "skl-ref.h"
 // NOLINTNEXTLINE(misc-include-cleaner)
 #include "skl.h"
 
@@ -37,8 +39,8 @@ int8_t ref_at[ATLEN], test_at[ATLEN];
 
 #if defined(ENABLE_TEST)
 int check_error(void) {
-  /* Compute the reference (scalar) matrix output. */
-  skl_transpose_e8_scalar(M, N, (uint8_t *)a, RSA, (uint8_t *)ref_at, RSAT);
+  /* Compute the reference matrix output. */
+  skl_transpose_e8_ref(M, N, (uint8_t *)a, RSA, (uint8_t *)ref_at, RSAT);
 
   /* Compare the reference and test outputs. */
   for (size_t i = 0; i < N; ++i) {

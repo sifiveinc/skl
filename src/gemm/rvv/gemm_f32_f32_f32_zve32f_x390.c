@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 #if !defined(__riscv_zve32f)
@@ -32,9 +32,9 @@
  * Computes `C = alpha * A * B + beta * C` for FP32 unit-stride vector A,
  * row-major matrix B, and output unit-stride vector C.
  *
- * Functionally equivalent to scalar call:
+ * Functionally equivalent to calling:
  * ```
- * skl_gemm_f32rc_f32rc_f32rc_scalar(
+ * skl_gemm_f32rc_f32rc_f32rc_ref(
  *     1, n, k,
  *     alpha,
  *     a, 1, 1,
@@ -216,9 +216,9 @@ skl_gemm_1x2m8x2_f32_f32_f32_zve32f_x390(size_t n, size_t k, float alpha,
  *
  * Computes `C = alpha * A * B + beta * C` for FP32 row-major matrices.
  *
- * Functionally equivalent to the scalar call:
+ * Functionally equivalent to calling:
  * ```
- * skl_gemm_f32rc_f32rc_f32rc_scalar(
+ * skl_gemm_f32rc_f32rc_f32rc_ref(
  *     m, n, k,
  *     alpha,
  *     a, rsa, 1,
@@ -784,9 +784,9 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
  *
  * Computes `C = alpha * A * B + beta * C` for FP32 row-major matrices.
  *
- * Functionally equivalent to the scalar call:
+ * Functionally equivalent to calling:
  * ```
- * skl_gemm_f32rc_f32rc_f32rc_scalar(
+ * skl_gemm_f32rc_f32rc_f32rc_ref(
  *     m, n, k,
  *     alpha,
  *     a, rsa, 1,

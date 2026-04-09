@@ -9,6 +9,8 @@
 #define NUM_ELEMS 1024
 #endif
 
+// NOLINTNEXTLINE(misc-include-cleaner)
+#include "skl-ref.h"
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>
@@ -102,7 +104,7 @@ int main(void) {
 #endif
 
 #if defined(RUN_SCALAR)
-  RUN(skl_silu_52u_f32_scalar, "scalar", 52)
+  RUN(skl_silu_52u_f32_ref, "reference", 52)
 #endif
 
 #if !(defined(RUN_RVV) || defined(RUN_SCALAR) || defined(RUN_XSFVFEXPA) ||     \

@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 /* Test and benchmark for GEMM: C = alpha * A * B + beta * C.
@@ -43,6 +43,8 @@
 #define SKL_TEST_PERF_REPORT report_perf_mpc
 #endif
 
+// NOLINTNEXTLINE(misc-include-cleaner)
+#include "skl-ref.h"
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>
@@ -127,9 +129,9 @@ int32_t ref_c[CLEN], test_c[CLEN];
  * Compares the test_c and ref_c matrices. Returns nonzero in case of an error,
  * and prints first incorrect output matrix element. */
 int check_error(void) {
-  /* Compute the reference (scalar) matrix output. */
-  skl_gemm_i8rc_i8rc_i32rc_scalar(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB,
-                                  BETA, ref_c, RSC, CSC);
+  /* Compute the reference matrix output. */
+  skl_gemm_i8rc_i8rc_i32rc_ref(M, N, K, ALPHA, a, RSA, CSA, b, RSB, CSB, BETA,
+                               ref_c, RSC, CSC);
 
   /* Compare the reference and test outputs. */
   for (size_t i = 0; i < M; ++i) {

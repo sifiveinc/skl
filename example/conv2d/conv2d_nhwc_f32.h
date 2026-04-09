@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -27,7 +27,7 @@ extern "C" {
 /**
  * @brief Scalar reference implementation of 2D convolution
  *
- * Naive scalar implementation for correctness verification and testing.
+ * Naive implementation for correctness verification and testing.
  * Uses nested loops without any optimization.
  *
  * @param output Output tensor buffer [batches, output_height, output_width,
@@ -52,7 +52,7 @@ extern "C" {
  * @param dilation_width Dilation factor along width dimension
  * @param dilation_height Dilation factor along height dimension
  */
-void conv2d_io_nhwc_filter_hwio_f32_f32_f32_scalar(
+void conv2d_io_nhwc_filter_hwio_f32_f32_f32_ref(
     float *output, const float *input, const float *filter, size_t batches,
     size_t input_height, size_t input_width, size_t input_channel,
     size_t filter_height, size_t filter_width, size_t output_height,

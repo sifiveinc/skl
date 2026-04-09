@@ -20,12 +20,12 @@ Currently supports `int8` input/filter with `int32` output, as well as `float16`
 ## Kernel List
 
 ### Scalar Implementation (Int8)
-#### **`skl_depthwise_conv2d_hwc_i8_i8_i32_scalar`**
-- Generic scalar implementation
+#### **`skl_depthwise_conv2d_hwc_i8_i8_i32_ref`**
+- Generic implementation
 - Data layout: Input (HWC), Filter (HWIM), Output (HWC)
 
 ```c
-void skl_depthwise_conv2d_hwc_i8_i8_i32_scalar(
+void skl_depthwise_conv2d_hwc_i8_i8_i32_ref(
     int32_t *output,                   // Output tensor (HWC layout)
     const int8_t *input,               // Input tensor (HWC layout)
     const int8_t *filter,              // Filter tensor (HWIM layout)
@@ -54,12 +54,12 @@ void skl_depthwise_conv2d_hwc_i8_i8_i32_scalar(
 
 
 ### Scalar Implementation (Float16)
-#### `skl_depthwise_conv2d_hwc_f16_f16_f16_scalar`
-- Generic scalar implementation
+#### `skl_depthwise_conv2d_hwc_f16_f16_f16_ref`
+- Generic implementation
 - Data layout: Input (HWC), Filter (HWIM), Output (HWC)
 
 ```c
-void skl_depthwise_conv2d_hwc_f16_f16_f16_scalar(
+void skl_depthwise_conv2d_hwc_f16_f16_f16_ref(
     _Float16 *output, const _Float16 *input, const _Float16 *filter,
     size_t input_height, size_t input_width, size_t input_channel,
     size_t filter_height, size_t filter_width, size_t output_height,
@@ -71,12 +71,12 @@ void skl_depthwise_conv2d_hwc_f16_f16_f16_scalar(
 ```
 
 ### Scalar Implementation (Float32)
-#### `skl_depthwise_conv2d_hwc_f32_f32_f32_scalar`
-- Generic scalar implementation
+#### `skl_depthwise_conv2d_hwc_f32_f32_f32_ref`
+- Generic implementation
 - Data layout: Input (HWC), Filter (HWIM), Output (HWC)
 
 ```c
-void skl_depthwise_conv2d_hwc_f32_f32_f32_scalar(
+void skl_depthwise_conv2d_hwc_f32_f32_f32_ref(
     float *output, const float *input, const float *filter, size_t input_height,
     size_t input_width, size_t input_channel, size_t filter_height,
     size_t filter_width, size_t output_height, size_t output_width,

@@ -105,7 +105,7 @@ This decision logic ensures that the most efficient transformation is selected a
 
 ### Reference Implementation
 ```c
-conv2d_io_nhwc_filter_hwio_f32_scalar()
+conv2d_io_nhwc_filter_hwio_f32_ref()
 ```
 - **Scalar reference**: Naive implementation for correctness verification
 - **Nested loops**: Direct convolution computation without optimization

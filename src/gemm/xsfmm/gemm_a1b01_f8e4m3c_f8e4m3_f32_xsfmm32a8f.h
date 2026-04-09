@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -35,9 +35,9 @@ extern "C" {
  * FP32 row-major matrix C. The entries of A and B are type-punned as 8-bit
  * unsigned integers.
  *
- * Equivalent to scalar call:
+ * Equivalent to calling:
  * ```
- * skl_gemm_f8e4m3rc_f8e4m3rc_f32rc_scalar(
+ * skl_gemm_f8e4m3rc_f8e4m3rc_f32rc_ref(
  *     m, n, k,       // m, n, k
  *     1,             // alpha
  *     a, 1, csa,     // a, rsa, csa
@@ -80,9 +80,9 @@ void skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(size_t m, size_t n, size_t k,
  * true`) for packed OFP8 E4M3 matrices A and B and packed FP32 matrix C. The
  * entries of A and B are type-punned as 8-bit unsigned integers.
  *
- * Equivalent to scalar call:
+ * Equivalent to calling:
  * ```
- * skl_gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_scalar(
+ * skl_gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_ref(
  *     TE, TE, 1, m1, n1, k,     // m0, n0, k0, m1, n1, k1
  *     1,                        // alpha
  *     a_pack, 1, 0, rsa1, TE,   // a_pack, rsa0, csa0, rsa1, csa1

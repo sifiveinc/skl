@@ -46,10 +46,11 @@ Additionally, some kernels are tuned separately for specific micro-architectures
 
 Users are expected to choose the appropriate kernel variant for their target hardware, based on ISA support and possibly microarchitecture-specific performance tuning.
 
-### Scalar Reference Routines
+### Reference Routines
 
-To explain the semantics of each kernel, SKL provides a set of scalar reference routines that implement the same functionality as the vectorized kernels, but in pure scalar C code.
-These are affixed with the `_scalar` suffix, and are intended as documentation and for use in correctness testing and debugging, but are not intended to provide high performance, even on scalar hardware.
+To explain the semantics of each kernel, SKL separately provides a set of reference routines that implement the same functionality as the vectorized kernels, but in pure scalar C code.
+These are affixed with the `_ref` suffix, built into `libskl-ref.a`, and provided by the `skl-ref.h` header.
+They are both intended as documentation and for use in correctness testing and debugging, but are not intended to provide high performance, even on scalar hardware.
 Each reference routine defines a _family_ of kernels that share the same underlying functionality, but may be specialized for particular ISA and CPU targets, or specfic combinations of parameters.
 The optimized kernels in a given family are described as calls to the reference routine with particular parameters fixed to specific values.
 
@@ -134,14 +135,14 @@ extern "C" {
 
 ## Examples
 
-In addition to the testsuite described below, SKL provides a set of example programs in the `example` directory that demonstrate how to combine multiple SKL kernels to implement more complex operations. 
+In addition to the testsuite described below, SKL provides a set of example programs in the `example` directory that demonstrate how to combine multiple SKL kernels to implement more complex operations.
 See the Examples [README.md](./example/README.md) for details.
 
 ## Testing and Benchmarking
 
 SKL provides a set of test programs for each family of kernels that can be used to test their operation and performance.
 These can be located within the `test/` directory.
-Each kernel family (defined by a scalar reference routine) has a corresponding test program that can exercise all of its variants, as supported by a given compilation target.
+Each kernel family (defined by a reference routine) has a corresponding test program that can exercise all of its variants, as supported by a given compilation target.
 Each one supports two modes: _test mode_ and _benchmark mode_.
 The choice of mode, along with kernel-specific parameters and enabled ISA variants, is configured via preprocessor definitions as described below.
 
@@ -150,7 +151,7 @@ Tests are suitable for execution in emulators such as QEMU for demonstration pur
 
 ### Test Mode (`-DSKL_BUILD_TESTS=TRUE`)
 
-The test mode of a SKL kernel tester demonstrates proper usage of each variant by constructing appropriate inputs, computing a reference result using the scalar routine, and comparing the result of the vector routine to the reference.
+The test mode of a SKL kernel tester demonstrates proper usage of each variant by constructing appropriate inputs, computing a reference result using the reference routine, and comparing the result of the vector routine to the reference.
 It is not intended to be an exhaustive validation suite, but rather a simple illustration of how the kernel can be used.
 
 Test mode is designed for cross compilation on a host machine that is equipped with [QEMU](https://www.qemu.org/) specfically.

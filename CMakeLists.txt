@@ -23,11 +23,11 @@ set(SKL_COMPILE_OPTIONS
     ${SKL_COMPILE_OPTIONS}
 )
 
-target_include_directories(${SKL_LIBRARY} PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
+target_include_directories(${SKL_LIBRARY} PUBLIC include)
 target_compile_options(${SKL_LIBRARY} PRIVATE ${SKL_COMPILE_OPTIONS})
+
+# Build the reference library for functional testing
+add_subdirectory(ref)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/detect_riscv_extensions.cmake)
 
@@ -48,11 +48,8 @@ add_skl_src(src/cvt/cvt_zvfofp4min.c "zvfofp4min")
 add_skl_src(src/cvt/cvt_zvfofp8min.c "zvfofp8min")
 add_skl_src(src/cvt/cvt_zvfofp8min_zvfbfmin.c "zvfofp8min;zvfbfmin")
 
-add_skl_src(src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_scalar.c "zfh")
 add_skl_src(src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_zvfh.c "zvfh")
-add_skl_src(src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_scalar.c "")
 add_skl_src(src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_zve32f.c "zve32f")
-add_skl_src(src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_scalar.c "")
 add_skl_src(src/depthwise_conv2d/depthwise_conv2d_i8_i8_i32_zve32x.c "zve32x")
 
 add_skl_src(src/exp/exp_bf16_xsfvfbfa.c "xsfvfbfa")
@@ -75,17 +72,6 @@ add_skl_src(src/gemm/rvv/gemm_f16_f16_f32_zvfh_x390.c "zvfh")
 add_skl_src(src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390.c "zve32f")
 add_skl_src(src/gemm/rvv/gemm_f64_f64_f64_zve64d_x390.c "zve64d")
 add_skl_src(src/gemm/rvv/gemm_i8_i8_i32_zve32x_x390.c "zve32x")
-add_skl_src(src/gemm/scalar/gemm_bf16rc_bf16rc_f32rc_scalar.c "")
-add_skl_src(src/gemm/scalar/gemm_bf16rcprc_bf16rcprc_f32rcprc_scalar.c "")
-add_skl_src(src/gemm/scalar/gemm_f16rc_f16rc_f16rc_scalar.c "")
-add_skl_src(src/gemm/scalar/gemm_f16rc_f16rc_f32rc_scalar.c "")
-add_skl_src(src/gemm/scalar/gemm_f16rcprc_f16rcprc_f32rcprc_scalar.c "")
-add_skl_src(src/gemm/scalar/gemm_f32rc_f32rc_f32rc_scalar.c "")
-add_skl_src(src/gemm/scalar/gemm_f32rcprc_f32rcprc_f32rcprc_scalar.c "")
-add_skl_src(src/gemm/scalar/gemm_f64rc_f64rc_f64rc_scalar.c "")
-add_skl_src(src/gemm/scalar/gemm_f64rcprc_f64rcprc_f64rcprc_scalar.c "")
-add_skl_src(src/gemm/scalar/gemm_i8rc_i8rc_i32rc_scalar.c "")
-add_skl_src(src/gemm/scalar/gemm_i8rcprc_i8rcprc_i32rcprc_scalar.c "")
 add_skl_src(src/gemm/xsfmm/gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f.c "xsfmm32a16f")
 add_skl_src(src/gemm/xsfmm/gemm_a1b01_f16c_f16_f32_xsfmm32a16f.c "xsfmm32a16f")
 add_skl_src(src/gemm/xsfmm/gemm_a1b01_f32c_f32_f32_xsfmm32a32f.c "xsfmm32a32f")
@@ -95,23 +81,18 @@ add_skl_src(src/gemm/xsfmm/gemm_a1b01_i8c_i8_i32_xsfmm32a8i.c "xsfmm32a8i")
 add_skl_src(src/gemm/xsfvqdotq/gemm_i8rcp_i8pc_i32_xsfvqdotq.c "xsfvqdotq")
 add_skl_src(src/gemm/xsfvqdotq/pack_b_xsfvqdotq.c "zve32x")
 
-add_skl_src(src/logistic/logistic_f16_scalar.c "")
 add_skl_src(src/logistic/logistic_f16_xsfvfexp16e.c "xsfvfexp16e")
 add_skl_src(src/logistic/logistic_f16_zvfh.c "zvfh")
-add_skl_src(src/logistic/logistic_f32_scalar.c "")
 add_skl_src(src/logistic/logistic_f32_xsfvfexpa.c "xsfvfexpa")
 add_skl_src(src/logistic/logistic_f32_zve32f.c "zve32f")
 
-add_skl_src(src/silu/silu_f16_scalar.c "")
 add_skl_src(src/silu/silu_f16_xsfvfexp16e.c "xsfvfexp16e")
 add_skl_src(src/silu/silu_f16_xsfvfexpa_zvfh.c "xsfvfexpa;zvfh")
 add_skl_src(src/silu/silu_f16_zvfh.c "zvfh")
-add_skl_src(src/silu/silu_f32_scalar.c "")
 add_skl_src(src/silu/silu_f32_xsfvfexp32e.c "xsfvfexp32e")
 add_skl_src(src/silu/silu_f32_xsfvfexpa.c "xsfvfexpa")
 add_skl_src(src/silu/silu_f32_zve32f.c "zve32f")
 
-add_skl_src(src/softmax/softmax_bf16_scalar.c "")
 add_skl_src(src/softmax/softmax_bf16_xsfvfbfa.c "xsfvfbfa")
 add_skl_src(src/softmax/softmax_bf16_xsfvfbfexp16e_xsfvfbfa.c "xsfvfbfexp16e;xsfvfbfa")
 add_skl_src(src/softmax/softmax_bf16_xsfvfbfexp16e_zvfbfmin.c "xsfvfbfexp16e;zvfbfmin")
@@ -120,11 +101,9 @@ add_skl_src(src/softmax/softmax_bf16_xsfvfexpa_xsfvfbfa.c "xsfvfexpa;xsfvfbfa")
 add_skl_src(src/softmax/softmax_bf16_xsfvfexpa_zvfbfmin.c "xsfvfexpa;zvfbfmin")
 add_skl_src(src/softmax/softmax_bf16_zve32f.c "zve32f")
 add_skl_src(src/softmax/softmax_bf16_zvfbfmin.c "zvfbfmin")
-add_skl_src(src/softmax/softmax_f16_scalar.c "")
 add_skl_src(src/softmax/softmax_f16_xsfvfexp16e.c "xsfvfexp16e")
 add_skl_src(src/softmax/softmax_f16_xsfvfexpa_zvfh.c "xsfvfexpa;zvfh")
 add_skl_src(src/softmax/softmax_f16_zvfh.c "zvfh")
-add_skl_src(src/softmax/softmax_f32_scalar.c "")
 add_skl_src(src/softmax/softmax_f32_xsfvfexp32e.c "xsfvfexp32e")
 add_skl_src(src/softmax/softmax_f32_xsfvfexpa.c "xsfvfexpa")
 add_skl_src(src/softmax/softmax_f32_zve32f.c "zve32f")
@@ -132,9 +111,6 @@ add_skl_src(src/softmax/softmax_f32_zve32f.c "zve32f")
 add_skl_src(src/transpose/rvv/transpose_e16_zve32x.c "zve32x")
 add_skl_src(src/transpose/rvv/transpose_e32_zve32x.c "zve32x")
 add_skl_src(src/transpose/rvv/transpose_e8_zve32x.c "zve32x")
-add_skl_src(src/transpose/scalar/transpose_e16_scalar.c "")
-add_skl_src(src/transpose/scalar/transpose_e32_scalar.c "")
-add_skl_src(src/transpose/scalar/transpose_e8_scalar.c "")
 add_skl_src(src/transpose/xsfmm/transpose_e16_xsfmmbase.c "xsfmmbase")
 add_skl_src(src/transpose/xsfmm/transpose_e32_xsfmmbase.c "xsfmmbase")
 add_skl_src(src/transpose/xsfmm/transpose_e8_xsfmmbase.c "xsfmmbase")
@@ -148,11 +124,15 @@ if(NOT DEFINED SKL_TESTER_OPTIONS)
   set(SKL_TESTER_OPTIONS ${SKL_QEMU_OPTIONS})
 endif()
 
-set(SKL_TEST_LIBS m)
+set(SKL_TEST_LIBS skl-ref m)
 
 function(skl_add_test_legacy TEST_NAME TEST_SRC OPTS)
   add_executable(test-${TEST_NAME} test/${TEST_SRC})
-  target_link_libraries(test-${TEST_NAME} PRIVATE ${SKL_LIBRARY} ${SKL_TEST_LIBS})
+  target_link_libraries(test-${TEST_NAME}
+    PRIVATE
+      ${SKL_LIBRARY}
+      ${SKL_TEST_LIBS}
+  )
   target_compile_options(test-${TEST_NAME} PRIVATE
     ${SKL_COMPILE_OPTIONS}
     ${SKL_TEST_COMPILE_OPTIONS}
@@ -186,7 +166,10 @@ function(skl_add_example EXAMPLE_NAME EXAMPLE_SRCS OPTS)
   endif()
 
   add_executable(example-${EXAMPLE_NAME} ${EXAMPLE_SRCS_LIST})
-  target_link_libraries(example-${EXAMPLE_NAME} PRIVATE ${SKL_LIBRARY} ${SKL_TEST_LIBS})
+  target_link_libraries(example-${EXAMPLE_NAME}
+    PRIVATE
+      ${SKL_LIBRARY}
+      ${SKL_TEST_LIBS})
   target_compile_options(example-${EXAMPLE_NAME} PRIVATE
     ${SKL_COMPILE_OPTIONS}
     ${SKL_TEST_COMPILE_OPTIONS}

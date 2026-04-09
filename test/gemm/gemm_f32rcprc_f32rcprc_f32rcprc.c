@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 /* Test and benchmark for packed GEMM: C = alpha * A * B + beta * C.
@@ -68,6 +68,8 @@
 #define SKL_TEST_PERF_REPORT report_perf_mpc
 #endif
 
+// NOLINTNEXTLINE(misc-include-cleaner)
+#include "skl-ref.h"
 #include "skl-test.h"
 #include "skl.h"
 #include <inttypes.h>
@@ -175,8 +177,8 @@ double bound[CLEN];
  * problem parameters. Returns nonzero in case of an error, and prints
  * first incorrect output matrix element. */
 int check_error(void) {
-  /* Compute the reference (scalar) matrix output. */
-  skl_gemm_f32rcprc_f32rcprc_f32rcprc_scalar(
+  /* Compute the reference matrix output. */
+  skl_gemm_f32rcprc_f32rcprc_f32rcprc_ref(
       M0, N0, K0, M1, N1, K1, ALPHA, a, RSA0, CSA0, (size_t)RSA1, (size_t)CSA1,
       b, RSB0, CSB0, (size_t)RSB1, (size_t)CSB1, BETA, ref_c, RSC0, CSC0,
       (size_t)RSC1, (size_t)CSC1);
@@ -210,7 +212,7 @@ int check_error(void) {
   const double u = ldexp(1.0, -P); // Maximum relative roundoff error
   // Compute 2 * ((1 + u)^(K + 2) - 1) by change of base formula:
   const double roundoff_scaling = 2 * expm1((K0 * K1 + 2) * log1p(u));
-  skl_gemm_f64rcprc_f64rcprc_f64rcprc_scalar(
+  skl_gemm_f64rcprc_f64rcprc_f64rcprc_ref(
       M0, N0, K0, M1, N1, K1, roundoff_scaling * fabs((double)ALPHA), a_wide,
       RSA0, CSA0, (size_t)RSA1, (size_t)CSA1, b_wide, RSB0, CSB0, (size_t)RSB1,
       (size_t)CSB1, roundoff_scaling * fabs((double)BETA), bound, RSC0, CSC0,

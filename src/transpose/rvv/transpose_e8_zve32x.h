@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -7,6 +7,7 @@
 #error This file requires the Zve32x extension
 #endif
 
+#include "skl-common.h"
 #include <stddef.h>
 #include <stdint.h>
 
