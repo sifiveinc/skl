@@ -23,6 +23,7 @@ target_compile_options(
 function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
   # Only add the test if all extensions in REQUIRED_EXTENSIONS are present.
   foreach(EXT ${REQUIRED_EXTENSIONS})
+    assert_extension_valid(${EXT})
     if(NOT EXT IN_LIST RISCV_EXTENSIONS)
       return()
     endif()
