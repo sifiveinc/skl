@@ -21,8 +21,8 @@
 void transpose_e8_init(skl_test_t *t) {
   transpose_e8_t *h = (transpose_e8_t *)t->harness;
 
-  h->a.len = (h->m - 1) * h->rsa + h->n;
-  h->at.len = (h->n - 1) * h->rsat + h->m;
+  h->a.len = h->m * h->rsa;
+  h->at.len = h->n * h->rsat;
 
   SKL_TEST_BUF_CREATE(t, uint8_t, &h->a);
   SKL_TEST_BUF_CREATE(t, uint8_t, &h->at);
