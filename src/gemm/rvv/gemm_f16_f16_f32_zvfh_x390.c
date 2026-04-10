@@ -465,6 +465,8 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4x12_f16_f16_f32_zvfh_x390(
         const _Float16 *a_addr_4;
         const _Float16 *a_addr_5;
         __asm__ volatile(
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Woverlength-strings"
             // clang-format off
             "\n\t"
             "add %[a_addr_1], %[a_addr_0], %[rsa2] \n\t"
@@ -725,6 +727,7 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4x12_f16_f16_f32_zvfh_x390(
             NTL_P1
             "flh %[a53], 22(%[a_addr_5]) \n\t"
             "vle16.v %[b30], (%[b_addr]) \n\t"
+#pragma clang diagnostic pop
             : [a00] "+&f"(a00),
               [a10] "+&f"(a10),
               [a20] "+&f"(a20),
