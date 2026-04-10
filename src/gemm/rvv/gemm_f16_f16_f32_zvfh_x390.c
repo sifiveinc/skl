@@ -225,12 +225,12 @@ skl_gemm_1xm8x16_f16_f16_f32_zvfh_x390(size_t n, size_t k, float alpha,
  *     c, rsc, 1
  * );
  * ```
- * Uses a 4 x LMUL=4 x 1 register tile. Vectorized across the N dimension.
+ * Uses a 6 x LMUL=4 x 12 register tile. Vectorized across the N dimension.
  *
  * @note
- * Works best when `m >= 4` and `n >= __riscv_vsetvlmax_e32m4()`.
+ * Works best when `m >= 6` and `n >= __riscv_vsetvlmax_e32m4()`.
  */
-SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(
+SKL_FUNC_PRIVATE void skl_gemm_6xm4x12_f16_f16_f32_zvfh_x390(
     size_t m, size_t n, size_t k, float alpha, const _Float16 *a, size_t rsa,
     const _Float16 *b, size_t rsb, float beta, float *c, size_t rsc) {
   size_t jj_vl;
@@ -1006,8 +1006,8 @@ SKL_FUNC void skl_gemm_f16_f16_f32_zvfh_x390(size_t m, size_t n, size_t k,
     skl_gemm_1xm8x16_f16_f16_f32_zvfh_x390(n, k, alpha, a, b, rsb, beta, c);
     return;
   }
-  skl_gemm_4xm4x1_f16_f16_f32_zvfh_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c,
-                                        rsc);
+  skl_gemm_6xm4x12_f16_f16_f32_zvfh_x390(m, n, k, alpha, a, rsa, b, rsb, beta,
+                                         c, rsc);
 }
 
 #undef NTL_P1
