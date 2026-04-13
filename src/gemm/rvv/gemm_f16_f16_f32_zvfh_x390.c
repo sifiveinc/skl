@@ -47,12 +47,12 @@
  * );
  * ```
  *
- * Uses a 1 x LMUL=8 x 16 register tile. Vectorized across the N dimension.
+ * Uses a 1 x LMUL=8 x 18 register tile. Vectorized across the N dimension.
  *
  * @note
  * Works best when `m = 1` and `n >= __riscv_vsetvlmax_e32m8()`.
  */
-SKL_FUNC_PRIVATE void skl_gemm_1xm8x16_f16_f16_f32_zvfh_x390(
+SKL_FUNC_PRIVATE void skl_gemm_1xm8x18_f16_f16_f32_zvfh_x390(
     size_t m, size_t n, size_t k, float alpha, const _Float16 *a, size_t rsa,
     const _Float16 *b, size_t rsb, float beta, float *c, size_t rsc) {
   size_t jj_vl;
@@ -61,8 +61,16 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x16_f16_f16_f32_zvfh_x390(
   size_t kk;
   _Float16 a0;
   _Float16 a1;
+  _Float16 a2;
+  _Float16 a3;
+  _Float16 a4;
+  _Float16 a5;
   vfloat16m4_t b0;
   vfloat16m4_t b1;
+  vfloat16m4_t b2;
+  vfloat16m4_t b3;
+  vfloat16m4_t b4;
+  vfloat16m4_t b5;
   vfloat32m8_t acc;
   vfloat32m8_t c0;
 
@@ -81,6 +89,10 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x16_f16_f16_f32_zvfh_x390(
   for (ii = 0; (ii + 1) <= m; ii = ii + 1) {
     for (jj = 0; jj < n; jj = jj + jj_vl) {
       jj_vl = __riscv_vsetvl_e16m4(n - jj);
+
+      const size_t kk_unroll_degree = 18;
+      const size_t preload_distance = 6;
+
       __asm__ volatile(
           // clang-format off
           "\n\t"
@@ -99,7 +111,10 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x16_f16_f16_f32_zvfh_x390(
           // clang-format on
       );
 
-      for (kk = 1; (kk + 16) <= k; kk = kk + 16) {
+      kk = 1;
+
+      if (kk_unroll_degree + preload_distance < k) {
+        // Load initial values for kk loop below.
         const _Float16 *b_addr = b + kk * rsb + jj;
         __asm__ volatile(
             // clang-format off
@@ -109,93 +124,212 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x16_f16_f16_f32_zvfh_x390(
             "flh %[a0],  0(%[a_addr]) \n\t"
             "vle16.v %[b0], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc], %[a0], %[b0] \n\t"
 
             "flh %[a1],  2(%[a_addr]) \n\t"
             "vle16.v %[b1], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc], %[a1], %[b1] \n\t"
 
-            "flh %[a0],  4(%[a_addr]) \n\t"
-            "vle16.v %[b0], (%[b_addr]) \n\t"
+            "flh %[a2],  4(%[a_addr]) \n\t"
+            "vle16.v %[b2], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc], %[a0], %[b0] \n\t"
 
-            "flh %[a1],  6(%[a_addr]) \n\t"
-            "vle16.v %[b1], (%[b_addr]) \n\t"
+            "flh %[a3],  6(%[a_addr]) \n\t"
+            "vle16.v %[b3], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc], %[a1], %[b1] \n\t"
 
-            "flh %[a0],  8(%[a_addr]) \n\t"
-            "vle16.v %[b0], (%[b_addr]) \n\t"
+            "flh %[a4],  8(%[a_addr]) \n\t"
+            "vle16.v %[b4], (%[b_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc], %[a0], %[b0] \n\t"
 
-            "flh %[a1], 10(%[a_addr]) \n\t"
-            "vle16.v %[b1], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc], %[a1], %[b1] \n\t"
-
-            "flh %[a0], 12(%[a_addr]) \n\t"
-            "vle16.v %[b0], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc], %[a0], %[b0] \n\t"
-
-            "flh %[a1], 14(%[a_addr]) \n\t"
-            "vle16.v %[b1], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc], %[a1], %[b1] \n\t"
-
-            "flh %[a0], 16(%[a_addr]) \n\t"
-            "vle16.v %[b0], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc], %[a0], %[b0] \n\t"
-
-            "flh %[a1], 18(%[a_addr]) \n\t"
-            "vle16.v %[b1], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc], %[a1], %[b1] \n\t"
-
-            "flh %[a0], 20(%[a_addr]) \n\t"
-            "vle16.v %[b0], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc], %[a0], %[b0] \n\t"
-
-            "flh %[a1], 22(%[a_addr]) \n\t"
-            "vle16.v %[b1], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc], %[a1], %[b1] \n\t"
-
-            "flh %[a0], 24(%[a_addr]) \n\t"
-            "vle16.v %[b0], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc], %[a0], %[b0] \n\t"
-
-            "flh %[a1], 26(%[a_addr]) \n\t"
-            "vle16.v %[b1], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc], %[a1], %[b1] \n\t"
-
-            "flh %[a0], 28(%[a_addr]) \n\t"
-            "vle16.v %[b0], (%[b_addr]) \n\t"
-            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
-            "vfwmacc.vf %[acc], %[a0], %[b0] \n\t"
-
-            "flh %[a1], 30(%[a_addr]) \n\t"
-            "vle16.v %[b1], (%[b_addr]) \n\t"
-            "vfwmacc.vf %[acc], %[a1], %[b1] \n\t"
-            : [a0] "=&f"(a0),
-              [a1] "=&f"(a1),
-              [b0] "=&vr"(b0),
-              [b1] "=&vr"(b1),
-              [acc] "+&vr"(acc),
-              [b_addr] "+&r"(b_addr)
-            : [jj_vl_in] "r"(jj_vl),
-              [a_addr] "r"(a + ii  * rsa + kk),
+            "flh %[a5], 10(%[a_addr]) \n\t"
+            "vle16.v %[b5], (%[b_addr]) \n\t"
+            : [a0] "=&f" (a0),
+              [a1] "=&f" (a1),
+              [a2] "=&f" (a2),
+              [a3] "=&f" (a3),
+              [a4] "=&f" (a4),
+              [a5] "=&f" (a5),
+              [b0] "=&vr" (b0),
+              [b1] "=&vr" (b1),
+              [b2] "=&vr" (b2),
+              [b3] "=&vr" (b3),
+              [b4] "=&vr" (b4),
+              [b5] "=&vr" (b5),
+              [b_addr] "+&r" (b_addr)
+            : [jj_vl_in] "r" (jj_vl),
+              [a_addr] "r" (a + ii * rsa + kk),
               [rsb2] "r" (rsb * sizeof(_Float16))
             : "vtype", "vl", "memory"
             // clang-format on
         );
+      }
+
+      for (; (kk + kk_unroll_degree + preload_distance) <= k;
+           kk += kk_unroll_degree) {
+        const size_t offset = preload_distance;
+        const _Float16 *b_addr = b + (kk + offset) * rsb + jj;
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "vsetvli zero, %[jj_vl_in], e16, m4, ta, ma \n\t"
+
+            "vfwmacc.vf %[acc], %[a0], %[b0] \n\t"
+            NTL_P1
+            "flh %[a0],  0(%[a_addr]) \n\t"
+            "vle16.v %[b0], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a1], %[b1] \n\t"
+            NTL_P1
+            "flh %[a1],  2(%[a_addr]) \n\t"
+            "vle16.v %[b1], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a2], %[b2] \n\t"
+            NTL_P1
+            "flh %[a2],  4(%[a_addr]) \n\t"
+            "vle16.v %[b2], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a3], %[b3] \n\t"
+            NTL_P1
+            "flh %[a3],  6(%[a_addr]) \n\t"
+            "vle16.v %[b3], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a4], %[b4] \n\t"
+            NTL_P1
+            "flh %[a4],  8(%[a_addr]) \n\t"
+            "vle16.v %[b4], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a5], %[b5] \n\t"
+            NTL_P1
+            "flh %[a5], 10(%[a_addr]) \n\t"
+            "vle16.v %[b5], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a0], %[b0] \n\t"
+            NTL_P1
+            "flh %[a0], 12(%[a_addr]) \n\t"
+            "vle16.v %[b0], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a1], %[b1] \n\t"
+            NTL_P1
+            "flh %[a1], 14(%[a_addr]) \n\t"
+            "vle16.v %[b1], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a2], %[b2] \n\t"
+            NTL_P1
+            "flh %[a2], 16(%[a_addr]) \n\t"
+            "vle16.v %[b2], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a3], %[b3] \n\t"
+            NTL_P1
+            "flh %[a3], 18(%[a_addr]) \n\t"
+            "vle16.v %[b3], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a4], %[b4] \n\t"
+            NTL_P1
+            "flh %[a4], 20(%[a_addr]) \n\t"
+            "vle16.v %[b4], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a5], %[b5] \n\t"
+            NTL_P1
+            "flh %[a5], 22(%[a_addr]) \n\t"
+            "vle16.v %[b5], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a0], %[b0] \n\t"
+            NTL_P1
+            "flh %[a0], 24(%[a_addr]) \n\t"
+            "vle16.v %[b0], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a1], %[b1] \n\t"
+            NTL_P1
+            "flh %[a1], 26(%[a_addr]) \n\t"
+            "vle16.v %[b1], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a2], %[b2] \n\t"
+            NTL_P1
+            "flh %[a2], 28(%[a_addr]) \n\t"
+            "vle16.v %[b2], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a3], %[b3] \n\t"
+            NTL_P1
+            "flh %[a3], 30(%[a_addr]) \n\t"
+            "vle16.v %[b3], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a4], %[b4] \n\t"
+            NTL_P1
+            "flh %[a4], 32(%[a_addr]) \n\t"
+            "vle16.v %[b4], (%[b_addr]) \n\t"
+            "add %[b_addr], %[b_addr], %[rsb2] \n\t"
+
+            "vfwmacc.vf %[acc], %[a5], %[b5] \n\t"
+            NTL_P1
+            "flh %[a5], 34(%[a_addr]) \n\t"
+            "vle16.v %[b5], (%[b_addr]) \n\t"
+            : [a0] "+&f"(a0),
+              [a1] "+&f"(a1),
+              [a2] "+&f"(a2),
+              [a3] "+&f"(a3),
+              [a4] "+&f"(a4),
+              [a5] "+&f"(a5),
+              [b0] "+&vr"(b0),
+              [b1] "+&vr"(b1),
+              [b2] "+&vr"(b2),
+              [b3] "+&vr"(b3),
+              [b4] "+&vr"(b4),
+              [b5] "+&vr"(b5),
+              [acc] "+&vr"(acc),
+              [b_addr] "+&r"(b_addr)
+            : [jj_vl_in] "r"(jj_vl),
+              [a_addr] "r"(a + ii  * rsa + kk + offset),
+              [rsb2] "r" (rsb * sizeof(_Float16))
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
+      }
+
+      if (kk_unroll_degree + preload_distance < k) {
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "vsetvli zero, %[jj_vl_in], e16, m4, ta, ma \n\t"
+            "vfwmacc.vf %[acc], %[a0], %[b0] \n\t"
+            "vfwmacc.vf %[acc], %[a1], %[b1] \n\t"
+            "vfwmacc.vf %[acc], %[a2], %[b2] \n\t"
+            "vfwmacc.vf %[acc], %[a3], %[b3] \n\t"
+            "vfwmacc.vf %[acc], %[a4], %[b4] \n\t"
+            "vfwmacc.vf %[acc], %[a5], %[b5] \n\t"
+            : [acc] "+&vr"(acc)
+            : [jj_vl_in] "r" (jj_vl),
+              [a0] "f"(a0),
+              [a1] "f"(a1),
+              [a2] "f"(a2),
+              [a3] "f"(a3),
+              [a4] "f"(a4),
+              [a5] "f"(a5),
+              [b0] "vr"(b0),
+              [b1] "vr"(b1),
+              [b2] "vr"(b2),
+              [b3] "vr"(b3),
+              [b4] "vr"(b4),
+              [b5] "vr"(b5)
+            : "vtype", "vl"
+            // clang-format on
+        );
+        kk += preload_distance;
       }
 
       for (; (kk + 1) <= k; kk = kk + 1) {
@@ -1050,7 +1184,7 @@ SKL_FUNC void skl_gemm_f16_f16_f32_zvfh_x390(size_t m, size_t n, size_t k,
                                              size_t rsb, float beta, float *c,
                                              size_t rsc) {
   if (m == 1) {
-    skl_gemm_1xm8x16_f16_f16_f32_zvfh_x390(m, n, k, alpha, a, rsc, b, rsb, beta,
+    skl_gemm_1xm8x18_f16_f16_f32_zvfh_x390(m, n, k, alpha, a, rsc, b, rsb, beta,
                                            c, rsc);
     return;
   }
