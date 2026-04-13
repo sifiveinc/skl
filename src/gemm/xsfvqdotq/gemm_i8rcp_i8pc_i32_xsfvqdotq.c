@@ -60,27 +60,28 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
     vint8m4_t bvec1;
 
     __asm__ volatile(
-        "ntl.p1\n"
+        // clang-format off
+        NTL_P1
         "lw %[a0_0], 0(%[a0])\n"
         "add %[a0], %[a0], %[rsa1_0]\n"
 
-        "ntl.p1\n"
+        NTL_P1
         "lw %[a0_1], 0(%[a1])\n"
         "add %[a1], %[a1], %[rsa1_0]\n"
 
-        "ntl.p1\n"
+        NTL_P1
         "lw %[a0_2], 0(%[a0])\n"
         "add %[a0], %[a0], %[rsa1_0]\n"
 
-        "ntl.p1\n"
+        NTL_P1
         "lw %[a0_3], 0(%[a1])\n"
         "add %[a1], %[a1], %[rsa1_0]\n"
 
-        "ntl.p1\n"
+        NTL_P1
         "lw %[a0_4], 0(%[a0])\n"
         "add %[a0], %[a0], %[rsa1_1]\n"
 
-        "ntl.p1\n"
+        NTL_P1
         "lw %[a0_5], 0(%[a1])\n"
         "add %[a1], %[a1], %[rsa1_1]\n"
 
@@ -88,6 +89,7 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
         "vsetvli x0, %[n4], e8, m4, ta, ma\n"
         "vle8.v %[bvec0], (%[b_pack])\n"
         "add %[b_pack], %[b_pack], %[rsb1]\n"
+        // clang-format on
         : [bvec0] "=&vr"(bvec0), [a0_0] "=&r"(a0_0), [a0_1] "=&r"(a0_1),
           [a0_2] "=&r"(a0_2), [a0_3] "=&r"(a0_3), [a0_4] "=&r"(a0_4),
           [a0_5] "=&r"(a0_5), [a0] "+&r"(a0), [a1] "+&r"(a1),
@@ -99,27 +101,28 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
 
     while (k >= 12) {
       __asm__ volatile(
-          "ntl.p1\n"
+          // clang-format off
+          NTL_P1
           "lw %[a1_0], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_1], 0(%[a1])\n"
           "add %[a1], %[a1], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_2], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_3], 0(%[a1])\n"
           "add %[a1], %[a1], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_4], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_1]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_5], 0(%[a1])\n"
           "add %[a1], %[a1], %[rsa1_1]\n"
 
@@ -137,27 +140,27 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
           "sf.vqdot.vx %[vec4], %[bvec0], %[a0_4]\n"
           "sf.vqdot.vx %[vec5], %[bvec0], %[a0_5]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a0_0], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a0_1], 0(%[a1])\n"
           "add %[a1], %[a1], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a0_2], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a0_3], 0(%[a1])\n"
           "add %[a1], %[a1], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a0_4], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_1]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a0_5], 0(%[a1])\n"
           "add %[a1], %[a1], %[rsa1_1]\n"
 
@@ -174,6 +177,7 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
           "sf.vqdot.vx %[vec3], %[bvec1], %[a1_3]\n"
           "sf.vqdot.vx %[vec4], %[bvec1], %[a1_4]\n"
           "sf.vqdot.vx %[vec5], %[bvec1], %[a1_5]\n"
+          // clang-format on
           : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
             [vec3] "+&vr"(vec3), [vec4] "+&vr"(vec4), [vec5] "+&vr"(vec5),
             [bvec0] "+&vr"(bvec0), [bvec1] "=&vr"(bvec1), [a0_0] "+&r"(a0_0),
@@ -192,27 +196,28 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
 
     if (k >= 8) { // 8 <= k < 11
       __asm__ volatile(
-          "ntl.p1\n"
+          // clang-format off
+          NTL_P1
           "lw %[a1_0], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_1], 0(%[a1])\n"
           "add %[a1], %[a1], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_2], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_3], 0(%[a1])\n"
           "add %[a1], %[a1], %[rsa1_0]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_4], 0(%[a0])\n"
           "add %[a0], %[a0], %[rsa1_1]\n"
 
-          "ntl.p1\n"
+          NTL_P1
           "lw %[a1_5], 0(%[a1])\n"
           "add %[a1], %[a1], %[rsa1_1]\n"
 
@@ -237,6 +242,7 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
           "sf.vqdot.vx %[vec3], %[bvec1], %[a1_3]\n"
           "sf.vqdot.vx %[vec4], %[bvec1], %[a1_4]\n"
           "sf.vqdot.vx %[vec5], %[bvec1], %[a1_5]\n"
+          // clang-format on
           : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
             [vec3] "+&vr"(vec3), [vec4] "+&vr"(vec4), [vec5] "+&vr"(vec5),
             [bvec1] "=&vr"(bvec1), [a1_0] "=&r"(a1_0), [a1_1] "=&r"(a1_1),
