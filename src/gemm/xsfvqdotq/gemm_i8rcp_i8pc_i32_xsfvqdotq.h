@@ -70,18 +70,13 @@ extern "C" {
  * ```
  * is equivalent to calling:
  * ```
- * skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
- *     1, 1, 1, m, n, k,    // m0, n0, k0, m1, n1, k1
- *     alpha,               // alpha
- *     a, 0, 0, rsa, 1,     // a, rsa0, csa0, rsa1, csa1
- *     b, 0, 0, rsb, 1,     // b, rsb0, csb0, rsb1, csb1
- *     beta,                // beta
- *     c, 0, 0, rsc, 1      // c, rsc0, csc0, rsc1, csc1
- * );
+ * skl_gemm_i8rc_i8rc_i32rc_ref(m, n, k, alpha, a, rsa, 1, b, rsb, 1, beta,
+ *                              c, rsc, 1);
  * ```
  *
  * This kernel uses the SiFive Xsfvqdotq extension for vector quad widening 4D
- * dot product operations to achieve high performance on 8-bit integer data. The
+ * dot product operations to achieve high performance on 8-bit integer data.
+ * When A_pack is 4-byte aligned and rsa1 and csa1 are multiples of 4, the
  * kernel automatically dispatches to optimized internal implementations:
  * - For m=1: uses an internal GEMV kernel
  * - For m>1: uses tiled GEMM kernels
