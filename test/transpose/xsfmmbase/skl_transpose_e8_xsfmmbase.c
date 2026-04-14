@@ -55,12 +55,24 @@ transpose_e8_t tests[] = {
   {TEST, .m =   1, .n =   0},
   {TEST, .m =   1, .n =   1},
 
-  /* tm/tn boundary */
+  /* Almost square, dimensions near powers of 2 */
   {TEST, .m =  63, .n =  64},
   {TEST, .m =  64, .n =  63},
   {TEST, .m =  64, .n =  64},
   {TEST, .m =  64, .n =  65},
   {TEST, .m =  65, .n =  64},
+
+  {TEST, .m = 127, .n = 128},
+  {TEST, .m = 128, .n = 127},
+  {TEST, .m = 128, .n = 128},
+  {TEST, .m = 128, .n = 129},
+  {TEST, .m = 129, .n = 128},
+
+  {TEST, .m = 255, .n = 256},
+  {TEST, .m = 256, .n = 255},
+  {TEST, .m = 256, .n = 256},
+  {TEST, .m = 256, .n = 257},
+  {TEST, .m = 257, .n = 256},
 
   /* Wide/tall matrices */
   {TEST, .m =   1, .n =  64},
