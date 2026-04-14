@@ -69,7 +69,7 @@ gemm_i8rcp_i8pc_i32_xsfvqdotq_t tests[] = {
     {TEST, .m = 32,  .n = 192,  .k = 32,  .alpha = 2},
     {TEST, .m = 32,  .n = 192,  .k = 32,  .alpha = 2,  .beta = 1},
     {TEST, .m = 32,  .n = 192,  .k = 32,  .alpha = 2,  .beta = 2},
-    {TEST, .m = 32,  .n = 192,  .k = 32,  .rsa1 = 4,  .csa1 = 32 * 4,  .alpha = 1,  .beta = 1},
+    {TEST, .m = 32,  .n = 192,  .k = 32,  .rsa1 = 4,  .csa1 = (size_t)32 * (size_t)4,  .alpha = 1,  .beta = 1},
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on

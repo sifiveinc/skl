@@ -10,7 +10,6 @@
  */
 
 #include "gemm_i8rcp_i8pc_i32_xsfvqdotq.h"
-#include "skl-ref.h"
 #include "skl-test-driver.h"
 #include <inttypes.h>
 #include <stddef.h>
