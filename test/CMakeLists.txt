@@ -76,3 +76,17 @@ skl_add_test(
   "zve32x"
   ""
 )
+skl_add_test(
+  skl_depthwise_conv2d_f32_f32_f32_zve32f
+  depthwise_conv2d/depthwise_conv2d_f32_f32_f32.c
+  depthwise_conv2d/rvv/depthwise_conv2d_f32_f32_f32_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_depthwise_conv2d_f16_f16_f16_zvfh
+  depthwise_conv2d/depthwise_conv2d_f16_f16_f16.c
+  depthwise_conv2d/rvv/depthwise_conv2d_f16_f16_f16_zvfh.c
+  "zvfh;zfh"
+  ""
+)
