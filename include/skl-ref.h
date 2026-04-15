@@ -61,6 +61,7 @@
 #include "../ref/depthwise_conv2d/depthwise_conv2d_f16_f16_f16.h"
 
 #include "../ref/depthwise_conv2d/depthwise_conv2d_f32_f32_f32.h"
+#include "../ref/depthwise_conv2d/depthwise_conv2d_f64_f64_f64.h"
 #include "../ref/depthwise_conv2d/depthwise_conv2d_i8_i8_i32.h"
 
 /*
