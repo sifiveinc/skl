@@ -76,3 +76,10 @@ skl_add_test(
     "zvfofp8min;zvfbfmin"
     ""
 )
+skl_add_test(
+    cvt_f32_f8_zvfofp8min
+    cvt/cvt_f32_f8.c
+    cvt/cvt_f32_f8_zvfofp8min.c
+    "zvfofp8min"
+    ""
+)
