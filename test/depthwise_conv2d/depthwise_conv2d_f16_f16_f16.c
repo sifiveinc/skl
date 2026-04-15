@@ -18,8 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if !defined(__riscv_zvfh) || !defined(__riscv_zfh)
-#error This file requires the Zvfh and Zfh extension
+#if !defined(__riscv_zvfh)
+#error This file requires the Zvfh extension
 #endif
 
 void depthwise_conv2d_f16_f16_f16_init(skl_test_t *t) {

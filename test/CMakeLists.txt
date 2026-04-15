@@ -87,6 +87,6 @@ skl_add_test(
   skl_depthwise_conv2d_f16_f16_f16_zvfh
   depthwise_conv2d/depthwise_conv2d_f16_f16_f16.c
   depthwise_conv2d/rvv/depthwise_conv2d_f16_f16_f16_zvfh.c
-  "zvfh;zfh"
+  "zvfh"
   ""
 )
