@@ -102,10 +102,10 @@
       .cleanup = cvt_ofp_cleanup,                                              \
   }
 
-static int execute_bf16_f8e4m3(skl_test_t *t);
-static int execute_sat_bf16_f8e4m3(skl_test_t *t);
-static int execute_bf16_f8e5m2(skl_test_t *t);
-static int execute_sat_bf16_f8e5m2(skl_test_t *t);
+static void execute_bf16_f8e4m3(skl_test_t *t);
+static void execute_sat_bf16_f8e4m3(skl_test_t *t);
+static void execute_bf16_f8e5m2(skl_test_t *t);
+static void execute_sat_bf16_f8e5m2(skl_test_t *t);
 
 // clang-format off
 cvt_ofp_t tests[] = {
@@ -136,36 +136,36 @@ static skl_test_suite_t suite = {.name = "cvt_ofp_zvfofp8min_zvfbfmin",
                                  .test_size = sizeof(cvt_ofp_t),
                                  .tests = tests};
 
-static int execute_bf16_f8e4m3(skl_test_t *t) {
+static void execute_bf16_f8e4m3(skl_test_t *t) {
   const cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
 
   skl_cvt_bf16_f8e4m3_zvfofp8min_zvfbfmin((uint8_t *)h->out, (__bf16 *)h->in,
                                           h->scale, h->len);
-  return (t->status == SKL_TEST_PASS) ? 0 : 1;
+  t->status.execute_status = SKL_TEST_PASS;
 }
 
-static int execute_sat_bf16_f8e4m3(skl_test_t *t) {
+static void execute_sat_bf16_f8e4m3(skl_test_t *t) {
   const cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
 
   skl_cvt_sat_bf16_f8e4m3_zvfofp8min_zvfbfmin(
       (uint8_t *)h->out, (__bf16 *)h->in, h->scale, h->len);
-  return (t->status == SKL_TEST_PASS) ? 0 : 1;
+  t->status.execute_status = SKL_TEST_PASS;
 }
 
-static int execute_bf16_f8e5m2(skl_test_t *t) {
+static void execute_bf16_f8e5m2(skl_test_t *t) {
   const cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
 
   skl_cvt_bf16_f8e5m2_zvfofp8min_zvfbfmin((uint8_t *)h->out, (__bf16 *)h->in,
                                           h->scale, h->len);
-  return (t->status == SKL_TEST_PASS) ? 0 : 1;
+  t->status.execute_status = SKL_TEST_PASS;
 }
 
-static int execute_sat_bf16_f8e5m2(skl_test_t *t) {
+static void execute_sat_bf16_f8e5m2(skl_test_t *t) {
   const cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
 
   skl_cvt_sat_bf16_f8e5m2_zvfofp8min_zvfbfmin(
       (uint8_t *)h->out, (__bf16 *)h->in, h->scale, h->len);
-  return (t->status == SKL_TEST_PASS) ? 0 : 1;
+  t->status.execute_status = SKL_TEST_PASS;
 }
 
 int main(void) { return skl_test_driver_run_suite(&suite); }

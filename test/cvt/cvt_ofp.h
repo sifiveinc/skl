@@ -48,7 +48,7 @@ typedef struct {
   float *ref;
 } cvt_ofp_t;
 
-int cvt_ofp_init(skl_test_t *t);
-int cvt_ofp_verify(skl_test_t *t);
-int cvt_ofp_report(skl_test_t *t);
-int cvt_ofp_cleanup(skl_test_t *t);
+void cvt_ofp_init(skl_test_t *t);
+void cvt_ofp_verify(skl_test_t *t);
+void cvt_ofp_report(skl_test_t *t);
+void cvt_ofp_cleanup(skl_test_t *t);

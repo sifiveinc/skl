@@ -37,7 +37,7 @@
       .cleanup = cvt_ofp_cleanup,                                              \
   }
 
-static int execute_f4e2m1_f8e4m3(skl_test_t *t);
+static void execute_f4e2m1_f8e4m3(skl_test_t *t);
 
 // clang-format off
 cvt_ofp_t tests[] = {
@@ -54,11 +54,11 @@ static skl_test_suite_t suite = {.name = "cvt_ofp_zvfofp4min",
                                  .test_size = sizeof(cvt_ofp_t),
                                  .tests = tests};
 
-static int execute_f4e2m1_f8e4m3(skl_test_t *t) {
+static void execute_f4e2m1_f8e4m3(skl_test_t *t) {
   const cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
 
   skl_cvt_f4e2m1_f8e4m3_zvfofp4min((uint8_t *)h->out, (uint8_t *)h->in, h->len);
-  return (t->status == SKL_TEST_PASS) ? 0 : 1;
+  t->status.execute_status = SKL_TEST_PASS;
 }
 
 int main(void) { return skl_test_driver_run_suite(&suite); }

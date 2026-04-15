@@ -146,12 +146,12 @@
       .cleanup = cvt_ofp_cleanup,                                              \
   }
 
-static int execute_f32_f8e4m3(skl_test_t *t);
-static int execute_sat_f32_f8e4m3(skl_test_t *t);
-static int execute_f32_f8e5m2(skl_test_t *t);
-static int execute_sat_f32_f8e5m2(skl_test_t *t);
-static int execute_f8e4m3_bf16(skl_test_t *t);
-static int execute_f8e5m2_bf16(skl_test_t *t);
+static void execute_f32_f8e4m3(skl_test_t *t);
+static void execute_sat_f32_f8e4m3(skl_test_t *t);
+static void execute_f32_f8e5m2(skl_test_t *t);
+static void execute_sat_f32_f8e5m2(skl_test_t *t);
+static void execute_f8e4m3_bf16(skl_test_t *t);
+static void execute_f8e5m2_bf16(skl_test_t *t);
 
 // clang-format off
 cvt_ofp_t tests[] = {
@@ -186,50 +186,50 @@ static skl_test_suite_t suite = {.name = "cvt_ofp_zvfofp8min",
                                  .test_size = sizeof(cvt_ofp_t),
                                  .tests = tests};
 
-static int execute_f32_f8e4m3(skl_test_t *t) {
+static void execute_f32_f8e4m3(skl_test_t *t) {
   const cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
 
   skl_cvt_f32_f8e4m3_zvfofp8min((uint8_t *)h->out, (float *)h->in, h->scale,
                                 h->len);
-  return (t->status == SKL_TEST_PASS) ? 0 : 1;
+  t->status.execute_status = SKL_TEST_PASS;
 }
 
-static int execute_sat_f32_f8e4m3(skl_test_t *t) {
+static void execute_sat_f32_f8e4m3(skl_test_t *t) {
   const cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
 
   skl_cvt_sat_f32_f8e4m3_zvfofp8min((uint8_t *)h->out, (float *)h->in, h->scale,
                                     h->len);
-  return (t->status == SKL_TEST_PASS) ? 0 : 1;
+  t->status.execute_status = SKL_TEST_PASS;
 }
 
-static int execute_f32_f8e5m2(skl_test_t *t) {
+static void execute_f32_f8e5m2(skl_test_t *t) {
   const cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
 
   skl_cvt_f32_f8e5m2_zvfofp8min((uint8_t *)h->out, (float *)h->in, h->scale,
                                 h->len);
-  return (t->status == SKL_TEST_PASS) ? 0 : 1;
+  t->status.execute_status = SKL_TEST_PASS;
 }
 
-static int execute_sat_f32_f8e5m2(skl_test_t *t) {
+static void execute_sat_f32_f8e5m2(skl_test_t *t) {
   const cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
 
   skl_cvt_sat_f32_f8e5m2_zvfofp8min((uint8_t *)h->out, (float *)h->in, h->scale,
                                     h->len);
-  return (t->status == SKL_TEST_PASS) ? 0 : 1;
+  t->status.execute_status = SKL_TEST_PASS;
 }
 
-static int execute_f8e4m3_bf16(skl_test_t *t) {
+static void execute_f8e4m3_bf16(skl_test_t *t) {
   const cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
 
   skl_cvt_f8e4m3_bf16_zvfofp8min((__bf16 *)h->out, (uint8_t *)h->in, h->len);
-  return (t->status == SKL_TEST_PASS) ? 0 : 1;
+  t->status.execute_status = SKL_TEST_PASS;
 }
 
-static int execute_f8e5m2_bf16(skl_test_t *t) {
+static void execute_f8e5m2_bf16(skl_test_t *t) {
   const cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
 
   skl_cvt_f8e5m2_bf16_zvfofp8min((__bf16 *)h->out, (uint8_t *)h->in, h->len);
-  return (t->status == SKL_TEST_PASS) ? 0 : 1;
+  t->status.execute_status = SKL_TEST_PASS;
 }
 
 int main(void) { return skl_test_driver_run_suite(&suite); }

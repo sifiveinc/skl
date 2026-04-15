@@ -10,7 +10,8 @@
 
 #include "cvt_ofp.h"
 #include "skl-test-driver.h"
-#include "skl-test.h"
+// NOLINTNEXTLINE(misc-include-cleaner)
+#include "skl-ref.h"
 #include <inttypes.h>
 #include <math.h>
 #include <stddef.h>
@@ -174,13 +175,17 @@ static int init_output_buffer(skl_test_t *t, cvt_ofp_t *h) {
   }
 }
 
-int cvt_ofp_init(skl_test_t *t) {
+void cvt_ofp_init(skl_test_t *t) {
   cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
-  if (init_input_buffer(t, h) != 0)
-    return 1;
-  if (init_output_buffer(t, h) != 0)
-    return 1;
-  return 0;
+  if (init_input_buffer(t, h) != 0) {
+    t->status.init_status = SKL_TEST_FAIL;
+    return;
+  }
+  if (init_output_buffer(t, h) != 0) {
+    t->status.init_status = SKL_TEST_FAIL;
+    return;
+  }
+  t->status.init_status = SKL_TEST_PASS;
 }
 
 static void compute_reference_f32_to_ofp8(cvt_ofp_t *h) {
@@ -277,10 +282,14 @@ static int verify_outputs(skl_test_t *t, cvt_ofp_t *h) {
   return 0;
 }
 
-int cvt_ofp_verify(skl_test_t *t) {
+void cvt_ofp_verify(skl_test_t *t) {
   cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
   compute_reference(h);
-  return verify_outputs(t, h);
+  if (verify_outputs(t, h) != 0) {
+    t->status.verify_status = SKL_TEST_FAIL;
+  } else {
+    t->status.verify_status = SKL_TEST_PASS;
+  }
 }
 
 static const char *type_to_str(cvt_ofp_type_t type) {
@@ -300,7 +309,7 @@ static const char *type_to_str(cvt_ofp_type_t type) {
   }
 }
 
-int cvt_ofp_report(skl_test_t *t) {
+void cvt_ofp_report(skl_test_t *t) {
   cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
 
   size_t elements = h->len;
@@ -320,7 +329,7 @@ int cvt_ofp_report(skl_test_t *t) {
   INFO("Instructions: %zd\n", t->counters.instret);
   INFO("Elements/Cycle: %f\n", elements_per_cycle);
 
-  return 0;
+  t->status.report_status = SKL_TEST_PASS;
 }
 
 static int cleanup_input_f32(skl_test_t *t, cvt_ofp_t *h) {
@@ -382,13 +391,17 @@ static int cleanup_output_buffer(skl_test_t *t, cvt_ofp_t *h) {
   }
 }
 
-int cvt_ofp_cleanup(skl_test_t *t) {
+void cvt_ofp_cleanup(skl_test_t *t) {
   cvt_ofp_t *h = (cvt_ofp_t *)t->harness;
-  if (cleanup_input_buffer(t, h) != 0)
-    return 1;
-  if (cleanup_output_buffer(t, h) != 0)
-    return 1;
+  if (cleanup_input_buffer(t, h) != 0) {
+    t->status.cleanup_status = SKL_TEST_FAIL;
+    return;
+  }
+  if (cleanup_output_buffer(t, h) != 0) {
+    t->status.cleanup_status = SKL_TEST_FAIL;
+    return;
+  }
   if (h->steps.verify)
     free(h->ref);
-  return 0;
+  t->status.cleanup_status = SKL_TEST_PASS;
 }
