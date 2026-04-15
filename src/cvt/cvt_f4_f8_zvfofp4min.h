@@ -8,8 +8,8 @@
 #endif
 
 /**
- * @file cvt_zvfofp4min.h
- * @brief OFP4 Conversion Functions
+ * @file cvt_f4_f8_zvfofp4min.h
+ * @brief OFP4 to OFP8 Conversion Functions
  *
  * This header provides vectorized conversion functions from 4-bit OFP4
  * formats to 8-bit OFP8 E4M3 format using the RISC-V Zvfofp4min extension.

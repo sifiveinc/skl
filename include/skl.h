@@ -153,15 +153,16 @@
  * Conversion Functions
  */
 #if defined(__riscv_zvfofp8min)
-#include "../src/cvt/cvt_zvfofp8min.h"
+#include "../src/cvt/cvt_f32_f8_zvfofp8min.h"
+#include "../src/cvt/cvt_f8_bf16_zvfofp8min.h"
 #endif
 
 #if defined(__riscv_zvfofp8min) && defined(__riscv_zvfbfmin)
-#include "../src/cvt/cvt_zvfofp8min_zvfbfmin.h"
+#include "../src/cvt/cvt_bf16_f8_zvfofp8min_zvfbfmin.h"
 #endif
 
 #if defined(__riscv_zvfofp4min)
-#include "../src/cvt/cvt_zvfofp4min.h"
+#include "../src/cvt/cvt_f4_f8_zvfofp4min.h"
 #endif
 
 /*

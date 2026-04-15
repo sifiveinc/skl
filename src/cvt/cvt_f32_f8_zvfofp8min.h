@@ -8,27 +8,22 @@
 #endif
 
 /**
- * @file cvt_zvfofp8min.h
- * @brief OFP8 Conversion Functions
+ * @file cvt_f32_f8_zvfofp8min.h
+ * @brief F32 to OFP8 Conversion Functions
  *
- * This header provides vectorized conversion functions between various
- * floating-point formats and 8-bit OFP8 formats (E4M3 and E5M2) using the
- * RISC-V Zvfofp8min extension.
+ * This header provides vectorized narrowing conversion functions from F32 to
+ * OFP8 formats (E4M3 and E5M2) using the RISC-V Zvfofp8min extension.
  *
  * ## Function Variants:
  *
- * ### Narrowing Conversions (wider → OFP8):
- * - **Standard**: `skl_cvt_{input}_{output}_zvfofp8min()`
+ * ### Narrowing Conversions (F32 → OFP8):
+ * - **Standard**: `skl_cvt_f32_{output}_zvfofp8min()`
  *   - E4M3: Infinite values are converted to the canonical NaN (E4M3 cannot
  * represent infinity)
  *   - E5M2: Infinite values are preserved as infinity in the target format
- * - **Saturating**: `skl_cvt_sat_{input}_{output}_zvfofp8min()`
+ * - **Saturating**: `skl_cvt_sat_f32_{output}_zvfofp8min()`
  *   - Infinite results are clamped to the maximum-magnitude finite value of the
  * same sign
- *
- * ### Widening Conversions (OFP8 → wider):
- * - **Standard**: `skl_cvt_{input}_{output}_zvfofp8min()`
- *   - Direct widening conversion with full precision preservation
  *
  * ## Scaling Factor:
  * Narrowing conversion functions accept a scaling factor parameter:
@@ -113,32 +108,6 @@ void skl_cvt_f32_f8e5m2_zvfofp8min(uint8_t *pDst, const float *pSrc,
  */
 void skl_cvt_sat_f32_f8e5m2_zvfofp8min(uint8_t *pDst, const float *pSrc,
                                        float scaling_factor, size_t n);
-
-/**
- * @brief Converts E4M3 OFP8 values to BF16 format.
- *
- * @param pDst - Output array where the BF16 values are stored.
- * @param pSrc - Input array where the E4M3 values are stored.
- * @param n - Number of elements to convert.
- *
- * Converts 8-bit E4M3 OFP format values to 16-bit brain floating-point format.
- * This is a widening conversion that preserves full precision.
- */
-void skl_cvt_f8e4m3_bf16_zvfofp8min(__bf16 *pDst, const uint8_t *pSrc,
-                                    size_t n);
-
-/**
- * @brief Converts E5M2 OFP8 values to BF16 format.
- *
- * @param pDst - Output array where the BF16 values are stored.
- * @param pSrc - Input array where the E5M2 values are stored.
- * @param n - Number of elements to convert.
- *
- * Converts 8-bit E5M2 OFP format values to 16-bit brain floating-point format.
- * This is a widening conversion that preserves full precision.
- */
-void skl_cvt_f8e5m2_bf16_zvfofp8min(__bf16 *pDst, const uint8_t *pSrc,
-                                    size_t n);
 
 #if defined(__cplusplus)
 } // extern "C"

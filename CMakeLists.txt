@@ -44,9 +44,10 @@ function(add_skl_src SRC REQUIRED_EXTENSIONS)
   target_sources(${SKL_LIBRARY} PRIVATE ${SRC})
 endfunction()
 
-add_skl_src(src/cvt/cvt_zvfofp4min.c "zvfofp4min")
-add_skl_src(src/cvt/cvt_zvfofp8min.c "zvfofp8min")
-add_skl_src(src/cvt/cvt_zvfofp8min_zvfbfmin.c "zvfofp8min;zvfbfmin")
+add_skl_src(src/cvt/cvt_f4_f8_zvfofp4min.c "zvfofp4min")
+add_skl_src(src/cvt/cvt_f8_bf16_zvfofp8min.c "zvfofp8min")
+add_skl_src(src/cvt/cvt_f32_f8_zvfofp8min.c "zvfofp8min")
+add_skl_src(src/cvt/cvt_bf16_f8_zvfofp8min_zvfbfmin.c "zvfofp8min;zvfbfmin")
 
 add_skl_src(src/depthwise_conv2d/depthwise_conv2d_f16_f16_f16_zvfh.c "zvfh")
 add_skl_src(src/depthwise_conv2d/depthwise_conv2d_f32_f32_f32_zve32f.c "zve32f")
