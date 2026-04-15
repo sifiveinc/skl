@@ -29,7 +29,10 @@ typedef struct {
 
   // Derived parameters & buffers (private to the test harness)
   struct {
-    float *ref_output;
+    double *input_abs;  // Absolute values of input (for bound computation)
+    double *filter_abs; // Absolute values of filter (for bound computation)
+    float *ref_output;  // Reference output
+    double *bound;      // Per-element error bound
   } ctx;
 
   uint32_t use_specialization;
