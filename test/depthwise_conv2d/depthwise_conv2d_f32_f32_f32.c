@@ -77,7 +77,7 @@ void depthwise_conv2d_f32_f32_f32_verify(skl_test_t *t) {
 
   const int P = 24; // 23 bits of mantissa for float32 accumulator
   const double u = ldexp(1.0, -P); // Maximum relative roundoff error
-  const int K = h->filter_height * h->filter_width; // Operations per output
+  const size_t K = h->filter_height * h->filter_width; // Operations per output
   // Compute 2 * ((1 + u)^K - 1) by change of base formula:
   const double roundoff_scaling = 2.0 * expm1((double)K * log1p(u));
 
