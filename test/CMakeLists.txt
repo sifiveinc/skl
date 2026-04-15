@@ -70,23 +70,9 @@ skl_add_test(
   ""
 )
 skl_add_test(
-    cvt_ofp_zvfofp8min_zvfbfmin
-    cvt/cvt_ofp.c
-    cvt/cvt_ofp_zvfofp8min_zvfbfmin.c
+    cvt_bf16_f8_zvfofp8min_zvfbfmin
+    cvt/cvt_bf16_f8.c
+    cvt/cvt_bf16_f8_zvfofp8min_zvfbfmin.c
     "zvfofp8min;zvfbfmin"
-    ""
-)
-skl_add_test(
-    cvt_ofp_zvfofp8min
-    cvt/cvt_ofp.c
-    cvt/cvt_ofp_zvfofp8min.c
-    "zvfofp8min"
-    ""
-)
-skl_add_test(
-    cvt_ofp_zvfofp4min
-    cvt/cvt_ofp.c
-    cvt/cvt_ofp_zvfofp4min.c
-    "zvfofp4min"
     ""
 )
