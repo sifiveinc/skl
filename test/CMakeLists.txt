@@ -69,3 +69,10 @@ skl_add_test(
   "xsfmm32a32f"
   ""
 )
+skl_add_test(
+  skl_depthwise_conv2d_i8_i8_i32_zve32x
+  depthwise_conv2d/depthwise_conv2d_i8_i8_i32.c
+  depthwise_conv2d/rvv/depthwise_conv2d_i8_i8_i32_zve32x.c
+  "zve32x"
+  ""
+)
