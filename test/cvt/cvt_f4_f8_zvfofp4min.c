@@ -39,12 +39,16 @@ static void execute_f4e2m1_f8e4m3(skl_test_t *t);
 
 // clang-format off
 cvt_f4_f8_t tests[] = {
+#ifdef SKL_ENABLE_BENCHMARKS
     // Benchmark tests
     {BENCH_F4E2M1_F8E4M3,   .len = 1024},
+#endif // SKL_ENABLE_BENCHMARKS
 
+#ifdef SKL_ENABLE_TESTS
     // Verification tests
     {TEST_F4E2M1_F8E4M3,    .len = 1024},
     {TEST_F4E2M1_F8E4M3,    .len = 1025},
+#endif // SKL_ENABLE_TESTS
 };
 // clang-format on
 

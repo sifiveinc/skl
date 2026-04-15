@@ -84,8 +84,8 @@
   CVT_BF16_F8_DEFAULTS, .out_type = F8E5M2, .saturation = false,               \
       .steps = {                                                               \
           .init = cvt_bf16_f8_init,                                            \
-          .warmup = execute_sat_bf16_f8e5m2,                                   \
-          .execute = execute_sat_bf16_f8e5m2,                                  \
+          .warmup = execute_bf16_f8e5m2,                                       \
+          .execute = execute_bf16_f8e5m2,                                      \
           .verify = NULL,                                                      \
           .report = cvt_bf16_f8_report,                                        \
           .cleanup = cvt_bf16_f8_cleanup,                                      \
@@ -109,6 +109,7 @@ static void execute_sat_bf16_f8e5m2(skl_test_t *t);
 
 // clang-format off
 cvt_bf16_f8_t tests[] = {
+#ifdef SKL_ENABLE_BENCHMARKS
     // Benchmark tests
     {BENCH_BF16_F8E4M3,     .len = 1024, .scale = 1.0f},
     {BENCH_BF16_F8E4M3,     .len = 1024, .scale = 1.5f},
@@ -118,7 +119,9 @@ cvt_bf16_f8_t tests[] = {
     {BENCH_BF16_F8E5M2,     .len = 1024, .scale = 1.5f},
     {BENCH_SAT_BF16_F8E5M2, .len = 1024, .scale = 1.0f},
     {BENCH_SAT_BF16_F8E5M2, .len = 1024, .scale = 1.5f},
+#endif // SKL_ENABLE_BENCHMARKS
 
+#ifdef SKL_ENABLE_TESTS
     // Verification tests
     {TEST_BF16_F8E4M3,      .len = 1024, .scale = 1.0f},
     {TEST_BF16_F8E4M3,      .len = 1024, .scale = 1.5f},
@@ -128,6 +131,7 @@ cvt_bf16_f8_t tests[] = {
     {TEST_BF16_F8E5M2,      .len = 1024, .scale = 1.5f},
     {TEST_SAT_BF16_F8E5M2,  .len = 1024, .scale = 1.0f},
     {TEST_SAT_BF16_F8E5M2,  .len = 1024, .scale = 1.5f},
+#endif // SKL_ENABLE_TESTS
 };
 // clang-format on
 

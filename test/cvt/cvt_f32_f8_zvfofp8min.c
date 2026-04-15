@@ -84,8 +84,8 @@
   CVT_F32_F8_DEFAULTS, .out_type = F8E5M2, .saturation = false,                \
       .steps = {                                                               \
           .init = cvt_f32_f8_init,                                             \
-          .warmup = execute_sat_f32_f8e5m2,                                    \
-          .execute = execute_sat_f32_f8e5m2,                                   \
+          .warmup = execute_f32_f8e5m2,                                        \
+          .execute = execute_f32_f8e5m2,                                       \
           .verify = NULL,                                                      \
           .report = cvt_f32_f8_report,                                         \
           .cleanup = cvt_f32_f8_cleanup,                                       \
@@ -109,6 +109,7 @@ static void execute_sat_f32_f8e5m2(skl_test_t *t);
 
 // clang-format off
 cvt_f32_f8_t tests[] = {
+#ifdef SKL_ENABLE_BENCHMARKS
     // Benchmark tests
     {BENCH_F32_F8E4M3,     .len = 1024, .scale = 1.0f},
     {BENCH_F32_F8E4M3,     .len = 1024, .scale = 1.5f},
@@ -118,7 +119,9 @@ cvt_f32_f8_t tests[] = {
     {BENCH_F32_F8E5M2,     .len = 1024, .scale = 1.5f},
     {BENCH_SAT_F32_F8E5M2, .len = 1024, .scale = 1.0f},
     {BENCH_SAT_F32_F8E5M2, .len = 1024, .scale = 1.5f},
+#endif // SKL_ENABLE_BENCHMARKS
 
+#ifdef SKL_ENABLE_TESTS
     // Verification tests
     {TEST_F32_F8E4M3,      .len = 1024, .scale = 1.0f},
     {TEST_F32_F8E4M3,      .len = 1024, .scale = 1.5f},
@@ -128,6 +131,7 @@ cvt_f32_f8_t tests[] = {
     {TEST_F32_F8E5M2,      .len = 1024, .scale = 1.5f},
     {TEST_SAT_F32_F8E5M2,  .len = 1024, .scale = 1.0f},
     {TEST_SAT_F32_F8E5M2,  .len = 1024, .scale = 1.5f},
+#endif // SKL_ENABLE_TESTS
 };
 // clang-format on
 
