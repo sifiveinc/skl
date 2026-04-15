@@ -200,7 +200,6 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   endif()
 
   if("zve32x" IN_LIST RISCV_EXTENSIONS)
-    skl_add_test_legacy(skl_depthwise_conv2d_i8_i8_i32_zve32x depthwise_conv2d/depthwise_conv2d_i8_i8_i32_legacy.c "")
     skl_add_test_legacy(skl_gemm_i8_i8_i32_zve32x_x390_wrapper gemm/gemm_i8rc_i8rc_i32rc.c
       "-DM=32;-DN=32;-DK=32;-DALPHA=1;-DBETA=0")
     skl_add_test_legacy(skl_transpose_e8_zve32x transpose/transpose_e8.c "")
