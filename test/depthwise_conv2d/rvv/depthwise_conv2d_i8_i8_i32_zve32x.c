@@ -59,7 +59,9 @@ depthwise_conv2d_i8_i8_i32_t tests[] = {
 
 #ifdef SKL_ENABLE_TESTS
   // Verification tests
-  /* Simple case */
+
+  /* depth_multiplier = 1, dilation = 1, stride = 1 */
+  /* Test generic kernel */
   {TEST, .use_specialization = 0,
    .input_height = 16, .input_width = 16, .input_channel = 512, 
    .filter_height = 3, .filter_width = 3, 
@@ -68,10 +70,125 @@ depthwise_conv2d_i8_i8_i32_t tests[] = {
    .dilation_height_factor = 1, .dilation_width_factor = 1,
    .input_zero_point = 0
   },
-{TEST, .use_specialization = 1,
+  /* Test specialized 3x3 kernel */
+  {TEST, .use_specialization = 1,
    .input_height = 16, .input_width = 16, .input_channel = 512, 
    .filter_height = 3, .filter_width = 3, 
    .output_height = 14, .output_width = 14, .output_channel = 512, 
+   .depth_multiplier = 1, .stride_height = 1, .stride_width = 1, 
+   .dilation_height_factor = 1, .dilation_width_factor = 1,
+   .input_zero_point = 0
+  },
+
+  /* depth_multiplier = 1, dilation = 1, stride = 2 */
+  {TEST, .use_specialization = 0,
+   .input_height = 15, .input_width = 15, .input_channel = 512, 
+   .filter_height = 3, .filter_width = 3, 
+   .output_height = 7, .output_width = 7, .output_channel = 512, 
+   .depth_multiplier = 1, .stride_height = 2, .stride_width = 2, 
+   .dilation_height_factor = 1, .dilation_width_factor = 1,
+   .input_zero_point = 0
+  },
+  {TEST, .use_specialization = 1,
+   .input_height = 15, .input_width = 15, .input_channel = 512, 
+   .filter_height = 3, .filter_width = 3, 
+   .output_height = 7, .output_width = 7, .output_channel = 512, 
+   .depth_multiplier = 1, .stride_height = 2, .stride_width = 2, 
+   .dilation_height_factor = 1, .dilation_width_factor = 1,
+   .input_zero_point = 0
+  },
+
+  /* depth_multiplier = 1, dilation = 2, stride = 1 */
+  {TEST, .use_specialization = 0,
+   .input_height = 16, .input_width = 16, .input_channel = 512, 
+   .filter_height = 3, .filter_width = 3, 
+   .output_height = 12, .output_width = 12, .output_channel = 512, 
+   .depth_multiplier = 1, .stride_height = 1, .stride_width = 1, 
+   .dilation_height_factor = 2, .dilation_width_factor = 2,
+   .input_zero_point = 0
+  },
+  {TEST, .use_specialization = 1,
+   .input_height = 16, .input_width = 16, .input_channel = 512, 
+   .filter_height = 3, .filter_width = 3, 
+   .output_height = 12, .output_width = 12, .output_channel = 512, 
+   .depth_multiplier = 1, .stride_height = 1, .stride_width = 1, 
+   .dilation_height_factor = 2, .dilation_width_factor = 2,
+   .input_zero_point = 0
+  },
+
+  /* depth_multiplier = 1, dilation = 2, stride = 2 */
+  {TEST, .use_specialization = 0,
+   .input_height = 15, .input_width = 15, .input_channel = 512, 
+   .filter_height = 3, .filter_width = 3, 
+   .output_height = 6, .output_width = 6, .output_channel = 512, 
+   .depth_multiplier = 1, .stride_height = 2, .stride_width = 2, 
+   .dilation_height_factor = 2, .dilation_width_factor = 2,
+   .input_zero_point = 0
+  },
+  {TEST, .use_specialization = 1,
+   .input_height = 15, .input_width = 15, .input_channel = 512, 
+   .filter_height = 3, .filter_width = 3, 
+   .output_height = 6, .output_width = 6, .output_channel = 512, 
+   .depth_multiplier = 1, .stride_height = 2, .stride_width = 2, 
+   .dilation_height_factor = 2, .dilation_width_factor = 2,
+   .input_zero_point = 0
+  },
+
+  /* depth_multiplier = 2, dilation = 1, stride = 1 */
+  {TEST, .use_specialization = 0,
+   .input_height = 16, .input_width = 16, .input_channel = 512, 
+   .filter_height = 3, .filter_width = 3, 
+   .output_height = 14, .output_width = 14, .output_channel = 1024, 
+   .depth_multiplier = 2, .stride_height = 1, .stride_width = 1, 
+   .dilation_height_factor = 1, .dilation_width_factor = 1,
+   .input_zero_point = 0
+  },
+
+  /* depth_multiplier = 2, dilation = 1, stride = 2 */
+  {TEST, .use_specialization = 0,
+   .input_height = 15, .input_width = 15, .input_channel = 512, 
+   .filter_height = 3, .filter_width = 3, 
+   .output_height = 7, .output_width = 7, .output_channel = 1024, 
+   .depth_multiplier = 2, .stride_height = 2, .stride_width = 2, 
+   .dilation_height_factor = 1, .dilation_width_factor = 1,
+   .input_zero_point = 0
+  },
+
+  /* depth_multiplier = 2, dilation = 2, stride = 1 */
+  {TEST, .use_specialization = 0,
+   .input_height = 16, .input_width = 16, .input_channel = 512, 
+   .filter_height = 3, .filter_width = 3, 
+   .output_height = 12, .output_width = 12, .output_channel = 1024, 
+   .depth_multiplier = 2, .stride_height = 1, .stride_width = 1, 
+   .dilation_height_factor = 2, .dilation_width_factor = 2,
+   .input_zero_point = 0
+  },
+
+  /* depth_multiplier = 2, dilation = 2, stride = 2 */
+  {TEST, .use_specialization = 0,
+   .input_height = 15, .input_width = 15, .input_channel = 512, 
+   .filter_height = 3, .filter_width = 3, 
+   .output_height = 6, .output_width = 6, .output_channel = 1024, 
+   .depth_multiplier = 2, .stride_height = 2, .stride_width = 2, 
+   .dilation_height_factor = 2, .dilation_width_factor = 2,
+   .input_zero_point = 0
+  },
+
+  /* depth_multiplier = 1, dilation = 1, stride = 1, channel < vlmax */
+  /* Test generic kernel */
+  {TEST, .use_specialization = 0,
+   .input_height = 16, .input_width = 16, .input_channel = 15, 
+   .filter_height = 3, .filter_width = 3, 
+   .output_height = 14, .output_width = 14, .output_channel = 15, 
+   .depth_multiplier = 1, .stride_height = 1, .stride_width = 1, 
+   .dilation_height_factor = 1, .dilation_width_factor = 1,
+   .input_zero_point = 0
+  },
+  /* Test specialized 3x3 kernel */
+  {TEST, .use_specialization = 1,
+   .input_height = 16, .input_width = 16, .input_channel = 15, 
+   .filter_height = 3, .filter_width = 3, 
+   .output_height = 14, .output_width = 14, .output_channel = 15, 
    .depth_multiplier = 1, .stride_height = 1, .stride_width = 1, 
    .dilation_height_factor = 1, .dilation_width_factor = 1,
    .input_zero_point = 0
