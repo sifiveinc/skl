@@ -83,9 +83,10 @@ void cvt_f32_f8_report(skl_test_t *t) {
 
 void cvt_f32_f8_cleanup(skl_test_t *t) {
   cvt_f32_f8_t *h = (cvt_f32_f8_t *)t->harness;
-
   SKL_TEST_BUF_FREE(t, &h->in);
-  SKL_TEST_BUF_FREE(t, &h->out);
-  if (h->steps.verify)
-    free(h->ref);
+  if (h->len > 0) {
+    SKL_TEST_BUF_FREE(t, &h->out);
+    if (h->steps.verify)
+      free(h->ref);
+  }
 }

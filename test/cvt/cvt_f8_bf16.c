@@ -79,8 +79,10 @@ void cvt_f8_bf16_report(skl_test_t *t) {
 void cvt_f8_bf16_cleanup(skl_test_t *t) {
   cvt_f8_bf16_t *h = (cvt_f8_bf16_t *)t->harness;
 
-  SKL_TEST_BUF_FREE(t, &h->in);
-  SKL_TEST_BUF_FREE(t, &h->out);
-  if (h->steps.verify)
-    free(h->ref);
+  if (h->len > 0) {
+    SKL_TEST_BUF_FREE(t, &h->in);
+    SKL_TEST_BUF_FREE(t, &h->out);
+    if (h->steps.verify)
+      free(h->ref);
+  }
 }
