@@ -31,12 +31,10 @@ void cvt_f8_bf16_init(skl_test_t *t) {
   if (h->steps.verify) {
     h->ref = h->len > 0 ? malloc(h->len * sizeof(__bf16)) : NULL;
   }
-  t->status.init_status = SKL_TEST_PASS;
 }
 
 void cvt_f8_bf16_verify(skl_test_t *t) {
   cvt_f8_bf16_t *h = (cvt_f8_bf16_t *)t->harness;
-  int err_cnt = 0;
   __bf16 *out = h->out.data;
   __bf16 *ref = h->ref;
 
@@ -55,14 +53,8 @@ void cvt_f8_bf16_verify(skl_test_t *t) {
       SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
                    "result [%zu] (%A) != reference (%A)\n", i, (float)out[i],
                    (float)ref[i]);
-      err_cnt += 1;
+      t->status.verify_status = SKL_TEST_FAIL;
     }
-  }
-
-  if (err_cnt) {
-    t->status.verify_status = SKL_TEST_FAIL;
-  } else {
-    t->status.verify_status = SKL_TEST_PASS;
   }
 }
 
@@ -82,7 +74,6 @@ void cvt_f8_bf16_report(skl_test_t *t) {
   INFO("Instructions: %zd\n", t->counters.instret);
   INFO("Elements/Cycle: %f\n", elements_per_cycle);
 #undef INFO
-  t->status.report_status = SKL_TEST_PASS;
 }
 
 void cvt_f8_bf16_cleanup(skl_test_t *t) {
@@ -92,5 +83,4 @@ void cvt_f8_bf16_cleanup(skl_test_t *t) {
   SKL_TEST_BUF_FREE(t, &h->out);
   if (h->steps.verify)
     free(h->ref);
-  t->status.cleanup_status = SKL_TEST_PASS;
 }

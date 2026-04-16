@@ -145,28 +145,24 @@ static void execute_f32_f8e4m3(skl_test_t *t) {
   const cvt_f32_f8_t *h = (cvt_f32_f8_t *)t->harness;
 
   skl_cvt_f32_f8e4m3_zvfofp8min(h->out.data, h->in.data, h->scale, h->len);
-  t->status.execute_status = SKL_TEST_PASS;
 }
 
 static void execute_sat_f32_f8e4m3(skl_test_t *t) {
   const cvt_f32_f8_t *h = (cvt_f32_f8_t *)t->harness;
 
   skl_cvt_sat_f32_f8e4m3_zvfofp8min(h->out.data, h->in.data, h->scale, h->len);
-  t->status.execute_status = SKL_TEST_PASS;
 }
 
 static void execute_f32_f8e5m2(skl_test_t *t) {
   const cvt_f32_f8_t *h = (cvt_f32_f8_t *)t->harness;
 
   skl_cvt_f32_f8e5m2_zvfofp8min(h->out.data, h->in.data, h->scale, h->len);
-  t->status.execute_status = SKL_TEST_PASS;
 }
 
 static void execute_sat_f32_f8e5m2(skl_test_t *t) {
   const cvt_f32_f8_t *h = (cvt_f32_f8_t *)t->harness;
 
   skl_cvt_sat_f32_f8e5m2_zvfofp8min(h->out.data, h->in.data, h->scale, h->len);
-  t->status.execute_status = SKL_TEST_PASS;
 }
 
 int main(void) { return skl_test_driver_run_suite(&suite); }

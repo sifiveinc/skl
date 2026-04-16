@@ -86,14 +86,12 @@ static void execute_f8e4m3_bf16(skl_test_t *t) {
   const cvt_f8_bf16_t *h = (cvt_f8_bf16_t *)t->harness;
 
   skl_cvt_f8e4m3_bf16_zvfofp8min(h->out.data, h->in.data, h->len);
-  t->status.execute_status = SKL_TEST_PASS;
 }
 
 static void execute_f8e5m2_bf16(skl_test_t *t) {
   const cvt_f8_bf16_t *h = (cvt_f8_bf16_t *)t->harness;
 
   skl_cvt_f8e5m2_bf16_zvfofp8min(h->out.data, h->in.data, h->len);
-  t->status.execute_status = SKL_TEST_PASS;
 }
 
 int main(void) { return skl_test_driver_run_suite(&suite); }

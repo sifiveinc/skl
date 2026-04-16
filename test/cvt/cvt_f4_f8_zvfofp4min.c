@@ -61,7 +61,6 @@ static void execute_f4e2m1_f8e4m3(skl_test_t *t) {
   const cvt_f4_f8_t *h = (cvt_f4_f8_t *)t->harness;
 
   skl_cvt_f4e2m1_f8e4m3_zvfofp4min(h->out.data, h->in.data, h->len);
-  t->status.execute_status = SKL_TEST_PASS;
 }
 
 int main(void) { return skl_test_driver_run_suite(&suite); }

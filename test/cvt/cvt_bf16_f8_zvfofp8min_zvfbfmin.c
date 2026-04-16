@@ -146,7 +146,6 @@ static void execute_bf16_f8e4m3(skl_test_t *t) {
 
   skl_cvt_bf16_f8e4m3_zvfofp8min_zvfbfmin(h->out.data, h->in.data, h->scale,
                                           h->len);
-  t->status.execute_status = SKL_TEST_PASS;
 }
 
 static void execute_sat_bf16_f8e4m3(skl_test_t *t) {
@@ -154,7 +153,6 @@ static void execute_sat_bf16_f8e4m3(skl_test_t *t) {
 
   skl_cvt_sat_bf16_f8e4m3_zvfofp8min_zvfbfmin(h->out.data, h->in.data, h->scale,
                                               h->len);
-  t->status.execute_status = SKL_TEST_PASS;
 }
 
 static void execute_bf16_f8e5m2(skl_test_t *t) {
@@ -162,7 +160,6 @@ static void execute_bf16_f8e5m2(skl_test_t *t) {
 
   skl_cvt_bf16_f8e5m2_zvfofp8min_zvfbfmin(h->out.data, h->in.data, h->scale,
                                           h->len);
-  t->status.execute_status = SKL_TEST_PASS;
 }
 
 static void execute_sat_bf16_f8e5m2(skl_test_t *t) {
@@ -170,7 +167,6 @@ static void execute_sat_bf16_f8e5m2(skl_test_t *t) {
 
   skl_cvt_sat_bf16_f8e5m2_zvfofp8min_zvfbfmin(h->out.data, h->in.data, h->scale,
                                               h->len);
-  t->status.execute_status = SKL_TEST_PASS;
 }
 
 int main(void) { return skl_test_driver_run_suite(&suite); }
