@@ -165,9 +165,15 @@ void depthwise_conv2d_f32_f32_f32_cleanup(skl_test_t *t) {
   SKL_TEST_BUF_FREE(t, &h->output);
 
   if (h->steps.verify) {
-    free(h->ctx.input_abs);
-    free(h->ctx.filter_abs);
-    free(h->ctx.ref_output);
-    free(h->ctx.bound);
+    if (h->input.len) {
+      free(h->ctx.input_abs);
+    }
+    if (h->filter.len) {
+      free(h->ctx.filter_abs);
+    }
+    if (h->output.len) {
+      free(h->ctx.ref_output);
+      free(h->ctx.bound);
+    }
   }
 }
