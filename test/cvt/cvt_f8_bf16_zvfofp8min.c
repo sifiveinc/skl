@@ -77,7 +77,7 @@ cvt_f8_bf16_t tests[] = {
 };
 // clang-format on
 
-static skl_test_suite_t suite = {.name = "cvt_f8_bf16_zvfofp8min",
+static skl_test_suite_t suite = {.name = "skl_cvt_f8_bf16_zvfofp8min",
                                  .num_tests = sizeof(tests) / sizeof(tests[0]),
                                  .test_size = sizeof(cvt_f8_bf16_t),
                                  .tests = tests};
