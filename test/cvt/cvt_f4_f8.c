@@ -29,7 +29,8 @@ static void cvt_ofp4x2_f8e4m3(uint8_t in, uint8_t *out0, uint8_t *out1) {
 
 void cvt_f4_f8_init(skl_test_t *t) {
   cvt_f4_f8_t *h = (cvt_f4_f8_t *)t->harness;
-  h->in.len = (h->len + 1) / 2, h->out.len = h->len;
+  h->in.len = (h->len + 1) / 2;
+  h->out.len = h->len;
 
   if (h->len > 0) {
     SKL_TEST_BUF_CREATE(t, uint8_t, &h->in);
