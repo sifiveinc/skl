@@ -27,6 +27,9 @@ typedef struct {
   // Buffer generation settings for input, filter, output
   SKL_TEST_BUFFER(float) input, filter, output;
 
+  // Indicate whether to test the specialized kernel
+  uint32_t use_specialization;
+
   // Derived parameters & buffers (private to the test harness)
   struct {
     double *input_abs;  // Absolute values of input (for bound computation)
@@ -34,8 +37,6 @@ typedef struct {
     float *ref_output;  // Reference output
     double *bound;      // Per-element error bound
   } ctx;
-
-  uint32_t use_specialization;
 } depthwise_conv2d_f32_f32_f32_t;
 
 #define DEPTHWISE_CONV2D_F32_F32_F32_DEFAULTS                                  \

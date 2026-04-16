@@ -31,12 +31,13 @@ typedef struct {
   SKL_TEST_BUFFER(int8_t) input, filter;
   SKL_TEST_BUFFER(int32_t) output;
 
+  // Indicate whether to test the specialized kernel
+  uint32_t use_specialization;
+
   // Derived parameters & buffers (private to the test harness)
   struct {
     int32_t *ref_output;
   } ctx;
-
-  uint32_t use_specialization;
 } depthwise_conv2d_i8_i8_i32_t;
 
 #define DEPTHWISE_CONV2D_I8_I8_I32_DEFAULTS                                    \
