@@ -20,21 +20,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void init_special_values_f32(float *data, size_t len) {
-  size_t count = len < 3 ? len : 3;
-  if (count > 0)
-    data[0] = nanf("");
-  if (count > 1)
-    data[1] = INFINITY;
-  if (count > 2)
-    data[2] = -INFINITY;
-}
 void cvt_f32_f8_init(skl_test_t *t) {
   cvt_f32_f8_t *h = (cvt_f32_f8_t *)t->harness;
   h->in.len = h->len;
   h->out.len = h->len;
   SKL_TEST_BUF_CREATE(t, float, &h->in);
-  init_special_values_f32(h->in.data, h->in.len);
+  size_t count = h->len < 3 ? h->len : 3;
+  if (count > 0)
+    h->in.data[0] = nanf("");
+  if (count > 1)
+    h->in.data[1] = INFINITY;
+  if (count > 2)
+    h->in.data[2] = -INFINITY;
+
   if (h->out.len > 0) {
     SKL_TEST_BUF_CREATE(t, uint8_t, &h->out);
   }
