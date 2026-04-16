@@ -54,7 +54,27 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
   )
 endfunction()
 
-
+skl_add_test(
+  skl_depthwise_conv2d_f16_f16_f16_zvfh
+  depthwise_conv2d/depthwise_conv2d_f16_f16_f16.c
+  depthwise_conv2d/rvv/depthwise_conv2d_f16_f16_f16_zvfh.c
+  "zvfh"
+  ""
+)
+skl_add_test(
+  skl_depthwise_conv2d_f32_f32_f32_zve32f
+  depthwise_conv2d/depthwise_conv2d_f32_f32_f32.c
+  depthwise_conv2d/rvv/depthwise_conv2d_f32_f32_f32_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_depthwise_conv2d_i8_i8_i32_zve32x
+  depthwise_conv2d/depthwise_conv2d_i8_i8_i32.c
+  depthwise_conv2d/rvv/depthwise_conv2d_i8_i8_i32_zve32x.c
+  "zve32x"
+  ""
+)
 skl_add_test(
   skl_gemm_f32_f32_f32_zve32f_x390
   gemm/gemm_f32rc_f32rc_f32rc.c
@@ -67,26 +87,5 @@ skl_add_test(
   gemm/gemm_f32rc_f32rc_f32rc.c
   gemm/xsfmm/skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f.c
   "xsfmm32a32f"
-  ""
-)
-skl_add_test(
-  skl_depthwise_conv2d_i8_i8_i32_zve32x
-  depthwise_conv2d/depthwise_conv2d_i8_i8_i32.c
-  depthwise_conv2d/rvv/depthwise_conv2d_i8_i8_i32_zve32x.c
-  "zve32x"
-  ""
-)
-skl_add_test(
-  skl_depthwise_conv2d_f32_f32_f32_zve32f
-  depthwise_conv2d/depthwise_conv2d_f32_f32_f32.c
-  depthwise_conv2d/rvv/depthwise_conv2d_f32_f32_f32_zve32f.c
-  "zve32f"
-  ""
-)
-skl_add_test(
-  skl_depthwise_conv2d_f16_f16_f16_zvfh
-  depthwise_conv2d/depthwise_conv2d_f16_f16_f16.c
-  depthwise_conv2d/rvv/depthwise_conv2d_f16_f16_f16_zvfh.c
-  "zvfh"
   ""
 )
