@@ -38,11 +38,14 @@ void cvt_f8_bf16_verify(skl_test_t *t) {
   __bf16 *out = h->out.data;
   __bf16 *ref = h->ref;
 
-  for (size_t i = 0; i < h->len; ++i) {
-    ref[i] = (h->in_type == F8E4M3) ? (__bf16)skl_cvt_f8e4m3_f32(h->in.data[i])
-                                    : (__bf16)skl_cvt_f8e5m2_f32(h->in.data[i]);
+  // Generate reference output using reference implementation
+  if (h->in_type == F8E4M3) {
+    skl_cvt_f8e4m3_bf16_ref(ref, h->in.data, h->len);
+  } else { // F8E5M2
+    skl_cvt_f8e5m2_bf16_ref(ref, h->in.data, h->len);
   }
 
+  // Compare results
   for (size_t i = 0; i < h->len; ++i) {
     uint16_t out_bits;
     uint16_t ref_bits;

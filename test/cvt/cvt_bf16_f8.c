@@ -47,14 +47,22 @@ void cvt_bf16_f8_verify(skl_test_t *t) {
   uint8_t *out = h->out.data;
   uint8_t *ref = h->ref;
 
-  for (size_t i = 0; i < h->len; ++i) {
-    ref[i] =
-        (h->out_type == F8E4M3)
-            ? skl_cvt_f32_f8e4m3((float)h->in.data[i] * h->scale, h->saturation)
-            : skl_cvt_f32_f8e5m2((float)h->in.data[i] * h->scale,
-                                 h->saturation);
+  // Generate reference output using reference implementation
+  if (h->out_type == F8E4M3) {
+    if (h->saturation) {
+      skl_cvt_sat_bf16_f8e4m3_ref(ref, h->in.data, h->scale, h->len);
+    } else {
+      skl_cvt_bf16_f8e4m3_ref(ref, h->in.data, h->scale, h->len);
+    }
+  } else { // F8E5M2
+    if (h->saturation) {
+      skl_cvt_sat_bf16_f8e5m2_ref(ref, h->in.data, h->scale, h->len);
+    } else {
+      skl_cvt_bf16_f8e5m2_ref(ref, h->in.data, h->scale, h->len);
+    }
   }
 
+  // Compare results
   for (size_t i = 0; i < h->len; ++i) {
     if (out[i] != ref[i]) {
       SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,

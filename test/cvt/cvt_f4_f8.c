@@ -19,14 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void cvt_ofp4x2_f8e4m3(uint8_t in, uint8_t *out0, uint8_t *out1) {
-
-  uint8_t in_0 = in & 0xFU;
-  uint8_t in_1 = in >> 4U;
-  *out0 = skl_cvt_f32_f8e4m3(skl_cvt_f4e2m1_f32(in_0), false);
-  *out1 = skl_cvt_f32_f8e4m3(skl_cvt_f4e2m1_f32(in_1), false);
-}
-
 void cvt_f4_f8_init(skl_test_t *t) {
   cvt_f4_f8_t *h = (cvt_f4_f8_t *)t->harness;
   h->in.len = (h->len + 1) / 2;
@@ -46,14 +38,10 @@ void cvt_f4_f8_verify(skl_test_t *t) {
   uint8_t *out = h->out.data;
   uint8_t *ref = h->ref;
 
-  for (size_t i = 0; i < h->len / 2 * 2; i += 2) {
-    cvt_ofp4x2_f8e4m3(h->in.data[i / 2], ref + i, ref + i + 1);
-  }
-  if (h->len % 2 == 1) {
-    uint8_t tmp;
-    cvt_ofp4x2_f8e4m3(h->in.data[h->len / 2], ref + h->len - 1, &tmp);
-  }
+  // Generate reference output using reference implementation
+  skl_cvt_f4e2m1_f8e4m3_ref(ref, h->in.data, h->len);
 
+  // Compare results
   for (size_t i = 0; i < h->len; ++i) {
     if (out[i] != ref[i]) {
       SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,

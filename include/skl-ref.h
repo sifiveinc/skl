@@ -51,7 +51,7 @@
 /*
  * Conversion Functions
  */
-#include "../ref/cvt/cvt_f4e2m1_f8e4m3.h"
+#include "../ref/cvt/cvt_ofp4.h"
 #include "../ref/cvt/cvt_ofp8.h"
 
 /*
