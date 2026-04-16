@@ -84,8 +84,16 @@ extern "C" {
  * @note
  * If A is in row-major format, it can be used directly without pre-packing by
  * setting rsa1 = rsa and csa1 = 4. Matrix B_pack must be pre-packed using
- * skl_pack_b_i8_xsfvqdotq(). Performance will be best when A_pack is
- * 4-byte-aligned and rsa1 and csa1 are multiples of 4.
+ * skl_pack_b_i8_xsfvqdotq().
+ *
+ * @note
+ * The kernel dispatches to an aligned version when A_pack satisfies all of the
+ * following alignment requirements: A_pack is 4-byte aligned and rsa1 and csa1
+ * are multiples of 4. Otherwise, it falls back to a 1xm4 unaligned version. The
+ * aligned version has been optimized for performance, while the unaligned
+ * version is unlikely to get good performance since it must handle misaligned
+ * loads from A_pack. Therefore, it is highly recommended that users first copy
+ * A_pack into a buffer meeting the above alignment requirements.
  */
 void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k,
                                        int32_t alpha, const int8_t *a_pack,
