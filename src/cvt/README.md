@@ -1,4 +1,4 @@
-#OFP(*Open Compute Project *Floating Point) Conversion Kernels
+# OFP (*Open Compute Project* Floating Point) Conversion Kernels
 
 The OFP conversion kernels provide vectorized conversion functions between various floating-point formats and 8-bit/4-bit OFP formats using RISC-V Zvfofp8min and Zvfofp4min extensions. These kernels enable efficient data type conversions for neural network workloads that utilize low-precision floating-point formats.
 
