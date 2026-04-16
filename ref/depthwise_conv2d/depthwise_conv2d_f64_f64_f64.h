@@ -8,8 +8,19 @@
  * @brief Reference float64 depthwise convolution 2D kernels.
  *
  * This header provides reference implementations of depthwise convolution 2D
- * operations for float64 input/filter/output data. This implementation is
- * primarily used for computing error bounds in test harnesses.
+ * operations for float64 input/filter/output data. Depthwise convolution is a
+ * specialized convolution where each input channel is convolved with a
+ * dedicated filter, reducing computational cost compared to standard
+ * convolution operations.
+ *
+ * The implementation provides the reference semantics for all optimized
+ * depthwise convolution kernels and supports configurable stride, dilation, and
+ * depth multiplier parameters. This implementation is primarily intended for
+ * API documentation and correctness verification rather than performance.
+ *
+ * The input and output tensors of the function are formatted in HWC
+ * (Height-Width-Channel) data layout, while the filter tensor is formatted in
+ * HWIM (Height-Width-Input Channel-Depth Multiplier) layout.
  */
 
 #include <stddef.h>
@@ -34,9 +45,8 @@ extern "C" {
  * @param filter_width - Filter width.
  * @param output_height - Output height.
  * @param output_width - Output width.
- * @param output_channel - Number of output channels (input_channel ×
- * depth_multiplier).
- * @param depth_multiplier - Depth multiplier.
+ * @param output_channel - Output channel dimension.
+ * @param depth_multiplier - Number of filters applied to each input channel.
  * @param stride_height - Vertical stride.
  * @param stride_width - Horizontal stride.
  * @param dilation_height_factor - Vertical dilation factor.
@@ -47,6 +57,12 @@ extern "C" {
  * @param filter_col_stride - Filter's column stride in elements.
  * @param output_row_stride - Output's row stride in elements.
  * @param output_col_stride - Output's column stride in elements.
+ *
+ * This generic implementation defines the semantics of all optimized float32
+ * depthwise convolution kernels that use HWC data layout.
+ *
+ * @note This function is for API documentation and test purposes only, and
+ * should not be used to obtain good performance.
  */
 void skl_depthwise_conv2d_hwc_f64_f64_f64_ref(
     double *output, const double *input, const double *filter,
