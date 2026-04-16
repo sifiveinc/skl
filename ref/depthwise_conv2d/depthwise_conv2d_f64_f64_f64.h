@@ -58,9 +58,6 @@ extern "C" {
  * @param output_row_stride - Output's row stride in elements.
  * @param output_col_stride - Output's column stride in elements.
  *
- * This generic implementation defines the semantics of all optimized float32
- * depthwise convolution kernels that use HWC data layout.
- *
  * @note This function is for API documentation and test purposes only, and
  * should not be used to obtain good performance.
  */
