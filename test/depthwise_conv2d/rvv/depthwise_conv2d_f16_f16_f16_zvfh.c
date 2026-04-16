@@ -46,7 +46,14 @@ static void execute(skl_test_t *t);
 depthwise_conv2d_f16_f16_f16_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
   // Benchmark tests
-  {BENCH, 
+  {BENCH, .use_specialization = 0,
+   .input_height = 16, .input_width = 16, .input_channel = 512, 
+   .filter_height = 3, .filter_width = 3, 
+   .output_height = 14, .output_width = 14, .output_channel = 512, 
+   .depth_multiplier = 1, .stride_height = 1, .stride_width = 1, 
+   .dilation_height_factor = 1, .dilation_width_factor = 1
+  },
+  {BENCH, .use_specialization = 1,
    .input_height = 16, .input_width = 16, .input_channel = 512, 
    .filter_height = 3, .filter_width = 3, 
    .output_height = 14, .output_width = 14, .output_channel = 512, 
