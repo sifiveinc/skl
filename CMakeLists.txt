@@ -127,21 +127,24 @@ endif()
 
 set(SKL_TEST_LIBS skl-ref m)
 
+set(SKL_BUILD_TESTS OFF CACHE STRING "Enable building of verification and/or performance profiling tests.")
+message(STATUS "SKL_BUILD_TESTS: ${SKL_BUILD_TESTS}")
+
 set(SKL_BUILD_EXAMPLES OFF CACHE STRING "Enable building of examples.")
 message(STATUS "SKL_BUILD_EXAMPLES: ${SKL_BUILD_EXAMPLES}")
 
-set(SKL_BUILD_TESTS OFF CACHE STRING "Enable building of correctness tests.")
-message(STATUS "SKL_BUILD_TESTS: ${SKL_BUILD_TESTS}")
+set(SKL_ENABLE_VERIFICATION OFF CACHE STRING "Enable verification in tests and/or examples.")
+message(STATUS "SKL_ENABLE_VERIFICATION: ${SKL_ENABLE_VERIFICATION}")
 
-set(SKL_BUILD_BENCHMARKS OFF CACHE STRING "Enable building of performance tests.")
-message(STATUS "SKL_BUILD_BENCHMARKS: ${SKL_BUILD_BENCHMARKS}")
+set(SKL_ENABLE_PROFILING OFF CACHE STRING "Enable performance profiling in tests and/or examples.")
+message(STATUS "SKL_ENABLE_PROFILING: ${SKL_ENABLE_PROFILING}")
 
 if(SKL_BUILD_EXAMPLES)
   enable_testing()
   add_subdirectory(example)
 endif()
 
-if(SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
+if(SKL_BUILD_TESTS)
   enable_testing()
   add_subdirectory(test)
 endif()

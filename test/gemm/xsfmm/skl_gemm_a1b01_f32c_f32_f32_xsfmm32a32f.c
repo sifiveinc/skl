@@ -49,13 +49,13 @@ static void execute(skl_test_t *t);
 
 // clang-format off
 gemm_f32rc_f32rc_f32rc_t tests[] = {
-#ifdef SKL_BUILD_BENCHMARKS
+#ifdef SKL_ENABLE_PROFILING
     // Benchmark tests
     {BENCH, .m = 128, .n = 128, .k = 2048, .beta = 0.f},
     {BENCH, .m = 128, .n = 128, .k = 2048, .beta = 1.f},
-#endif // SKL_BUILD_BENCHMARKS
+#endif // SKL_ENABLE_PROFILING
 
-#ifdef SKL_BUILD_TESTS
+#ifdef SKL_ENABLE_VERIFICATION
     // Verification tests - comprehensive coverage for Xsfmm A1B01 layout (TE=64)
     /* Edge case: 1x1 matrix with k=0 (no computation, C = beta*C) */
     {TEST, .rsa = 1, .m = 1,   .n = 1,   .k = 0},
@@ -86,7 +86,7 @@ gemm_f32rc_f32rc_f32rc_t tests[] = {
     {TEST, .rsa = 1, .m = 65,  .n = 65,  .k = 1,  .beta = 1.f},
     {TEST, .rsa = 1, .m = 65,  .n = 65,  .k = 33, .beta = 1.f},
     {TEST, .rsa = 1, .m = 128, .n = 128, .k = 33, .beta = 1.f},
-#endif // SKL_BUILD_TESTS
+#endif // SKL_ENABLE_VERIFICATION
 };
 // clang-format on
 

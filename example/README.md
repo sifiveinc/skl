@@ -23,10 +23,15 @@ Demonstrates efficient 2D convolution implementation using optimized GEMM kernel
 
 ## Building Examples
 
-Examples are built alongside tests when `SKL_BUILD_TESTS` or `SKL_BUILD_BENCHMARKS` is enabled:
+Examples are built when `SKL_BUILD_EXAMPLES` is defined,
+and the configuration should enable `SKL_ENABLE_VERIFICATION` and/or `SKL_ENABLE_PROFLING`:
 
 ```bash
-cmake -B build -DSKL_BUILD_TESTS=ON -DSKL_BUILD_BENCHMARKS=ON -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake ..
+cmake -B build \
+  -DSKL_BUILD_EXAMPLES=ON \
+  -DSKL_ENABLE_PROFLING=ON \
+  -DSKL_ENABLE_VERIFICATION=ON \
+  -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake ..
 cd build && cmake --build . --verbose
 ```
 
@@ -50,7 +55,12 @@ To add a new example:
 
 ### Example CMakeLists.txt Entry
 ```cmake
-skl_add_example(your_example_name your_example/main.c "")
+skl_add_example(
+  your_example_name
+  "your_example/main.c;your_example/foo.c"
+  "{required_riscv_extensions}"
+  "{compile_options}"
+)
 ```
 
 ## Guidelines
@@ -58,6 +68,6 @@ skl_add_example(your_example_name your_example/main.c "")
 Examples should:
 - **Focus on algorithms**: Show how to combine SKL functions for higher-level operations
 - **Include documentation**: Provide clear README with algorithm explanation
-- **Support testing**: Include correctness verification when `ENABLE_TEST` is defined
-- **Support benchmarking**: Include performance measurement when `ENABLE_BENCHMARK` is defined
+- **Support verification**: Include correctness verification when `SKL_ENABLE_VERIFICATION` is defined
+- **Support profiling**: Include performance profiling when `SKL_ENABLE_PROFILING` is defined
 - **Follow naming**: Use descriptive names that indicate the algorithm and key optimizations

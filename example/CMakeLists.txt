@@ -1,4 +1,9 @@
 
+if(NOT DEFINED SKL_ENABLE_VERIFICATION AND NOT DEFINED SKL_ENABLE_PROFILING)
+  message(FATAL_ERROR "Examples require that either SKL_ENABLE_VERIFICATION or SKL_ENABLE_PROFILING is enabled.")
+endif()
+
+
 function(skl_add_example EXAMPLE_NAME EXAMPLE_SRCS REQUIRED_EXTENSIONS OPTS)
   # Only add the example if all extensions in REQUIRED_EXTENSIONS
   # are present in RISCV_EXTENSIONS.
@@ -25,11 +30,12 @@ function(skl_add_example EXAMPLE_NAME EXAMPLE_SRCS REQUIRED_EXTENSIONS OPTS)
     PRIVATE
       SKL_EXAMPLE_NAME=${EXAMPLE_NAME}
   )
-  if (SKL_BUILD_TESTS)
-    target_compile_definitions(example-${EXAMPLE_NAME} PRIVATE ENABLE_TEST)
+
+  if (SKL_ENABLE_VERIFICATION)
+    target_compile_definitions(example-${EXAMPLE_NAME} PRIVATE SKL_ENABLE_VERIFICATION)
   endif()
-  if (SKL_BUILD_BENCHMARKS)
-    target_compile_definitions(example-${EXAMPLE_NAME} PRIVATE ENABLE_BENCHMARK)
+  if (SKL_ENABLE_PROFILING)
+    target_compile_definitions(example-${EXAMPLE_NAME} PRIVATE SKL_ENABLE_PROFILING)
   endif()
   target_include_directories(example-${EXAMPLE_NAME}
     PRIVATE
@@ -44,17 +50,15 @@ function(skl_add_example EXAMPLE_NAME EXAMPLE_SRCS REQUIRED_EXTENSIONS OPTS)
   )
 endfunction()
 
-if(SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
-  skl_add_example(
-    skl_conv2d_io_nhwc_filter_hwio_im2row_gemm_f32_f32_f32_zve32f_x390
-    "conv2d/main.c;conv2d/conv2d_nhwc_f32.c"
-    "zve32f"
-    "-DTEST_IM2ROW_GEMM"
-  )
-  skl_add_example(
-    skl_conv2d_io_nhwc_filter_hwio_direct_gemm_f32_f32_f32_zve32f_x390
-    "conv2d/main.c;conv2d/conv2d_nhwc_f32.c"
-    "zve32f"
-    ""
-  )
-endif()
+skl_add_example(
+  skl_conv2d_io_nhwc_filter_hwio_im2row_gemm_f32_f32_f32_zve32f_x390
+  "conv2d/main.c;conv2d/conv2d_nhwc_f32.c"
+  "zve32f"
+  "-DTEST_IM2ROW_GEMM"
+)
+skl_add_example(
+  skl_conv2d_io_nhwc_filter_hwio_direct_gemm_f32_f32_f32_zve32f_x390
+  "conv2d/main.c;conv2d/conv2d_nhwc_f32.c"
+  "zve32f"
+  ""
+)

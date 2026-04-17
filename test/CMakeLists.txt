@@ -34,11 +34,11 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
   )
   target_include_directories(test-${TEST_NAME} PRIVATE . ../src)
 
-  if(SKL_BUILD_TESTS)
-    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_BUILD_TESTS)
+  if(SKL_ENABLE_VERIFICATION)
+    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_VERIFICATION)
   endif()
-  if(SKL_BUILD_BENCHMARKS)
-    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_BUILD_BENCHMARKS)
+  if(SKL_ENABLE_PROFILING)
+    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_PROFILING)
   endif()
 
   add_test(
