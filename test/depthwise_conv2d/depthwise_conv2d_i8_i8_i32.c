@@ -1,138 +1,117 @@
-#if !defined(ENABLE_TEST) && !defined(ENABLE_BENCHMARK)
-#error Must define at least one of ENABLE_TEST or ENABLE_BENCHMARK
-#endif
+// Copyright 2026 SiFive, Inc.
+// SPDX-License-Identifier: Apache-2.0
 
-enum {
-  INPUT_HEIGHT = 16,
-  INPUT_WIDTH = 16,
-  INPUT_CHANNEL = 512,
-  FILTER_HEIGHT = 3,
-  FILTER_WIDTH = 3,
-  OUTPUT_HEIGHT = 14,
-  OUTPUT_WIDTH = 14,
-  OUTPUT_CHANNEL = 512,
-  STRIDE_HEIGHT = 1,
-  STRIDE_WIDTH = 1,
-  DILATION_HEIGHT_FACTOR = 1,
-  DILATION_WIDTH_FACTOR = 1,
-  DEPTH_MULTIPLIER = 1
-};
+/**
+ * @brief Implementation of the depthwise_conv2d_i8_i8_i32 test harness.
+ *
+ * This file defines all harness functions _except_ `execute`, which is
+ * defined in the test file (e.g. rvv/skl_depthwise_conv2d_i8_i8_i32_zve32x.c).
+ */
 
-// NOLINTNEXTLINE(misc-include-cleaner)
+#include "depthwise_conv2d_i8_i8_i32.h"
 #include "skl-ref.h"
-#include "skl-test.h"
-#include "skl.h"
-
-#include <inttypes.h>
+#include "skl-test-driver.h"
+#include "skl.h" // NOLINT(misc-include-cleaner)
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-enum { ALIGN = 64 };
+void depthwise_conv2d_i8_i8_i32_init(skl_test_t *t) {
+  depthwise_conv2d_i8_i8_i32_t *h = (depthwise_conv2d_i8_i8_i32_t *)t->harness;
 
-__attribute__((
-    aligned(ALIGN))) int8_t input[INPUT_HEIGHT * INPUT_WIDTH * INPUT_CHANNEL];
-__attribute__((aligned(ALIGN))) int8_t
-    filter[FILTER_HEIGHT * FILTER_WIDTH * INPUT_CHANNEL * DEPTH_MULTIPLIER];
-__attribute__((aligned(
-    ALIGN))) int32_t output[OUTPUT_HEIGHT * OUTPUT_WIDTH * OUTPUT_CHANNEL];
-__attribute__((aligned(
-    ALIGN))) int32_t ref_output[OUTPUT_HEIGHT * OUTPUT_WIDTH * OUTPUT_CHANNEL];
+  h->input.len = h->input_height * h->input_col_stride * h->input_row_stride;
+  h->filter.len =
+      h->filter_height * h->filter_col_stride * h->filter_row_stride;
+  h->output.len =
+      h->output_height * h->output_col_stride * h->output_row_stride;
 
-#if defined(ENABLE_TEST)
-static int check_error(const char *name, const int32_t *res, const int32_t *ref,
-                       size_t len) {
-  uint32_t max = 0;
-  for (size_t i = 0; i < len; i++) {
-    uint32_t err = abs(res[i] - ref[i]);
-    if (err > max) {
-      max = err;
+  SKL_TEST_BUF_CREATE(t, int8_t, &h->input);
+  SKL_TEST_BUF_CREATE(t, int8_t, &h->filter);
+  SKL_TEST_BUF_CREATE(t, int32_t, &h->output);
+
+  if (h->steps.verify && h->output.len) {
+    h->ctx.ref_output = malloc(h->output.len * sizeof(int32_t));
+
+    // Copy original `at` contents into ref to check for clobbered data later.
+    memcpy(h->ctx.ref_output, h->output.data, h->output.len * sizeof(int32_t));
+  }
+}
+
+void depthwise_conv2d_i8_i8_i32_verify(skl_test_t *t) {
+  depthwise_conv2d_i8_i8_i32_t *h = (depthwise_conv2d_i8_i8_i32_t *)t->harness;
+
+  const int8_t *input = h->input.data;
+  const int8_t *filter = h->filter.data;
+  int32_t *output = h->output.data;
+  int32_t *ref_output = h->ctx.ref_output;
+
+  // Compute reference value
+  skl_depthwise_conv2d_hwc_i8_i8_i32_ref(
+      ref_output, input, filter, h->input_height, h->input_width,
+      h->input_channel, h->filter_height, h->filter_width, h->output_height,
+      h->output_width, h->output_channel, h->depth_multiplier, h->stride_height,
+      h->stride_width, h->dilation_height_factor, h->dilation_width_factor,
+      h->input_row_stride, h->input_col_stride, h->filter_row_stride,
+      h->filter_col_stride, h->output_row_stride, h->output_col_stride,
+      h->input_zero_point);
+
+  // Verify result
+  for (size_t i = 0; i < h->output_height; ++i) {
+    for (size_t j = 0; j < h->output_width; ++j) {
+      for (size_t k = 0; k < h->output_channel; ++k) {
+        size_t idx = i * h->output_row_stride + j * h->output_col_stride + k;
+        if (output[idx] != ref_output[idx]) {
+          SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
+                       "position [%zu, %zu, %zu]: %hhi != ref %hhi\n", i, j, k,
+                       output[idx], ref_output[idx]);
+          t->status.verify_status = SKL_TEST_FAIL;
+          return;
+        }
+      }
     }
   }
-  printf("%15s: maximum error %" PRIu32 "\n", name, max);
-  return max > 1;
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Test pass\n");
 }
-#endif
 
-int main(void) {
-  int ret = 0; // return value
-  printf("Measuring depthwise_conv2d: [%d, %d, %d] x [%d, %d, %d, %d] -> "
-         "[%d, %d, %d]\n",
-         INPUT_HEIGHT, INPUT_WIDTH, INPUT_CHANNEL, FILTER_HEIGHT, FILTER_WIDTH,
-         INPUT_CHANNEL, DEPTH_MULTIPLIER, OUTPUT_HEIGHT, OUTPUT_WIDTH,
-         OUTPUT_CHANNEL);
+void depthwise_conv2d_i8_i8_i32_report(skl_test_t *t) {
+  depthwise_conv2d_i8_i8_i32_t *h = (depthwise_conv2d_i8_i8_i32_t *)t->harness;
 
-  skl_test_init_i8(
-      input, (size_t)INPUT_HEIGHT * (size_t)INPUT_WIDTH * (size_t)INPUT_CHANNEL,
-      SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
-  skl_test_init_i8(filter,
-                   (size_t)FILTER_HEIGHT * (size_t)FILTER_WIDTH *
-                       (size_t)INPUT_CHANNEL * (size_t)DEPTH_MULTIPLIER,
-                   SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
+#define INFO(fmt, ...) SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, fmt, __VA_ARGS__)
+  INFO("Input: %zu x %zu x %zu\n", h->input_height, h->input_width,
+       h->input_channel);
+  INFO("Filter: %zu x %zu x %zu\n", h->filter_height, h->filter_width,
+       h->output_height);
+  INFO("Output: %zu x %zu x %zu\n", h->output_height, h->output_width,
+       h->output_channel);
+  INFO("Input Stride (Row, Col): (%zu, %zu)\n", h->input_row_stride,
+       h->input_col_stride);
+  INFO("Filter Stride (Row, Col): (%zu, %zu)\n", h->filter_row_stride,
+       h->filter_col_stride);
+  INFO("Output Stride (Row, Col): (%zu, %zu)\n", h->output_row_stride,
+       h->output_col_stride);
+  INFO("Depth Multiplier: %zu\n", h->depth_multiplier);
+  INFO("Stride: %zu x %zu\n", h->stride_height, h->stride_width);
+  INFO("Dilation: %zu x %zu\n", h->dilation_height_factor,
+       h->dilation_width_factor);
+  INFO("Input Zero Point: %d\n", h->input_zero_point);
 
-  const int32_t input_zero_point = 0;
-  const size_t input_row_stride = (size_t)INPUT_WIDTH * (size_t)INPUT_CHANNEL;
-  const size_t input_col_stride = (size_t)INPUT_CHANNEL;
-  const size_t filter_row_stride =
-      (size_t)FILTER_WIDTH * (size_t)INPUT_CHANNEL * (size_t)DEPTH_MULTIPLIER;
-  const size_t filter_col_stride =
-      (size_t)INPUT_CHANNEL * (size_t)DEPTH_MULTIPLIER;
-  const size_t output_row_stride =
-      (size_t)OUTPUT_WIDTH * (size_t)OUTPUT_CHANNEL;
-  const size_t output_col_stride = (size_t)OUTPUT_CHANNEL;
+  INFO("%s", "\n");
+  INFO("Warmup: %s\n", h->steps.warmup ? "yes" : "no");
+  INFO("Cycles: %zd\n", t->counters.cycles);
+  INFO("Instructions: %zd\n", t->counters.instret);
+#undef INFO
+}
 
-#define DWCONV2D_KERNEL(FUNCTION, OUTPUT, ...)                                 \
-  FUNCTION(OUTPUT, input, filter, __VA_ARGS__);
+void depthwise_conv2d_i8_i8_i32_cleanup(skl_test_t *t) {
+  depthwise_conv2d_i8_i8_i32_t *h = (depthwise_conv2d_i8_i8_i32_t *)t->harness;
 
-#define DWCONV2D_GENERAL_ARGS                                                  \
-  INPUT_HEIGHT, INPUT_WIDTH, INPUT_CHANNEL, FILTER_HEIGHT, FILTER_WIDTH,       \
-      OUTPUT_HEIGHT, OUTPUT_WIDTH, OUTPUT_CHANNEL, DEPTH_MULTIPLIER,           \
-      STRIDE_HEIGHT, STRIDE_WIDTH, DILATION_HEIGHT_FACTOR,                     \
-      DILATION_WIDTH_FACTOR, input_row_stride, input_col_stride,               \
-      filter_row_stride, filter_col_stride, output_row_stride,                 \
-      output_col_stride, input_zero_point
+  SKL_TEST_BUF_FREE(t, &h->input);
+  SKL_TEST_BUF_FREE(t, &h->filter);
+  SKL_TEST_BUF_FREE(t, &h->output);
 
-#define DWCONV2D_3X3_M1_ARGS                                                   \
-  INPUT_HEIGHT, INPUT_WIDTH, INPUT_CHANNEL, OUTPUT_HEIGHT, OUTPUT_WIDTH,       \
-      OUTPUT_CHANNEL, STRIDE_HEIGHT, STRIDE_WIDTH, DILATION_HEIGHT_FACTOR,     \
-      DILATION_WIDTH_FACTOR, input_row_stride, input_col_stride,               \
-      filter_row_stride, filter_col_stride, output_row_stride,                 \
-      output_col_stride, input_zero_point
-
-#if defined(ENABLE_TEST)
-  memset(ref_output, -1, sizeof ref_output);
-  DWCONV2D_KERNEL(skl_depthwise_conv2d_hwc_i8_i8_i32_ref, ref_output,
-                  DWCONV2D_GENERAL_ARGS);
-#endif
-
-#if defined(ENABLE_TEST)
-#define CHECK_RESULT(FUNCTION, NAME)                                           \
-  ret += check_error(NAME, output, ref_output,                                 \
-                     (size_t)OUTPUT_HEIGHT * (size_t)OUTPUT_WIDTH *            \
-                         (size_t)OUTPUT_CHANNEL);
-#else
-#define CHECK_RESULT(FUNCTION, NAME)
-#endif
-
-#define RUN(FUNCTION, NAME, ...)                                               \
-  memset(output, 0, sizeof output);                                            \
-  SKL_BENCHMARK_RUN(                                                           \
-      NAME,                                                                    \
-      (size_t)OUTPUT_HEIGHT *(size_t)OUTPUT_WIDTH *(size_t)OUTPUT_CHANNEL,     \
-      SKL_TEST_WARMUP, FUNCTION, output, input, filter, __VA_ARGS__);          \
-  CHECK_RESULT(FUNCTION, NAME);
-
-#if defined(__riscv_zve32x)
-  RUN(skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_i8_i8_i32_zve32x,
-      "skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_i8_i8_i32_zve32x",
-      DWCONV2D_GENERAL_ARGS);
-
-  RUN(skl_depthwise_conv2d_vc_f3x3_sn_dn_m1_in_hwc_i8_i8_i32_zve32x,
-      "skl_depthwise_conv2d_vc_f3x3_sn_dn_m1_in_hwc_i8_i8_i32_zve32x",
-      DWCONV2D_3X3_M1_ARGS);
-#endif
-
-  return ret > 0;
+  if (h->steps.verify && h->output.len) {
+    free(h->ctx.ref_output);
+  }
 }

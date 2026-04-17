@@ -7,6 +7,7 @@ add_library(skl-ref
     cvt/cvt_ofp8.c
     depthwise_conv2d/depthwise_conv2d_f16_f16_f16.c
     depthwise_conv2d/depthwise_conv2d_f32_f32_f32.c
+    depthwise_conv2d/depthwise_conv2d_f64_f64_f64.c
     depthwise_conv2d/depthwise_conv2d_i8_i8_i32.c
     gemm/gemm_bf16rc_bf16rc_f32rc.c
     gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc.c
