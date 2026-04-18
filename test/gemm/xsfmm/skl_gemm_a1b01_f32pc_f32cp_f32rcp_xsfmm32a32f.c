@@ -16,13 +16,17 @@
  *
  * This test uses the gemm_f32rcprc_f32rcprc_f32rcprc harness with the following
  * restrictions on the input parameters:
- *  - Matrix A is column-major (rsa == 1)
- *  - Matrix B is row-major (csb == 1)
- *  - Matrix C is row-major (csc == 1)
+ *  - The block dimensions are M0 = ETE, N0 = ETE, and K0 = 1
+ *  - Matrix A_pack is block-row-major with column-major blocks (rsa0 == 1, csa1
+ *    == m0 * k0)
+ *  - Matrix B_pack is block-column-major with row-major blocks (csb0 == 1, rsb1
+ *    == k0 * n0)
+ *  - Matrix C_pack has row-major blocks (csc0 == 1)
  *  - Alpha must be 1.0
  *  - Beta must be 0.0 or 1.0
  *
- * The kernel computes C = A * B (beta=0) or C += A * B (beta=1).
+ * The kernel computes C_pack = A_pack * B_pack (beta = 0) or C_pack += A_pack *
+ * B_pack (beta = 1).
  */
 
 #define TEST                                                                   \
@@ -51,12 +55,99 @@ static void execute(skl_test_t *t);
 gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
     // Benchmark tests
+    {BENCH, .m1 = 2, .n1 = 2, .k1 = 2048, .alpha = 1.f, .beta = 0.f},
+    {BENCH, .m1 = 2, .n1 = 2, .k1 = 2048, .alpha = 1.f, .beta = 1.f},
 #endif // SKL_ENABLE_BENCHMARKS
 
 #ifdef SKL_ENABLE_TESTS
-    // Verification tests - comprehensive coverage for Xsfmm A1B01 layout (TE=64)
-    /* Edge case: 1x1 matrix with k=0 (no computation, C = beta*C) */
-    {TEST, .m1 = 2, .n1 = 2, .k1 = 16, .alpha = 1.f, .beta = 0.f},
+    // Verification tests - comprehensive coverage for Xsfmm A1B01
+    {TEST, .m1 = 7, .n1 = 1, .k1 = 0, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 2, .k1 = 0, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 3, .k1 = 0, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 4, .k1 = 0, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 5, .k1 = 0, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 6, .k1 = 0, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 7, .k1 = 0, .alpha = 1.f, .beta = 0.f},
+
+    {TEST, .m1 = 7, .n1 = 1, .k1 = 1, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 2, .k1 = 1, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 3, .k1 = 1, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 4, .k1 = 1, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 5, .k1 = 1, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 6, .k1 = 1, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 7, .k1 = 1, .alpha = 1.f, .beta = 0.f},
+
+    {TEST, .m1 = 7, .n1 = 1, .k1 = 2, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 2, .k1 = 2, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 3, .k1 = 2, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 4, .k1 = 2, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 5, .k1 = 2, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 6, .k1 = 2, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 7, .k1 = 2, .alpha = 1.f, .beta = 0.f},
+
+    {TEST, .m1 = 1, .n1 = 1, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 1, .n1 = 2, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 1, .n1 = 3, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 1, .n1 = 4, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 1, .n1 = 5, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 1, .n1 = 6, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 1, .n1 = 7, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+
+    {TEST, .m1 = 2, .n1 = 1, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 2, .n1 = 2, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 2, .n1 = 3, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 2, .n1 = 4, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 2, .n1 = 5, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 2, .n1 = 6, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 2, .n1 = 7, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+
+    {TEST, .m1 = 3, .n1 = 1, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 3, .n1 = 2, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 3, .n1 = 3, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 3, .n1 = 4, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 3, .n1 = 5, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 3, .n1 = 6, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 3, .n1 = 7, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+
+    {TEST, .m1 = 4, .n1 = 1, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 4, .n1 = 2, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 4, .n1 = 3, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 4, .n1 = 4, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 4, .n1 = 5, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 4, .n1 = 6, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 4, .n1 = 7, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+
+    {TEST, .m1 = 5, .n1 = 1, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 5, .n1 = 2, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 5, .n1 = 3, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 5, .n1 = 4, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 5, .n1 = 5, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 5, .n1 = 6, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 5, .n1 = 7, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+
+    {TEST, .m1 = 6, .n1 = 1, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 6, .n1 = 2, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 6, .n1 = 3, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 6, .n1 = 4, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 6, .n1 = 5, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 6, .n1 = 6, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 6, .n1 = 7, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+
+    {TEST, .m1 = 7, .n1 = 1, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 2, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 3, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 4, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 5, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 6, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+    {TEST, .m1 = 7, .n1 = 7, .k1 = 15, .alpha = 1.f, .beta = 0.f},
+
+    {TEST, .m1 = 7, .n1 = 1, .k1 = 15, .alpha = 1.f, .beta = 1.f},
+    {TEST, .m1 = 7, .n1 = 2, .k1 = 15, .alpha = 1.f, .beta = 1.f},
+    {TEST, .m1 = 7, .n1 = 3, .k1 = 15, .alpha = 1.f, .beta = 1.f},
+    {TEST, .m1 = 7, .n1 = 4, .k1 = 15, .alpha = 1.f, .beta = 1.f},
+    {TEST, .m1 = 7, .n1 = 5, .k1 = 15, .alpha = 1.f, .beta = 1.f},
+    {TEST, .m1 = 7, .n1 = 6, .k1 = 15, .alpha = 1.f, .beta = 1.f},
+    {TEST, .m1 = 7, .n1 = 7, .k1 = 15, .alpha = 1.f, .beta = 1.f},
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on
@@ -72,15 +163,16 @@ static void execute(skl_test_t *t) {
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
   // Call the kernel with the appropriate parameters
-  // The kernel signature is: (m, n, k, a, csa, b, rsb, c, rsc, accum)
-  // where accum = (beta != 0)
+  // The kernel signature is: (m1, n1, k, a_pack, rsa1, b_pack, csb1, c_pack,
+  // rsc1, csc1, accum) where accum = (beta != 0)
   skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
       h->m1, h->n1, h->k1 * h->k0, h->a_pack.data, h->rsa1, h->b_pack.data,
       h->csb1, h->c_pack.data, h->rsc1, h->csc1, h->beta != 0.f);
 }
 
 int main(void) {
-  // Set default strides: A is column-major, B is row-major, C is row-major
+  // Set default strides: A is block-row-major with column-major blocks, B is
+  // block-column-major with row-major blocks, C has row-major blocks
   size_t ete = 0;
   __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
   for (size_t i = 0; i < suite.num_tests; ++i) {
@@ -91,17 +183,17 @@ int main(void) {
     tests[i].rsa0 = 1;
     tests[i].csa0 = ete;
     tests[i].csa1 = tests[i].m0 * tests[i].k0;
-    tests[i].rsa1 = tests[i].k1 * tests[i].csa1;
+    tests[i].rsa1 = tests[i].rsa1 ? tests[i].rsa1 : tests[i].k1 * tests[i].csa1;
 
     tests[i].rsb0 = ete;
     tests[i].csb0 = 1;
     tests[i].rsb1 = tests[i].k0 * tests[i].n0;
-    tests[i].csb1 = tests[i].k1 * tests[i].rsb1;
+    tests[i].csb1 = tests[i].csb1 ? tests[i].csb1 : tests[i].k1 * tests[i].rsb1;
 
     tests[i].rsc0 = ete;
     tests[i].csc0 = 1;
-    tests[i].csc1 = tests[i].m0 * tests[i].n0;
-    tests[i].rsc1 = tests[i].n1 * tests[i].csc1;
+    tests[i].csc1 = tests[i].csc1 ? tests[i].csc1 : tests[i].m0 * tests[i].n0;
+    tests[i].rsc1 = tests[i].rsc1 ? tests[i].rsc1 : tests[i].n1 * tests[i].csc1;
   }
 
   return skl_test_driver_run_suite(&suite);

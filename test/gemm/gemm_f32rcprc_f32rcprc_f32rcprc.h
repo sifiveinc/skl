@@ -4,19 +4,24 @@
 #pragma once
 
 /**
- * @brief Test and benchmark for GEMM: C = alpha * A * B + beta * C.
+ * @brief Test and benchmark for packed GEMM: C = alpha * A * B + beta * C.
  *
  * This test uses a table-driven approach where test configurations are defined
  * in the `tests` array. Each test specifies:
- *  - Matrix dimensions M, N, and K
+ *  - Block dimensions M0, N0, and K0
+ *  - Packed matrix dimensions M1, N1, and K1
  *  - Scalar coefficients ALPHA and BETA
- *  - Row and column strides (RSA, CSA, RSB, CSB, RSC, CSC)
+ *  - Row and column strides (RSA0, CSA0, RSA1, CSA1, RSB0, CSB0, RSB1, CSB1,
+ * RSC0, CSC0, RSC1, CSC1)
  *  - The GEMM kernel function to test
  *
  * Matrix layouts:
- *  - A is M x K with row stride RSA and column stride CSA
- *  - B is K x N with row stride RSB and column stride CSB
- *  - C is M x N with row stride RSC and column stride CSC
+ *  - A_pack is packed M1 x K1 with block size M0 x K0 and strides RSA0, CSA0,
+ * RSA1, CSA1
+ *  - B_pack is packed K1 x N1 with block size K0 x N0 and strides RSB0, CSB0,
+ * RSB1, CSB1
+ *  - C_pack is packed M1 x N1 with block size M0 x N0 and strides RSC0, CSC0,
+ * RSC1, CSC1
  */
 
 #include "skl-test-driver.h"
@@ -38,7 +43,7 @@ typedef struct {
   float beta;
   size_t rsc0, csc0, rsc1, csc1;
 
-  // Buffer generation settings for A, B, C
+  // Buffer generation settings for A_pack, B_pack, C_pack
   SKL_TEST_BUFFER(float) a_pack, b_pack, c_pack;
 
   // Derived parameters & buffers (private to the test harness)

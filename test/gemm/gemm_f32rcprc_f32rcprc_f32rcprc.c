@@ -23,8 +23,6 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_init(skl_test_t *t) {
   gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
-  // Allow default strides:
-  // Handle zero dimensions to avoid size_t underflow in (dim - 1) expressions
   if (h->rsa1 > h->csa1) {
     h->a_pack.len = h->m1 * h->rsa1;
   } else if (h->rsa1 < h->csa1) {
@@ -54,12 +52,11 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_init(skl_test_t *t) {
   SKL_TEST_BUF_CREATE(t, float, &h->b_pack);
   SKL_TEST_BUF_CREATE(t, float, &h->c_pack);
   if (h->steps.verify) {
-    // Only allocate if lengths are non-zero to avoid malloc(0)
     h->ctx.a_wide = malloc(h->a_pack.len * sizeof(double));
     h->ctx.b_wide = malloc(h->b_pack.len * sizeof(double));
     h->ctx.ref_c = malloc(h->c_pack.len * sizeof(float));
     h->ctx.bound = malloc(h->c_pack.len * sizeof(double));
-    // Copy initial C values to ref_c for the beta*C term in reference GEMM
+    // Copy initial C values to ref_c for the beta * C term in reference GEMM
     memcpy(h->ctx.ref_c, h->c_pack.data, h->c_pack.len * sizeof(float));
   }
 }
@@ -100,9 +97,9 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_verify(skl_test_t *t) {
   }
   const int P = 24; // 23 bits of mantissa for float32 accumulator
   const double u = ldexp(1.0, -P); // Maximum relative roundoff error
-  // Compute 2 * ((1 + u)^(K + 2) - 1) by change of base formula:
+  // Compute 2 * ((1 + u)^(K1 * K0 + 2) - 1) by change of base formula:
   const double roundoff_scaling =
-      2 * expm1((double)(h->k0 * h->k1 + 2) * log1p(u));
+      2 * expm1((double)(h->k1 * h->k0 + 2) * log1p(u));
   skl_gemm_f64rcprc_f64rcprc_f64rcprc_ref(
       h->m0, h->n0, h->k0, h->m1, h->n1, h->k1,
       roundoff_scaling * fabs((double)h->alpha), h->ctx.a_wide, h->rsa0,
