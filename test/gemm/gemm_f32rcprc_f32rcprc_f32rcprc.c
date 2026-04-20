@@ -52,12 +52,12 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_init(skl_test_t *t) {
   SKL_TEST_BUF_CREATE(t, float, &h->b_pack);
   SKL_TEST_BUF_CREATE(t, float, &h->c_pack);
   if (h->steps.verify) {
-    h->ctx.a_wide = malloc(h->a_pack.len * sizeof(double));
-    h->ctx.b_wide = malloc(h->b_pack.len * sizeof(double));
-    h->ctx.ref_c = malloc(h->c_pack.len * sizeof(float));
-    h->ctx.bound = malloc(h->c_pack.len * sizeof(double));
+    h->ctx.a_wide = malloc(h->a_pack.len * sizeof(*(h->ctx.a_wide)));
+    h->ctx.b_wide = malloc(h->b_pack.len * sizeof(*(h->ctx.b_wide)));
+    h->ctx.ref_c = malloc(h->c_pack.len * sizeof(*(h->ctx.ref_c)));
+    h->ctx.bound = malloc(h->c_pack.len * sizeof(*(h->ctx.bound)));
     // Copy initial C values to ref_c for the beta * C term in reference GEMM
-    memcpy(h->ctx.ref_c, h->c_pack.data, h->c_pack.len * sizeof(float));
+    memcpy(h->ctx.ref_c, h->c_pack.data, h->c_pack.len * sizeof(*(h->c_pack.data)));
   }
 }
 
@@ -105,7 +105,7 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_verify(skl_test_t *t) {
       roundoff_scaling * fabs((double)h->alpha), h->ctx.a_wide, h->rsa0,
       h->csa0, h->rsa1, h->csa1, h->ctx.b_wide, h->rsb0, h->csb0, h->rsb1,
       h->csb1, roundoff_scaling * fabs((double)h->beta), h->ctx.bound, h->rsc0,
-      h->csc0, h->rsc1, h->csc1, );
+      h->csc0, h->rsc1, h->csc1);
 
   // Compute the reference result using h->ctx.ref_c
   // h->ctx.ref_c contains the original C values (copied in skl_test_init)
@@ -114,7 +114,7 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_verify(skl_test_t *t) {
       h->m0, h->n0, h->k0, h->m1, h->n1, h->k1, h->alpha, h->a_pack.data,
       h->rsa0, h->csa0, h->rsa1, h->csa1, h->b_pack.data, h->rsb0, h->csb0,
       h->rsb1, h->csb1, h->beta, h->ctx.ref_c, h->rsc0, h->csc0, h->rsc1,
-      h->csc1, );
+      h->csc1);
 
   /* Compare the reference and test outputs. */
   for (size_t i1 = 0; i1 < h->m1; ++i1) {
@@ -122,7 +122,7 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_verify(skl_test_t *t) {
       for (size_t i0 = 0; i0 < h->m0; ++i0) {
         for (size_t j0 = 0; j0 < h->n0; ++j0) {
           size_t idx =
-              i1 * h->rsc1 + j1 * h->csc0 + i0 * h->rsc0 + j0 * h->csc0;
+              i1 * h->rsc1 + j1 * h->csc1 + i0 * h->rsc0 + j0 * h->csc0;
           if (fabs((double)h->c_pack.data[idx] - (double)h->ctx.ref_c[idx]) >
               h->ctx.bound[idx]) {
             SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
