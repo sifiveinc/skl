@@ -4,7 +4,8 @@
 #pragma once
 
 /**
- * @brief Test and benchmark for packed GEMM: C = alpha * A * B + beta * C.
+ * @brief Test and benchmark for packed GEMM: C_pack = alpha * A_pack * B_pack +
+ * beta * C_pack.
  *
  * This test uses a table-driven approach where test configurations are defined
  * in the `tests` array. Each test specifies:
@@ -12,16 +13,16 @@
  *  - Packed matrix dimensions M1, N1, and K1
  *  - Scalar coefficients ALPHA and BETA
  *  - Row and column strides (RSA0, CSA0, RSA1, CSA1, RSB0, CSB0, RSB1, CSB1,
- * RSC0, CSC0, RSC1, CSC1)
+ *    RSC0, CSC0, RSC1, CSC1)
  *  - The GEMM kernel function to test
  *
  * Matrix layouts:
  *  - A_pack is packed M1 x K1 with block size M0 x K0 and strides RSA0, CSA0,
- * RSA1, CSA1
+ *    RSA1, CSA1
  *  - B_pack is packed K1 x N1 with block size K0 x N0 and strides RSB0, CSB0,
- * RSB1, CSB1
+ *    RSB1, CSB1
  *  - C_pack is packed M1 x N1 with block size M0 x N0 and strides RSC0, CSC0,
- * RSC1, CSC1
+ *    RSC1, CSC1
  */
 
 #include "skl-test-driver.h"
