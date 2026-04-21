@@ -30,12 +30,12 @@ unary_f32_t tests[] = {
 #if defined(SKL_ENABLE_BENCHMARKS)
     FUNCTION_BENCHMARKS(skl_exp_1u_f32_xsfvfexpa, MIN, MAX),
     FUNCTION_BENCHMARKS(skl_exp_1p0002ugen5d639eP6s0_f32_xsfvfexpa,
-                        -0x1.5d639ep6f, +89.f),
+                        -0x1.5d639ep6f, MAX),
 #endif
 #if defined(SKL_ENABLE_TESTS)
     FUNCTION_TESTS(skl_exp_1u_f32_xsfvfexpa, MIN, MAX, 1.0f),
     FUNCTION_TESTS(skl_exp_1p0002ugen5d639eP6s0_f32_xsfvfexpa, -0x1.5d639ep6f,
-                   +89.f, 1.0002f),
+                   MAX, 1.0002f),
 #endif
 };
 
