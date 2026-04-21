@@ -20,13 +20,11 @@ void unary_f32_init(skl_test_t *t) {
   // Allocate buffers
   SKL_TEST_BUF_CREATE(t, float, &h->a);
   h->ctx.b = malloc(h->a.len * sizeof(float));
-  if (!h->ctx.b)
-    t->status.init_status = SKL_TEST_FAIL;
   if (h->steps.verify) {
     h->ctx.ref = malloc(h->a.len * sizeof(float));
-    if (!h->ctx.ref)
-      t->status.init_status = SKL_TEST_FAIL;
   }
+  if (!h->ctx.b || (h->steps.verify && !h->ctx.ref))
+    t->status.init_status = SKL_TEST_FAIL;
 }
 
 void unary_f32_execute(skl_test_t *t) {
