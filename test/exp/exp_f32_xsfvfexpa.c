@@ -16,6 +16,9 @@
 #include "skl-test-driver.h"
 #include "skl.h"
 
+#define MIN (-104.f)
+#define MAX (+89.f)
+
 #define FUNCTION_TESTS(FUN, MIN, MAX, ULP)                                     \
   {TEST,           .ref_func = skl_exp_f32_ref, .func = (FUN), .a.min = (MIN), \
    .a.max = (MAX), .ctx.max_err = (ULP)}

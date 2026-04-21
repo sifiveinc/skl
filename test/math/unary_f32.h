@@ -54,9 +54,6 @@ void unary_f32_cleanup(skl_test_t *t);
       .report = unary_f32_report,                                              \
   }
 
-#define MIN (-104.f)
-#define MAX (+89.f)
-
 #define TEST                                                                   \
   UNARY_F32_TEST_DEFAULTS, BASIC_STEPS, .steps.warmup = NULL,                  \
                                         .steps.verify = unary_f32_verify
