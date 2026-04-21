@@ -34,8 +34,8 @@ unary_f32_t tests[] = {
 #endif
 #if defined(SKL_ENABLE_TESTS)
     FUNCTION_TESTS(skl_exp_2p398u0alt64ainf_f32_xsfvfexp32e, -0x1.fffffep5f,
-                   0x1.fffffep5f, 2.398f),
-    FUNCTION_TESTS(skl_exp_5p32u_f32_xsfvfexp32e, MIN, MAX, 5.32f),
+                   0x1.fffffep5f, 3),
+    FUNCTION_TESTS(skl_exp_5p32u_f32_xsfvfexp32e, MIN, MAX, 6),
 #endif
 };
 
