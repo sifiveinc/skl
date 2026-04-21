@@ -46,10 +46,4 @@ static skl_test_suite_t suite = {.name = "skl_exp_f32_xsfvfexp32e",
                                  .test_size = sizeof(unary_f32_t),
                                  .tests = tests};
 
-static void execute(skl_test_t *t) {
-  unary_f32_t *h = (unary_f32_t *)t->harness;
-  unary_func_t func = h->func;
-  func(h->ctx.b, h->a.data, h->a.len);
-}
-
 int main(void) { return skl_test_driver_run_suite(&suite); }
