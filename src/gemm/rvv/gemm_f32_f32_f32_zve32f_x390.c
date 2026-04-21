@@ -19,36 +19,38 @@
 #endif
 
 /**
- * @brief RVV float32 vector-matrix multiplication for row-major B and
- * unit-stride vectors, tuned for X390.
+ * @brief RVV float32 matrix-matrix multiplication (SGEMM) for row-major
+ * matrices, tuned for X390.
  *
+ * @param m - Number of rows in matrices A and C.
  * @param n - Number of columns in matrices B and C.
  * @param k - Number of columns in A and rows in B (inner dimension).
  * @param alpha - Scalar multiplier for A*B product.
  * @param a - Pointer to vector A.
+ * @param rsa - Row stride of matrix A in elements.
  * @param b - Pointer to matrix B.
  * @param rsb - Row stride of matrix B in elements.
  * @param beta - Scalar multiplier for matrix C.
  * @param c - Pointer to vector C.
+ * @param rsc - Row stride of matrix C in elements.
  *
- * Computes `C = alpha * A * B + beta * C` for FP32 unit-stride vector A,
- * row-major matrix B, and output unit-stride vector C.
+ * Computes `C = alpha * A * B + beta * C` for FP32 row-major matrices.
  *
  * Functionally equivalent to calling:
  * ```
  * skl_gemm_f32rc_f32rc_f32rc_ref(
- *     1, n, k,
+ *     m, n, k,
  *     alpha,
- *     a, 1, 1,
+ *     a, rsa, 1,
  *     b, rsb, 1,
  *     beta,
- *     c, 1, 1
+ *     c, rsc, 1
  * );
  * ```
  * Uses a 1 x LMUL=8 x 3 register tile. Vectorized across the N dimension.
  *
  * @note
- * Works best when `n >= __riscv_vsetvlmax_e32m8()`.
+ * Works best when `m == 1` and `n >= __riscv_vsetvlmax_e32m8()`.
  */
 SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
     size_t m, size_t n, size_t k, float alpha, const float *a, size_t rsa,
@@ -85,17 +87,17 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
       __asm__ volatile(
           // clang-format off
           "\n\t"
-          "vsetvli zero, %[jj_vl_in], e32, m8, ta, ma \n\t"
+          "vsetvli zero, %[jj_vl], e32, m8, ta, ma \n\t"
 
-          "flw %[a00], 0(%[a_load]) \n\t"
-          "vle32.v %[b00], (%[b_load]) \n\t"
+          "flw %[a00], 0(%[a_addr]) \n\t"
+          "vle32.v %[b00], (%[b_addr]) \n\t"
           "vfmul.vf %[acc0], %[b00], %[a00] \n\t"
           : [a00] "=&f"(a00),
             [b00] "=&vr"(b00),
             [acc0] "=&vr"(acc0)
-          : [jj_vl_in] "r"(jj_vl),
-            [a_load] "r"(a + ii * rsa + 0),
-            [b_load] "r"(b + 0 * rsb + jj)
+          : [jj_vl] "r"(jj_vl),
+            [a_addr] "r"(a + ii * rsa + 0),
+            [b_addr] "r"(b + 0 * rsb + jj)
           : "vtype", "vl", "memory"
           // clang-format on
       );
@@ -108,11 +110,11 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
         __asm__ volatile(
             // clang-format off
             "\n\t"
-            "vsetvli zero, %[jj_vl_in], e32, m8, ta, ma \n\t"
+            "vsetvli zero, %[jj_vl], e32, m8, ta, ma \n\t"
 
-            "flw %[a00], 0(%[a_load]) \n\t"
-            "flw %[a01], 4(%[a_load]) \n\t"
-            "flw %[a02], 8(%[a_load]) \n\t"
+            "flw %[a00], 0(%[a_addr]) \n\t"
+            "flw %[a01], 4(%[a_addr]) \n\t"
+            "flw %[a02], 8(%[a_addr]) \n\t"
             "vle32.v %[b00], (%[b_addr_0]) \n\t"
             "vle32.v %[b10], (%[b_addr_1]) \n\t"
             "vle32.v %[b20], (%[b_addr_2]) \n\t"
@@ -122,8 +124,8 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
               [b00] "=&vr"(b00),
               [b10] "=&vr"(b10),
               [b20] "=&vr"(b20)
-            : [jj_vl_in] "r"(jj_vl),
-              [a_load] "r"(a + ii * rsa + kk),
+            : [jj_vl] "r"(jj_vl),
+              [a_addr] "r"(a + ii * rsa + kk),
               [b_addr_0] "r"(b + (kk + 0) * rsb + jj),
               [b_addr_1] "r"(b + (kk + 1) * rsb + jj),
               [b_addr_2] "r"(b + (kk + 2) * rsb + jj)
@@ -139,78 +141,78 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
         __asm__ volatile(
             // clang-format off
             "\n\t"
-            "vsetvli zero, %[jj_vl_in], e32, m8, ta, ma \n\t"
+            "vsetvli zero, %[jj_vl], e32, m8, ta, ma \n\t"
 
             "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
             "vle32.v %[b00], (%[b_addr]) \n\t"
             NTL_P1
-            "flw %[a00],  0(%[a_load]) \n\t"
+            "flw %[a00],  0(%[a_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t"
 
             "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
             "vle32.v %[b10], (%[b_addr]) \n\t"
             NTL_P1
-            "flw %[a01],  4(%[a_load]) \n\t"
+            "flw %[a01],  4(%[a_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t"
 
             "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
             "vle32.v %[b20], (%[b_addr]) \n\t"
             NTL_P1
-            "flw %[a02],  8(%[a_load]) \n\t"
+            "flw %[a02],  8(%[a_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t"
 
             "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
             "vle32.v %[b00], (%[b_addr]) \n\t"
             NTL_P1
-            "flw %[a00], 12(%[a_load]) \n\t"
+            "flw %[a00], 12(%[a_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t"
 
             "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
             "vle32.v %[b10], (%[b_addr]) \n\t"
             NTL_P1
-            "flw %[a01], 16(%[a_load]) \n\t"
+            "flw %[a01], 16(%[a_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t"
 
             "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
             "vle32.v %[b20], (%[b_addr]) \n\t"
             NTL_P1
-            "flw %[a02], 20(%[a_load]) \n\t"
+            "flw %[a02], 20(%[a_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t"
 
             "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
             "vle32.v %[b00], (%[b_addr]) \n\t"
             NTL_P1
-            "flw %[a00], 24(%[a_load]) \n\t"
+            "flw %[a00], 24(%[a_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t"
 
             "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
             "vle32.v %[b10], (%[b_addr]) \n\t"
             NTL_P1
-            "flw %[a01], 28(%[a_load]) \n\t"
+            "flw %[a01], 28(%[a_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t"
 
             "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
             "vle32.v %[b20], (%[b_addr]) \n\t"
             NTL_P1
-            "flw %[a02], 32(%[a_load]) \n\t"
+            "flw %[a02], 32(%[a_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t"
 
             "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
             "vle32.v %[b00], (%[b_addr]) \n\t"
             NTL_P1
-            "flw %[a00], 36(%[a_load]) \n\t"
+            "flw %[a00], 36(%[a_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t"
 
             "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
             "vle32.v %[b10], (%[b_addr]) \n\t"
             NTL_P1
-            "flw %[a01], 40(%[a_load]) \n\t"
+            "flw %[a01], 40(%[a_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t"
 
             "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
             "vle32.v %[b20], (%[b_addr]) \n\t"
             NTL_P1
-            "flw %[a02], 44(%[a_load]) \n\t"
+            "flw %[a02], 44(%[a_addr]) \n\t"
             "add %[b_addr], %[b_addr], %[rsb4] \n\t"
             : [a00] "+&f"(a00),
               [a01] "+&f"(a01),
@@ -220,8 +222,8 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
               [b20] "+&vr"(b20),
               [acc0] "+&vr"(acc0),
               [b_addr] "+&r"(b_addr)
-            : [jj_vl_in] "r"(jj_vl),
-              [a_load] "r"(a + ii * rsa + kk + preload_distance),
+            : [jj_vl] "r"(jj_vl),
+              [a_addr] "r"(a + ii * rsa + kk + preload_distance),
               [rsb4] "r" (rsb * sizeof(float))
             : "vtype", "vl", "memory"
             // clang-format on
@@ -232,12 +234,12 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
         __asm__ volatile(
             // clang-format off
             "\n\t"
-            "vsetvli zero, %[jj_vl_in], e32, m8, ta, ma \n\t"
+            "vsetvli zero, %[jj_vl], e32, m8, ta, ma \n\t"
             "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
             "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
             "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
             : [acc0] "+&vr"(acc0)
-            : [jj_vl_in] "r"(jj_vl),
+            : [jj_vl] "r"(jj_vl),
               [a00] "f"(a00),
               [a01] "f"(a01),
               [a02] "f"(a02),
@@ -254,16 +256,16 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
         __asm__ volatile(
             // clang-format off
             "\n\t"
-            "vsetvli zero, %[jj_vl_in], e32, m8, ta, ma \n\t"
-            "flw %[a00], 0(%[a_load]) \n\t"
-            "vle32.v %[b00], (%[b_load]) \n\t"
+            "vsetvli zero, %[jj_vl], e32, m8, ta, ma \n\t"
+            "flw %[a00], 0(%[a_addr]) \n\t"
+            "vle32.v %[b00], (%[b_addr]) \n\t"
             "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
             : [a00] "=&f"(a00),
               [b00] "=&vr"(b00),
               [acc0] "+&vr"(acc0)
-            : [jj_vl_in] "r"(jj_vl),
-              [a_load] "r"(a + ii * rsa + kk),
-              [b_load] "r"(b + kk * rsb + jj)
+            : [jj_vl] "r"(jj_vl),
+              [a_addr] "r"(a + ii * rsa + kk),
+              [b_addr] "r"(b + kk * rsb + jj)
             : "vtype", "vl", "memory"
             // clang-format on
         );
@@ -272,14 +274,14 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
       __asm__ volatile(
           // clang-format off
           "\n\t"
-          "vsetvli zero, %[jj_vl_in], e32, m8, ta, ma \n\t"
+          "vsetvli zero, %[jj_vl], e32, m8, ta, ma \n\t"
 
           "vle32.v %[c00], (%[c_addr]) \n\t"
           "vfmul.vf %[c00], %[c00], %[beta] \n\t"
           "vfmacc.vf %[c00], %[alpha], %[acc0] \n\t"
           "vse32.v %[c00], (%[c_addr]) \n\t"
           : [c00] "=&vr"(c00)
-          : [jj_vl_in] "r"(jj_vl),
+          : [jj_vl] "r"(jj_vl),
             [c_addr] "r"(c + ii * rsc + jj),
             [beta] "f"(beta),
             [alpha] "f"(alpha),
