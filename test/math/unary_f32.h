@@ -16,7 +16,7 @@
 #include <stdint.h>
 
 // Type of SKL unary functions
-typedef void (*unary_func_t)(float *, const float *, size_t);
+typedef void (*unary_func_f32_t)(float *, const float *, size_t);
 
 // Type of SKL unary function harnesses
 typedef struct {
@@ -24,8 +24,8 @@ typedef struct {
   skl_test_steps_t steps;
 
   // Configurable parameters
-  unary_func_t ref_func; // The reference function
-  unary_func_t func;     // The function to test
+  unary_func_f32_t ref_func; // The reference function
+  unary_func_f32_t func;     // The function to test
 
   // Buffer generation settings
   SKL_TEST_BUFFER(float) a;
