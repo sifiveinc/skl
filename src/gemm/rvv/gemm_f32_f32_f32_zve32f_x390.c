@@ -100,33 +100,28 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
           // clang-format on
       );
 
-      // preload block
-      size_t kk_unroll_degree = 3;
+      const size_t preload_distance = 3;
+      const size_t kk_unroll_degree = 3;
+      kk = 1;
 
-      for (kk = 1; (kk + kk_unroll_degree) <= k; kk += kk_unroll_degree) {
+      if (kk + kk_unroll_degree + preload_distance <= k) {
         __asm__ volatile(
             // clang-format off
             "\n\t"
             "vsetvli zero, %[jj_vl_in], e32, m8, ta, ma \n\t"
 
             "flw %[a00], 0(%[a_load]) \n\t"
-            "vle32.v %[b00], (%[b_load_0]) \n\t"
-            "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
-
             "flw %[a01], 4(%[a_load]) \n\t"
-            "vle32.v %[b10], (%[b_load_1]) \n\t"
-            "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
-
             "flw %[a02], 8(%[a_load]) \n\t"
+            "vle32.v %[b00], (%[b_load_0]) \n\t"
+            "vle32.v %[b10], (%[b_load_1]) \n\t"
             "vle32.v %[b20], (%[b_load_2]) \n\t"
-            "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
             : [a00] "=&f"(a00),
               [a01] "=&f"(a01),
               [a02] "=&f"(a02),
               [b00] "=&vr"(b00),
               [b10] "=&vr"(b10),
-              [b20] "=&vr"(b20),
-              [acc0] "+&vr"(acc0)
+              [b20] "=&vr"(b20)
             : [jj_vl_in] "r"(jj_vl),
               [a_load] "r"(a + ii * rsa + kk),
               [b_load_0] "r"(b + (kk + 0) * rsb + jj),
@@ -137,7 +132,67 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
         );
       }
 
-      for (; (kk + 1) <= k; kk++) {
+      for (; (kk + kk_unroll_degree + preload_distance) <= k;
+           kk += kk_unroll_degree) {
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "vsetvli zero, %[jj_vl_in], e32, m8, ta, ma \n\t"
+
+            "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
+            "vle32.v %[b00], (%[b_load_0]) \n\t"
+            NTL_P1
+            "flw %[a00], 0(%[a_load]) \n\t"
+
+            "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
+            "vle32.v %[b10], (%[b_load_1]) \n\t"
+            NTL_P1
+            "flw %[a01], 4(%[a_load]) \n\t"
+
+            "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
+            "vle32.v %[b20], (%[b_load_2]) \n\t"
+            NTL_P1
+            "flw %[a02], 8(%[a_load]) \n\t"
+            : [a00] "+&f"(a00),
+              [a01] "+&f"(a01),
+              [a02] "+&f"(a02),
+              [b00] "+&vr"(b00),
+              [b10] "+&vr"(b10),
+              [b20] "+&vr"(b20),
+              [acc0] "+&vr"(acc0)
+            : [jj_vl_in] "r"(jj_vl),
+              [a_load] "r"(a + ii * rsa + kk + preload_distance),
+              [b_load_0] "r"(b + (kk + preload_distance + 0) * rsb + jj),
+              [b_load_1] "r"(b + (kk + preload_distance + 1) * rsb + jj),
+              [b_load_2] "r"(b + (kk + preload_distance + 2) * rsb + jj)
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
+      }
+
+      if (1 + kk_unroll_degree + preload_distance <= k) {
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "vsetvli zero, %[jj_vl_in], e32, m8, ta, ma \n\t"
+            "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
+            "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
+            "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
+            : [acc0] "+&vr"(acc0)
+            : [jj_vl_in] "r"(jj_vl),
+              [a00] "f"(a00),
+              [a01] "f"(a01),
+              [a02] "f"(a02),
+              [b00] "vr"(b00),
+              [b10] "vr"(b10),
+              [b20] "vr"(b20)
+            : "vtype", "vl"
+            // clang-format on
+        );
+        kk += preload_distance;
+      }
+
+      for (; kk < k; kk++) {
         __asm__ volatile(
             // clang-format off
             "\n\t"
