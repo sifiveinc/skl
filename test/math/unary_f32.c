@@ -4,8 +4,6 @@
 /**
  * @brief Generic test harness for f32 unary element-wise functions.
  *
- * This file defines all harness functions _except_ `skl_test_execute`, which is
- * defined in the test file (e.g. skl_exp_f32_zve32f.c).
  */
 
 #include "math/unary_f32.h"
