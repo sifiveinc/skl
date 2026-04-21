@@ -8,7 +8,7 @@
 /**
  * @brief Test cases for Exponential with Xsfvfexp32e extension.
  *
- * This test uses the exp_f32 harness.
+ * This test uses the unary_f32 harness.
  */
 
 #include "math/unary_f32.h"
