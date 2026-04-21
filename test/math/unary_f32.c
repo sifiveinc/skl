@@ -7,7 +7,6 @@
  */
 
 #include "math/unary_f32.h"
-#include "skl-ref.h"
 #include "skl-test-driver.h"
 #include <inttypes.h>
 #include <math.h>
@@ -43,7 +42,7 @@ void unary_f32_verify(skl_test_t *t) {
   float max = h->ctx.max_err;
 
   // Compute the reference result
-  skl_exp_f32_ref(h->ctx.ref, h->a.data, h->a.len);
+  h->ref_func(h->ctx.ref, h->a.data, h->a.len);
 
   float ulp = 0.f;
   for (size_t i = 0; i < h->a.len; ++i) {
