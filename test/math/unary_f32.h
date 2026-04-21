@@ -39,9 +39,28 @@ typedef struct {
 } unary_f32_t;
 
 void unary_f32_init(skl_test_t *t);
+void unary_f32_execute(skl_test_t *t);
 void unary_f32_verify(skl_test_t *t);
 void unary_f32_report(skl_test_t *t);
 void unary_f32_cleanup(skl_test_t *t);
 
 #define UNARY_F32_TEST_DEFAULTS .a = {.len = 65536, .mode = SKL_TEST_RANDOM}
 #define UNARY_F32_BENCH_DEFAULTS .a = {.len = 1024, .mode = SKL_TEST_SEQ}
+#define BASIC_STEPS                                                            \
+  .steps = {                                                                   \
+      .init = unary_f32_init,                                                  \
+      .execute = unary_f32_execute,                                                      \
+      .cleanup = unary_f32_cleanup,                                            \
+      .report = unary_f32_report,                                              \
+  }
+
+#define MIN (-104.f)
+#define MAX (+89.f)
+
+#define TEST                                                                   \
+  UNARY_F32_TEST_DEFAULTS, BASIC_STEPS, .steps.warmup = NULL,                  \
+                                        .steps.verify = unary_f32_verify
+
+#define BENCH                                                                  \
+  UNARY_F32_BENCH_DEFAULTS, BASIC_STEPS, .steps.warmup = unary_f32_execute,              \
+                                         .steps.verify = NULL

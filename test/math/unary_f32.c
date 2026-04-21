@@ -32,6 +32,12 @@ void unary_f32_init(skl_test_t *t) {
   }
 }
 
+void unary_f32_execute(skl_test_t *t) {
+  unary_f32_t *h = (unary_f32_t *)t->harness;
+  unary_func_t func = h->func;
+  func(h->ctx.b, h->a.data, h->a.len);
+}
+
 void unary_f32_verify(skl_test_t *t) {
   unary_f32_t *h = (unary_f32_t *)t->harness;
 
