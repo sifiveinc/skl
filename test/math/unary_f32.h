@@ -49,7 +49,7 @@ void unary_f32_cleanup(skl_test_t *t);
 #define BASIC_STEPS                                                            \
   .steps = {                                                                   \
       .init = unary_f32_init,                                                  \
-      .execute = unary_f32_execute,                                                      \
+      .execute = unary_f32_execute,                                            \
       .cleanup = unary_f32_cleanup,                                            \
       .report = unary_f32_report,                                              \
   }
@@ -59,5 +59,5 @@ void unary_f32_cleanup(skl_test_t *t);
                                         .steps.verify = unary_f32_verify
 
 #define BENCH                                                                  \
-  UNARY_F32_BENCH_DEFAULTS, BASIC_STEPS, .steps.warmup = unary_f32_execute,              \
+  UNARY_F32_BENCH_DEFAULTS, BASIC_STEPS, .steps.warmup = unary_f32_execute,    \
                                          .steps.verify = NULL
