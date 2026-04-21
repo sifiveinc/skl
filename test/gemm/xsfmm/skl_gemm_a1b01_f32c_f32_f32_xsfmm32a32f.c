@@ -16,14 +16,14 @@
  *
  * This test uses the gemm_f32rcprc_f32rcprc_f32rcprc harness with the following
  * restrictions on the input parameters:
- *  - The block dimensions are M0 = 1, N0 = 1, and K0 = 1
+ *  - The block dimensions are m0 = 1, n0 = 1, and k0 = 1
  *  - Matrix A is column-major (rsa1 == 1)
  *  - Matrix B is row-major (csb1 == 1)
  *  - Matrix C is row-major (csc1 == 1)
  *  - Alpha must be 1.0
  *  - Beta must be 0.0 or 1.0
  *
- * The kernel computes C = A * B (beta=0) or C += A * B (beta=1).
+ * The kernel computes C = A * B (beta = 0) or C += A * B (beta = 1).
  */
 
 #define TEST                                                                   \
@@ -57,25 +57,25 @@ gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
 #endif // SKL_ENABLE_BENCHMARKS
 
 #ifdef SKL_ENABLE_TESTS
-    // Verification tests - comprehensive coverage for Xsfmm A1B01 layout (TE=64)
-    /* Edge case: 1x1 matrix with k=0 (no computation, C = beta*C) */
+    // Verification tests - comprehensive coverage for Xsfmm A1B01 layout (ETE=64)
+    /* Edge case: 1x1 matrix with k=0 (no computation, C = beta * C) */
     {TEST, .m1 = 1,   .n1 = 1,   .k1 = 0, .alpha = 1.f},
     /* Edge case: 1x1 matrix with k=1 (minimal computation) */
     {TEST, .m1 = 1,   .n1 = 1,   .k1 = 1, .alpha = 1.f},
-    /* TE-1 boundary: 63 = 64-1, tests just below tile edge */
+    /* ETE-1 boundary: 63 = 64-1, tests just below tile edge */
     {TEST, .m1 = 63,  .n1 = 63,  .k1 = 1, .alpha = 1.f},
     {TEST, .m1 = 63,  .n1 = 63,  .k1 = 2, .alpha = 1.f},
     {TEST, .m1 = 63,  .n1 = 63,  .k1 = 5, .alpha = 1.f},
-    /* Exact TE boundary: 64x64 tiles */
+    /* Exact ETE boundary: 64x64 tiles */
     {TEST, .m1 = 64,  .n1 = 64,  .k1 = 1, .alpha = 1.f},
     {TEST, .m1 = 64,  .n1 = 64,  .k1 = 5, .alpha = 1.f},
-    /* TE+1 boundary: 65 = 64+1, tests just past tile edge */
+    /* ETE+1 boundary: 65 = 64+1, tests just past tile edge */
     {TEST, .m1 = 65,  .n1 = 65,  .k1 = 1, .alpha = 1.f},
     {TEST, .m1 = 65,  .n1 = 65,  .k1 = 5, .alpha = 1.f},
-    /* Multi-tile: 2*TE = 128 */
+    /* Multi-tile: 2*ETE = 128 */
     {TEST, .m1 = 128, .n1 = 128, .k1 = 1, .alpha = 1.f},
     {TEST, .m1 = 128, .n1 = 128, .k1 = 5, .alpha = 1.f},
-    /* Multi-tile+1: 2*TE+1 = 129 */
+    /* Multi-tile+1: 2*ETE+1 = 129 */
     {TEST, .m1 = 129, .n1 = 129, .k1 = 1, .alpha = 1.f},
     {TEST, .m1 = 129, .n1 = 129, .k1 = 5, .alpha = 1.f},
     /* Non-square matrices (rectangular tiles) */

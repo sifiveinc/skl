@@ -9,20 +9,20 @@
  *
  * This test uses a table-driven approach where test configurations are defined
  * in the `tests` array. Each test specifies:
- *  - Block dimensions M0, N0, and K0
- *  - Packed matrix dimensions M1, N1, and K1
- *  - Scalar coefficients ALPHA and BETA
- *  - Row and column strides (RSA0, CSA0, RSA1, CSA1, RSB0, CSB0, RSB1, CSB1,
- *    RSC0, CSC0, RSC1, CSC1)
+ *  - Block dimensions m0, n0, and k0
+ *  - Packed matrix dimensions m1, n1, and k1
+ *  - Scalar coefficients alpha and beta
+ *  - Row and column strides (rsa0, csa0, rsa1, csa1, rsb0, csb0, rsb1, csb1,
+ * rsc0, csc0, rsc1, csc1)
  *  - The GEMM kernel function to test
  *
  * Matrix layouts:
- *  - A_pack is packed M1 x K1 with block size M0 x K0 and strides RSA0, CSA0,
- *    RSA1, CSA1
- *  - B_pack is packed K1 x N1 with block size K0 x N0 and strides RSB0, CSB0,
- *    RSB1, CSB1
- *  - C_pack is packed M1 x N1 with block size M0 x N0 and strides RSC0, CSC0,
- *    RSC1, CSC1
+ *  - A_pack is packed m1 x k1 with block size m0 x k0 and strides rsa0, csa0,
+ *    rsa1, csa1
+ *  - B_pack is packed k1 x n1 with block size k0 x n0 and strides rsb0, csb0,
+ *    rsb1, csb1
+ *  - C_pack is packed m1 x n1 with block size m0 x n0 and strides rsc0, csc0,
+ *    rsc1, csc1
  */
 
 #include "skl-test-driver.h"

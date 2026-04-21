@@ -60,12 +60,14 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_init(skl_test_t *t) {
                       : NULL;
     h->ctx.bound =
         h->c_pack.len ? malloc(h->c_pack.len * sizeof(*(h->ctx.bound))) : NULL;
-    // Copy initial C values to ref_c for the beta * C term in reference GEMM
-    memcpy(h->ctx.ref_c, h->c_pack.data,
-           h->c_pack.len * sizeof(*(h->c_pack.data)));
-    // Copy initial C values to c_pack_copy to check for clobbered elements
-    memcpy(h->ctx.c_pack_copy, h->c_pack.data,
-           h->c_pack.len * sizeof(*(h->c_pack.data)));
+    if (h->c_pack.len) {
+      // Copy initial C values to ref_c for the beta * C term in reference GEMM
+      memcpy(h->ctx.ref_c, h->c_pack.data,
+             h->c_pack.len * sizeof(*(h->c_pack.data)));
+      // Copy initial C values to c_pack_copy to check for clobbered elements
+      memcpy(h->ctx.c_pack_copy, h->c_pack.data,
+             h->c_pack.len * sizeof(*(h->c_pack.data)));
+    }
   }
 }
 

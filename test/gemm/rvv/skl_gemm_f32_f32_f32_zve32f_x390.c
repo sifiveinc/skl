@@ -12,7 +12,7 @@
  *
  * This test uses the gemm_f32rcprc_f32rcprc_f32rcprc harness with the following
  * restrictions on the input parameters:
- *  - The block dimensions are M0 = 1, N0 = 1, and K0 = 1
+ *  - The block dimensions are m0 = 1, n0 = 1, and k0 = 1
  *  - All matrices are row-major (csa1 == 1, csb1 == 1, csc1 == 1)
  */
 
@@ -49,17 +49,17 @@ gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
 #ifdef SKL_ENABLE_TESTS
     // Verification tests - comprehensive coverage for RVV GEMM
     /* Edge cases: minimal dimensions */
-    {TEST, .m1 = 1,   .n1 = 1,   .k1 = 0, .alpha = 1.f},
-    {TEST, .m1 = 1,   .n1 = 1,   .k1 = 1, .alpha = 1.f},
+    {TEST, .m1 = 1,   .n1 = 1,   .k1 = 0,  .alpha = 1.f},
+    {TEST, .m1 = 1,   .n1 = 1,   .k1 = 1,  .alpha = 1.f},
     /* Small odd dimensions for remainder handling */
-    {TEST, .m1 = 7,   .n1 = 7,   .k1 = 7, .alpha = 1.f},
+    {TEST, .m1 = 7,   .n1 = 7,   .k1 = 7,  .alpha = 1.f},
     {TEST, .m1 = 17,  .n1 = 17,  .k1 = 17, .alpha = 1.f},
     /* Skinny matrices (one dimension = 1) */
     {TEST, .m1 = 1,   .n1 = 33,  .k1 = 31, .alpha = 1.f},
     {TEST, .m1 = 33,  .n1 = 1,   .k1 = 31, .alpha = 1.f},
     /* k=0 edge case (C = beta*C, no A*B contribution) */
-    {TEST, .m1 = 33,  .n1 = 33,  .k1 = 0, .alpha = 1.f},
-    {TEST, .m1 = 16,  .n1 = 16,  .k1 = 0, .alpha = 1.f,   .beta = 1.f},
+    {TEST, .m1 = 33,  .n1 = 33,  .k1 = 0,  .alpha = 1.f},
+    {TEST, .m1 = 16,  .n1 = 16,  .k1 = 0,  .alpha = 1.f,   .beta = 1.f},
     /* Vector length boundary tests (multiples of 4, 8, 16, 32) */
     {TEST, .m1 = 16,  .n1 = 16,  .k1 = 16, .alpha = 1.f},
     {TEST, .m1 = 32,  .n1 = 32,  .k1 = 32, .alpha = 1.f},
