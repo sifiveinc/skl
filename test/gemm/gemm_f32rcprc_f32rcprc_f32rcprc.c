@@ -55,9 +55,14 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_init(skl_test_t *t) {
     h->ctx.a_wide = malloc(h->a_pack.len * sizeof(*(h->ctx.a_wide)));
     h->ctx.b_wide = malloc(h->b_pack.len * sizeof(*(h->ctx.b_wide)));
     h->ctx.ref_c = malloc(h->c_pack.len * sizeof(*(h->ctx.ref_c)));
+    h->ctx.c_pack_copy = malloc(h->c_pack.len * sizeof(*(h->ctx.c_pack_copy)));
     h->ctx.bound = malloc(h->c_pack.len * sizeof(*(h->ctx.bound)));
     // Copy initial C values to ref_c for the beta * C term in reference GEMM
-    memcpy(h->ctx.ref_c, h->c_pack.data, h->c_pack.len * sizeof(*(h->c_pack.data)));
+    memcpy(h->ctx.ref_c, h->c_pack.data,
+           h->c_pack.len * sizeof(*(h->c_pack.data)));
+    // Copy initial C values to c_pack_copy to check for clobbered elements
+    memcpy(h->ctx.c_pack_copy, h->c_pack.data,
+           h->c_pack.len * sizeof(*(h->c_pack.data)));
   }
 }
 
@@ -135,6 +140,127 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_verify(skl_test_t *t) {
           }
         }
       }
+    }
+  }
+
+  /* Check for clobbered elements. */
+  // When m0 == 1, rsc0 can be arbitrary. We adjust its value in this case to
+  // reflect the length of a row. csc0, rsc1, and csc1 are adjusted similarly.
+  size_t rsc0_adj = h->m0 == 1 ? (h->n0 - 1) * h->csc0 + 1 : h->rsc0;
+  size_t csc0_adj = h->n0 == 1 ? (h->m0 - 1) * h->rsc0 + 1 : h->csc0;
+  size_t c_block_min_len = (h->m0 - 1) * rsc0_adj + (h->n0 - 1) * csc0_adj + 1;
+  size_t rsc1_adj =
+      h->m1 == 1 ? (h->n1 - 1) * h->csc1 + c_block_min_len : h->rsc1;
+  size_t csc1_adj =
+      h->n1 == 1 ? (h->m1 - 1) * h->rsc1 + c_block_min_len : h->csc1;
+  // Each block of C_pack lies in an ambient m0_amb x n0_amb row- or
+  // column-major matrix with row and column strides rsc0_amb and csc0_amb.
+  // Let bsc1 be the block stride of C_pack, i.e. the distance from one block to
+  // the next in memory, in elements; bsc1 varies from block to block.
+  // Lastly, set layoutc0_row_major to true if blocks of C_pack are row major
+  // and false otherwise. Similarly, set layoutc1_row_major to true if C_pack is
+  // block-row-major and false otherwise.
+  size_t m0_amb = 0;
+  size_t n0_amb = 0;
+  size_t rsc0_amb = 0;
+  size_t csc0_amb = 0;
+  size_t bsc1 = 0;
+  bool layoutc0_row_major = rsc0_adj >= csc0_adj;
+  bool layoutc1_row_major = rsc1_adj >= csc1_adj;
+  if (layoutc0_row_major) {
+    rsc0_amb = rsc0_adj;
+    csc0_amb = 1;
+    m0_amb = h->m0;
+    n0_amb = rsc0_amb;
+  } else {
+    rsc0_amb = 1;
+    csc0_amb = csc0_adj;
+    m0_amb = csc0_amb;
+    n0_amb = h->n0;
+  }
+
+  // Check each block.
+  for (size_t i1 = 0; i1 < h->m1; ++i1) {
+    for (size_t j1 = 0; j1 < h->n1; ++j1) {
+      // Check the first c_block_min_len elements.
+      for (size_t i0 = 0; i0 < m0_amb; ++i0) {
+        for (size_t j0 = 0; j0 < n0_amb; ++j0) {
+          if (layoutc0_row_major && j0 % csc0_adj == 0 &&
+              j0 < h->n0 * csc0_adj) {
+            continue;
+          }
+          if (!layoutc0_row_major && i0 % rsc0_adj == 0 &&
+              i0 < h->m0 * rsc0_adj) {
+            continue;
+          }
+          if (i0 * rsc0_amb + j0 * csc0_amb >= c_block_min_len) {
+            continue;
+          }
+
+          size_t idx =
+              i1 * rsc1_adj + j1 * csc1_adj + i0 * rsc0_amb + j0 * csc0_amb;
+          // NaNs always compare as false, so do a bitwise comparison.
+          int64_t initial = 0;
+          int64_t result = 0;
+          memcpy(&initial, &(h->ctx.c_pack_copy[idx]),
+                 sizeof(*(h->ctx.c_pack_copy)));
+          memcpy(&result, &(h->c_pack.data[idx]), sizeof(*(h->c_pack.data)));
+          if (result != initial) {
+            SKL_TEST_LOG(
+                t, SKL_TEST_LOG_ERROR,
+                "result [%zu, %zu, %zu, %zu] (%f) vs. clobbered (%f)\n", i1, j1,
+                i0, j0, h->c_pack.data[idx], h->ctx.c_pack_copy[idx]);
+            t->status.verify_status = SKL_TEST_FAIL;
+            return;
+          }
+        }
+      }
+
+      // Check until the next block.
+      if (layoutc1_row_major) {
+        bsc1 = j1 < h->n1 - 1 ? csc1_adj : rsc1_adj - (h->n1 - 1) * csc1_adj;
+      } else {
+        bsc1 = i1 < h->m1 - 1 ? rsc1_adj : csc1_adj - (h->m1 - 1) * rsc1_adj;
+      }
+      if (i1 == h->m1 - 1 && j1 == h->n1 - 1) {
+        bsc1 = c_block_min_len;
+      }
+      for (size_t i = c_block_min_len; i < bsc1; ++i) {
+        size_t idx = i1 * rsc1_adj + j1 * csc1_adj + i;
+        // NaNs always compare as false, so do a bitwise comparison.
+        int64_t initial = 0;
+        int64_t result = 0;
+        memcpy(&initial, &(h->ctx.c_pack_copy[idx]),
+               sizeof(*(h->ctx.c_pack_copy)));
+        memcpy(&result, &(h->c_pack.data[idx]), sizeof(*(h->c_pack.data)));
+        if (result != initial) {
+          SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
+                       "result [%zu, %zu, %zu] (%f) vs. clobbered (%f)\n", i1,
+                       j1, i, h->c_pack.data[idx], h->ctx.c_pack_copy[idx]);
+          t->status.verify_status = SKL_TEST_FAIL;
+          return;
+        }
+      }
+    }
+  }
+
+  // Check until the end of the array.
+  size_t c_pack_min_len =
+      h->m1 == 0 || h->n1 == 0
+          ? 0
+          : (h->m1 - 1) * rsc1_adj + (h->n1 - 1) * csc1_adj + c_block_min_len;
+  for (size_t idx = c_pack_min_len; idx < h->c_pack.len; ++idx) {
+    // NaNs always compare as false, so do a bitwise comparison.
+    int64_t initial = 0;
+    int64_t result = 0;
+    memcpy(&initial, &(h->ctx.c_pack_copy[idx]), sizeof(*(h->ctx.c_pack_copy)));
+    memcpy(&result, &(h->c_pack.data[idx]), sizeof(*(h->c_pack.data)));
+    if (result != initial) {
+      SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
+                   "result [%zu] (%f) vs. clobbered (%f)\n", idx,
+                   h->c_pack.data[idx], h->ctx.c_pack_copy[idx]);
+      t->status.verify_status = SKL_TEST_FAIL;
+      return;
     }
   }
 }

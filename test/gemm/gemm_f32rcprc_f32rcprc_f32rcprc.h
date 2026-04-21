@@ -51,6 +51,7 @@ typedef struct {
   struct {
     double *a_wide, *b_wide;
     float *ref_c;
+    float *c_pack_copy;
     double *bound;
   } ctx;
 } gemm_f32rcprc_f32rcprc_f32rcprc_t;
