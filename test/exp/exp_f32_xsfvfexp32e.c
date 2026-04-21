@@ -19,23 +19,20 @@
 #define MIN (-104.f)
 #define MAX (+89.f)
 
-#define FUNCTION_TESTS(FUN, MIN, MAX, ULP)                                     \
-  {TEST,           .ref_func = skl_exp_f32_ref, .func = (FUN), .a.min = (MIN), \
-   .a.max = (MAX), .ctx.max_err = (ULP)}
-
-#define FUNCTION_BENCHMARKS(FUN, MIN, MAX)                                     \
-  {BENCH, .func = (FUN), .a.min = (MIN), .a.max = (MAX)}
+#define EXP_TESTS(FUN, MIN, MAX, ULP)                                          \
+  FUNCTION_TESTS(FUN, skl_exp_f32_ref, (MIN), (MAX), (ULP))
+#define EXP_BENCHMARKS FUNCTION_BENCHMARKS
 
 unary_f32_t tests[] = {
 #if defined(SKL_ENABLE_BENCHMARKS)
-    FUNCTION_BENCHMARKS(skl_exp_2p398u0alt64ainf_f32_xsfvfexp32e,
-                        -0x1.fffffep5f, 0x1.fffffep5f),
-    FUNCTION_BENCHMARKS(skl_exp_5p32u_f32_xsfvfexp32e, MIN, MAX),
+    EXP_BENCHMARKS(skl_exp_2p398u0alt64ainf_f32_xsfvfexp32e, -0x1.fffffep5f,
+                   0x1.fffffep5f),
+    EXP_BENCHMARKS(skl_exp_5p32u_f32_xsfvfexp32e, MIN, MAX),
 #endif
 #if defined(SKL_ENABLE_TESTS)
-    FUNCTION_TESTS(skl_exp_2p398u0alt64ainf_f32_xsfvfexp32e, -0x1.fffffep5f,
-                   0x1.fffffep5f, 3),
-    FUNCTION_TESTS(skl_exp_5p32u_f32_xsfvfexp32e, MIN, MAX, 6),
+    EXP_TESTS(skl_exp_2p398u0alt64ainf_f32_xsfvfexp32e, -0x1.fffffep5f,
+              0x1.fffffep5f, 3),
+    EXP_TESTS(skl_exp_5p32u_f32_xsfvfexp32e, MIN, MAX, 6),
 #endif
 };
 

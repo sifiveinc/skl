@@ -37,24 +37,30 @@ void unary_f32_verify(skl_test_t *t) {
   unary_f32_t *h = (unary_f32_t *)t->harness;
 
   // The ulp tolerance for this test.
-  float max = h->ctx.max_err;
+  float tol = h->ctx.max_err;
 
   // Compute the reference result
   h->ref_func(h->ctx.ref, h->a.data, h->a.len);
 
   float ulp = 0.f;
+  size_t errors = 0;
   for (size_t i = 0; i < h->a.len; ++i) {
+    float x = h->a.data[i];
     float Y = h->ctx.b[i];
     float y = h->ctx.ref[i];
     float err = skl_abs_error_ulp_f32(Y, y);
-    if (err > max)
+    if (err > tol) {
+      if (errors++ >= h->ctx.max_errors)
+        break;
       SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
-                   "[%4d]: %15.6a %15.6a : %.4g ulp [bound = %.4g ulp]\n", i, Y,
-                   y, err, max);
+                   "[%4d]: in %15.6a; out %15.6a; ref %15.6a : %.4g ulp "
+                   "[bound = %.4g ulp]\n",
+                   i, x, Y, y, err, tol);
+    }
     ulp = fmaxf(err, ulp);
   }
   h->ctx.max_err = ulp;
-  t->status.verify_status = (ulp <= max) ? SKL_TEST_PASS : SKL_TEST_FAIL;
+  t->status.verify_status = !errors ? SKL_TEST_PASS : SKL_TEST_FAIL;
 }
 
 void unary_f32_report(skl_test_t *t) {
@@ -62,6 +68,7 @@ void unary_f32_report(skl_test_t *t) {
 
 #define INFO(fmt, ...) SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, fmt, __VA_ARGS__)
 
+  INFO("Function: %s\n", h->func_name);
   if (h->steps.verify) {
     INFO("N: %zd\n", h->a.len);
     INFO("Max ulp: %.3f\n", h->ctx.max_err);
