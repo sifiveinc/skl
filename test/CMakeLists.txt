@@ -76,6 +76,27 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_exp_f32_xsfvfexp32e
+  math/unary_f32.c
+  exp/exp_f32_xsfvfexp32e.c
+  "xsfvfexp32e"
+  ""
+)
+skl_add_test(
+  skl_exp_f32_xsfvfexpa
+  math/unary_f32.c
+  exp/exp_f32_xsfvfexpa.c
+  "xsfvfexpa"
+  ""
+)
+skl_add_test(
+  skl_exp_f32_zve32f
+  math/unary_f32.c
+  exp/exp_f32_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
   skl_gemm_f32_f32_f32_zve32f_x390
   gemm/gemm_f32rc_f32rc_f32rc.c
   gemm/rvv/skl_gemm_f32_f32_f32_zve32f_x390.c
@@ -87,26 +108,5 @@ skl_add_test(
   gemm/gemm_f32rc_f32rc_f32rc.c
   gemm/xsfmm/skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f.c
   "xsfmm32a32f"
-  ""
-)
-skl_add_test(
-  skl_exp_f32_zve32f
-  math/unary_f32.c
-  exp/exp_f32_zve32f.c
-  "zve32f"
-  ""
-)
-skl_add_test(
-  skl_exp_f32_xsfvfexpa
-  math/unary_f32.c
-  exp/exp_f32_xsfvfexpa.c
-  "xsfvfexpa"
-  ""
-)
-skl_add_test(
-  skl_exp_f32_xsfvfexp32e
-  math/unary_f32.c
-  exp/exp_f32_xsfvfexp32e.c
-  "xsfvfexp32e"
   ""
 )
