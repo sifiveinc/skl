@@ -27,13 +27,11 @@
   {BENCH, .func = (FUN), .a.min = (MIN), .a.max = (MAX)}
 
 unary_f32_t tests[] = {
-#if defined(__riscv_zve32f)
 #if defined(SKL_ENABLE_BENCHMARKS)
     FUNCTION_BENCHMARKS(skl_exp_1u_f32_zve32f, MIN, MAX),
 #endif
 #if defined(SKL_ENABLE_TESTS)
     FUNCTION_TESTS(skl_exp_1u_f32_zve32f, MIN, MAX, 1.0f),
-#endif
 #endif
 };
 
