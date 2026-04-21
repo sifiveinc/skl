@@ -17,7 +17,7 @@ extern "C" {
  * @param n - Number of elements to process.
  *
  * Computes the exponential function e^x.
-
+ *
  * @note
  * This function is for API documentation purposes only, and should not be used
  * for performance applications.
