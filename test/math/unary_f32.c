@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * @brief Implementation of the exp_f32 test harness.
+ * @brief Generic test harness for f32 unary element-wise functions.
  *
  * This file defines all harness functions _except_ `skl_test_execute`, which is
  * defined in the test file (e.g. skl_exp_f32_zve32f.c).
