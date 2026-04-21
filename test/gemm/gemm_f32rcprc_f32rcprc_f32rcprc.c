@@ -23,28 +23,25 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_init(skl_test_t *t) {
   gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
-  if (h->rsa1 > h->csa1) {
-    h->a_pack.len = h->m1 * h->rsa1;
-  } else if (h->rsa1 < h->csa1) {
-    h->a_pack.len = h->k1 * h->csa1;
+  if (h->m1 == 0 || h->k1 == 0) {
+    h->a_pack.len = 0;
   } else {
-    h->a_pack.len = (h->m1 >= h->k1 ? h->m1 : h->k1) * h->rsa1;
+    h->a_pack.len = (h->m1 - 1) * h->rsa1 + (h->k1 - 1) * h->csa1 +
+                    (h->m0 - 1) * h->rsa0 + (h->k0 - 1) * h->csa0 + 1;
   }
 
-  if (h->rsb1 > h->csb1) {
-    h->b_pack.len = h->k1 * h->rsb1;
-  } else if (h->rsb1 < h->csb1) {
-    h->b_pack.len = h->n1 * h->csb1;
+  if (h->k1 == 0 || h->n1 == 0) {
+    h->b_pack.len = 0;
   } else {
-    h->b_pack.len = (h->k1 >= h->n1 ? h->k1 : h->n1) * h->rsb1;
+    h->b_pack.len = (h->k1 - 1) * h->rsb1 + (h->n1 - 1) * h->csb1 +
+                    (h->k0 - 1) * h->rsb0 + (h->n0 - 1) * h->csb0 + 1;
   }
 
-  if (h->rsc1 > h->csc1) {
-    h->c_pack.len = h->m1 * h->rsc1;
-  } else if (h->rsc1 < h->csc1) {
-    h->c_pack.len = h->n1 * h->csc1;
+  if (h->m1 == 0 || h->n1 == 0) {
+    h->c_pack.len = 0;
   } else {
-    h->c_pack.len = (h->m1 >= h->n1 ? h->m1 : h->n1) * h->rsc1;
+    h->c_pack.len = (h->m1 - 1) * h->rsc1 + (h->n1 - 1) * h->csc1 +
+                    (h->m0 - 1) * h->rsc0 + (h->n0 - 1) * h->csc0 + 1;
   }
 
   // Allocate buffers
@@ -52,11 +49,17 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_init(skl_test_t *t) {
   SKL_TEST_BUF_CREATE(t, float, &h->b_pack);
   SKL_TEST_BUF_CREATE(t, float, &h->c_pack);
   if (h->steps.verify) {
-    h->ctx.a_wide = malloc(h->a_pack.len * sizeof(*(h->ctx.a_wide)));
-    h->ctx.b_wide = malloc(h->b_pack.len * sizeof(*(h->ctx.b_wide)));
-    h->ctx.ref_c = malloc(h->c_pack.len * sizeof(*(h->ctx.ref_c)));
-    h->ctx.c_pack_copy = malloc(h->c_pack.len * sizeof(*(h->ctx.c_pack_copy)));
-    h->ctx.bound = malloc(h->c_pack.len * sizeof(*(h->ctx.bound)));
+    h->ctx.a_wide =
+        h->a_pack.len ? malloc(h->a_pack.len * sizeof(*(h->ctx.a_wide))) : NULL;
+    h->ctx.b_wide =
+        h->b_pack.len ? malloc(h->b_pack.len * sizeof(*(h->ctx.b_wide))) : NULL;
+    h->ctx.ref_c =
+        h->c_pack.len ? malloc(h->c_pack.len * sizeof(*(h->ctx.ref_c))) : NULL;
+    h->ctx.c_pack_copy =
+        h->c_pack.len ? malloc(h->c_pack.len * sizeof(*(h->ctx.c_pack_copy)))
+                      : NULL;
+    h->ctx.bound =
+        h->c_pack.len ? malloc(h->c_pack.len * sizeof(*(h->ctx.bound))) : NULL;
     // Copy initial C values to ref_c for the beta * C term in reference GEMM
     memcpy(h->ctx.ref_c, h->c_pack.data,
            h->c_pack.len * sizeof(*(h->c_pack.data)));
