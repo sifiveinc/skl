@@ -6,7 +6,7 @@
  *
  */
 
-#include "math/unary_f32.h"
+#include "elementwise/unary_f32.h"
 #include "skl-test-driver.h"
 #include <inttypes.h>
 #include <math.h>

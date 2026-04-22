@@ -11,7 +11,7 @@
  * This test uses the unary_f32 harness.
  */
 
-#include "math/unary_f32.h"
+#include "elementwise/unary_f32.h"
 #include "skl-ref.h" // NOLINT(misc-include-cleaner)
 #include "skl-test-driver.h"
 #include "skl.h"
