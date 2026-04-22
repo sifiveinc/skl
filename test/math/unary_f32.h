@@ -29,14 +29,14 @@ typedef struct {
   unary_func_f32_t ref_func; // The reference function
 
   // Buffer generation settings
-  SKL_TEST_BUFFER(float) a;
+  SKL_TEST_BUFFER(float) in; // Input buffer
 
   // Derived parameters and buffers (private to the test harness)
   struct {
-    float *b;          // result buffer
-    float *ref;        // reference buffer
-    float max_err;     // ulp tolerance
-    size_t max_errors; // maximum number of errors to report
+    float *out;        // Result buffer
+    float *ref;        // Reference buffer
+    float max_err;     // Ulp tolerance
+    size_t max_errors; // Maximum number of errors to report
   } ctx;
 } unary_f32_t;
 
@@ -46,8 +46,8 @@ void unary_f32_verify(skl_test_t *t);
 void unary_f32_report(skl_test_t *t);
 void unary_f32_cleanup(skl_test_t *t);
 
-#define UNARY_F32_TEST_DEFAULTS .a = {.len = 65536, .mode = SKL_TEST_RANDOM}
-#define UNARY_F32_BENCH_DEFAULTS .a = {.len = 1024, .mode = SKL_TEST_SEQ}
+#define UNARY_F32_TEST_DEFAULTS .in = {.len = 65536, .mode = SKL_TEST_RANDOM}
+#define UNARY_F32_BENCH_DEFAULTS .in = {.len = 1024, .mode = SKL_TEST_SEQ}
 #define BASIC_STEPS                                                            \
   .steps = {                                                                   \
       .init = unary_f32_init,                                                  \
@@ -66,14 +66,13 @@ void unary_f32_cleanup(skl_test_t *t);
                                          .steps.verify = NULL
 
 #define FUNCTION_TESTS(FUN, REF_FUN, MIN, MAX, ULP)                            \
-  {                                                                            \
-      TEST,                                                                    \
-      .func_name = #FUN,                                                       \
-      .func = FUN,                                                             \
-      .ref_func = REF_FUN,                                                     \
-      .a.min = (MIN),                                                          \
-      .a.max = (MAX),                                                          \
-      .ctx.max_err = (ULP)}
+  {TEST,                                                                       \
+   .func_name = #FUN,                                                          \
+   .func = FUN,                                                                \
+   .ref_func = REF_FUN,                                                        \
+   .in.min = (MIN),                                                            \
+   .in.max = (MAX),                                                            \
+   .ctx.max_err = (ULP)}
 
 #define FUNCTION_BENCHMARKS(FUN, MIN, MAX)                                     \
-  {BENCH, .func_name = #FUN, .func = FUN, .a.min = (MIN), .a.max = (MAX)}
+  {BENCH, .func_name = #FUN, .func = FUN, .in.min = (MIN), .in.max = (MAX)}

@@ -18,19 +18,19 @@
 void unary_f32_init(skl_test_t *t) {
   unary_f32_t *h = (unary_f32_t *)t->harness;
   // Allocate buffers
-  SKL_TEST_BUF_CREATE(t, float, &h->a);
-  h->ctx.b = malloc(h->a.len * sizeof(float));
+  SKL_TEST_BUF_CREATE(t, float, &h->in);
+  h->ctx.out = malloc(h->in.len * sizeof(float));
   if (h->steps.verify) {
-    h->ctx.ref = malloc(h->a.len * sizeof(float));
+    h->ctx.ref = malloc(h->in.len * sizeof(float));
   }
-  if (!h->ctx.b || (h->steps.verify && !h->ctx.ref))
+  if (!h->ctx.out || (h->steps.verify && !h->ctx.ref))
     t->status.init_status = SKL_TEST_FAIL;
 }
 
 void unary_f32_execute(skl_test_t *t) {
   unary_f32_t *h = (unary_f32_t *)t->harness;
   unary_func_f32_t func = h->func;
-  func(h->ctx.b, h->a.data, h->a.len);
+  func(h->ctx.out, h->in.data, h->in.len);
 }
 
 void unary_f32_verify(skl_test_t *t) {
@@ -40,13 +40,13 @@ void unary_f32_verify(skl_test_t *t) {
   float tol = h->ctx.max_err;
 
   // Compute the reference result
-  h->ref_func(h->ctx.ref, h->a.data, h->a.len);
+  h->ref_func(h->ctx.ref, h->in.data, h->in.len);
 
   float ulp = 0.f;
   size_t errors = 0;
-  for (size_t i = 0; i < h->a.len; ++i) {
-    float x = h->a.data[i];
-    float Y = h->ctx.b[i];
+  for (size_t i = 0; i < h->in.len; ++i) {
+    float x = h->in.data[i];
+    float Y = h->ctx.out[i];
     float y = h->ctx.ref[i];
     float err = skl_abs_error_ulp_f32(Y, y);
     if (err > tol) {
@@ -70,15 +70,15 @@ void unary_f32_report(skl_test_t *t) {
 
   INFO("Function: %s\n", h->func_name);
   if (h->steps.verify) {
-    INFO("N: %zd\n", h->a.len);
+    INFO("N: %zd\n", h->in.len);
     INFO("Max ulp: %.3f\n", h->ctx.max_err);
   }
 
   if (h->steps.warmup) {
-    INFO("N: %zd\n", h->a.len);
+    INFO("N: %zd\n", h->in.len);
     INFO("Cycles: %zd\n", t->counters.cycles);
     INFO("Instructions: %zd\n", t->counters.instret);
-    INFO("Elements/Cycle: %f\n", (float)h->a.len / t->counters.cycles);
+    INFO("Elements/Cycle: %f\n", (float)h->in.len / t->counters.cycles);
   }
 
 #undef INFO
@@ -87,8 +87,8 @@ void unary_f32_report(skl_test_t *t) {
 void unary_f32_cleanup(skl_test_t *t) {
   unary_f32_t *h = (unary_f32_t *)t->harness;
   // Free buffers
-  SKL_TEST_BUF_FREE(t, &h->a);
-  free(h->ctx.b);
+  SKL_TEST_BUF_FREE(t, &h->in);
+  free(h->ctx.out);
   if (h->steps.verify)
     free(h->ctx.ref);
 }
