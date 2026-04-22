@@ -3,7 +3,7 @@
 add_library(skl-ref
   STATIC
   EXCLUDE_FROM_ALL
-    cvt/cvt_f4e2m1_f8e4m3.c
+    cvt/cvt_ofp4.c
     cvt/cvt_ofp8.c
     depthwise_conv2d/depthwise_conv2d_f16_f16_f16.c
     depthwise_conv2d/depthwise_conv2d_f32_f32_f32.c

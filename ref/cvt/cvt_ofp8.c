@@ -168,3 +168,73 @@ SKL_FUNC uint8_t skl_cvt_f32_f8e5m2(float in, bool is_sat) {
   }
   return sign_bits | mag_bits;
 }
+
+SKL_FUNC void skl_cvt_f32_f8e4m3_ref(uint8_t *pDst, const float *pSrc,
+                                     float scaling_factor, size_t n) {
+  for (size_t i = 0; i < n; ++i) {
+    pDst[i] = skl_cvt_f32_f8e4m3(pSrc[i] * scaling_factor, false);
+  }
+}
+
+SKL_FUNC void skl_cvt_sat_f32_f8e4m3_ref(uint8_t *pDst, const float *pSrc,
+                                         float scaling_factor, size_t n) {
+  for (size_t i = 0; i < n; ++i) {
+    pDst[i] = skl_cvt_f32_f8e4m3(pSrc[i] * scaling_factor, true);
+  }
+}
+
+SKL_FUNC void skl_cvt_f32_f8e5m2_ref(uint8_t *pDst, const float *pSrc,
+                                     float scaling_factor, size_t n) {
+  for (size_t i = 0; i < n; ++i) {
+    pDst[i] = skl_cvt_f32_f8e5m2(pSrc[i] * scaling_factor, false);
+  }
+}
+
+SKL_FUNC void skl_cvt_sat_f32_f8e5m2_ref(uint8_t *pDst, const float *pSrc,
+                                         float scaling_factor, size_t n) {
+  for (size_t i = 0; i < n; ++i) {
+    pDst[i] = skl_cvt_f32_f8e5m2(pSrc[i] * scaling_factor, true);
+  }
+}
+
+SKL_FUNC void skl_cvt_bf16_f8e4m3_ref(uint8_t *pDst, const __bf16 *pSrc,
+                                      float scaling_factor, size_t n) {
+  for (size_t i = 0; i < n; ++i) {
+    pDst[i] = skl_cvt_f32_f8e4m3((float)pSrc[i] * scaling_factor, false);
+  }
+}
+
+SKL_FUNC void skl_cvt_sat_bf16_f8e4m3_ref(uint8_t *pDst, const __bf16 *pSrc,
+                                          float scaling_factor, size_t n) {
+  for (size_t i = 0; i < n; ++i) {
+    pDst[i] = skl_cvt_f32_f8e4m3((float)pSrc[i] * scaling_factor, true);
+  }
+}
+
+SKL_FUNC void skl_cvt_bf16_f8e5m2_ref(uint8_t *pDst, const __bf16 *pSrc,
+                                      float scaling_factor, size_t n) {
+  for (size_t i = 0; i < n; ++i) {
+    pDst[i] = skl_cvt_f32_f8e5m2((float)pSrc[i] * scaling_factor, false);
+  }
+}
+
+SKL_FUNC void skl_cvt_sat_bf16_f8e5m2_ref(uint8_t *pDst, const __bf16 *pSrc,
+                                          float scaling_factor, size_t n) {
+  for (size_t i = 0; i < n; ++i) {
+    pDst[i] = skl_cvt_f32_f8e5m2((float)pSrc[i] * scaling_factor, true);
+  }
+}
+
+SKL_FUNC void skl_cvt_f8e4m3_bf16_ref(__bf16 *pDst, const uint8_t *pSrc,
+                                      size_t n) {
+  for (size_t i = 0; i < n; ++i) {
+    pDst[i] = (__bf16)skl_cvt_f8e4m3_f32(pSrc[i]);
+  }
+}
+
+SKL_FUNC void skl_cvt_f8e5m2_bf16_ref(__bf16 *pDst, const uint8_t *pSrc,
+                                      size_t n) {
+  for (size_t i = 0; i < n; ++i) {
+    pDst[i] = (__bf16)skl_cvt_f8e5m2_f32(pSrc[i]);
+  }
+}
