@@ -76,6 +76,34 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_cvt_bf16_f8_zvfofp8min_zvfbfmin
+  cvt/cvt_bf16_f8.c
+  cvt/cvt_bf16_f8_zvfofp8min_zvfbfmin.c
+  "zvfofp8min;zvfbfmin"
+  ""
+)
+skl_add_test(
+  skl_cvt_f32_f8_zvfofp8min
+  cvt/cvt_f32_f8.c
+  cvt/cvt_f32_f8_zvfofp8min.c
+  "zvfofp8min"
+  ""
+)
+skl_add_test(
+  skl_cvt_f4_f8_zvfofp4min
+  cvt/cvt_f4_f8.c
+  cvt/cvt_f4_f8_zvfofp4min.c
+  "zvfofp4min"
+  ""
+)
+skl_add_test(
+  skl_cvt_f8_bf16_zvfofp8min
+  cvt/cvt_f8_bf16.c
+  cvt/cvt_f8_bf16_zvfofp8min.c
+  "zvfofp8min"
+  ""
+)
+skl_add_test(
   skl_exp_f32_xsfvfexp32e
   elementwise/unary_f32.c
   exp/exp_f32_xsfvfexp32e.c

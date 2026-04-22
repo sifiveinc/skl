@@ -4,43 +4,156 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-/** @brief Function to convert OFP8 E4M3 to IEEE FP32.
+/** @brief Convert a single OFP8 E4M3 value to IEEE FP32.
  *
- * @param in - An OFP8 8-bit floating point number in E4M3 format, type-punned
- * as an 8-bit unsigned integer.
+ * @param in - Input OFP8 E4M3 value, represented as an 8-bit unsigned integer.
+ * @return The converted IEEE FP32 value.
  */
 float skl_cvt_f8e4m3_f32(uint8_t in);
 
-/** @brief Function to convert OFP8 E5M2 to IEEE FP32.
+/** @brief Convert a single OFP8 E5M2 value to IEEE FP32.
  *
- * @param in - An OFP8 8-bit floating point number in E5M2 format, type-punned
- * as an 8-bit unsigned integer.
+ * @param in - Input OFP8 E5M2 value, represented as an 8-bit unsigned integer.
+ * @return The converted IEEE FP32 value.
  */
 float skl_cvt_f8e5m2_f32(uint8_t in);
 
-/** @brief Function to convert IEEE FP32 to OFP8 E4M3.
+/** @brief Convert a single IEEE FP32 value to OFP8 E4M3.
  *
- * @param in - An OFP8 8-bit floating point number in E4M3 format, type-punned
- * as an 8-bit unsigned integer.
- * @param is_sat - Whether to saturate the output to the maximum representable
- * value of the same sign when the input is out of range.
+ * @param in - Input IEEE FP32 value.
+ * @param is_sat - If true, infinite results are clamped to the maximum finite
+ * value of the same sign; if false, NaN is returned for overflow.
+ * @return The converted OFP8 E4M3 value, represented as an 8-bit unsigned
+ * integer.
  */
 uint8_t skl_cvt_f32_f8e4m3(float in, bool is_sat);
 
-/** @brief Function to convert IEEE FP32 to OFP8 E5M2.
+/** @brief Convert a single IEEE FP32 value to OFP8 E5M2.
  *
- * @param in - An OFP8 8-bit floating point number in E5M2 format, type-punned
- * as an 8-bit unsigned integer.
- * @param is_sat - Whether to saturate the output to the maximum representable
- * value of the same sign when the input is out of range.
+ * @param in - Input IEEE FP32 value.
+ * @param is_sat - If true, infinite results are clamped to the maximum finite
+ * value of the same sign; if false, infinity is preserved.
+ * @return The converted OFP8 E5M2 value, represented as an 8-bit unsigned
+ * integer.
  */
 uint8_t skl_cvt_f32_f8e5m2(float in, bool is_sat);
+
+/** @brief Convert IEEE FP32 array to OFP8 E4M3 array (reference
+ * implementation).
+ *
+ * @param pDst - Output array for converted OFP8 E4M3 values.
+ * @param pSrc - Input array of IEEE FP32 values.
+ * @param scaling_factor - Scaling factor applied to each input element before
+ * conversion.
+ * @param n - Number of elements to convert.
+ */
+void skl_cvt_f32_f8e4m3_ref(uint8_t *pDst, const float *pSrc,
+                            float scaling_factor, size_t n);
+
+/** @brief Convert IEEE FP32 array to OFP8 E4M3 array with saturation
+ * (reference implementation).
+ *
+ * @param pDst - Output array for converted OFP8 E4M3 values.
+ * @param pSrc - Input array of IEEE FP32 values.
+ * @param scaling_factor - Scaling factor applied to each input element before
+ * conversion.
+ * @param n - Number of elements to convert.
+ */
+void skl_cvt_sat_f32_f8e4m3_ref(uint8_t *pDst, const float *pSrc,
+                                float scaling_factor, size_t n);
+
+/** @brief Convert IEEE FP32 array to OFP8 E5M2 array (reference
+ * implementation).
+ *
+ * @param pDst - Output array for converted OFP8 E5M2 values.
+ * @param pSrc - Input array of IEEE FP32 values.
+ * @param scaling_factor - Scaling factor applied to each input element before
+ * conversion.
+ * @param n - Number of elements to convert.
+ */
+void skl_cvt_f32_f8e5m2_ref(uint8_t *pDst, const float *pSrc,
+                            float scaling_factor, size_t n);
+
+/** @brief Convert IEEE FP32 array to OFP8 E5M2 array with saturation
+ * (reference implementation).
+ *
+ * @param pDst - Output array for converted OFP8 E5M2 values.
+ * @param pSrc - Input array of IEEE FP32 values.
+ * @param scaling_factor - Scaling factor applied to each input element before
+ * conversion.
+ * @param n - Number of elements to convert.
+ */
+void skl_cvt_sat_f32_f8e5m2_ref(uint8_t *pDst, const float *pSrc,
+                                float scaling_factor, size_t n);
+
+/** @brief Convert BF16 array to OFP8 E4M3 array (reference implementation).
+ *
+ * @param pDst - Output array for converted OFP8 E4M3 values.
+ * @param pSrc - Input array of BF16 values.
+ * @param scaling_factor - Scaling factor applied to each input element before
+ * conversion.
+ * @param n - Number of elements to convert.
+ */
+void skl_cvt_bf16_f8e4m3_ref(uint8_t *pDst, const __bf16 *pSrc,
+                             float scaling_factor, size_t n);
+
+/** @brief Convert BF16 array to OFP8 E4M3 array with saturation (reference
+ * implementation).
+ *
+ * @param pDst - Output array for converted OFP8 E4M3 values.
+ * @param pSrc - Input array of BF16 values.
+ * @param scaling_factor - Scaling factor applied to each input element before
+ * conversion.
+ * @param n - Number of elements to convert.
+ */
+void skl_cvt_sat_bf16_f8e4m3_ref(uint8_t *pDst, const __bf16 *pSrc,
+                                 float scaling_factor, size_t n);
+
+/** @brief Convert BF16 array to OFP8 E5M2 array (reference implementation).
+ *
+ * @param pDst - Output array for converted OFP8 E5M2 values.
+ * @param pSrc - Input array of BF16 values.
+ * @param scaling_factor - Scaling factor applied to each input element before
+ * conversion.
+ * @param n - Number of elements to convert.
+ */
+void skl_cvt_bf16_f8e5m2_ref(uint8_t *pDst, const __bf16 *pSrc,
+                             float scaling_factor, size_t n);
+
+/** @brief Convert BF16 array to OFP8 E5M2 array with saturation (reference
+ * implementation).
+ *
+ * @param pDst - Output array for converted OFP8 E5M2 values.
+ * @param pSrc - Input array of BF16 values.
+ * @param scaling_factor - Scaling factor applied to each input element before
+ * conversion.
+ * @param n - Number of elements to convert.
+ */
+void skl_cvt_sat_bf16_f8e5m2_ref(uint8_t *pDst, const __bf16 *pSrc,
+                                 float scaling_factor, size_t n);
+
+/** @brief Convert OFP8 E4M3 array to BF16 array (reference implementation).
+ *
+ * @param pDst - Output array for converted BF16 values.
+ * @param pSrc - Input array of OFP8 E4M3 values.
+ * @param n - Number of elements to convert.
+ */
+void skl_cvt_f8e4m3_bf16_ref(__bf16 *pDst, const uint8_t *pSrc, size_t n);
+
+/** @brief Convert OFP8 E5M2 array to BF16 array (reference implementation).
+ *
+ * @param pDst - Output array for converted BF16 values.
+ * @param pSrc - Input array of OFP8 E5M2 values.
+ * @param n - Number of elements to convert.
+ */
+void skl_cvt_f8e5m2_bf16_ref(__bf16 *pDst, const uint8_t *pSrc, size_t n);
 
 #if defined(__cplusplus)
 } // extern "C"

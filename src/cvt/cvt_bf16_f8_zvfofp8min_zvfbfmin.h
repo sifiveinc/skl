@@ -1,4 +1,4 @@
-// Copyright 2025 SiFive, Inc.
+// Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -12,7 +12,7 @@
 #endif
 
 /**
- * @file cvt_zvfofp8min_zvfbfmin.h
+ * @file cvt_bf16_f8_zvfofp8min_zvfbfmin.h
  * @brief BF16 to OFP8 Conversion Functions
  *
  * This header provides vectorized narrowing conversion functions from
@@ -26,7 +26,7 @@
  *   - E4M3: Infinite values are converted to the canonical NaN (E4M3 cannot
  * represent infinity)
  *   - E5M2: Infinite values are preserved as infinity in the target format
- * - **Saturating**: `skl_cvt_sat_skl_cvt_bf16_{output}_zvfofp8min_zvfbfmin()`
+ * - **Saturating**: `skl_cvt_sat_bf16_{output}_zvfofp8min_zvfbfmin()`
  *   - Infinite results are clamped to the maximum-magnitude finite value of the
  * same sign
  *

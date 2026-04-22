@@ -14,7 +14,7 @@ Narrowing conversions reduce precision and dynamic range from standard formats t
 
 **Basic conversion (F32 to E4M3):**
 ```c
-/* in cvt_zvfofp8min.h */
+/* in cvt_f32_f8_zvfofp8min.h */
 
 /** F32 to E4M3 conversion with scaling.
  *
@@ -69,7 +69,7 @@ The OFP4 conversion functions support widening conversions from 4-bit E2M1 forma
 
 **E2M1 to E4M3 conversion:**
 ```c
-/* in cvt_zvfofp4min.h */
+/* in cvt_f4_f8_zvfofp4min.h */
 
 /** E2M1 to E4M3 conversion.
  *

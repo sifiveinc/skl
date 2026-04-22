@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "skl-common.h"
+#include "skl-ref.h"
+#include <stddef.h>
 #include <stdint.h>
 
 /** @brief Reinterprets an unsigned 32-bit integer as an IEEE FP32. */
@@ -41,4 +43,24 @@ SKL_FUNC float skl_cvt_f4e2m1_f32(uint8_t in) {
   }
 
   return skl_u32_as_float(result);
+}
+
+SKL_FUNC_PRIVATE void cvt_ofp4x2_f8e4m3(uint8_t in, uint8_t *out0,
+                                        uint8_t *out1) {
+  // Extract lower and upper 4-bit values from the packed input byte
+  uint8_t in_0 = in & 0xFU;
+  uint8_t in_1 = in >> 4U;
+  *out0 = skl_cvt_f32_f8e4m3(skl_cvt_f4e2m1_f32(in_0), false);
+  *out1 = skl_cvt_f32_f8e4m3(skl_cvt_f4e2m1_f32(in_1), false);
+}
+
+SKL_FUNC void skl_cvt_f4e2m1_f8e4m3_ref(uint8_t *pDst, const uint8_t *pSrc,
+                                        size_t n) {
+  for (size_t i = 0; i < n / 2 * 2; i += 2) {
+    cvt_ofp4x2_f8e4m3(pSrc[i / 2], pDst + i, pDst + i + 1);
+  }
+  if (n % 2 == 1) {
+    uint8_t tmp;
+    cvt_ofp4x2_f8e4m3(pSrc[n / 2], pDst + n - 1, &tmp);
+  }
 }
