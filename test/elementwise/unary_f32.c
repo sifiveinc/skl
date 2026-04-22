@@ -69,13 +69,10 @@ void unary_f32_report(skl_test_t *t) {
 #define INFO(fmt, ...) SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, fmt, __VA_ARGS__)
 
   INFO("Function: %s\n", h->func_name);
+  INFO("N: %zd\n", h->in.len);
   if (h->steps.verify) {
-    INFO("N: %zd\n", h->in.len);
     INFO("Max ulp: %.3f\n", h->ctx.max_err);
-  }
-
-  if (h->steps.warmup) {
-    INFO("N: %zd\n", h->in.len);
+  } else {
     INFO("Cycles: %zd\n", t->counters.cycles);
     INFO("Instructions: %zd\n", t->counters.instret);
     INFO("Elements/Cycle: %f\n", (float)h->in.len / t->counters.cycles);
