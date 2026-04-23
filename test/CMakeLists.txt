@@ -157,3 +157,17 @@ skl_add_test(
   "zve32x"
   ""
 )
+skl_add_test(
+  skl_softmax_f32
+  softmax/softmax_f32.c
+  softmax/skl_softmax_f32.c
+  ""
+  ""
+)
+skl_add_test(
+  skl_softmax_2d_f32
+  softmax/softmax_f32.c
+  softmax/skl_softmax_2d_f32.c
+  ""
+  ""
+)
