@@ -24,6 +24,11 @@ void transpose_e8_init(skl_test_t *t) {
   h->a.len = h->m * h->rsa;
   h->at.len = h->n * h->rsat;
 
+  SKL_TEST_REQUIRE(t, init_status, h->rsa >= h->n);
+  SKL_TEST_REQUIRE(t, init_status, h->rsat >= h->m);
+  if (t->status.init_status != SKL_TEST_PASS)
+    return;
+
   SKL_TEST_BUF_CREATE(t, uint8_t, &h->a);
   SKL_TEST_BUF_CREATE(t, uint8_t, &h->at);
   if (h->steps.verify && h->at.len) {
