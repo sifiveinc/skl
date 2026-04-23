@@ -9,6 +9,9 @@
 #include <string.h>
 
 #ifdef __riscv_xsfmmbase
+/**
+ * @brief Get the effective tile edge length.
+ */
 static inline size_t skl_get_te_xsfmmbase(void) {
   size_t te = 0;
   __asm__ volatile("sf.vsettnt %0, x0, e8, w1" : "=r"(te) : : "vtype", "vl");
@@ -16,6 +19,22 @@ static inline size_t skl_get_te_xsfmmbase(void) {
 }
 #endif
 
+/**
+ * @brief Check packed matrix dimensions and strides
+ *
+ * @param t - Test context.
+ * @param m0 - Number of rows in each block of the matrix.
+ * @param n0 - Number of columns in each block of the matrix.
+ * @param m1 - Number of block-rows in the matrix.
+ * @param n1 - Number of block-columns in the matrix.
+ * @param rs0 - Row stride within each block of the matrix in elements.
+ * @param cs0 - Column stride within each block of the matrix in elements.
+ * @param rs1 - Row stride between blocks of the matrix in elements.
+ * @param cs1 - Column stride between blocks of the matrix in elements.
+ *
+ * This function performs some basic checks on the dimensions and strides of a
+ * packed matrix and updates the init_status of t.
+ */
 static inline void skl_test_check_matrix_params_rcprc(skl_test_t *t, size_t m0,
                                                       size_t n0, size_t m1,
                                                       size_t n1, size_t rs0,
@@ -54,6 +73,31 @@ static inline void skl_test_check_matrix_params_rcprc(skl_test_t *t, size_t m0,
   }
 }
 
+/**
+ * @brief Check for clobbered elements in a packed matrix
+ *
+ * @param t - Test context.
+ * @param c_type_size - Size of the elements of C_pack and ref in bytes.
+ * @param c_pack_len - Number of elements in the arrays for C_pack and ref_c.
+ * @param m0 - Number of rows in each block of C_pack and ref_c.
+ * @param n0 - Number of columns in each block of C_pack and ref_c.
+ * @param m1 - Number of block-rows in C_pack and ref_c.
+ * @param n1 - Number of block-columns in C_pack and ref_c.
+ * @param c_pack - Pointer to matrix C_pack.
+ * @param rsc0 - Row stride within each block of C_pack and ref_c in elements.
+ * @param csc0 - Column stride within each block of C_pack and ref_c in
+ * elements.
+ * @param rsc1 - Row stride between blocks of C_pack and ref_c in elements.
+ * @param csc1 - Column stride between blocks of C_pack and ref_c in elements.
+ * @param ref_c - Pointer to matrix ref_c.
+ *
+ * C_pack and ref_c are matrices stored in arrays with c_pack_len elements of
+ * size c_type_size bytes. The elements of the matrices are indexed by i1 * rsc1
+ * + j1 * csc1 + i0 * rsc0 + j0 * csc0, 0 <= i1 < m1, 0 <= j1 < n1, 0 <= i0 <
+ * m0, 0 <= j0 < n0. This function checks that the arrays pointed to by c_pack
+ * and ref_c are identical outside of the above indices and updates the
+ * verify_status of t.
+ */
 static inline void skl_test_gemm_check_clobbered_rcprc(
     skl_test_t *t, size_t c_type_size, size_t c_pack_len, size_t m0, size_t n0,
     size_t m1, size_t n1, void *c_pack, size_t rsc0, size_t csc0, size_t rsc1,
