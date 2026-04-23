@@ -139,16 +139,16 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_transpose_e8_zve32x
-  transpose/transpose_e8.c
-  transpose/rvv/skl_transpose_e8_zve32x.c
-  "zve32x"
-  ""
-)
-skl_add_test(
   skl_transpose_e8_xsfmmbase
   transpose/transpose_e8.c
   transpose/xsfmmbase/skl_transpose_e8_xsfmmbase.c
   "xsfmmbase"
+  ""
+)
+skl_add_test(
+  skl_transpose_e8_zve32x
+  transpose/transpose_e8.c
+  transpose/rvv/skl_transpose_e8_zve32x.c
+  "zve32x"
   ""
 )
