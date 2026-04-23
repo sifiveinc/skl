@@ -1,0 +1,44 @@
+// Copyright 2026 SiFive, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
+#if !defined(__riscv_xsfvfexp32e)
+#error This file requires the Xsfvfexp32e extension
+#endif
+
+/**
+ * @brief Test cases for Exponential with Xsfvfexp32e extension.
+ *
+ * This test uses the unary_f32 harness.
+ */
+
+#include "elementwise/unary_f32.h"
+#include "skl-ref.h" // NOLINT(misc-include-cleaner)
+#include "skl-test-driver.h"
+#include "skl.h"
+
+#define MIN (-104.f)
+#define MAX (+89.f)
+
+#define EXP_TESTS(FUN, MIN, MAX, ULP)                                          \
+  FUNCTION_TESTS(FUN, skl_exp_f32_ref, (MIN), (MAX), (ULP))
+#define EXP_BENCHMARKS FUNCTION_BENCHMARKS
+
+unary_f32_t tests[] = {
+#if defined(SKL_ENABLE_BENCHMARKS)
+    EXP_BENCHMARKS(skl_exp_2p398u0alt64ainf_f32_xsfvfexp32e, -0x1.fffffep5f,
+                   0x1.fffffep5f),
+    EXP_BENCHMARKS(skl_exp_5p32u_f32_xsfvfexp32e, MIN, MAX),
+#endif
+#if defined(SKL_ENABLE_TESTS)
+    EXP_TESTS(skl_exp_2p398u0alt64ainf_f32_xsfvfexp32e, -0x1.fffffep5f,
+              0x1.fffffep5f, 3),
+    EXP_TESTS(skl_exp_5p32u_f32_xsfvfexp32e, MIN, MAX, 6),
+#endif
+};
+
+static skl_test_suite_t suite = {.name = "skl_exp_f32_xsfvfexp32e",
+                                 .num_tests = sizeof(tests) / sizeof(tests[0]),
+                                 .test_size = sizeof(unary_f32_t),
+                                 .tests = tests};
+
+int main(void) { return skl_test_driver_run_suite(&suite); }

@@ -35,7 +35,14 @@
 #include "../ref/transpose/transpose_e8.h"
 
 /*
- * Exponential and Logistic Function Kernels
+ * Exponential Function Kernels
+ */
+
+#include "../ref/exp/exp_f16.h"
+#include "../ref/exp/exp_f32.h"
+
+/*
+ * Logistic Function Kernels
  */
 
 #include "../ref/logistic/logistic_f16.h"

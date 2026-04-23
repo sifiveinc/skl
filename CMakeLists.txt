@@ -227,7 +227,6 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   skl_add_test_legacy(softmax_2d_f32 softmax/softmax_2d_f32.c
     "-DRUN_ALL;-DM=64;-DN=128;-DBETA=0.5")
   if("zve32f" IN_LIST RISCV_EXTENSIONS)
-    skl_add_test_legacy(exp_f32 exp/exp_f32.c "-DRUN_ZVE32F;-DRUN_VFEXPA;-DRUN_VFEXP")
     skl_add_test_legacy(exp_bf16 exp/exp_bf16.c "-DRUN_ZVE32F;-DRUN_VFBFA;-DRUN_VFEXP;-DRUN_VFEXPA")
     skl_add_test_legacy(logistic_f32_zve32f logistic/logistic_f32.c "-DRUN_ALL")
     skl_add_test_legacy(gelu_f32 gelu/gelu_f32.c "")
