@@ -1,4 +1,8 @@
 
+if(NOT SKL_ENABLE_VERIFICATION AND NOT SKL_ENABLE_PROFILING)
+  message(FATAL_ERROR "Tests require that either SKL_ENABLE_VERIFICATION or SKL_ENABLE_PROFILING is enabled.")
+endif()
+
 # Set default configuration
 set(SKL_TEST_LOG_LEVEL SKL_TEST_LOG_INFO CACHE STRING "Test log level")
 message(STATUS "SKL_TEST_LOG_LEVEL: ${SKL_TEST_LOG_LEVEL}")
