@@ -24,12 +24,12 @@
 #define EXP_BENCHMARKS FUNCTION_BENCHMARKS
 
 unary_f32_t tests[] = {
-#if defined(SKL_ENABLE_BENCHMARKS)
+#if defined(SKL_ENABLE_PROFILING)
     EXP_BENCHMARKS(skl_exp_2p398u0alt64ainf_f32_xsfvfexp32e, -0x1.fffffep5f,
                    0x1.fffffep5f),
     EXP_BENCHMARKS(skl_exp_5p32u_f32_xsfvfexp32e, MIN, MAX),
 #endif
-#if defined(SKL_ENABLE_TESTS)
+#if defined(SKL_ENABLE_VERIFICATION)
     EXP_TESTS(skl_exp_2p398u0alt64ainf_f32_xsfvfexp32e, -0x1.fffffep5f,
               0x1.fffffep5f, 3),
     EXP_TESTS(skl_exp_5p32u_f32_xsfvfexp32e, MIN, MAX, 6),
