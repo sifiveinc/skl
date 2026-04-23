@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "gemm/gemm_f32rcprc_f32rcprc_f32rcprc.h"
+#include "gemm/skl-test-gemm.h"
 #include "skl-test-driver.h"
 #include "skl.h"
 #include <stdbool.h>
@@ -52,12 +53,6 @@
 
 static void init(skl_test_t *t);
 static void execute(skl_test_t *t);
-
-size_t skl_get_te_xsfmmbase(void) {
-  size_t te = 0;
-  __asm__ volatile("sf.vsettnt %0, x0, e8, w1" : "=r"(te) : : "vtype", "vl");
-  return te;
-}
 
 // clang-format off
 gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {

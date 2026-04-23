@@ -8,10 +8,19 @@
 #include <stdint.h>
 #include <string.h>
 
-static void skl_test_check_matrix_params_rcprc(skl_test_t *t, size_t m0,
-                                               size_t n0, size_t m1, size_t n1,
-                                               size_t rs0, size_t cs0,
-                                               size_t rs1, size_t cs1) {
+#ifdef __riscv_xsfmmbase
+static inline size_t skl_get_te_xsfmmbase(void) {
+  size_t te = 0;
+  __asm__ volatile("sf.vsettnt %0, x0, e8, w1" : "=r"(te) : : "vtype", "vl");
+  return te;
+}
+#endif
+
+static inline void skl_test_check_matrix_params_rcprc(skl_test_t *t, size_t m0,
+                                                      size_t n0, size_t m1,
+                                                      size_t n1, size_t rs0,
+                                                      size_t cs0, size_t rs1,
+                                                      size_t cs1) {
   SKL_TEST_REQUIRE(t, init_status, m0 > 0);
   SKL_TEST_REQUIRE(t, init_status, n0 > 0);
 
@@ -45,7 +54,7 @@ static void skl_test_check_matrix_params_rcprc(skl_test_t *t, size_t m0,
   }
 }
 
-static void skl_test_gemm_check_clobbered_rcprc(
+static inline void skl_test_gemm_check_clobbered_rcprc(
     skl_test_t *t, size_t c_type_size, size_t c_pack_len, size_t m0, size_t n0,
     size_t m1, size_t n1, void *c_pack, size_t rsc0, size_t csc0, size_t rsc1,
     size_t csc1, void *ref_c) {
