@@ -67,6 +67,7 @@ jobs:
       run: |
         cmake -B ${{ github.workspace }}/build \
               -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
+              -DSKL_BUILD_BENCHMARKS=ON \
               -DSKL_BUILD_TESTS=ON \
               -DSKL_BUILD_EXAMPLES=ON \
               -DSKL_ENABLE_PROFILING=ON \
@@ -81,6 +82,7 @@ jobs:
       run: |
         cmake -B ${{ github.workspace }}/build \
               -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
+              -DSKL_BUILD_BENCHMARKS=OFF \
               -DSKL_BUILD_TESTS=ON \
               -DSKL_BUILD_EXAMPLES=ON \
               -DSKL_ENABLE_PROFILING=OFF \
@@ -95,6 +97,7 @@ jobs:
       run: |
         cmake -B ${{ github.workspace }}/build \
               -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
+              -DSKL_BUILD_BENCHMARKS=ON \
               -DSKL_BUILD_TESTS=ON \
               -DSKL_BUILD_EXAMPLES=ON \
               -DSKL_ENABLE_PROFILING=ON \
