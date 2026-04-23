@@ -16,7 +16,7 @@
  *
  * This test uses the gemm_f32rcprc_f32rcprc_f32rcprc harness with the following
  * restrictions on the input parameters:
- *  - The block dimensions are M0 = ETE, N0 = ETE, and K0 = 1
+ *  - The block dimensions are M0 = TE, N0 = TE, and K0 = 1
  *  - Matrix A_pack is block-row-major with column-major blocks (rsa0 == 1, csa1
  *    == m0 * k0)
  *  - Matrix B_pack is block-column-major with row-major blocks (csb0 == 1, rsb1
@@ -32,7 +32,7 @@
 #define TEST                                                                   \
   GEMM_F32RCPRC_F32RCPRC_F32RCPRC_DEFAULTS,                                    \
       .steps = {                                                               \
-          .init = gemm_f32rcprc_f32rcprc_f32rcprc_init,                        \
+          .init = init,                                                        \
           .warmup = NULL,                                                      \
           .execute = execute,                                                  \
           .verify = gemm_f32rcprc_f32rcprc_f32rcprc_verify,                    \
@@ -42,14 +42,22 @@
 #define BENCH                                                                  \
   GEMM_F32RCPRC_F32RCPRC_F32RCPRC_DEFAULTS,                                    \
       .steps = {                                                               \
-          .init = gemm_f32rcprc_f32rcprc_f32rcprc_init,                        \
+          .init = init,                                                        \
           .warmup = execute,                                                   \
           .execute = execute,                                                  \
           .verify = NULL,                                                      \
           .report = gemm_f32rcprc_f32rcprc_f32rcprc_report,                    \
           .cleanup = gemm_f32rcprc_f32rcprc_f32rcprc_cleanup,                  \
   }
+
+static void init(skl_test_t *t);
 static void execute(skl_test_t *t);
+
+size_t skl_get_te_xsfmmbase(void) {
+  size_t te = 0;
+  __asm__ volatile("sf.vsettnt %0, x0, e8, w1" : "=r"(te) : : "vtype", "vl");
+  return te;
+}
 
 // clang-format off
 gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
@@ -158,6 +166,26 @@ static skl_test_suite_t suite = {
     .test_size = sizeof(gemm_f32rcprc_f32rcprc_f32rcprc_t),
     .tests = tests};
 
+static void init(skl_test_t *t) {
+  const gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
+      (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
+
+  size_t te = skl_get_te_xsfmmbase();
+  SKL_TEST_REQUIRE(t, init_status, h->m0 == te);
+  SKL_TEST_REQUIRE(t, init_status, h->n0 == te);
+  SKL_TEST_REQUIRE(t, init_status, h->k0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, h->rsa0 == 1); // Note: column-major
+  SKL_TEST_REQUIRE(t, init_status, h->csa1 == h->m0 * h->k0);
+  SKL_TEST_REQUIRE(t, init_status, h->csb0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, h->rsb1 == h->k0 * h->n0);
+  SKL_TEST_REQUIRE(t, init_status, h->rsc0 == h->n0);
+  SKL_TEST_REQUIRE(t, init_status, h->csc0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, h->alpha == 1.f);
+  SKL_TEST_REQUIRE(t, init_status, h->beta == 0.f || h->beta == 1.f);
+
+  gemm_f32rcprc_f32rcprc_f32rcprc_init(t);
+}
+
 static void execute(skl_test_t *t) {
   const gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
@@ -173,24 +201,23 @@ static void execute(skl_test_t *t) {
 int main(void) {
   // Set default strides: A is block-row-major with column-major blocks, B is
   // block-column-major with row-major blocks, C has row-major blocks
-  size_t ete = 0;
-  __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
+  size_t te = skl_get_te_xsfmmbase();
   for (size_t i = 0; i < suite.num_tests; ++i) {
-    tests[i].m0 = ete;
-    tests[i].n0 = ete;
+    tests[i].m0 = te;
+    tests[i].n0 = te;
     tests[i].k0 = 1;
 
     tests[i].rsa0 = 1;
-    tests[i].csa0 = ete;
+    tests[i].csa0 = tests[i].m0;
     tests[i].csa1 = tests[i].m0 * tests[i].k0;
     tests[i].rsa1 = tests[i].rsa1 ? tests[i].rsa1 : tests[i].k1 * tests[i].csa1;
 
-    tests[i].rsb0 = ete;
+    tests[i].rsb0 = tests[i].n0;
     tests[i].csb0 = 1;
     tests[i].rsb1 = tests[i].k0 * tests[i].n0;
     tests[i].csb1 = tests[i].csb1 ? tests[i].csb1 : tests[i].k1 * tests[i].rsb1;
 
-    tests[i].rsc0 = ete;
+    tests[i].rsc0 = tests[i].n0;
     tests[i].csc0 = 1;
     tests[i].csc1 = tests[i].csc1 ? tests[i].csc1 : tests[i].m0 * tests[i].n0;
     tests[i].rsc1 = tests[i].rsc1 ? tests[i].rsc1 : tests[i].n1 * tests[i].csc1;

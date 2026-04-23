@@ -19,7 +19,7 @@
 #define TEST                                                                   \
   GEMM_F32RCPRC_F32RCPRC_F32RCPRC_DEFAULTS,                                    \
       .steps = {                                                               \
-          .init = gemm_f32rcprc_f32rcprc_f32rcprc_init,                        \
+          .init = init,                                                        \
           .warmup = NULL,                                                      \
           .execute = execute,                                                  \
           .verify = gemm_f32rcprc_f32rcprc_f32rcprc_verify,                    \
@@ -29,7 +29,7 @@
 #define BENCH                                                                  \
   GEMM_F32RCPRC_F32RCPRC_F32RCPRC_DEFAULTS,                                    \
       .steps = {                                                               \
-          .init = gemm_f32rcprc_f32rcprc_f32rcprc_init,                        \
+          .init = init,                                                        \
           .warmup = execute,                                                   \
           .execute = execute,                                                  \
           .verify = NULL,                                                      \
@@ -37,6 +37,7 @@
           .cleanup = gemm_f32rcprc_f32rcprc_f32rcprc_cleanup,                  \
   }
 
+static void init(skl_test_t *t);
 static void execute(skl_test_t *t);
 
 // clang-format off
@@ -82,13 +83,24 @@ static skl_test_suite_t suite = {.name = "skl_gemm_f32_f32_f32_zve32f_x390",
                                      sizeof(gemm_f32rcprc_f32rcprc_f32rcprc_t),
                                  .tests = tests};
 
+static void init(skl_test_t *t) {
+  const gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
+      (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
+
+  SKL_TEST_REQUIRE(t, init_status, h->m0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, h->n0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, h->k0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, h->csa1 == 1);
+  SKL_TEST_REQUIRE(t, init_status, h->csb1 == 1);
+  SKL_TEST_REQUIRE(t, init_status, h->csc1 == 1);
+
+  gemm_f32rcprc_f32rcprc_f32rcprc_init(t);
+}
+
 static void execute(skl_test_t *t) {
   const gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
-  SKL_TEST_REQUIRE(t, execute_status, h->csa1 == 1);
-  SKL_TEST_REQUIRE(t, execute_status, h->csb1 == 1);
-  SKL_TEST_REQUIRE(t, execute_status, h->csc1 == 1);
   skl_gemm_f32_f32_f32_zve32f_x390(h->m1, h->n1, h->k1, h->alpha,
                                    h->a_pack.data, h->rsa1, h->b_pack.data,
                                    h->rsb1, h->beta, h->c_pack.data, h->rsc1);

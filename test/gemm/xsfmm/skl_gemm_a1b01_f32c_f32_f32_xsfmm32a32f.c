@@ -29,7 +29,7 @@
 #define TEST                                                                   \
   GEMM_F32RCPRC_F32RCPRC_F32RCPRC_DEFAULTS,                                    \
       .steps = {                                                               \
-          .init = gemm_f32rcprc_f32rcprc_f32rcprc_init,                        \
+          .init = init,                                                        \
           .warmup = NULL,                                                      \
           .execute = execute,                                                  \
           .verify = gemm_f32rcprc_f32rcprc_f32rcprc_verify,                    \
@@ -39,13 +39,15 @@
 #define BENCH                                                                  \
   GEMM_F32RCPRC_F32RCPRC_F32RCPRC_DEFAULTS,                                    \
       .steps = {                                                               \
-          .init = gemm_f32rcprc_f32rcprc_f32rcprc_init,                        \
+          .init = init,                                                        \
           .warmup = execute,                                                   \
           .execute = execute,                                                  \
           .verify = NULL,                                                      \
           .report = gemm_f32rcprc_f32rcprc_f32rcprc_report,                    \
           .cleanup = gemm_f32rcprc_f32rcprc_f32rcprc_cleanup,                  \
   }
+
+static void init(skl_test_t *t);
 static void execute(skl_test_t *t);
 
 // clang-format off
@@ -97,15 +99,25 @@ static skl_test_suite_t suite = {
     .test_size = sizeof(gemm_f32rcprc_f32rcprc_f32rcprc_t),
     .tests = tests};
 
-static void execute(skl_test_t *t) {
+static void init(skl_test_t *t) {
   const gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
-  SKL_TEST_REQUIRE(t, execute_status, h->rsa1 == 1); // Note: column-major
-  SKL_TEST_REQUIRE(t, execute_status, h->csb1 == 1);
-  SKL_TEST_REQUIRE(t, execute_status, h->csc1 == 1);
-  SKL_TEST_REQUIRE(t, execute_status, h->alpha == 1.f);
-  SKL_TEST_REQUIRE(t, execute_status, h->beta == 0.f || h->beta == 1.f);
+  SKL_TEST_REQUIRE(t, init_status, h->m0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, h->n0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, h->k0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, h->rsa1 == 1); // Note: column-major
+  SKL_TEST_REQUIRE(t, init_status, h->csb1 == 1);
+  SKL_TEST_REQUIRE(t, init_status, h->csc1 == 1);
+  SKL_TEST_REQUIRE(t, init_status, h->alpha == 1.f);
+  SKL_TEST_REQUIRE(t, init_status, h->beta == 0.f || h->beta == 1.f);
+
+  gemm_f32rcprc_f32rcprc_f32rcprc_init(t);
+}
+
+static void execute(skl_test_t *t) {
+  const gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
+      (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
   // Call the kernel with the appropriate parameters
   // The kernel signature is: (m, n, k, a, csa, b, rsb, c, rsc, accum)

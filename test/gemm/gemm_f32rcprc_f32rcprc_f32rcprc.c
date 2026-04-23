@@ -24,6 +24,17 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_init(skl_test_t *t) {
   gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
+  skl_test_check_matrix_params_rcprc(t, h->m0, h->k0, h->m1, h->k1, h->rsa0,
+                                     h->csa0, h->rsa1, h->csa1);
+  skl_test_check_matrix_params_rcprc(t, h->k0, h->n0, h->k1, h->n1, h->rsb0,
+                                     h->csb0, h->rsb1, h->csb1);
+  skl_test_check_matrix_params_rcprc(t, h->m0, h->n0, h->m1, h->n1, h->rsc0,
+                                     h->csc0, h->rsc1, h->csc1);
+
+  if (t->status.init_status != SKL_TEST_PASS) {
+    return;
+  }
+
   if (h->m1 == 0 || h->k1 == 0) {
     h->a_pack.len = 0;
   } else {
@@ -144,9 +155,9 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_verify(skl_test_t *t) {
   }
 
   /* Check for clobbered elements. */
-  gemm_rcprc_check_clobbered(t, sizeof(*h->c_pack.data), h->c_pack.len, h->m0,
-                             h->n0, h->m1, h->n1, h->c_pack.data, h->rsc0,
-                             h->csc0, h->rsc1, h->csc1, h->ctx.ref_c);
+  skl_test_gemm_check_clobbered_rcprc(
+      t, sizeof(*h->c_pack.data), h->c_pack.len, h->m0, h->n0, h->m1, h->n1,
+      h->c_pack.data, h->rsc0, h->csc0, h->rsc1, h->csc1, h->ctx.ref_c);
 }
 
 void gemm_f32rcprc_f32rcprc_f32rcprc_report(skl_test_t *t) {

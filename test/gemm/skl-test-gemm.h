@@ -1,13 +1,54 @@
+// Copyright 2026 SiFive, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
+#pragma once
+
 #include "skl-test-driver.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
 
-void gemm_rcprc_check_clobbered(skl_test_t *t, size_t c_type_size,
-                                size_t c_pack_len, size_t m0, size_t n0,
-                                size_t m1, size_t n1, void *c_pack, size_t rsc0,
-                                size_t csc0, size_t rsc1, size_t csc1,
-                                void *ref_c) {
+static void skl_test_check_matrix_params_rcprc(skl_test_t *t, size_t m0,
+                                               size_t n0, size_t m1, size_t n1,
+                                               size_t rs0, size_t cs0,
+                                               size_t rs1, size_t cs1) {
+  SKL_TEST_REQUIRE(t, init_status, m0 > 0);
+  SKL_TEST_REQUIRE(t, init_status, n0 > 0);
+
+  if (m0 > 1) {
+    SKL_TEST_REQUIRE(t, init_status, rs0 > 0);
+  }
+  if (n0 > 1) {
+    SKL_TEST_REQUIRE(t, init_status, cs0 > 0);
+  }
+  if (m0 > 1 && n0 > 1) {
+    if (rs0 >= cs0) {
+      SKL_TEST_REQUIRE(t, init_status, rs0 >= (n0 - 1) * cs0 + 1);
+    } else {
+      SKL_TEST_REQUIRE(t, init_status, cs0 >= (m0 - 1) * rs0 + 1);
+    }
+  }
+
+  size_t block_min_len = (m0 - 1) * rs0 + (n0 - 1) * cs0 + 1;
+  if (m1 > 1 && n1 > 0) {
+    SKL_TEST_REQUIRE(t, init_status, rs1 >= block_min_len);
+  }
+  if (m1 > 0 && n1 > 1) {
+    SKL_TEST_REQUIRE(t, init_status, cs1 >= block_min_len);
+  }
+  if (m1 > 1 && n1 > 1) {
+    if (rs1 >= cs1) {
+      SKL_TEST_REQUIRE(t, init_status, rs1 >= (n1 - 1) * cs1 + block_min_len);
+    } else {
+      SKL_TEST_REQUIRE(t, init_status, cs1 >= (m1 - 1) * rs1 + block_min_len);
+    }
+  }
+}
+
+static void skl_test_gemm_check_clobbered_rcprc(
+    skl_test_t *t, size_t c_type_size, size_t c_pack_len, size_t m0, size_t n0,
+    size_t m1, size_t n1, void *c_pack, size_t rsc0, size_t csc0, size_t rsc1,
+    size_t csc1, void *ref_c) {
   uint8_t *c_pack_cast = (uint8_t *)c_pack;
   uint8_t *ref_c_cast = (uint8_t *)ref_c;
   // When m0 == 1, rsc0 can be arbitrary. We adjust its value in this case to
@@ -86,7 +127,6 @@ void gemm_rcprc_check_clobbered(skl_test_t *t, size_t c_type_size,
       }
       for (size_t i = c_block_min_len; i < bsc1; ++i) {
         size_t idx = i1 * rsc1_adj + j1 * csc1_adj + i;
-        // NaNs always compare as false, so do a bitwise comparison.
         int64_t initial = 0;
         int64_t result = 0;
         memcpy(&initial, &(ref_c_cast[c_type_size * idx]), c_type_size);
@@ -107,7 +147,6 @@ void gemm_rcprc_check_clobbered(skl_test_t *t, size_t c_type_size,
           ? 0
           : (m1 - 1) * rsc1_adj + (n1 - 1) * csc1_adj + c_block_min_len;
   for (size_t idx = c_pack_min_len; idx < c_pack_len; ++idx) {
-    // NaNs always compare as false, so do a bitwise comparison.
     int64_t initial = 0;
     int64_t result = 0;
     memcpy(&initial, &(ref_c_cast[c_type_size * idx]), c_type_size);
@@ -119,4 +158,3 @@ void gemm_rcprc_check_clobbered(skl_test_t *t, size_t c_type_size,
     }
   }
 }
-
