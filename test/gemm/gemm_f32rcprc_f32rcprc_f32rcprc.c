@@ -70,7 +70,6 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_init(skl_test_t *t) {
     h->ctx.bound =
         h->c_pack.len ? malloc(h->c_pack.len * sizeof(*(h->ctx.bound))) : NULL;
     if (h->c_pack.len) {
-      // Copy initial C values to ref_c for the beta * C term in reference GEMM
       memcpy(h->ctx.ref_c, h->c_pack.data,
              h->c_pack.len * sizeof(*(h->c_pack.data)));
     }
@@ -125,7 +124,6 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_verify(skl_test_t *t) {
 
   // Compute the reference result using h->ctx.ref_c
   // h->ctx.ref_c contains the original C values (copied in skl_test_init)
-  // After this call, h->ctx.ref_c will contain the reference result
   skl_gemm_f32rcprc_f32rcprc_f32rcprc_ref(
       h->m0, h->n0, h->k0, h->m1, h->n1, h->k1, h->alpha, h->a_pack.data,
       h->rsa0, h->csa0, h->rsa1, h->csa1, h->b_pack.data, h->rsb0, h->csb0,
