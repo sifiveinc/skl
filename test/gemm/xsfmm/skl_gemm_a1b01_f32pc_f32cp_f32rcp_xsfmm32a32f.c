@@ -165,9 +165,9 @@ static void init(skl_test_t *t) {
   const gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
-  size_t te = skl_get_te_xsfmmbase();
-  SKL_TEST_REQUIRE(t, init_status, h->m0 == te);
-  SKL_TEST_REQUIRE(t, init_status, h->n0 == te);
+  size_t ete = skl_get_ete_xsfmmbase();
+  SKL_TEST_REQUIRE(t, init_status, h->m0 == ete);
+  SKL_TEST_REQUIRE(t, init_status, h->n0 == ete);
   SKL_TEST_REQUIRE(t, init_status, h->k0 == 1);
   SKL_TEST_REQUIRE(t, init_status, h->rsa0 == 1); // Note: column-major
   SKL_TEST_REQUIRE(t, init_status, h->csa1 == h->m0 * h->k0);
@@ -196,10 +196,10 @@ static void execute(skl_test_t *t) {
 int main(void) {
   // Set default strides: A is block-row-major with column-major blocks, B is
   // block-column-major with row-major blocks, C has row-major blocks
-  size_t te = skl_get_te_xsfmmbase();
+  size_t ete = skl_get_ete_xsfmmbase();
   for (size_t i = 0; i < suite.num_tests; ++i) {
-    tests[i].m0 = te;
-    tests[i].n0 = te;
+    tests[i].m0 = ete;
+    tests[i].n0 = ete;
     tests[i].k0 = 1;
 
     tests[i].rsa0 = 1;
