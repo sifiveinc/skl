@@ -24,13 +24,13 @@ Demonstrates efficient 2D convolution implementation using optimized GEMM kernel
 ## Building Examples
 
 Examples are built when `SKL_BUILD_EXAMPLES` is defined,
-and the configuration should enable `SKL_ENABLE_VERIFICATION` and/or `SKL_ENABLE_PROFLING`:
+and the configuration should enable `SKL_ENABLE_VALIDATION` and/or `SKL_ENABLE_BENCHMARKING`:
 
 ```bash
 cmake -B build \
   -DSKL_BUILD_EXAMPLES=ON \
-  -DSKL_ENABLE_PROFLING=ON \
-  -DSKL_ENABLE_VERIFICATION=ON \
+  -DSKL_ENABLE_BENCHMARKING=ON \
+  -DSKL_ENABLE_VALIDATION=ON \
   -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake ..
 cd build && cmake --build . --verbose
 ```
@@ -68,6 +68,6 @@ skl_add_example(
 Examples should:
 - **Focus on algorithms**: Show how to combine SKL functions for higher-level operations
 - **Include documentation**: Provide clear README with algorithm explanation
-- **Support verification**: Include correctness verification when `SKL_ENABLE_VERIFICATION` is defined
-- **Support profiling**: Include performance profiling when `SKL_ENABLE_PROFILING` is defined
+- **Support validation**: Include correctness validation when `SKL_ENABLE_VALIDATION` is defined
+- **Support benchmarking**: Include performance benchmarking when `SKL_ENABLE_BENCHMARKING` is defined
 - **Follow naming**: Use descriptive names that indicate the algorithm and key optimizations

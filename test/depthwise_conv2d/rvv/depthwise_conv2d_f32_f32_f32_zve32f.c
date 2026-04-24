@@ -44,7 +44,7 @@ static void execute(skl_test_t *t);
 
 // clang-format off
 depthwise_conv2d_f32_f32_f32_t tests[] = {
-#ifdef SKL_ENABLE_PROFILING
+#ifdef SKL_ENABLE_BENCHMARKING
   // Benchmark tests
   {BENCH, .use_specialization = 0,
    .input_height = 16, .input_width = 16, .input_channel = 512, 
@@ -62,7 +62,7 @@ depthwise_conv2d_f32_f32_f32_t tests[] = {
   },
 #endif
 
-#ifdef SKL_ENABLE_VERIFICATION
+#ifdef SKL_ENABLE_VALIDATION
   // Verification tests
 
   /* depth_multiplier = 1, dilation = 1, stride = 1 */

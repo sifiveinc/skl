@@ -20,10 +20,10 @@
 #define MAX (+89.f)
 
 unary_f32_t tests[] = {
-#if defined(SKL_ENABLE_PROFILING)
+#if defined(SKL_ENABLE_BENCHMARKING)
     FUNCTION_BENCHMARKS(skl_exp_1u_f32_zve32f, MIN, MAX),
 #endif
-#if defined(SKL_ENABLE_VERIFICATION)
+#if defined(SKL_ENABLE_VALIDATION)
     FUNCTION_TESTS(skl_exp_1u_f32_zve32f, skl_exp_f32_ref, MIN, MAX, 1.0f),
 #endif
 };

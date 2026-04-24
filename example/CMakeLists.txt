@@ -1,6 +1,6 @@
 
-if(NOT SKL_ENABLE_VERIFICATION AND NOT SKL_ENABLE_PROFILING)
-  message(FATAL_ERROR "Examples require that either SKL_ENABLE_VERIFICATION or SKL_ENABLE_PROFILING is enabled.")
+if(NOT SKL_ENABLE_VALIDATION AND NOT SKL_ENABLE_BENCHMARKING)
+  message(FATAL_ERROR "Examples require that either SKL_ENABLE_VALIDATION or SKL_ENABLE_BENCHMARKING is enabled.")
 endif()
 
 
@@ -31,11 +31,11 @@ function(skl_add_example EXAMPLE_NAME EXAMPLE_SRCS REQUIRED_EXTENSIONS OPTS)
       SKL_EXAMPLE_NAME=${EXAMPLE_NAME}
   )
 
-  if (SKL_ENABLE_VERIFICATION)
-    target_compile_definitions(example-${EXAMPLE_NAME} PRIVATE SKL_ENABLE_VERIFICATION)
+  if (SKL_ENABLE_VALIDATION)
+    target_compile_definitions(example-${EXAMPLE_NAME} PRIVATE SKL_ENABLE_VALIDATION)
   endif()
-  if (SKL_ENABLE_PROFILING)
-    target_compile_definitions(example-${EXAMPLE_NAME} PRIVATE SKL_ENABLE_PROFILING)
+  if (SKL_ENABLE_BENCHMARKING)
+    target_compile_definitions(example-${EXAMPLE_NAME} PRIVATE SKL_ENABLE_BENCHMARKING)
   endif()
   target_include_directories(example-${EXAMPLE_NAME}
     PRIVATE

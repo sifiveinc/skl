@@ -1,6 +1,6 @@
 
-if(NOT SKL_ENABLE_VERIFICATION AND NOT SKL_ENABLE_PROFILING)
-  message(FATAL_ERROR "Tests require that either SKL_ENABLE_VERIFICATION or SKL_ENABLE_PROFILING is enabled.")
+if(NOT SKL_ENABLE_VALIDATION AND NOT SKL_ENABLE_BENCHMARKING)
+  message(FATAL_ERROR "Tests require that either SKL_ENABLE_VALIDATION or SKL_ENABLE_BENCHMARKING is enabled.")
 endif()
 
 # Set default configuration
@@ -38,11 +38,11 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
   )
   target_include_directories(test-${TEST_NAME} PRIVATE . ../src)
 
-  if(SKL_ENABLE_VERIFICATION)
-    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_VERIFICATION)
+  if(SKL_ENABLE_VALIDATION)
+    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_VALIDATION)
   endif()
-  if(SKL_ENABLE_PROFILING)
-    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_PROFILING)
+  if(SKL_ENABLE_BENCHMARKING)
+    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_BENCHMARKING)
   endif()
 
   add_test(

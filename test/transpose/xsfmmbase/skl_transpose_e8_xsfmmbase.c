@@ -42,12 +42,12 @@ static void execute(skl_test_t *t);
 
 // clang-format off
 transpose_e8_t tests[] = {
-#ifdef SKL_ENABLE_PROFILING
+#ifdef SKL_ENABLE_BENCHMARKING
   // Benchmark tests
   {BENCH, .m = 64, .n = 128},
 #endif
 
-#ifdef SKL_ENABLE_VERIFICATION
+#ifdef SKL_ENABLE_VALIDATION
   // Verification tests
   /* Edge cases */
   {TEST, .m =   0, .n =   0},

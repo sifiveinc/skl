@@ -1,8 +1,8 @@
 // Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-#if !defined(SKL_ENABLE_VERIFICATION) && !defined(SKL_ENABLE_PROFILING)
-#error Must define at least one of SKL_ENABLE_VERIFICATION or SKL_ENABLE_PROFILING
+#if !defined(SKL_ENABLE_VALIDATION) && !defined(SKL_ENABLE_BENCHMARKING)
+#error Must define at least one of SKL_ENABLE_VALIDATION or SKL_ENABLE_BENCHMARKING
 #endif
 
 // convolution 2D test configuration
@@ -58,11 +58,11 @@ enum {
 };
 #endif
 
-#if defined(SKL_ENABLE_PROFILING)
+#if defined(SKL_ENABLE_BENCHMARKING)
 #include "skl-test.h"
 #endif
 
-#if defined(SKL_ENABLE_VERIFICATION)
+#if defined(SKL_ENABLE_VALIDATION)
 #include <math.h>
 #endif
 #include <stddef.h>
@@ -81,7 +81,7 @@ __attribute__((aligned(ALIGN))) static float filter[FILTER_SIZE];
 
 __attribute__((aligned(ALIGN))) static float output[OUTPUT_SIZE];
 
-#if defined(SKL_ENABLE_VERIFICATION)
+#if defined(SKL_ENABLE_VALIDATION)
 __attribute__((aligned(ALIGN))) static float ref_output[OUTPUT_SIZE];
 
 static float get_random_f32(void) {
@@ -98,7 +98,7 @@ static float get_random_f32(void) {
   static int64_t next = 0;
   return (float)next++;
 }
-#endif // SKL_ENABLE_VERIFICATION
+#endif // SKL_ENABLE_VALIDATION
 
 static void init_random(float *arr, size_t len) {
   for (size_t i = 0; i < len; ++i) {
@@ -106,7 +106,7 @@ static void init_random(float *arr, size_t len) {
   }
 }
 
-#if defined(SKL_ENABLE_VERIFICATION)
+#if defined(SKL_ENABLE_VALIDATION)
 static int check_error(const char *name, const float *res, const float *ref,
                        size_t len, float tolerance) {
   for (size_t i = 0; i < len; i++) {
@@ -124,7 +124,7 @@ static int check_error(const char *name, const float *res, const float *ref,
 
 int main(void) {
   int ret = 0; // return value
-#if defined(SKL_ENABLE_PROFILING)
+#if defined(SKL_ENABLE_BENCHMARKING)
   uint64_t c0;
   uint64_t c1;
   uint64_t i0;
@@ -156,13 +156,13 @@ int main(void) {
 #define IM2ROW_GEMM_CONV2D_KERNEL(FUNCTION, OUTPUT, ...)                       \
   FUNCTION(OUTPUT, im2row, input, filter, __VA_ARGS__);
 
-#if defined(SKL_ENABLE_VERIFICATION)
+#if defined(SKL_ENABLE_VALIDATION)
   memset(ref_output, -1, sizeof ref_output);
   DIRECT_CONV2D_KERNEL(conv2d_io_nhwc_filter_hwio_f32_f32_f32_ref, ref_output,
                        CONV2D_GENERAL_ARGS)
 #endif
 
-#if defined(SKL_ENABLE_PROFILING)
+#if defined(SKL_ENABLE_BENCHMARKING)
 #define MEASURE_PERF(RUN_SPEC, FUNCTION, NAME, ...)                            \
   /* Measure 2nd run after caches warmed */                                    \
   c0 = riscv_read_mcycle(), i0 = riscv_read_minstret();                        \
@@ -175,7 +175,7 @@ int main(void) {
 #define MEASURE_PERF(RUN_SPEC, FUNCTION, NAME, ...)
 #endif
 
-#if defined(SKL_ENABLE_VERIFICATION)
+#if defined(SKL_ENABLE_VALIDATION)
 #define CHECK_RESULT(FUNCTION, NAME, TOLERANCE)                                \
   ret += check_error(NAME, output, ref_output, OUTPUT_SIZE, TOLERANCE);
 #else

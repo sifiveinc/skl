@@ -63,47 +63,47 @@ jobs:
           egrep "\.(c|h)$" | \
           xargs -I{} bash -c "if [ -f {} ] ; then clang-format --dry-run -style=file --Werror {} ; fi"
 
-    - name: Configure and build (tests and examples with profiling and verification)
+    - name: Configure and build (tests and examples with benchmarking and validation)
       run: |
         cmake -B ${{ github.workspace }}/build \
               -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
               -DSKL_BUILD_BENCHMARKS=ON \
               -DSKL_BUILD_TESTS=ON \
               -DSKL_BUILD_EXAMPLES=ON \
-              -DSKL_ENABLE_PROFILING=ON \
-              -DSKL_ENABLE_VERIFICATION=ON
+              -DSKL_ENABLE_BENCHMARKING=ON \
+              -DSKL_ENABLE_VALIDATION=ON
         cmake --build ${{ github.workspace }}/build --verbose
 
-    - name: Run (tests and examples with profiling and verification)
+    - name: Run (tests and examples with benchmarking and validation)
       working-directory: ${{ github.workspace }}/build
       run: ctest --verbose --output-on-failure
 
-    - name: Configure and build (tests and examples with verification only)
+    - name: Configure and build (tests and examples with validation only)
       run: |
         cmake -B ${{ github.workspace }}/build \
               -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
               -DSKL_BUILD_BENCHMARKS=OFF \
               -DSKL_BUILD_TESTS=ON \
               -DSKL_BUILD_EXAMPLES=ON \
-              -DSKL_ENABLE_PROFILING=OFF \
-              -DSKL_ENABLE_VERIFICATION=ON
+              -DSKL_ENABLE_BENCHMARKING=OFF \
+              -DSKL_ENABLE_VALIDATION=ON
         cmake --build ${{ github.workspace }}/build --verbose
 
-    - name: Run (tests and examples with verification only)
+    - name: Run (tests and examples with validation only)
       working-directory: ${{ github.workspace }}/build
       run: ctest --verbose --output-on-failure
 
-    - name: Configure and build (tests and examples with profiling only)
+    - name: Configure and build (tests and examples with benchmarking only)
       run: |
         cmake -B ${{ github.workspace }}/build \
               -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
               -DSKL_BUILD_BENCHMARKS=ON \
               -DSKL_BUILD_TESTS=ON \
               -DSKL_BUILD_EXAMPLES=ON \
-              -DSKL_ENABLE_PROFILING=ON \
-              -DSKL_ENABLE_VERIFICATION=OFF
+              -DSKL_ENABLE_BENCHMARKING=ON \
+              -DSKL_ENABLE_VALIDATION=OFF
         cmake --build ${{ github.workspace }}/build --verbose
 
-    - name: Run (tests and examples with profiling only)
+    - name: Run (tests and examples with benchmarking only)
       working-directory: ${{ github.workspace }}/build
       run: ctest --verbose --output-on-failure
