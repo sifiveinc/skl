@@ -17,7 +17,7 @@ typedef struct {
   size_t m, n;
   size_t rsa, rsat;
 
-  // Buffer generation settings for A, B, C
+  // Buffer generation settings for a, at
   SKL_TEST_BUFFER(uint8_t) a, at;
 
   // Derived parameters & buffers (private to the test harness)
@@ -27,8 +27,8 @@ typedef struct {
 } transpose_e8_t;
 
 #define TRANSPOSE_E8_DEFAULTS                                                  \
-  .a = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM},                        \
-  .at = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM}
+  .a = {.min = 0, .max = UINT8_MAX, .mode = SKL_TEST_RANDOM},                  \
+  .at = {.min = 0, .max = UINT8_MAX, .mode = SKL_TEST_RANDOM}
 
 void transpose_e8_init(skl_test_t *t);
 void transpose_e8_verify(skl_test_t *t);

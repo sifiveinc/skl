@@ -3,83 +3,92 @@
 // See LICENSE file in the project root for full license information.
 // SPDX-License-Identifier: MIT
 
-#if !(defined(ENABLE_TEST) || defined(ENABLE_BENCHMARK))
-#error Must define at least one of ENABLE_TEST and ENABLE_BENCHMARK
-#endif
+/**
+ * @brief Implementation of the transpose_e32 test harness.
+ *
+ * This file defines all harness functions _except_ `execute`, which is
+ * defined in the test file (e.g. rvv/skl_transpose_e32_zve32x.c).
+ */
 
-#include "skl-test.h"
-
+#include "transpose_e32.h"
 #include "skl-ref.h"
+#include "skl-test-driver.h"
 #include "skl.h"
-
-#include <inttypes.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#if defined(ENABLE_TEST)
-#include <string.h> // For memcpy
-#endif
+void transpose_e32_init(skl_test_t *t) {
+  transpose_e32_t *h = (transpose_e32_t *)t->harness;
 
-enum {
-  ALIGN = 4096,
-  M = 128,
-  N = 64,
-  RSA = N,
-  RSAT = M,
-  ALEN = M * RSA,
-  ATLEN = N * RSAT
-};
+  h->a.len = h->m * h->rsa;
+  h->at.len = h->n * h->rsat;
 
-_Alignas(ALIGN) float a[ALEN];
-_Alignas(ALIGN) float at[ATLEN];
-#if defined(ENABLE_TEST)
-float ref_at[ATLEN], test_at[ATLEN];
-#endif // ENABLE_TEST
+  SKL_TEST_REQUIRE(t, init_status, h->rsa >= h->n);
+  SKL_TEST_REQUIRE(t, init_status, h->rsat >= h->m);
+  if (t->status.init_status != SKL_TEST_PASS)
+    return;
 
-#if defined(ENABLE_TEST)
-int check_error(void) {
-  /* Compute the reference matrix output. */
-  skl_transpose_e32_ref(M, N, (uint32_t *)a, RSA, (uint32_t *)ref_at, RSAT);
+  SKL_TEST_BUF_CREATE(t, uint32_t, &h->a);
+  SKL_TEST_BUF_CREATE(t, uint32_t, &h->at);
+  if (h->steps.verify && h->at.len) {
+    h->ctx.ref_at = malloc(h->at.len * sizeof(uint32_t));
 
-  /* Compare the reference and test outputs. */
-  for (size_t i = 0; i < N; ++i) {
-    for (size_t j = 0; j < RSAT; ++j) {
-      if (test_at[i * RSAT + j] != ref_at[i * RSAT + j]) {
-        printf("result [%zu, %zu] (%f) != reference (%f)\n", i, j,
-               test_at[i * RSAT + j], ref_at[i * RSAT + j]);
-        return 1;
+    // Copy original `at` contents into ref to check for clobbered data later.
+    memcpy(h->ctx.ref_at, h->at.data, h->at.len * sizeof(uint32_t));
+  }
+}
+
+void transpose_e32_verify(skl_test_t *t) {
+  transpose_e32_t *h = (transpose_e32_t *)t->harness;
+
+  size_t m = h->m;
+  size_t n = h->n;
+  size_t rsa = h->rsa;
+  size_t rsat = h->rsat;
+  const uint32_t *a = h->a.data;
+  const uint32_t *at = h->at.data;
+  uint32_t *ref_at = h->ctx.ref_at;
+
+  // Compute reference value
+  skl_transpose_e32_ref(m, n, a, rsa, ref_at, rsat);
+
+  // Verify result
+  for (size_t i = 0; i < n; ++i) {
+    for (size_t j = 0; j < rsat; ++j) {
+      size_t idx = i * rsat + j;
+      if (at[idx] != ref_at[idx]) {
+        SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
+                     "position [%zu, %zu]: %u != ref %u%s\n", i, j, at[idx],
+                     ref_at[idx], j > m ? " (clobbered)" : "");
+        t->status.verify_status = SKL_TEST_FAIL;
+        return;
       }
     }
   }
-
-  return 0;
 }
-#endif // ENABLE_TEST
 
-#define TEST_LABEL(S) #S ":\n"
-#define PRINT_TEST_NAME(S) printf(TEST_LABEL(S));
+void transpose_e32_report(skl_test_t *t) {
+  transpose_e32_t *h = (transpose_e32_t *)t->harness;
 
-int main(void) {
-  int res = EXIT_SUCCESS;
+#define INFO(fmt, ...) SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, fmt, __VA_ARGS__)
+  INFO("M: %zd, N: %zd\n", h->m, h->n);
+  INFO("RSA: %zd, RSAT: %zd\n", h->rsa, h->rsat);
+  INFO("%s", "\n");
+  INFO("Warmup: %s\n", h->steps.warmup ? "yes" : "no");
+  INFO("Cycles: %zd\n", t->counters.cycles);
+  INFO("Instructions: %zd\n", t->counters.instret);
+#undef INFO
+}
 
-  PRINT_TEST_NAME(SKL_TEST_NAME);
+void transpose_e32_cleanup(skl_test_t *t) {
+  transpose_e32_t *h = (transpose_e32_t *)t->harness;
 
-  /* Populate the matrices. */
-  skl_test_init_f32(a, ALEN, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32);
-  skl_test_init_f32(at, ATLEN, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32);
-
-#if defined(ENABLE_TEST)
-  /* Make copies of A^T to write the reference and test outputs to. */
-  memcpy(ref_at, at, ATLEN * sizeof(float));
-  memcpy(test_at, at, ATLEN * sizeof(float));
-  SKL_TEST_NAME(M, N, (uint32_t *)a, RSA, (uint32_t *)test_at, RSAT);
-  res += check_error();
-#endif // ENABLE_TEST
-
-  SKL_BENCHMARK_RUN(skl_test_name, M * N, SKL_TEST_WARMUP, SKL_TEST_NAME, M, N,
-                    (uint32_t *)a, RSA, (uint32_t *)at, RSAT);
-
-  return res;
+  SKL_TEST_BUF_FREE(t, &h->a);
+  SKL_TEST_BUF_FREE(t, &h->at);
+  if (h->steps.verify && h->at.len) {
+    free(h->ctx.ref_at);
+  }
 }
