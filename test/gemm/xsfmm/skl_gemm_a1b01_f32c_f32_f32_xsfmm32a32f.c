@@ -33,7 +33,7 @@
           .warmup = NULL,                                                      \
           .execute = execute,                                                  \
           .verify = gemm_f32rcprc_f32rcprc_f32rcprc_verify,                    \
-          .report = NULL,                                                      \
+          .report = gemm_f32rcprc_f32rcprc_f32rcprc_test_report,               \
           .cleanup = gemm_f32rcprc_f32rcprc_f32rcprc_cleanup,                  \
   }
 #define BENCH                                                                  \
@@ -43,7 +43,7 @@
           .warmup = execute,                                                   \
           .execute = execute,                                                  \
           .verify = NULL,                                                      \
-          .report = gemm_f32rcprc_f32rcprc_f32rcprc_report,                    \
+          .report = gemm_f32rcprc_f32rcprc_f32rcprc_benchmark_report,          \
           .cleanup = gemm_f32rcprc_f32rcprc_f32rcprc_cleanup,                  \
   }
 

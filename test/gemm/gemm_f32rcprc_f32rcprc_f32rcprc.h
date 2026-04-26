@@ -57,7 +57,8 @@ typedef struct {
 
 void gemm_f32rcprc_f32rcprc_f32rcprc_init(skl_test_t *t);
 void gemm_f32rcprc_f32rcprc_f32rcprc_verify(skl_test_t *t);
-void gemm_f32rcprc_f32rcprc_f32rcprc_report(skl_test_t *t);
+void gemm_f32rcprc_f32rcprc_f32rcprc_test_report(skl_test_t *t);
+void gemm_f32rcprc_f32rcprc_f32rcprc_benchmark_report(skl_test_t *t);
 void gemm_f32rcprc_f32rcprc_f32rcprc_cleanup(skl_test_t *t);
 
 #define GEMM_F32RCPRC_F32RCPRC_F32RCPRC_DEFAULTS                               \
