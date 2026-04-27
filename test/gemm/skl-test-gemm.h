@@ -77,33 +77,35 @@ static inline void skl_test_check_matrix_params_rcprc(skl_test_t *t, size_t m0,
  * @brief Check for clobbered elements in a packed matrix
  *
  * @param t - Test context.
- * @param c_type_size - Size of the elements of C_pack and ref in bytes.
- * @param c_pack_len - Number of elements in the arrays for C_pack and ref_c.
- * @param m0 - Number of rows in each block of C_pack and ref_c.
- * @param n0 - Number of columns in each block of C_pack and ref_c.
- * @param m1 - Number of block-rows in C_pack and ref_c.
- * @param n1 - Number of block-columns in C_pack and ref_c.
- * @param c_pack - Pointer to matrix C_pack.
- * @param rsc0 - Row stride within each block of C_pack and ref_c in elements.
- * @param csc0 - Column stride within each block of C_pack and ref_c in
- * elements.
- * @param rsc1 - Row stride between blocks of C_pack and ref_c in elements.
- * @param csc1 - Column stride between blocks of C_pack and ref_c in elements.
- * @param ref_c - Pointer to matrix ref_c.
+ * @param c_type_size - Size of the elements of C_pack0 and C_pack1 in bytes.
+ * @param c_pack_len - Number of elements in the arrays for C_pack0 and C_pack1.
+ * @param m0 - Number of rows in each block of C_pack0 and C_pack1.
+ * @param n0 - Number of columns in each block of C_pack0 and C_pack1.
+ * @param m1 - Number of block-rows in C_pack0 and C_pack1.
+ * @param n1 - Number of block-columns in C_pack0 and C_pack1.
+ * @param c_pack0 - Pointer to matrix C_pack0.
+ * @param c_pack1 - Pointer to matrix C_pack1.
+ * @param rsc0 - Row stride within each block of C_pack0 and C_pack1 in
+ *               elements.
+ * @param csc0 - Column stride within each block of C_pack0 and C_pack1 in
+ *               elements.
+ * @param rsc1 - Row stride between blocks of C_pack0 and C_pack1 in elements.
+ * @param csc1 - Column stride between blocks of C_pack0 and C_pack1 in
+ *               elements.
  *
- * C_pack and ref_c are matrices stored in arrays with c_pack_len elements of
+ * C_pack0 and C_pack1 are matrices stored in arrays with c_pack_len elements of
  * size c_type_size bytes. The elements of the matrices are indexed by i1 * rsc1
  * + j1 * csc1 + i0 * rsc0 + j0 * csc0, 0 <= i1 < m1, 0 <= j1 < n1, 0 <= i0 <
- * m0, 0 <= j0 < n0. This function checks that the arrays pointed to by c_pack
- * and ref_c are identical outside of the above indices and updates the
+ * m0, 0 <= j0 < n0. This function checks that the arrays pointed to by c_pack0
+ * and c_pack1 are identical outside of the above indices and updates the
  * verify_status of t.
  */
 static inline void skl_test_gemm_check_clobbered_rcprc(
     skl_test_t *t, size_t c_type_size, size_t c_pack_len, size_t m0, size_t n0,
-    size_t m1, size_t n1, void *c_pack, size_t rsc0, size_t csc0, size_t rsc1,
-    size_t csc1, void *ref_c) {
-  uint8_t *c_pack_cast = (uint8_t *)c_pack;
-  uint8_t *ref_c_cast = (uint8_t *)ref_c;
+    size_t m1, size_t n1, void *c_pack0, void *c_pack1, size_t rsc0,
+    size_t csc0, size_t rsc1, size_t csc1) {
+  uint8_t *c_pack0_cast = (uint8_t *)c_pack0;
+  uint8_t *c_pack1_cast = (uint8_t *)c_pack1;
   // When m0 == 1, rsc0 can be arbitrary. We adjust its value in this case to
   // reflect the length of a row. csc0, rsc1, and csc1 are adjusted similarly.
   size_t rsc0_adj = m0 == 1 ? (n0 - 1) * csc0 + 1 : rsc0;
@@ -111,13 +113,13 @@ static inline void skl_test_gemm_check_clobbered_rcprc(
   size_t c_block_min_len = (m0 - 1) * rsc0_adj + (n0 - 1) * csc0_adj + 1;
   size_t rsc1_adj = m1 == 1 ? (n1 - 1) * csc1 + c_block_min_len : rsc1;
   size_t csc1_adj = n1 == 1 ? (m1 - 1) * rsc1 + c_block_min_len : csc1;
-  // Each block of C_pack lies in an ambient m0_amb x n0_amb row- or
+  // Each block of C_pack{0,1} lies in an ambient m0_amb x n0_amb row- or
   // column-major matrix with row and column strides rsc0_amb and csc0_amb.
-  // Let bsc1 be the block stride of C_pack, i.e. the distance from one block to
-  // the next in memory, in elements; bsc1 varies from block to block.
-  // Lastly, set layoutc0_row_major to true if blocks of C_pack are row major
-  // and false otherwise. Similarly, set layoutc1_row_major to true if C_pack is
-  // block-row-major and false otherwise.
+  // Let bsc1 be the block stride of C_pack{0,1}, i.e. the distance from one
+  // block to the next in memory, in elements; bsc1 varies from block to block.
+  // Lastly, set layoutc0_row_major to true if blocks of C_pack{0,1} are row
+  // major and false otherwise. Similarly, set layoutc1_row_major to true if
+  // C_pack{0,1} is block-row-major and false otherwise.
   size_t m0_amb = 0;
   size_t n0_amb = 0;
   size_t rsc0_amb = 0;
@@ -155,13 +157,13 @@ static inline void skl_test_gemm_check_clobbered_rcprc(
 
           size_t idx =
               i1 * rsc1_adj + j1 * csc1_adj + i0 * rsc0_amb + j0 * csc0_amb;
-          int64_t initial = 0;
-          int64_t result = 0;
-          memcpy(&initial, &(ref_c_cast[c_type_size * idx]), c_type_size);
-          memcpy(&result, &(c_pack_cast[c_type_size * idx]), c_type_size);
-          if (result != initial) {
+          int64_t element0 = 0;
+          int64_t element1 = 0;
+          memcpy(&element0, &(c_pack0_cast[c_type_size * idx]), c_type_size);
+          memcpy(&element1, &(c_pack1_cast[c_type_size * idx]), c_type_size);
+          if (element0 != element1) {
             SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
-                         "result [%zu, %zu, %zu, %zu] clobbered\n", i1, j1, i0,
+                         "element [%zu, %zu, %zu, %zu] clobbered\n", i1, j1, i0,
                          j0);
             t->status.verify_status = SKL_TEST_FAIL;
             return;
@@ -180,13 +182,13 @@ static inline void skl_test_gemm_check_clobbered_rcprc(
       }
       for (size_t i = c_block_min_len; i < bsc1; ++i) {
         size_t idx = i1 * rsc1_adj + j1 * csc1_adj + i;
-        int64_t initial = 0;
-        int64_t result = 0;
-        memcpy(&initial, &(ref_c_cast[c_type_size * idx]), c_type_size);
-        memcpy(&result, &(c_pack_cast[c_type_size * idx]), c_type_size);
-        if (result != initial) {
+        int64_t element0 = 0;
+        int64_t element1 = 0;
+        memcpy(&element0, &(c_pack0_cast[c_type_size * idx]), c_type_size);
+        memcpy(&element1, &(c_pack1_cast[c_type_size * idx]), c_type_size);
+        if (element0 != element1) {
           SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
-                       "result [%zu, %zu, %zu] clobbered\n", i1, j1, i);
+                       "element [%zu, %zu, %zu] clobbered\n", i1, j1, i);
           t->status.verify_status = SKL_TEST_FAIL;
           return;
         }
@@ -200,12 +202,12 @@ static inline void skl_test_gemm_check_clobbered_rcprc(
           ? 0
           : (m1 - 1) * rsc1_adj + (n1 - 1) * csc1_adj + c_block_min_len;
   for (size_t idx = c_pack_min_len; idx < c_pack_len; ++idx) {
-    int64_t initial = 0;
-    int64_t result = 0;
-    memcpy(&initial, &(ref_c_cast[c_type_size * idx]), c_type_size);
-    memcpy(&result, &(c_pack_cast[c_type_size * idx]), c_type_size);
-    if (result != initial) {
-      SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR, "result [%zu] clobbered\n", idx);
+    int64_t element0 = 0;
+    int64_t element1 = 0;
+    memcpy(&element0, &(c_pack0_cast[c_type_size * idx]), c_type_size);
+    memcpy(&element1, &(c_pack1_cast[c_type_size * idx]), c_type_size);
+    if (element0 != element1) {
+      SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR, "element [%zu] clobbered\n", idx);
       t->status.verify_status = SKL_TEST_FAIL;
       return;
     }

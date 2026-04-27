@@ -193,8 +193,8 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_verify(skl_test_t *t) {
 
   /* Check for clobbered elements. */
   skl_test_gemm_check_clobbered_rcprc(t, sizeof(*c_pack), c_pack_len, m0, n0,
-                                      m1, n1, c_pack, rsc0, csc0, rsc1, csc1,
-                                      ref_c);
+                                      m1, n1, c_pack, ref_c, rsc0, csc0, rsc1,
+                                      csc1);
 }
 
 void gemm_f32rcprc_f32rcprc_f32rcprc_report_params(skl_test_t *t) {
