@@ -197,7 +197,7 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_verify(skl_test_t *t) {
                                       csc1);
 }
 
-void gemm_f32rcprc_f32rcprc_f32rcprc_report_params(skl_test_t *t) {
+void gemm_f32rcprc_f32rcprc_f32rcprc_test_report(skl_test_t *t) {
   gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
@@ -209,23 +209,15 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_report_params(skl_test_t *t) {
                h->beta);
 }
 
-void gemm_f32rcprc_f32rcprc_f32rcprc_report_perf(skl_test_t *t) {
+void gemm_f32rcprc_f32rcprc_f32rcprc_benchmark_report(skl_test_t *t) {
   gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
-  size_t maccs = h->m1 * h->n1 * h->k1 * h->m0 * h->n0 * h->k0;
+  gemm_f32rcprc_f32rcprc_f32rcprc_test_report(t);
 
+  size_t maccs = h->m1 * h->n1 * h->k1 * h->m0 * h->n0 * h->k0;
   gemm_rcprc_rcprc_rcprc_report_perf(t, h->steps.warmup, maccs,
                                      t->counters.cycles, t->counters.instret);
-}
-
-void gemm_f32rcprc_f32rcprc_f32rcprc_test_report(skl_test_t *t) {
-  gemm_f32rcprc_f32rcprc_f32rcprc_report_params(t);
-}
-
-void gemm_f32rcprc_f32rcprc_f32rcprc_benchmark_report(skl_test_t *t) {
-  gemm_f32rcprc_f32rcprc_f32rcprc_report_params(t);
-  gemm_f32rcprc_f32rcprc_f32rcprc_report_perf(t);
 }
 
 void gemm_f32rcprc_f32rcprc_f32rcprc_cleanup(skl_test_t *t) {
