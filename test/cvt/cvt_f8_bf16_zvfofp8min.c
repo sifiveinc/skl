@@ -63,17 +63,17 @@ static void execute_f8e5m2_bf16(skl_test_t *t);
 
 // clang-format off
 cvt_f8_bf16_t tests[] = {
-#ifdef SKL_ENABLE_BENCHMARKING
+#ifdef SKL_ENABLE_BENCHMARKS
     // Benchmark tests
     {BENCH_F8E4M3_BF16,    .len = 1024},
     {BENCH_F8E5M2_BF16,    .len = 1024,},
-#endif // SKL_ENABLE_BENCHMARKING
+#endif // SKL_ENABLE_BENCHMARKS
 
-#ifdef SKL_ENABLE_VALIDATION
+#ifdef SKL_ENABLE_TESTS
     // Verification tests
     {TEST_F8E4M3_BF16,     .len = 1024},
     {TEST_F8E5M2_BF16,     .len = 1024},
-#endif // SKL_ENABLE_VALIDATION
+#endif // SKL_ENABLE_TESTS
 };
 // clang-format on
 

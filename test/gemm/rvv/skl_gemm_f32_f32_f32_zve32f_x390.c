@@ -40,12 +40,12 @@ static void execute(skl_test_t *t);
 
 // clang-format off
 gemm_f32rc_f32rc_f32rc_t tests[] = {
-#ifdef SKL_ENABLE_BENCHMARKING
+#ifdef SKL_ENABLE_BENCHMARKS
     // Benchmark tests
     {BENCH, .m =  64, .n = 128, .k = 128},
-#endif // SKL_ENABLE_BENCHMARKING
+#endif // SKL_ENABLE_BENCHMARKS
 
-#ifdef SKL_ENABLE_VALIDATION
+#ifdef SKL_ENABLE_TESTS
     // Verification tests - comprehensive coverage for RVV GEMM
     /* Edge cases: minimal dimensions */
     {TEST, .m = 1,   .n = 1,   .k = 0},
@@ -71,7 +71,7 @@ gemm_f32rc_f32rc_f32rc_t tests[] = {
     {TEST, .m = 31,  .n = 133, .k = 32},
     /* Beta scaling test (beta=1, accumulate into existing C) */
     {TEST, .m = 32,  .n = 32,  .k = 32,  .beta = 1.f},
-#endif // SKL_ENABLE_VALIDATION
+#endif // SKL_ENABLE_TESTS
 };
 // clang-format on
 

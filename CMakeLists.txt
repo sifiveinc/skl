@@ -127,25 +127,15 @@ endif()
 
 set(SKL_TEST_LIBS skl-ref m)
 
-set(SKL_BUILD_TESTS OFF CACHE STRING "Enable building of validation tests and/or benchmarks.")
-message(STATUS "SKL_BUILD_TESTS: ${SKL_BUILD_TESTS}")
+set(SKL_ENABLE_TESTS OFF CACHE STRING "Enable building of validation tests.")
+message(STATUS "SKL_ENABLE_TESTS: ${SKL_ENABLE_TESTS}")
 
-set(SKL_BUILD_EXAMPLES OFF CACHE STRING "Enable building of examples.")
-message(STATUS "SKL_BUILD_EXAMPLES: ${SKL_BUILD_EXAMPLES}")
+set(SKL_ENABLE_BENCHMARKS OFF CACHE STRING "Enable building of performance benchmarks.")
+message(STATUS "SKL_ENABLE_BENCHMARKS: ${SKL_ENABLE_BENCHMARKS}")
 
-set(SKL_ENABLE_VALIDATION OFF CACHE STRING "Enable validation in tests and/or examples.")
-message(STATUS "SKL_ENABLE_VALIDATION: ${SKL_ENABLE_VALIDATION}")
-
-set(SKL_ENABLE_BENCHMARKING OFF CACHE STRING "Enable benchmarking in tests and/or examples.")
-message(STATUS "SKL_ENABLE_BENCHMARKING: ${SKL_ENABLE_BENCHMARKING}")
-
-if(SKL_BUILD_EXAMPLES)
+if(SKL_ENABLE_TESTS OR SKL_ENABLE_BENCHMARKS)
   enable_testing()
   add_subdirectory(example)
-endif()
-
-if(SKL_BUILD_TESTS)
-  enable_testing()
   add_subdirectory(test)
 endif()
 

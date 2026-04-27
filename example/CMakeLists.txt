@@ -1,9 +1,4 @@
 
-if(NOT SKL_ENABLE_VALIDATION AND NOT SKL_ENABLE_BENCHMARKING)
-  message(FATAL_ERROR "Examples require that either SKL_ENABLE_VALIDATION or SKL_ENABLE_BENCHMARKING is enabled.")
-endif()
-
-
 function(skl_add_example EXAMPLE_NAME EXAMPLE_SRCS REQUIRED_EXTENSIONS OPTS)
   # Only add the example if all extensions in REQUIRED_EXTENSIONS
   # are present in RISCV_EXTENSIONS.
@@ -31,11 +26,11 @@ function(skl_add_example EXAMPLE_NAME EXAMPLE_SRCS REQUIRED_EXTENSIONS OPTS)
       SKL_EXAMPLE_NAME=${EXAMPLE_NAME}
   )
 
-  if (SKL_ENABLE_VALIDATION)
-    target_compile_definitions(example-${EXAMPLE_NAME} PRIVATE SKL_ENABLE_VALIDATION)
+  if (SKL_ENABLE_TESTS)
+    target_compile_definitions(example-${EXAMPLE_NAME} PRIVATE SKL_ENABLE_TESTS)
   endif()
-  if (SKL_ENABLE_BENCHMARKING)
-    target_compile_definitions(example-${EXAMPLE_NAME} PRIVATE SKL_ENABLE_BENCHMARKING)
+  if (SKL_ENABLE_BENCHMARKS)
+    target_compile_definitions(example-${EXAMPLE_NAME} PRIVATE SKL_ENABLE_BENCHMARKS)
   endif()
   target_include_directories(example-${EXAMPLE_NAME}
     PRIVATE

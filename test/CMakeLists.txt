@@ -1,8 +1,4 @@
 
-if(NOT SKL_ENABLE_VALIDATION AND NOT SKL_ENABLE_BENCHMARKING)
-  message(FATAL_ERROR "Tests require that either SKL_ENABLE_VALIDATION or SKL_ENABLE_BENCHMARKING is enabled.")
-endif()
-
 # Set default configuration
 set(SKL_TEST_LOG_LEVEL SKL_TEST_LOG_INFO CACHE STRING "Test log level")
 message(STATUS "SKL_TEST_LOG_LEVEL: ${SKL_TEST_LOG_LEVEL}")
@@ -38,11 +34,11 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
   )
   target_include_directories(test-${TEST_NAME} PRIVATE . ../src)
 
-  if(SKL_ENABLE_VALIDATION)
-    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_VALIDATION)
+  if(SKL_ENABLE_TESTS)
+    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_TESTS)
   endif()
-  if(SKL_ENABLE_BENCHMARKING)
-    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_BENCHMARKING)
+  if(SKL_ENABLE_BENCHMARKS)
+    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_BENCHMARKS)
   endif()
 
   add_test(
