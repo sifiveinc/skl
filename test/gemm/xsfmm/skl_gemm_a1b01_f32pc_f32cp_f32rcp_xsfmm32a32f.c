@@ -1,0 +1,108 @@
+// Copyright 2026 SiFive, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
+#include "gemm/gemm_f32rcprc_f32rcprc_f32rcprc.h"
+#include "skl-test-driver.h"
+#include "skl.h"
+#include <stdbool.h>
+#include <stddef.h>
+
+#if !defined(__riscv_xsfmm32a32f)
+#error This file requires the Xsfmm32a32f extension
+#endif
+
+/**
+ * @brief Test cases for GEMM with Xsfmm32a32f extension.
+ *
+ * This test uses the gemm_f32rcprc_f32rcprc_f32rcprc harness with the following
+ * restrictions on the input parameters:
+ *  - Matrix A is column-major (rsa == 1)
+ *  - Matrix B is row-major (csb == 1)
+ *  - Matrix C is row-major (csc == 1)
+ *  - Alpha must be 1.0
+ *  - Beta must be 0.0 or 1.0
+ *
+ * The kernel computes C = A * B (beta=0) or C += A * B (beta=1).
+ */
+
+#define TEST                                                                   \
+  GEMM_F32RCPRC_F32RCPRC_F32RCPRC_DEFAULTS,                                    \
+      .steps = {                                                               \
+          .init = gemm_f32rcprc_f32rcprc_f32rcprc_init,                        \
+          .warmup = NULL,                                                      \
+          .execute = execute,                                                  \
+          .verify = gemm_f32rcprc_f32rcprc_f32rcprc_verify,                    \
+          .report = NULL,                                                      \
+          .cleanup = gemm_f32rcprc_f32rcprc_f32rcprc_cleanup,                  \
+  }
+#define BENCH                                                                  \
+  GEMM_F32RCPRC_F32RCPRC_F32RCPRC_DEFAULTS,                                    \
+      .steps = {                                                               \
+          .init = gemm_f32rcprc_f32rcprc_f32rcprc_init,                        \
+          .warmup = execute,                                                   \
+          .execute = execute,                                                  \
+          .verify = NULL,                                                      \
+          .report = gemm_f32rcprc_f32rcprc_f32rcprc_report,                    \
+          .cleanup = gemm_f32rcprc_f32rcprc_f32rcprc_cleanup,                  \
+  }
+static void execute(skl_test_t *t);
+
+// clang-format off
+gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
+#ifdef SKL_ENABLE_BENCHMARKS
+    // Benchmark tests
+#endif // SKL_ENABLE_BENCHMARKS
+
+#ifdef SKL_ENABLE_TESTS
+    // Verification tests - comprehensive coverage for Xsfmm A1B01 layout (TE=64)
+    /* Edge case: 1x1 matrix with k=0 (no computation, C = beta*C) */
+    {TEST, .m1 = 2, .n1 = 2, .k1 = 16, .alpha = 1.f, .beta = 0.f},
+#endif // SKL_ENABLE_TESTS
+};
+// clang-format on
+
+static skl_test_suite_t suite = {
+    .name = "skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f",
+    .num_tests = sizeof(tests) / sizeof(tests[0]),
+    .test_size = sizeof(gemm_f32rcprc_f32rcprc_f32rcprc_t),
+    .tests = tests};
+
+static void execute(skl_test_t *t) {
+  const gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
+      (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
+
+  // Call the kernel with the appropriate parameters
+  // The kernel signature is: (m, n, k, a, csa, b, rsb, c, rsc, accum)
+  // where accum = (beta != 0)
+  skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
+      h->m1, h->n1, h->k1 * h->k0, h->a_pack.data, h->rsa1, h->b_pack.data,
+      h->csb1, h->c_pack.data, h->rsc1, h->csc1, h->beta != 0.f);
+}
+
+int main(void) {
+  // Set default strides: A is column-major, B is row-major, C is row-major
+  size_t ete = 0;
+  __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
+  for (size_t i = 0; i < suite.num_tests; ++i) {
+    tests[i].m0 = ete;
+    tests[i].n0 = ete;
+    tests[i].k0 = 1;
+
+    tests[i].rsa0 = 1;
+    tests[i].csa0 = ete;
+    tests[i].csa1 = tests[i].m0 * tests[i].k0;
+    tests[i].rsa1 = tests[i].k1 * tests[i].csa1;
+
+    tests[i].rsb0 = ete;
+    tests[i].csb0 = 1;
+    tests[i].rsb1 = tests[i].k0 * tests[i].n0;
+    tests[i].csb1 = tests[i].k1 * tests[i].rsb1;
+
+    tests[i].rsc0 = ete;
+    tests[i].csc0 = 1;
+    tests[i].csc1 = tests[i].m0 * tests[i].n0;
+    tests[i].rsc1 = tests[i].n1 * tests[i].csc1;
+  }
+
+  return skl_test_driver_run_suite(&suite);
+}
