@@ -1,6 +1,11 @@
 // Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+/**
+ * @file skl_test_gemm.h
+ * @brief Functions shared among the GEMM test harnesses.
+ */
+
 #pragma once
 
 #include "skl-test-driver.h"
@@ -214,6 +219,29 @@ static inline void skl_test_gemm_check_clobbered_rcprc(
   }
 }
 
+/**
+ * @brief Print out the matrix dimensions and strides for a packed GEMM test.
+ *
+ * @param t - Test context.
+ * @param m0 - Number of rows in each block of matrices A and C.
+ * @param n0 - Number of columns in each block of matrices B and C.
+ * @param k0 - Number of columns in each block of A and rows in each block of B.
+ * @param m1 - Number of rows in A and C as block matrices.
+ * @param n1 - Number of columns in B and C as block matrices.
+ * @param k1 - Number of columns in A and rows in B as block matrices.
+ * @param rsa0 - Row stride within each block of A in elements.
+ * @param csa0 - Column stride within each block of A in elements.
+ * @param rsa1 - Row stride between blocks of A in elements.
+ * @param csa1 - Column stride between blocks of A in elements.
+ * @param rsb0 - Row stride within each block of B in elements.
+ * @param csb0 - Column stride within each block of B in elements.
+ * @param rsb1 - Row stride between blocks of B in elements.
+ * @param csb1 - Column stride between blocks of B in elements.
+ * @param rsc0 - Row stride within each block of C in elements.
+ * @param csc0 - Column stride within each block of C in elements.
+ * @param rsc1 - Row stride between blocks of C in elements.
+ * @param csc1 - Column stride between blocks of C in elements.
+ */
 static inline void gemm_rcprc_rcprc_rcprc_report_matrix_params(
     skl_test_t *t, size_t m0, size_t n0, size_t k0, size_t m1, size_t n1,
     size_t k1, size_t rsa0, size_t csa0, size_t rsa1, size_t csa1, size_t rsb0,
@@ -233,9 +261,17 @@ static inline void gemm_rcprc_rcprc_rcprc_report_matrix_params(
                csc1);
 }
 
+/**
+ * @brief Print out performance information for a packed GEMM test.
+ *
+ * @param t - Test context.
+ * @param warmup - Pointer to the test's warmup function.
+ * @param maccs - Number of multiply-accumulate operations performed.
+ * @param counters - The test's `counters` object.
+ */
 static inline void
-gemm_rcprc_rcprc_rcprc_report_perf(skl_test_t *t, bool warmup, size_t maccs,
-                                   skl_test_counters_t counters) {
+gemm_rcprc_rcprc_rcprc_report_perf(skl_test_t *t, void (*warmup)(skl_test_t *),
+                                   size_t maccs, skl_test_counters_t counters) {
   uint64_t cycles = counters.cycles;
   float mpc = (float)maccs / (float)cycles;
 
