@@ -278,5 +278,5 @@ gemm_rcprc_rcprc_rcprc_report_perf(skl_test_t *t, void (*warmup)(skl_test_t *),
   SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Warmup: %s\n", warmup ? "yes" : "no");
   SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Cycles: %zd\n", cycles);
   SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Instructions: %zd\n", counters.instret);
-  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "MACs/Cycle: %f\n", mpc);
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "MACCs/Cycle: %f\n", mpc);
 }
