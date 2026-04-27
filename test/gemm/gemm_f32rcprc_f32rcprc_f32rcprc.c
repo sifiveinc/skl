@@ -11,7 +11,7 @@
 #include "gemm_f32rcprc_f32rcprc_f32rcprc.h"
 #include "skl-ref.h"
 #include "skl-test-driver.h"
-#include "skl-test-gemm.h"
+#include "skl_test_gemm.h"
 #include <inttypes.h>
 #include <math.h>
 #include <stddef.h>

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "gemm/gemm_f32rcprc_f32rcprc_f32rcprc.h"
-#include "gemm/skl-test-gemm.h"
+#include "gemm/skl_test_gemm.h"
 #include "skl-test-driver.h"
 #include "skl.h"
 #include <stdbool.h>
