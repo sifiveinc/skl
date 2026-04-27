@@ -216,8 +216,7 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_benchmark_report(skl_test_t *t) {
   gemm_f32rcprc_f32rcprc_f32rcprc_test_report(t);
 
   size_t maccs = h->m1 * h->n1 * h->k1 * h->m0 * h->n0 * h->k0;
-  gemm_rcprc_rcprc_rcprc_report_perf(t, h->steps.warmup, maccs,
-                                     t->counters.cycles, t->counters.instret);
+  gemm_rcprc_rcprc_rcprc_report_perf(t, h->steps.warmup, maccs, t->counters);
 }
 
 void gemm_f32rcprc_f32rcprc_f32rcprc_cleanup(skl_test_t *t) {

@@ -233,14 +233,14 @@ static inline void gemm_rcprc_rcprc_rcprc_report_matrix_params(
                csc1);
 }
 
-static inline void gemm_rcprc_rcprc_rcprc_report_perf(skl_test_t *t,
-                                                      bool warmup, size_t maccs,
-                                                      size_t cycles,
-                                                      size_t instret) {
+static inline void
+gemm_rcprc_rcprc_rcprc_report_perf(skl_test_t *t, bool warmup, size_t maccs,
+                                   skl_test_counters_t counters) {
+  uint64_t cycles = counters.cycles;
   float mpc = (float)maccs / (float)cycles;
 
   SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Warmup: %s\n", warmup ? "yes" : "no");
   SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Cycles: %zd\n", cycles);
-  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Instructions: %zd\n", instret);
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Instructions: %zd\n", counters.instret);
   SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "MACs/Cycle: %f\n", mpc);
 }
