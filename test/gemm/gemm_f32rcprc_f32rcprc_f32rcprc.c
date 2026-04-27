@@ -197,20 +197,16 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_verify(skl_test_t *t) {
                                       ref_c);
 }
 
-#define INFO(fmt, ...) SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, fmt, __VA_ARGS__)
 void gemm_f32rcprc_f32rcprc_f32rcprc_report_params(skl_test_t *t) {
   gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
-  INFO("M0: %zd, N0: %zd, K0: %zd\n", h->m0, h->n0, h->k0);
-  INFO("M1: %zd, N1: %zd, K1: %zd\n", h->m1, h->n1, h->k1);
-  INFO("RSA0: %zd, CSA0: %zd, RSA1: %zd, CSA1: %zd\n", h->rsa0, h->csa0,
-       h->rsa1, h->csa1);
-  INFO("RSB0: %zd, CSB0: %zd, RSB1: %zd, CSB1: %zd\n", h->rsb0, h->csb0,
-       h->rsb1, h->csb1);
-  INFO("RSC0: %zd, CSC0: %zd, RSC1: %zd, CSC1: %zd\n", h->rsc0, h->csc0,
-       h->rsc1, h->csc1);
-  INFO("Alpha: %f, Beta: %f\n", h->alpha, h->beta);
+  gemm_rcprc_rcprc_rcprc_report_matrix_params(
+      t, h->m0, h->n0, h->k0, h->m1, h->n1, h->k1, h->rsa0, h->csa0, h->rsa1,
+      h->csa1, h->rsb0, h->csb0, h->rsb1, h->csb1, h->rsc0, h->csc0, h->rsc1,
+      h->csc1);
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Alpha: %f, Beta: %f\n", h->alpha,
+               h->beta);
 }
 
 void gemm_f32rcprc_f32rcprc_f32rcprc_report_perf(skl_test_t *t) {
@@ -218,14 +214,10 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_report_perf(skl_test_t *t) {
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
   size_t maccs = h->m1 * h->n1 * h->k1 * h->m0 * h->n0 * h->k0;
-  float mpc = (float)maccs / (float)t->counters.cycles;
 
-  INFO("Warmup: %s\n", h->steps.warmup ? "yes" : "no");
-  INFO("Cycles: %zd\n", t->counters.cycles);
-  INFO("Instructions: %zd\n", t->counters.instret);
-  INFO("MACs/Cycle: %f\n", mpc);
+  gemm_rcprc_rcprc_rcprc_report_perf(t, h->steps.warmup, maccs,
+                                     t->counters.cycles, t->counters.instret);
 }
-#undef INFO
 
 void gemm_f32rcprc_f32rcprc_f32rcprc_test_report(skl_test_t *t) {
   gemm_f32rcprc_f32rcprc_f32rcprc_report_params(t);

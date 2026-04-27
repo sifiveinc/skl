@@ -211,3 +211,34 @@ static inline void skl_test_gemm_check_clobbered_rcprc(
     }
   }
 }
+
+static inline void gemm_rcprc_rcprc_rcprc_report_matrix_params(
+    skl_test_t *t, size_t m0, size_t n0, size_t k0, size_t m1, size_t n1,
+    size_t k1, size_t rsa0, size_t csa0, size_t rsa1, size_t csa1, size_t rsb0,
+    size_t csb0, size_t rsb1, size_t csb1, size_t rsc0, size_t csc0,
+    size_t rsc1, size_t csc1) {
+
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "M0: %zd, N0: %zd, K0: %zd\n", m0, n0, k0);
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "M1: %zd, N1: %zd, K1: %zd\n", m1, n1, k1);
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO,
+               "RSA0: %zd, CSA0: %zd, RSA1: %zd, CSA1: %zd\n", rsa0, csa0, rsa1,
+               csa1);
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO,
+               "RSB0: %zd, CSB0: %zd, RSB1: %zd, CSB1: %zd\n", rsb0, csb0, rsb1,
+               csb1);
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO,
+               "RSC0: %zd, CSC0: %zd, RSC1: %zd, CSC1: %zd\n", rsc0, csc0, rsc1,
+               csc1);
+}
+
+static inline void gemm_rcprc_rcprc_rcprc_report_perf(skl_test_t *t,
+                                                      bool warmup, size_t maccs,
+                                                      size_t cycles,
+                                                      size_t instret) {
+  float mpc = (float)maccs / (float)cycles;
+
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Warmup: %s\n", warmup ? "yes" : "no");
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Cycles: %zd\n", cycles);
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Instructions: %zd\n", instret);
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "MACs/Cycle: %f\n", mpc);
+}
