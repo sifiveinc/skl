@@ -763,11 +763,11 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4x12_f16_f16_f32_zvfh_x390(
               [acc4] "+&vr"(acc4),
               [acc5] "+&vr"(acc5),
               [b_addr] "+&r"(b_addr),
-              [a_addr_1] "=r" (a_addr_1),
-              [a_addr_2] "=r" (a_addr_2),
-              [a_addr_3] "=r" (a_addr_3),
-              [a_addr_4] "=r" (a_addr_4),
-              [a_addr_5] "=r" (a_addr_5)
+              [a_addr_1] "=&r" (a_addr_1),
+              [a_addr_2] "=&r" (a_addr_2),
+              [a_addr_3] "=&r" (a_addr_3),
+              [a_addr_4] "=&r" (a_addr_4),
+              [a_addr_5] "=&r" (a_addr_5)
             : [jj_vl_in] "r"(jj_vl),
               [a_addr_0] "r" (a_addr_0),
               [rsa2] "r" (rsa * sizeof(_Float16)),
