@@ -26,7 +26,7 @@ Demonstrates efficient 2D convolution implementation using optimized GEMM kernel
 Examples are built alongside tests when `SKL_ENABLE_TESTS` and/or `SKL_ENABLE_BENCHMARKS` is defined:
 
 ```bash
-cmake -B build -DSKL_BUILD_EXAMPLES=ON -DSKL_ENABLE_BENCHMARKS=ON -DSKL_ENABLE_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake ..
+cmake -B build -DSKL_ENABLE_BENCHMARKS=ON -DSKL_ENABLE_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake ..
 cd build && cmake --build . --verbose
 ```
 
