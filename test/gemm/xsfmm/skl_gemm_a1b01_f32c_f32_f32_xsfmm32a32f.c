@@ -36,6 +36,7 @@
           .report = gemm_f32rcprc_f32rcprc_f32rcprc_test_report,               \
           .cleanup = gemm_f32rcprc_f32rcprc_f32rcprc_cleanup,                  \
   }
+
 #define BENCH                                                                  \
   GEMM_F32RCPRC_F32RCPRC_F32RCPRC_DEFAULTS,                                    \
       .steps = {                                                               \
