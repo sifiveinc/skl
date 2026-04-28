@@ -210,8 +210,8 @@ The example uses `is_conv2d_to_gemm_im2row_required()` from `conv2d_utils.h` to 
 The example can be built with different configurations:
 
 **Testing and Benchmarking Options:**
-- `ENABLE_TEST`: Includes correctness verification against reference implementation
-- `ENABLE_BENCHMARK`: Includes performance measurement using cycle counters
+- `SKL_ENABLE_TESTS`: Includes correctness verification against reference implementation
+- `SKL_ENABLE_BENCHMARKS`: Includes performance measurement using cycle counters
 
 **Transformation Selection Options:**
 - **Default configuration** (no `TEST_IM2ROW_GEMM`): Tests Direct GEMM transformation

@@ -116,7 +116,7 @@ add_skl_src(src/transpose/xsfmm/transpose_e16_xsfmmbase.c "xsfmmbase")
 add_skl_src(src/transpose/xsfmm/transpose_e32_xsfmmbase.c "xsfmmbase")
 add_skl_src(src/transpose/xsfmm/transpose_e8_xsfmmbase.c "xsfmmbase")
 
-# Optionally build library tests
+# Optionally build library tests and examples
 
 if(NOT DEFINED SKL_TESTER)
   set(SKL_TESTER "qemu-riscv64")
@@ -126,6 +126,20 @@ if(NOT DEFINED SKL_TESTER_OPTIONS)
 endif()
 
 set(SKL_TEST_LIBS skl-ref m)
+
+set(SKL_ENABLE_TESTS OFF CACHE STRING "Enable building of validation tests.")
+message(STATUS "SKL_ENABLE_TESTS: ${SKL_ENABLE_TESTS}")
+
+set(SKL_ENABLE_BENCHMARKS OFF CACHE STRING "Enable building of performance benchmarks.")
+message(STATUS "SKL_ENABLE_BENCHMARKS: ${SKL_ENABLE_BENCHMARKS}")
+
+if(SKL_ENABLE_TESTS OR SKL_ENABLE_BENCHMARKS)
+  enable_testing()
+  add_subdirectory(example)
+  add_subdirectory(test)
+endif()
+
+# --- Legacy ---
 
 function(skl_add_test_legacy TEST_NAME TEST_SRC OPTS)
   add_executable(test-${TEST_NAME} test/${TEST_SRC})
@@ -154,51 +168,8 @@ function(skl_add_test_legacy TEST_NAME TEST_SRC OPTS)
   )
 endfunction()
 
-function(skl_add_example EXAMPLE_NAME EXAMPLE_SRCS OPTS)
-  # Convert single source file to list for backward compatibility
-  if(NOT "${EXAMPLE_SRCS}" MATCHES ";")
-    set(EXAMPLE_SRCS_LIST "example/${EXAMPLE_SRCS}")
-  else()
-    # Handle multiple source files
-    set(EXAMPLE_SRCS_LIST "")
-    foreach(SRC ${EXAMPLE_SRCS})
-      list(APPEND EXAMPLE_SRCS_LIST "example/${SRC}")
-    endforeach()
-  endif()
-
-  add_executable(example-${EXAMPLE_NAME} ${EXAMPLE_SRCS_LIST})
-  target_link_libraries(example-${EXAMPLE_NAME}
-    PRIVATE
-      ${SKL_LIBRARY}
-      ${SKL_TEST_LIBS})
-  target_compile_options(example-${EXAMPLE_NAME} PRIVATE
-    ${SKL_COMPILE_OPTIONS}
-    ${SKL_TEST_COMPILE_OPTIONS}
-    ${OPTS}
-  )
-  target_compile_definitions(example-${EXAMPLE_NAME} PRIVATE SKL_EXAMPLE_NAME=${EXAMPLE_NAME})
-  if (SKL_BUILD_TESTS)
-    target_compile_definitions(example-${EXAMPLE_NAME} PRIVATE ENABLE_TEST)
-  endif()
-  if (SKL_BUILD_BENCHMARKS)
-    target_compile_definitions(example-${EXAMPLE_NAME} PRIVATE ENABLE_BENCHMARK)
-  endif()
-  target_include_directories(example-${EXAMPLE_NAME} PRIVATE test src example)
-  add_test(
-    NAME example-${EXAMPLE_NAME}
-    COMMAND
-    ${SKL_TESTER} ${SKL_TESTER_OPTIONS} $<TARGET_FILE:example-${EXAMPLE_NAME}>
-  )
-endfunction()
-
 if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   enable_testing()
-
-  # Examples
-  if("zve32f" IN_LIST RISCV_EXTENSIONS)
-    skl_add_example(skl_conv2d_io_nhwc_filter_hwio_im2row_gemm_f32_f32_f32_zve32f_x390 "conv2d/main.c;conv2d/conv2d_nhwc_f32.c" "-DTEST_IM2ROW_GEMM")
-    skl_add_example(skl_conv2d_io_nhwc_filter_hwio_direct_gemm_f32_f32_f32_zve32f_x390 "conv2d/main.c;conv2d/conv2d_nhwc_f32.c" "")
-  endif()
 
   if("zve32x" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_i8_i8_i32_zve32x_x390_wrapper gemm/gemm_i8rc_i8rc_i32rc.c
@@ -274,6 +245,4 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test_legacy(skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_wrapper gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
       "-DM0=1;-DN0=1;-DK0=4;-DM1=128;-DN1=128;-DK1=8;-DCSA1=(2 * K0);-DRSA1=(K1 * CSA1);-DRSB0=1;-DCSB0=0;-DALPHA=1;-DBETA=0;")
   endif()
-
-  add_subdirectory(test)
 endif()

@@ -67,7 +67,10 @@ jobs:
       run: |
         cmake -B ${{ github.workspace }}/build \
               -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
-              -DSKL_BUILD_TESTS=ON -DSKL_BUILD_BENCHMARKS=ON
+              -DSKL_BUILD_BENCHMARKS=ON \
+              -DSKL_BUILD_TESTS=ON \
+              -DSKL_ENABLE_BENCHMARKS=ON \
+              -DSKL_ENABLE_TESTS=ON
         cmake --build ${{ github.workspace }}/build --verbose
 
     - name: Run (tests and benchmarks)
@@ -78,7 +81,10 @@ jobs:
       run: |
         cmake -B ${{ github.workspace }}/build \
               -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
-              -DSKL_BUILD_TESTS=ON -DSKL_BUILD_BENCHMARKS=OFF
+              -DSKL_BUILD_BENCHMARKS=OFF \
+              -DSKL_BUILD_TESTS=ON \
+              -DSKL_ENABLE_BENCHMARKS=OFF \
+              -DSKL_ENABLE_TESTS=ON
         cmake --build ${{ github.workspace }}/build --verbose
 
     - name: Run (tests only)
@@ -89,7 +95,10 @@ jobs:
       run: |
         cmake -B ${{ github.workspace }}/build \
               -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
-              -DSKL_BUILD_TESTS=OFF -DSKL_BUILD_BENCHMARKS=ON
+              -DSKL_BUILD_BENCHMARKS=ON \
+              -DSKL_BUILD_TESTS=OFF \
+              -DSKL_ENABLE_BENCHMARKS=ON \
+              -DSKL_ENABLE_TESTS=OFF
         cmake --build ${{ github.workspace }}/build --verbose
 
     - name: Run (benchmarks only)
