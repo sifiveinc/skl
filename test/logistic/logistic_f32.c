@@ -26,6 +26,7 @@
 #define RUN_SCALAR 1
 #define RUN_RVV 1
 #define RUN_XSFVFEXPA 1
+#define RUN_XSFVFEXP32E 1
 #endif
 
 #if defined(ENABLE_TEST)
@@ -73,11 +74,16 @@ int main(void) {
   RUN(skl_logistic_4u_f32_xsfvfexpa, "xsfvfexpa", 4);
 #endif
 
+#if defined(__riscv_xsfvfexp32e) && defined(RUN_XSFVFEXP32E)
+  RUN(skl_logistic_4p13u_f32_xsfvfexp32e, "xsfvfexp32e", 5);
+#endif
+
 #if defined(RUN_SCALAR)
   RUN(skl_logistic_3u_f32_ref, "reference", 3)
 #endif
 
-#if !(defined(RUN_RVV) || defined(RUN_SCALAR) || defined(RUN_XSFVFEXPA))
+#if !(defined(RUN_RVV) || defined(RUN_SCALAR) || defined(RUN_XSFVFEXPA) ||     \
+      defined(RUN_XSFVFEXP32e))
 #error No tests or benchmarks enabled!
 #endif
 

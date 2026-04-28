@@ -84,6 +84,7 @@ add_skl_src(src/gemm/xsfvqdotq/pack_b_xsfvqdotq.c "zve32x")
 
 add_skl_src(src/logistic/logistic_f16_xsfvfexp16e.c "xsfvfexp16e")
 add_skl_src(src/logistic/logistic_f16_zvfh.c "zvfh")
+add_skl_src(src/logistic/logistic_f32_xsfvfexp32e.c "xsfvfexp32e")
 add_skl_src(src/logistic/logistic_f32_xsfvfexpa.c "xsfvfexpa")
 add_skl_src(src/logistic/logistic_f32_zve32f.c "zve32f")
 
