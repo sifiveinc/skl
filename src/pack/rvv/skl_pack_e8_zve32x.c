@@ -399,86 +399,202 @@ SKL_FUNC void skl_transpose_e8_zve32x(size_t m, size_t n,
   }
 }
 
-SKL_FUNC void skl_padd_zve32x(uint8_t * dst, size_t continuous, size_t skip, size_t pad_val, size_t n_section) {
-  if (skip == 0)
-  {
+SKL_FUNC void skl_padd_e8_zve32x(uint8_t *dst, size_t continuous, size_t stride,
+                                 uint8_t pad_val, size_t n_section) {
+  if (continuous == stride) {
     memset(dst, pad_val, continuous * n_section * sizeof(uint8_t));
+  } else if (continuous <= 8) {
+
+    vuint8m1_t padd_vec0 =
+        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t padd_vec1 =
+        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t padd_vec2 =
+        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t padd_vec3 =
+        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t padd_vec4 =
+        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t padd_vec5 =
+        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t padd_vec6 =
+        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t padd_vec7 =
+        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
+
+    switch (continuous) {
+    case 1:
+      vuint8m8_t padd_vec_group1 = __riscv_vcreate_v_u8m1_u8m8(
+          padd_vec0, padd_vec1, padd_vec2, padd_vec3, padd_vec4, padd_vec5,
+          padd_vec6, padd_vec7);
+      for (size_t vl = 0, avl = n_section; avl > 0; avl -= vl) {
+        vl = __riscv_vsetvl_e8m8(avl);
+        __riscv_vsse8_v_u8m8(dst, stride * sizeof(uint8_t), padd_vec_group1,
+                             vl);
+        dst += vl * stride;
+      }
+      break;
+    case 2:
+      vuint8m4x2_t padd_vec_group2 = __riscv_vcreate_v_u8m4x2(
+          __riscv_vcreate_v_u8m1_u8m4(padd_vec0, padd_vec1, padd_vec2,
+                                      padd_vec3),
+          __riscv_vcreate_v_u8m1_u8m4(padd_vec4, padd_vec5, padd_vec6,
+                                      padd_vec7));
+      for (size_t vl = 0, avl = n_section; avl > 0; avl -= vl) {
+        vl = __riscv_vsetvl_e8m4(avl);
+        __riscv_vssseg2e8_v_u8m4x2(dst, stride * sizeof(uint8_t),
+                                   padd_vec_group2, vl);
+        dst += vl * stride;
+      }
+      break;
+    case 3:
+      vuint8m2x3_t padd_vec_group3 = __riscv_vcreate_v_u8m2x3(
+          __riscv_vcreate_v_u8m1_u8m2(padd_vec0, padd_vec1),
+          __riscv_vcreate_v_u8m1_u8m2(padd_vec2, padd_vec3),
+          __riscv_vcreate_v_u8m1_u8m2(padd_vec4, padd_vec5));
+      for (size_t vl = 0, avl = n_section; avl > 0; avl -= vl) {
+        vl = __riscv_vsetvl_e8m2(avl);
+        __riscv_vssseg3e8_v_u8m2x3(dst, stride * sizeof(uint8_t),
+                                   padd_vec_group3, vl);
+        dst += vl * stride;
+      }
+      break;
+    case 4:
+      vuint8m2x4_t padd_vec_group4 = __riscv_vcreate_v_u8m2x4(
+          __riscv_vcreate_v_u8m1_u8m2(padd_vec0, padd_vec1),
+          __riscv_vcreate_v_u8m1_u8m2(padd_vec2, padd_vec3),
+          __riscv_vcreate_v_u8m1_u8m2(padd_vec4, padd_vec5),
+          __riscv_vcreate_v_u8m1_u8m2(padd_vec6, padd_vec7));
+      for (size_t vl = 0, avl = n_section; avl > 0; avl -= vl) {
+        vl = __riscv_vsetvl_e8m2(avl);
+        __riscv_vssseg4e8_v_u8m2x4(dst, stride * sizeof(uint8_t),
+                                   padd_vec_group4, vl);
+        dst += vl * stride;
+      }
+      break;
+    case 5:
+      vuint8m1x5_t padd_vec_group5 = __riscv_vcreate_v_u8m1x5(
+          padd_vec0, padd_vec1, padd_vec2, padd_vec3, padd_vec4);
+      for (size_t vl = 0, avl = n_section; avl > 0; avl -= vl) {
+        vl = __riscv_vsetvl_e8m1(avl);
+        __riscv_vssseg5e8_v_u8m1x5(dst, stride * sizeof(uint8_t),
+                                   padd_vec_group5, vl);
+        dst += vl * stride;
+      }
+      break;
+    case 6:
+      vuint8m1x6_t padd_vec_group6 = __riscv_vcreate_v_u8m1x6(
+          padd_vec0, padd_vec1, padd_vec2, padd_vec3, padd_vec4, padd_vec5);
+      for (size_t vl = 0, avl = n_section; avl > 0; avl -= vl) {
+        vl = __riscv_vsetvl_e8m1(avl);
+        __riscv_vssseg6e8_v_u8m1x6(dst, stride * sizeof(uint8_t),
+                                   padd_vec_group6, vl);
+        dst += vl * stride;
+      }
+      break;
+    case 7:
+      vuint8m1x7_t padd_vec_group7 =
+          __riscv_vcreate_v_u8m1x7(padd_vec0, padd_vec1, padd_vec2, padd_vec3,
+                                   padd_vec4, padd_vec5, padd_vec6);
+      for (size_t vl = 0, avl = n_section; avl > 0; avl -= vl) {
+        vl = __riscv_vsetvl_e8m1(avl);
+        __riscv_vssseg7e8_v_u8m1x7(dst, stride * sizeof(uint8_t),
+                                   padd_vec_group7, vl);
+        dst += vl * stride;
+      }
+      break;
+    case 8:
+      vuint8m1x8_t padd_vec_group8 =
+          __riscv_vcreate_v_u8m1x8(padd_vec0, padd_vec1, padd_vec2, padd_vec3,
+                                   padd_vec4, padd_vec5, padd_vec6, padd_vec7);
+      for (size_t vl = 0, avl = n_section; avl > 0; avl -= vl) {
+        vl = __riscv_vsetvl_e8m1(avl);
+        __riscv_vssseg8e8_v_u8m1x8(dst, stride * sizeof(uint8_t),
+                                   padd_vec_group8, vl);
+        dst += vl * stride;
+      }
+      break;
+    default:
+      break;
+    }
   } else {
-    //TODO
+    for (size_t i = 0; i < n_section; ++i) {
+      memset(dst, pad_val, continuous * sizeof(uint8_t));
+      dst += stride;
+    }
   }
-  
 }
 
-
-
-
 SKL_FUNC void skl_pack_rcbrc_e8_zve32x(
-  size_t m,           // Num. rows in input matrix
-  size_t n,           // Num. columns in input matrix
-  const uint8_t* src,  // Input matrix
-  size_t rs,          // Row stride of input matrix
-  size_t cs,          // Column stride of input matrix
-  size_t m0,          // Num. rows in a block of the input matrix
-  size_t n0,          // Num. columns in a block of the input matrix
-  uint8_t* dst,        // Output packed matrix [m1 x n1]
-  size_t rs0,         // Row stride within a block of the output matrix
-  size_t cs0,         // Column stride within a block of the output matrix
-  size_t rs1,         // Row stride between blocks of the output matrix
-  size_t cs1          // Column stride between blocks of the output matrix
+    size_t m,           // Num. rows in input matrix
+    size_t n,           // Num. columns in input matrix
+    const uint8_t *src, // Input matrix
+    size_t rs,          // Row stride of input matrix
+    size_t cs,          // Column stride of input matrix
+    size_t m0,          // Num. rows in a block of the input matrix
+    size_t n0,          // Num. columns in a block of the input matrix
+    uint8_t *dst,       // Output packed matrix [m1 x n1]
+    size_t rs0,         // Row stride within a block of the output matrix
+    size_t cs0,         // Column stride within a block of the output matrix
+    size_t rs1,         // Row stride between blocks of the output matrix
+    size_t cs1          // Column stride between blocks of the output matrix
 ) {
-
 
   size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the input matrix
   size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the input matrix
 
-  if (cs0 * n0 == cs1 ) {
-  
+  if ((cs0 * n0 == cs1) && (cs == 1 && rs0 == 1)) {
     for (size_t ii1 = 0; ii1 < m1; ++ii1) {
-      const uint8_t* src_block = src + ii1 * m0 * rs;
-      uint8_t* dst_block = dst + ii1 * rs1;
-      if ( m - ii1*m0 >= m0){
+      const uint8_t *src_block = src + ii1 * m0 * rs;
+      uint8_t *dst_block = dst + ii1 * rs1;
+      if (ii1 != m1 - 1) {
         skl_transpose_e8_zve32x(m0, n, src_block, rs, dst_block, cs0);
-        if(n % n0){
-          // FIXME: it's only work when cs0 == m0
-          // modify it to skl_padd_zve32x(dst_block + n1 * cs1 - (n % n0) * m0, m0, cs0 - m0, 0, n % n0);
-          memset(dst_block + n1 * cs1 - (n % n0) * m0, 0, (n % n0) * m0 * sizeof(uint8_t));
+        if (n % n0) {
+          // padd right
+          skl_padd_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), m0,
+                             cs0, 0, n0 - n % n0);
         }
-      }
-      else {
-        skl_transpose_e8_zve32x(m - ii1*m0 , n, src_block, rs, dst_block, cs0);
-        if(n % n0){
-          memset(dst_block + n1 * cs1 - (n % n0) * m0, 0, (n % n0) * m0 * sizeof(uint8_t));
+      } else {
+        skl_transpose_e8_zve32x(m - ii1 * m0, n, src_block, rs, dst_block, cs0);
+        if (n % n0) {
+          // padd right (bottom included)
+          skl_padd_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), m0,
+                             cs0, 0, n0 - n % n0);
         }
-        buttom_padd();
+        // padd bottom
+        skl_padd_e8_zve32x(dst_block + m % m0, m0 - m % m0, cs0, 0, n);
       }
     }
     return;
   }
-  
+
   for (size_t ii1 = 0; ii1 < m1; ++ii1) {
     for (size_t jj1 = 0; jj1 < n1; ++jj1) {
-      const uint8_t* src_block = src + ii1 * m0 * rs + jj1 * n0 * cs;
-      uint8_t* dst_block = dst + ii1 * rs1 + jj1 * cs1;
+      const uint8_t *src_block = src + ii1 * m0 * rs + jj1 * n0 * cs;
+      uint8_t *dst_block = dst + ii1 * rs1 + jj1 * cs1;
 
-      if(rs == 1 && cs0 == 1) {
+      if (rs == 1 && cs0 == 1) {
         if (not fringe)
-          skl_transpose_e8_zve32x(n0, m0, src_block, cs, dst_block, rs0); 
+          skl_transpose_e8_zve32x(n0, m0, src_block, cs, dst_block, rs0);
         else
-          skl_transpose_e8_zve32x(remain_n0, remain_m0, src_block, cs, dst_block, rs0); 
+          skl_transpose_e8_zve32x(remain_n0, remain_m0, src_block, cs,
+                                  dst_block, rs0);
       } else if (cs == 1 && rs0 == 1) {
         if (not fringe)
-          skl_transpose_e8_zve32x(m0, n0, src_block, rs, dst_block, cs0); 
+          skl_transpose_e8_zve32x(m0, n0, src_block, rs, dst_block, cs0);
         else
-          skl_transpose_e8_zve32x(remain_m0, remain_n0, src_block, rs, dst_block, cs0);
-      }
+          skl_transpose_e8_zve32x(remain_m0, remain_n0, src_block, rs,
+                                  dst_block, cs0);
+      } else {
 
-      for (size_t ii0 = 0; ii0 < m0; ++ii0) {
-        for (size_t jj0 = 0; jj0 < n0; ++jj0) {
-          if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
-            dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0 * cs];
-          } else {
-            // Pad with zeros
-            dst_block[ii0 * rs0 + jj0 * cs0] = 0;
+        for (size_t ii0 = 0; ii0 < m0; ++ii0) {
+          for (size_t jj0 = 0; jj0 < n0; ++jj0) {
+            if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
+              dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0 * cs];
+            } else {
+              // Pad with zeros
+              dst_block[ii0 * rs0 + jj0 * cs0] = 0;
+            }
           }
         }
       }
