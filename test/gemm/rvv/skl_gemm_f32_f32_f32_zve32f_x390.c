@@ -1,3 +1,6 @@
+// Copyright 2026 SiFive, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 #include "gemm/gemm_f32rcprc_f32rcprc_f32rcprc.h"
 #include "skl-test-driver.h"
 #include "skl.h"
