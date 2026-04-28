@@ -64,7 +64,7 @@ gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
     {TEST, .m1 = 33,  .n1 = 1,   .k1 = 31, .alpha = 1.f},
     /* k=0 edge case (C = beta*C, no A*B contribution) */
     {TEST, .m1 = 33,  .n1 = 33,  .k1 = 0,  .alpha = 1.f},
-    {TEST, .m1 = 16,  .n1 = 16,  .k1 = 0,  .alpha = 1.f,   .beta = 1.f},
+    {TEST, .m1 = 16,  .n1 = 16,  .k1 = 0,  .alpha = 1.f,  .beta = 1.f},
     /* Vector length boundary tests (multiples of 4, 8, 16, 32) */
     {TEST, .m1 = 16,  .n1 = 16,  .k1 = 16, .alpha = 1.f},
     {TEST, .m1 = 32,  .n1 = 32,  .k1 = 32, .alpha = 1.f},

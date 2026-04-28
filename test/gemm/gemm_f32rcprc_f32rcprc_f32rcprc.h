@@ -1,8 +1,6 @@
 // Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-#pragma once
-
 /**
  * @brief Test and benchmark for packed GEMM: C_pack = alpha * A_pack * B_pack +
  * beta * C_pack.
@@ -13,7 +11,7 @@
  *  - Packed matrix dimensions m1, n1, and k1
  *  - Scalar coefficients alpha and beta
  *  - Row and column strides (rsa0, csa0, rsa1, csa1, rsb0, csb0, rsb1, csb1,
- * rsc0, csc0, rsc1, csc1)
+ *    rsc0, csc0, rsc1, csc1)
  *  - The GEMM kernel function to test
  *
  * Matrix layouts:
@@ -24,6 +22,8 @@
  *  - C_pack is packed m1 x n1 with block size m0 x n0 and strides rsc0, csc0,
  *    rsc1, csc1
  */
+
+#pragma once
 
 #include "skl-test-driver.h"
 #include <stdbool.h>

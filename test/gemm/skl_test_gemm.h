@@ -9,6 +9,7 @@
 #pragma once
 
 #include "skl-test-driver.h"
+#include <inttypes.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -98,14 +99,14 @@ static inline void skl_test_check_matrix_params_rcprc(skl_test_t *t, size_t m0,
  * @param csc1 - Column stride between blocks of C_pack0 and C_pack1 in
  *               elements.
  *
- * C_pack0 and C_pack1 are matrices stored in arrays with c_pack_len elements of
- * size c_type_size bytes. The elements of the matrices are indexed by i1 * rsc1
- * + j1 * csc1 + i0 * rsc0 + j0 * csc0, 0 <= i1 < m1, 0 <= j1 < n1, 0 <= i0 <
- * m0, 0 <= j0 < n0. This function checks that the arrays pointed to by c_pack0
- * and c_pack1 are identical outside of the above indices and updates the
- * verify_status of t.
+ * C_pack0 and C_pack1 are packed matrices stored in arrays with c_pack_len
+ * elements of size c_type_size bytes. The elements of the matrices are indexed
+ * by i1 * rsc1 + j1 * csc1 + i0 * rsc0 + j0 * csc0, 0 <= i1 < m1, 0 <= j1 < n1,
+ * 0 <= i0 < m0, 0 <= j0 < n0. This function checks that the arrays pointed to
+ * by c_pack0 and c_pack1 are identical outside of the above indices and updates
+ * the verify_status of t.
  */
-static inline void skl_test_gemm_check_clobbered_rcprc(
+static inline void skl_test_check_matrix_clobbered_rcprc(
     skl_test_t *t, size_t c_type_size, size_t c_pack_len, size_t m0, size_t n0,
     size_t m1, size_t n1, void *c_pack0, void *c_pack1, size_t rsc0,
     size_t csc0, size_t rsc1, size_t csc1) {
@@ -223,24 +224,25 @@ static inline void skl_test_gemm_check_clobbered_rcprc(
  * @brief Print out the matrix dimensions and strides for a packed GEMM test.
  *
  * @param t - Test context.
- * @param m0 - Number of rows in each block of matrices A and C.
- * @param n0 - Number of columns in each block of matrices B and C.
- * @param k0 - Number of columns in each block of A and rows in each block of B.
- * @param m1 - Number of rows in A and C as block matrices.
- * @param n1 - Number of columns in B and C as block matrices.
- * @param k1 - Number of columns in A and rows in B as block matrices.
- * @param rsa0 - Row stride within each block of A in elements.
- * @param csa0 - Column stride within each block of A in elements.
- * @param rsa1 - Row stride between blocks of A in elements.
- * @param csa1 - Column stride between blocks of A in elements.
- * @param rsb0 - Row stride within each block of B in elements.
- * @param csb0 - Column stride within each block of B in elements.
- * @param rsb1 - Row stride between blocks of B in elements.
- * @param csb1 - Column stride between blocks of B in elements.
- * @param rsc0 - Row stride within each block of C in elements.
- * @param csc0 - Column stride within each block of C in elements.
- * @param rsc1 - Row stride between blocks of C in elements.
- * @param csc1 - Column stride between blocks of C in elements.
+ * @param m0 - Number of rows in each block of matrices A_pack and C_pack.
+ * @param n0 - Number of columns in each block of matrices B_pack and C_pack.
+ * @param k0 - Number of columns in each block of A_pack and rows in each block
+ *             of B_pack.
+ * @param m1 - Number of rows in A_pack and C_pack as block matrices.
+ * @param n1 - Number of columns in B_pack and C_pack as block matrices.
+ * @param k1 - Number of columns in A_pack and rows in B_pack as block matrices.
+ * @param rsa0 - Row stride within each block of A_pack in elements.
+ * @param csa0 - Column stride within each block of A_pack in elements.
+ * @param rsa1 - Row stride between blocks of A_pack in elements.
+ * @param csa1 - Column stride between blocks of A_pack in elements.
+ * @param rsb0 - Row stride within each block of B_pack in elements.
+ * @param csb0 - Column stride within each block of B_pack in elements.
+ * @param rsb1 - Row stride between blocks of B_pack in elements.
+ * @param csb1 - Column stride between blocks of B_pack in elements.
+ * @param rsc0 - Row stride within each block of C_pack in elements.
+ * @param csc0 - Column stride within each block of C_pack in elements.
+ * @param rsc1 - Row stride between blocks of C_pack in elements.
+ * @param csc1 - Column stride between blocks of C_pack in elements.
  */
 static inline void gemm_rcprc_rcprc_rcprc_report_matrix_params(
     skl_test_t *t, size_t m0, size_t n0, size_t k0, size_t m1, size_t n1,
@@ -248,16 +250,16 @@ static inline void gemm_rcprc_rcprc_rcprc_report_matrix_params(
     size_t csb0, size_t rsb1, size_t csb1, size_t rsc0, size_t csc0,
     size_t rsc1, size_t csc1) {
 
-  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "M0: %zd, N0: %zd, K0: %zd\n", m0, n0, k0);
-  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "M1: %zd, N1: %zd, K1: %zd\n", m1, n1, k1);
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "M0: %zu, N0: %zu, K0: %zu\n", m0, n0, k0);
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "M1: %zu, N1: %zu, K1: %zu\n", m1, n1, k1);
   SKL_TEST_LOG(t, SKL_TEST_LOG_INFO,
-               "RSA0: %zd, CSA0: %zd, RSA1: %zd, CSA1: %zd\n", rsa0, csa0, rsa1,
+               "RSA0: %zu, CSA0: %zu, RSA1: %zu, CSA1: %zu\n", rsa0, csa0, rsa1,
                csa1);
   SKL_TEST_LOG(t, SKL_TEST_LOG_INFO,
-               "RSB0: %zd, CSB0: %zd, RSB1: %zd, CSB1: %zd\n", rsb0, csb0, rsb1,
+               "RSB0: %zu, CSB0: %zu, RSB1: %zu, CSB1: %zu\n", rsb0, csb0, rsb1,
                csb1);
   SKL_TEST_LOG(t, SKL_TEST_LOG_INFO,
-               "RSC0: %zd, CSC0: %zd, RSC1: %zd, CSC1: %zd\n", rsc0, csc0, rsc1,
+               "RSC0: %zu, CSC0: %zu, RSC1: %zu, CSC1: %zu\n", rsc0, csc0, rsc1,
                csc1);
 }
 
@@ -265,9 +267,8 @@ static inline void gemm_rcprc_rcprc_rcprc_report_matrix_params(
  * @brief Print out performance information for a packed GEMM test.
  *
  * @param t - Test context.
- * @param warmup - Pointer to the test's warmup function.
+ * @param warmup - Pointer to the test harness's warmup function.
  * @param maccs - Number of multiply-accumulate operations performed.
- * @param counters - The test's `counters` object.
  */
 static inline void
 gemm_rcprc_rcprc_rcprc_report_perf(skl_test_t *t, void (*warmup)(skl_test_t *),
@@ -276,8 +277,8 @@ gemm_rcprc_rcprc_rcprc_report_perf(skl_test_t *t, void (*warmup)(skl_test_t *),
   float mpc = (float)maccs / (float)cycles;
 
   SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Warmup: %s\n", warmup ? "yes" : "no");
-  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Cycles: %zd\n", cycles);
-  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Instructions: %zd\n",
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Cycles: %" PRIu64 "\n", cycles);
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Instructions: %" PRIu64 "\n",
                t->counters.instret);
   SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "MACCs/Cycle: %f\n", mpc);
 }
