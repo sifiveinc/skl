@@ -75,7 +75,7 @@ int main(void) {
 #endif
 
 #if defined(__riscv_xsfvfexp32e) && defined(RUN_XSFVFEXP32E)
-  RUN(skl_logistic_4p13u_f32_xsfvfexp32e, "xsfvfexp32e", 5);
+  RUN(skl_logistic_5u_f32_xsfvfexp32e, "xsfvfexp32e", 5);
 #endif
 
 #if defined(RUN_SCALAR)

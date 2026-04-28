@@ -31,7 +31,7 @@ SKL_FUNC void skl_logistic_5u_f32_xsfvfexp32e(float *out, const float *in,
       /* 2. Compute o = exp(a) and p = exp(e) */
       "\t   sf.vfexp.v v16, v16          \n"
       "\t   sf.vfexp.v v24, v24          \n"
-      "\t   vmsgt.vi    v0,  v8, 0       \n"
+      "\t   vmslt.vi    v0,  v8, 0       \n"
       "\t   vfadd.vv    v8, v16, v24     \n"
       /* 3. Assemble numerator: n = x>0 ? p : o */
       "\t   vmerge.vvm v16, v16, v24, v0 \n"
