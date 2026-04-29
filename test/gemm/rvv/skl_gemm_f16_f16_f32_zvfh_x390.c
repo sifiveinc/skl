@@ -13,7 +13,7 @@
 #endif
 
 /**
- * @brief Test cases for GEMM with Zvfh extension.
+ * @brief Test cases for the skl_gemm_f16_f16_f32_zvfh_x390 kernel.
  *
  * This test uses the gemm_f16rcprc_f16rcprc_f32rcprc harness with the following
  * restrictions on the input parameters:
@@ -56,29 +56,40 @@ gemm_f16rcprc_f16rcprc_f32rcprc_t tests[] = {
 #ifdef SKL_ENABLE_TESTS
     // Verification tests - comprehensive coverage for RVV GEMM
     /* Edge cases: minimal dimensions */
-    {TEST, .m1 = 1,   .n1 = 1,   .k1 = 0,  .alpha = 1.f},
-    {TEST, .m1 = 1,   .n1 = 1,   .k1 = 1,  .alpha = 1.f},
+    {TEST, .m1 = 1,   .n1 = 1,   .k1 = 0,  .alpha = 2.f},
+    {TEST, .m1 = 1,   .n1 = 1,   .k1 = 1,  .alpha = 2.f},
+
     /* Small odd dimensions for remainder handling */
-    {TEST, .m1 = 7,   .n1 = 7,   .k1 = 7,  .alpha = 1.f},
-    {TEST, .m1 = 17,  .n1 = 17,  .k1 = 17, .alpha = 1.f},
-    /* Skinny matrices (one dimension = 1) */
-    {TEST, .m1 = 1,   .n1 = 33,  .k1 = 31, .alpha = 1.f},
-    {TEST, .m1 = 33,  .n1 = 1,   .k1 = 31, .alpha = 1.f},
-    /* k=0 edge case (C = beta*C, no A*B contribution) */
-    {TEST, .m1 = 33,  .n1 = 33,  .k1 = 0,  .alpha = 1.f},
-    {TEST, .m1 = 16,  .n1 = 16,  .k1 = 0,  .alpha = 1.f,  .beta = 1.f},
+    {TEST, .m1 = 7,   .n1 = 7,   .k1 = 7,  .alpha = 2.f},
+    {TEST, .m1 = 17,  .n1 = 17,  .k1 = 17, .alpha = 2.f},
+
+    /* GEMV (m1 == 1) */
+    {TEST, .m1 = 1,   .n1 = 255, .k1 = 12, .alpha = 2.f},
+    {TEST, .m1 = 1,   .n1 = 256, .k1 = 12, .alpha = 2.f},
+    {TEST, .m1 = 1,   .n1 = 257, .k1 = 12, .alpha = 2.f},
+    {TEST, .m1 = 1,   .n1 = 255, .k1 = 31, .alpha = 2.f},
+    {TEST, .m1 = 1,   .n1 = 256, .k1 = 31, .alpha = 2.f},
+    {TEST, .m1 = 1,   .n1 = 257, .k1 = 31, .alpha = 2.f},
+
+    /* k1 == 0 edge case (C = beta*C, no A*B contribution) */
+    {TEST, .m1 =  1,  .n1 = 33,  .k1 = 0,  .alpha = 2.f,  .beta = 2.f},
+    {TEST, .m1 = 16,  .n1 = 16,  .k1 = 0,  .alpha = 2.f,  .beta = 2.f},
+
     /* Vector length boundary tests (multiples of 4, 8, 16, 32) */
-    {TEST, .m1 = 16,  .n1 = 16,  .k1 = 16, .alpha = 1.f},
-    {TEST, .m1 = 32,  .n1 = 32,  .k1 = 32, .alpha = 1.f},
+    {TEST, .m1 = 16,  .n1 = 16,  .k1 = 16, .alpha = 2.f},
+    {TEST, .m1 = 32,  .n1 = 32,  .k1 = 32, .alpha = 2.f},
+
     /* Near-boundary tests (±1 from vector length multiples) */
-    {TEST, .m1 = 15,  .n1 = 17,  .k1 = 31, .alpha = 1.f},
-    {TEST, .m1 = 31,  .n1 = 33,  .k1 = 15, .alpha = 1.f},
+    {TEST, .m1 = 15,  .n1 = 17,  .k1 = 31, .alpha = 2.f},
+    {TEST, .m1 = 31,  .n1 = 33,  .k1 = 15, .alpha = 2.f},
+
     /* Wide and tall matrices */
-    {TEST, .m1 = 33,  .n1 = 129, .k1 = 32, .alpha = 1.f},
-    {TEST, .m1 = 129, .n1 = 33,  .k1 = 32, .alpha = 1.f},
-    {TEST, .m1 = 31,  .n1 = 133, .k1 = 32, .alpha = 1.f},
-    /* Beta scaling test (beta=1, accumulate into existing C) */
-    {TEST, .m1 = 32,  .n1 = 32,  .k1 = 32, .alpha = 1.f,  .beta = 1.f},
+    {TEST, .m1 = 33,  .n1 = 129, .k1 = 32, .alpha = 2.f},
+    {TEST, .m1 = 129, .n1 = 33,  .k1 = 32, .alpha = 2.f},
+    {TEST, .m1 = 31,  .n1 = 133, .k1 = 32, .alpha = 2.f},
+
+    /* No beta scaling tests (beta=1, accumulate into existing C) */
+    {TEST, .m1 = 32,  .n1 = 32,  .k1 = 32, .alpha = 2.f,  .beta = 1.f},
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on
