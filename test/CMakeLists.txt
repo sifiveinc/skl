@@ -185,3 +185,10 @@ skl_add_test(
   "zve32x"
   ""
 )
+skl_add_test(
+  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq
+  gemm/gemm_i8rcp_i8pc_i32_xsfvqdotq.c
+  gemm/xsfvqdotq/skl_gemm_i8rcp_i8pc_i32_xsfvqdotq.c
+  "xsfvqdotq"
+  ""
+)
