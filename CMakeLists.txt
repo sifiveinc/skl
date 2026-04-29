@@ -232,10 +232,6 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test_legacy(skl_gemm_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f_wrapper gemm/gemm_f16rcprc_f16rcprc_f32rcprc.c
       "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
   endif()
-  if("xsfmm32a32f" IN_LIST RISCV_EXTENSIONS)
-    skl_add_test_legacy(skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f_wrapper gemm/gemm_f32rcprc_f32rcprc_f32rcprc.c
-      "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
-  endif()
   if("xsfmmbase" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_transpose_e16_xsfmmbase transpose/transpose_e16.c "")
     skl_add_test_legacy(skl_transpose_e32_xsfmmbase transpose/transpose_e32.c "")

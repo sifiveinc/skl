@@ -120,15 +120,22 @@ skl_add_test(
 )
 skl_add_test(
   skl_gemm_f32_f32_f32_zve32f_x390
-  gemm/gemm_f32rc_f32rc_f32rc.c
+  gemm/gemm_f32rcprc_f32rcprc_f32rcprc.c
   gemm/rvv/skl_gemm_f32_f32_f32_zve32f_x390.c
   "zve32f"
   ""
 )
 skl_add_test(
   skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f
-  gemm/gemm_f32rc_f32rc_f32rc.c
+  gemm/gemm_f32rcprc_f32rcprc_f32rcprc.c
   gemm/xsfmm/skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f.c
+  "xsfmm32a32f"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f
+  gemm/gemm_f32rcprc_f32rcprc_f32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f.c
   "xsfmm32a32f"
   ""
 )
