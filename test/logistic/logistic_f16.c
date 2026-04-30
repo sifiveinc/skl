@@ -1,4 +1,4 @@
-// Copyright 2026 SiFive, Inc.
+// Copyright (c) 2026 SiFive, Inc. All rights reserved.
 #if !defined(ENABLE_TEST) && !defined(ENABLE_BENCHMARK)
 #error Must define at least one of ENABLE_TEST or ENABLE_BENCHMARK
 #endif

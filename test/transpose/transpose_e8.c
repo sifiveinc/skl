@@ -1,5 +1,5 @@
-// Copyright 2026 SiFive, Inc.
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2026 SiFive, Inc. All rights reserved.
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 /**
  * @brief Implementation of the transpose_e8 test harness.

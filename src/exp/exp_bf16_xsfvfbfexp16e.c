@@ -1,5 +1,5 @@
 // Copyright 2025 SiFive, Inc.
-// SPDX-License-Identifier: Apache-2.0
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 #if !defined(__riscv_xsfvfbfexp16e)
 #error This file requires the Xsfvfbfexp16e extension

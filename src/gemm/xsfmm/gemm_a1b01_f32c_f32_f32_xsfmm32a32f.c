@@ -1,5 +1,5 @@
 // Copyright 2025 SiFive, Inc.
-// SPDX-License-Identifier: Apache-2.0
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 #if !defined(__riscv_xsfmm32a32f)
 #error This file requires the Xsfmm32a32f extension
