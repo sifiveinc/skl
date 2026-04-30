@@ -1,3 +1,8 @@
+# Copyright (c) 2025-Present SiFive, Inc. All rights reserved.
+# Licensed under the MIT License.
+# See LICENSE file in the project root for full license information.
+# SPDX-License-Identifier: MIT
+
 set(CMAKE_SYSTEM_PROCESSOR riscv)
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")

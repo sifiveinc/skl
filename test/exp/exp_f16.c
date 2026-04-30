@@ -1,3 +1,8 @@
+// Copyright (c) 2026-Present SiFive, Inc. All rights reserved.
+// Licensed under the MIT License.
+// See LICENSE file in the project root for full license information.
+// SPDX-License-Identifier: MIT
+
 #if !defined(ENABLE_TEST) && !defined(ENABLE_BENCHMARK)
 #error Must define at least one of ENABLE_TEST or ENABLE_BENCHMARK
 #endif

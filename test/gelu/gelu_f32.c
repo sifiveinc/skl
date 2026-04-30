@@ -1,3 +1,8 @@
+// Copyright (c) 2025-Present SiFive, Inc. All rights reserved.
+// Licensed under the MIT License.
+// See LICENSE file in the project root for full license information.
+// SPDX-License-Identifier: MIT
+
 #if !defined(__riscv_zve32f)
 #error This file require the Zve32f extension
 #endif
