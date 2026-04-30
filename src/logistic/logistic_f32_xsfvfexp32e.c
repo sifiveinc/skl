@@ -1,8 +1,8 @@
 // Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-#if !defined(__riscv_xsfvfexpa)
-#error This file requires the Xsfvfexpa extension
+#if !defined(__riscv_xsfvfexp32e)
+#error This file requires the Xsfvfexp32e extension
 #endif
 
 #include "skl-common.h"
@@ -12,15 +12,15 @@
 
 // NOLINTNEXTLINE(readability-non-const-parameter)
 SKL_FUNC void skl_logistic_5u_f32_xsfvfexp32e(float *out, const float *in,
-                                              size_t N) {
+                                              size_t n) {
   size_t vl;
   const float b = -0x1.9fe370p+6f; /* Input lower bound */
   const float S = +0x1.35512ep-1f; /* Input split ratio */
 
   // clang-format off
-  for (; N; in += vl, out += vl, N -= vl)
+  for (; n; in += vl, out += vl, n -= vl)
     __asm__ volatile(
-      "     vsetvli  %[vl], %[N], e32, m8, ta, ma \n"
+      "     vsetvli  %[vl], %[n], e32, m8, ta, ma \n"
       /* 0. Load and clamp */
       "\t   vle32.v     v8,  (%[in])     \n"
       "\t   vfsgnj.vf   v8,  v8, %[b]    \n"
@@ -45,8 +45,8 @@ SKL_FUNC void skl_logistic_5u_f32_xsfvfexp32e(float *out, const float *in,
       /* 5. Finally, n * r ~ n / d */
       "\t   vfmul.vv   v16, v16, v24     \n"
       "\t   vse32.v    v16, (%[out])"
-      : [vl] "=r"(vl)
-      : [N] "r"(N), [in] "r"(in), [out] "r"(out), [S] "f"(S),
+      : [vl] "=&r"(vl)
+      : [n] "r"(n), [in] "r"(in), [out] "r"(out), [S] "f"(S),
         [b] "f"(b), [one] "f"(1.0f)
       : "vtype", "vl", "memory");
   // clang-format on
