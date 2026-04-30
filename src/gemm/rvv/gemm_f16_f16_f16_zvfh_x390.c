@@ -1,5 +1,6 @@
 // Copyright (c) 2026 SiFive, Inc. All rights reserved.
-// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+// Licensed under the MIT License.
+// See LICENSE file in the project root for full license information.
 
 #if !defined(__riscv_zvfh) || __riscv_zvfh < 1000000
 #error This file requires the RISC-V zvfh extension, version 1000000.

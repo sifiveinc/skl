@@ -1,5 +1,6 @@
 // Copyright 2025 SiFive, Inc.
-// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+// Licensed under the MIT License.
+// See LICENSE file in the project root for full license information.
 
 #if !defined(__riscv_xsfmm32a8f)
 #error This file requires the Xsfmm32a8f extension

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 SiFive, Inc. All rights reserved.
-// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+// Licensed under the MIT License.
+// See LICENSE file in the project root for full license information.
 
 /**
  * @brief Test and benchmark for FP32 unary functions f(x) = y.
