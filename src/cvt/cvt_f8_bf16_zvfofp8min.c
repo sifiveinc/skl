@@ -1,6 +1,7 @@
-// Copyright (c) 2026 SiFive, Inc. All rights reserved.
+// Copyright (c) 2026-Present SiFive, Inc. All rights reserved.
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
+// SPDX-License-Identifier: MIT
 
 #if !defined(__riscv_zvfofp8min)
 #error This file requires the Zvfofp8min extension
