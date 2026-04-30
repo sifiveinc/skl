@@ -206,10 +206,6 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test_legacy(logistic_f16_zvfh logistic/logistic_f16.c "-DRUN_ALL")
     skl_add_test_legacy(silu_f16_zvfh silu/silu_f16.c "-DRUN_ALL")
   endif()
-  if("zvfbfwma" IN_LIST RISCV_EXTENSIONS)
-    skl_add_test_legacy(skl_gemm_bf16_bf16_f32_zvfbfwma_wrapper gemm/gemm_bf16rc_bf16rc_f32rc.c
-      "-DM=4;-DN=16;-DK=128;-DALPHA=1.f;-DBETA=0.f")
-  endif()
   skl_add_test_legacy(softmax_f16 softmax/softmax_f16.c "-DRUN_ALL;-DBETA=0.5")
   skl_add_test_legacy(softmax_bf16 softmax/softmax_bf16.c "-DRUN_ALL;-DBETA=0.5")
   skl_add_test_legacy(softmax_f32 softmax/softmax_f32.c "-DRUN_ALL;-DBETA=0.5")
@@ -240,12 +236,6 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
       "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1;-DBETA=0")
     skl_add_test_legacy(skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i_wrapper gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
       "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1;-DBETA=0")
-  endif()
-  if("xsfmm32a16f" IN_LIST RISCV_EXTENSIONS)
-    skl_add_test_legacy(skl_gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f_wrapper gemm/gemm_bf16rc_bf16rc_f32rc.c
-      "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1.f;-DBETA=0.f")
-    skl_add_test_legacy(skl_gemm_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f_wrapper gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc.c
-      "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
   endif()
   if("xsfvqdotq" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_i8_i8pc_i32_xsfvqdotq gemm/gemm_i8_i8pc_i32_xsfvqdotq.c "-DM=128;-DN=128;-DK=256;-DALPHA=1;-DBETA=1")
