@@ -169,49 +169,7 @@ Packing and unpacking must be performed by the user, and is not automatically ap
 - If one input is available offline, or reused across multiple GEMMs, it should not be packed multiple times
 - Some applications may provide data in the necessary format already, and should not be forced to repack it
 
-Each packed GEMM kernel (or family) supplies a corresponding pack and, if relevant, unpack function optimized for its layout's shape.
-These functions specialize the general form:
-```c
-void skl_pack_<a/b/c>_<datatype>_<isa>(
-  size_t m,           // Num. rows in input matrix
-  size_t n,           // Num. columns in input matrix
-  const <type>* src,  // Input matrix
-  size_t rs,          // Row stride of input matrix
-  size_t cs,          // Column stride of input matrix
-  size_t m0,          // Num. rows in a block of the input matrix
-  size_t n0,          // Num. columns in a block of the input matrix
-  <type>* dst,        // Output packed matrix [m1 x n1]
-  size_t rs0,         // Row stride within a block of the output matrix
-  size_t cs0,         // Column stride within a block of the output matrix
-  size_t rs1,         // Row stride between blocks of the output matrix
-  size_t cs1          // Column stride between blocks of the output matrix
-) {
-  size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the input matrix
-  size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the input matrix
-  for (size_t ii1 = 0; ii1 < m1; ++ii1) {
-    for (size_t jj1 = 0; jj1 < n1; ++jj1) {
-      const <type>* src_block = src + ii1 * m0 * rs + jj1 * n0 * cs;
-      <type>* dst_block = dst + ii1 * rs1 + jj1 * cs1;
-      for (size_t ii0 = 0; ii0 < m0; ++ii0) {
-        for (size_t jj0 = 0; jj0 < n0; ++jj0) {
-          if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
-            dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0 * cs];
-          } else {
-            // Pad with zeros
-            dst_block[ii0 * rs0 + jj0 * cs0] = 0;
-          }
-        }
-      }
-    }
-  }
-}
-```
-Unpacking functions work analogously.
-
-Since the layouts of the three matrices may be different, the packing function's name must indicate which matrix it is packing (A, B, or C).
-
-As in the case of GEMM kernels, most packing kernels will fully specialize or constrain most of the parameters, and they are thus omitted from the API.
-Usually, `m0`, `n0`, `rs0`, `cs0`, `rs1`, and `cs1` are all fixed by the target's layout.
+For more details, see the [SKL Matrix Packing Kernels](../pack/README.md) document.
 
 ## Application to Specific ISAs and Frameworks
 
