@@ -13,7 +13,7 @@
 #endif
 
 /**
- * @brief Test cases for GEMM with Zvfh extension.
+ * @brief Test cases for the skl_gemm_f16_f16_f16_zvfh_x390 kernel.
  *
  * This test uses the gemm_f16rcprc_f16rcprc_f16rcprc harness with the following
  * restrictions on the input parameters:
