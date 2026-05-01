@@ -36,7 +36,7 @@ SKL_FUNC void skl_logistic_5u_f32_xsfvfexp32e(float *out, const float *in,
       /* 3. Assemble numerator: n = x>0 ? p : o */
       "\t   vmerge.vvm v16, v16, v24, v0 \n"
       "\t   vfmv.v.f    v0, %[one]       \n"
-      /* 4. Approximate 1 / (o + p) */
+      /* 4. Approximate r = 1 / (d = o + p) */
       "\t   vfrec7.v   v24, v8 \n"
       "\t   vfnmsac.vv  v0, v8, v24      \n"
       "\t   vfmadd.vv  v24, v0, v24      \n"
