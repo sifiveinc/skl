@@ -25,7 +25,7 @@ SKL_FUNC void skl_logistic_5u_f32_xsfvfexp32e(float *out, const float *in,
       "\t   vle32.v     v8,  (%[in])     \n"
       "\t   vfsgnj.vf   v8,  v8, %[b]    \n"
       "\t   vfmax.vf    v8,  v8, %[b]    \n"
-      /* 1. Split x = a + e */
+      /* 1. Split x = a - e */
       "\t   vfmul.vf   v16,  v8, %[S]    \n"
       "\t   vfsub.vv   v24, v16, v8      \n"
       /* 2. Compute o = exp(a) and p = exp(e) */
