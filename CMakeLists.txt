@@ -221,10 +221,6 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test_legacy(gelu_f32 gelu/gelu_f32.c "")
     skl_add_test_legacy(silu_f32_zve32f silu/silu_f32.c "-DRUN_ALL")
   endif()
-  if("zve64d" IN_LIST RISCV_EXTENSIONS)
-    skl_add_test_legacy(skl_gemm_f64_f64_f64_zve64d_x390_wrapper gemm/gemm_f64rc_f64rc_f64rc.c
-      "-DM=32;-DN=32;-DK=32;-DALPHA=1.;-DBETA=0.")
-  endif()
   if("xsfmm32a8f" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f_wrapper gemm/gemm_f8e4m3rc_f8e4m3rc_f32rc.c
       "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1.f;-DBETA=0.f")

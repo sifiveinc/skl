@@ -165,6 +165,13 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_gemm_f64_f64_f64_zve64d_x390
+  gemm/gemm_f64rcprc_f64rcprc_f64rcprc.c
+  gemm/rvv/skl_gemm_f64_f64_f64_zve64d_x390.c
+  "zve64d"
+  ""
+)
+skl_add_test(
   skl_transpose_e16_xsfmmbase
   transpose/transpose_e16.c
   transpose/xsfmmbase/skl_transpose_e16_xsfmmbase.c
