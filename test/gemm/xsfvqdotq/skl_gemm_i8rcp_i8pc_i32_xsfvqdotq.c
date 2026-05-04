@@ -43,7 +43,7 @@ static void execute(skl_test_t *t);
 gemm_i8rcp_i8pc_i32_xsfvqdotq_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
     // Benchmark tests
-    {BENCH, .m =  126, .n = 128, .k = 256},
+    {BENCH, .m =  126, .n = 128, .k = 256, .alpha = 1},
 #endif // SKL_ENABLE_BENCHMARKS
 
 #ifdef SKL_ENABLE_TESTS
@@ -72,7 +72,8 @@ gemm_i8rcp_i8pc_i32_xsfvqdotq_t tests[] = {
     {TEST, .m = 32,  .n = 192,  .k = 32,  .alpha = 2},
     {TEST, .m = 32,  .n = 192,  .k = 32,  .alpha = 2,  .beta = 1},
     {TEST, .m = 32,  .n = 192,  .k = 32,  .alpha = 2,  .beta = 2},
-    {TEST, .m = 32,  .n = 192,  .k = 32,  .rsa1 = 4,  .csa1 = (size_t)32 * (size_t)4,  .alpha = 1,  .beta = 1},
+    {TEST, .m = 32,  .n = 192,  .k = 31,  .rsa1 = 31,  .csa1 = 4,  .alpha = 1,  .beta = 1},
+    {TEST, .m = 32,  .n = 192,  .k = 31,  .rsa1 = 4,  .csa1 = (size_t)32 * (size_t)4,  .alpha = 1,  .beta = 1},
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on

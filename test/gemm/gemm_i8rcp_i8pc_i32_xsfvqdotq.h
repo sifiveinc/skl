@@ -2,19 +2,22 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * @brief Test and benchmark for GEMM: C = alpha * A * B + beta * C.
+ * @brief Test and benchmark for Xsfvqdotq GEMM: C = alpha * A_pack * B_pack +
+ * beta * C.
  *
  * This test uses a table-driven approach where test configurations are defined
  * in the `tests` array. Each test specifies:
- *  - Matrix dimensions M, N, and K
- *  - Scalar coefficients ALPHA and BETA
- *  - Row and column strides (RSA, CSA, RSB, CSB, RSC, CSC)
+ *  - Matrix dimensions m, n, and k
+ *  - Scalar coefficients alpha and beta
+ *  - Row and column strides (rsa1, csa1, rsb1, rsc)
  *  - The GEMM kernel function to test
  *
  * Matrix layouts:
- *  - A is M x K with row stride RSA and column stride CSA
- *  - B is K x N with row stride RSB and column stride CSB
- *  - C is M x N with row stride RSC and column stride CSC
+ *  - A_pack is packed m x k1, where k1 = (k + 3) / 4, with 1 x 4 row-major
+ *    blocks and strides rsa1 and csa1. The blocks in the last block-column of
+ *    A_pack have (k - 1) % 4 + 1 elements.
+ *  - B_pack is packed k1 x n with 4 x 1 column-major blocks and stride rsb1
+ *  - C is m x n row-major with row stride rsc
  */
 
 #pragma once
@@ -37,7 +40,7 @@ typedef struct {
   int32_t beta;
   size_t rsc;
 
-  // Buffer generation settings for A, B, C
+  // Buffer generation settings for A_pack, B_pack, C
   SKL_TEST_BUFFER(int8_t) a_pack, b_pack;
   SKL_TEST_BUFFER(int32_t) c;
 

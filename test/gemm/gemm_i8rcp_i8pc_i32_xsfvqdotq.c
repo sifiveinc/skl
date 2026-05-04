@@ -66,23 +66,22 @@ void gemm_i8rcp_i8pc_i32_xsfvqdotq_init(skl_test_t *t) {
   size_t rsc1 = h->rsc;
   size_t csc1 = 1;
 
-  size_t block_min_len = (m0 - 1) * rsa0 + (k0 - 1) * csa0 + 1;
-  size_t right_block_min_len = (m0 - 1) * rsa0 + ((k - 1) % k0) * csa0 + 1;
+  size_t a_block_min_len = (m0 - 1) * rsa0 + (k0 - 1) * csa0 + 1;
+  size_t a_right_block_min_len = (m0 - 1) * rsa0 + ((k - 1) % k0) * csa0 + 1;
   if (m1 > 1 && k1 > 0) {
-    SKL_TEST_REQUIRE(t, init_status, rsa1 >= right_block_min_len);
+    SKL_TEST_REQUIRE(t, init_status, rsa1 >= a_right_block_min_len);
   }
   if (m1 > 0 && k1 > 1) {
-    SKL_TEST_REQUIRE(t, init_status, csa1 >= right_block_min_len);
+    SKL_TEST_REQUIRE(t, init_status, csa1 >= a_block_min_len);
   }
   if (m1 > 1 && k1 > 1) {
     if (rsa1 >= csa1) {
-      SKL_TEST_REQUIRE(t, init_status, csa1 >= block_min_len);
       SKL_TEST_REQUIRE(t, init_status,
-                       rsa1 >= (k1 - 1) * csa1 + right_block_min_len);
+                       rsa1 >= (k1 - 1) * csa1 + a_right_block_min_len);
     } else {
-      SKL_TEST_REQUIRE(t, init_status, rsa1 >= block_min_len);
+      SKL_TEST_REQUIRE(t, init_status, rsa1 >= a_block_min_len);
       SKL_TEST_REQUIRE(t, init_status,
-                       csa1 >= (m1 - 1) * rsa1 + right_block_min_len);
+                       csa1 >= (m1 - 1) * rsa1 + a_block_min_len);
     }
   }
   skl_test_check_matrix_params_rcprc(t, k0, n0, k1, n1, rsb0, csb0, rsb1, csb1);
@@ -96,7 +95,7 @@ void gemm_i8rcp_i8pc_i32_xsfvqdotq_init(skl_test_t *t) {
     h->a_pack.len = 0;
   } else {
     h->a_pack.len = (m1 - 1) * rsa1 + (k1 - 1) * csa1 + (m0 - 1) * rsa0 +
-                    ((k - 1) % 4) * csa0 + 1;
+                    ((k - 1) % k0) * csa0 + 1;
   }
 
   if (k1 == 0 || n1 == 0) {
