@@ -47,9 +47,9 @@ SKL_FUNC void skl_logistic_5u_f32_xsfvfexp32e(float *out, const float *in,
       "\t   vfmul.vv   %[y], %[y], %[z]       \n"
       "\t   vse32.v    %[y], (%[out])"
       : [vl] "=&r"(vl),
-	[w] "=vr"(w), [x] "=vd"(x), [y] "=vd"(y), [z] "=vd"(z)
+        [w] "=vr"(w), [x] "=vd"(x), [y] "=vd"(y), [z] "=vd"(z)
       : [n] "r"(n), [in] "r"(in), [out] "r"(out),
-	[b] "f"(b), [S] "f"(S), [one] "f"(1.0f)
+        [b] "f"(b), [S] "f"(S), [one] "f"(1.0f)
       : "vtype", "vl", "memory");
   // clang-format on
 }
