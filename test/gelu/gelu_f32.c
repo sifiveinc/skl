@@ -165,14 +165,12 @@ int main(void) {
 #define RUN(VARIANT, ...)                                                      \
   RUN_(PASTE3(skl_gelu_, VARIANT, _f32_zve32f), "zve32f," #VARIANT, __VA_ARGS__)
 
-  // NOLINTBEGIN(*-signed-bitwise)
   // clang-format off
   RUN(p9,  1.7e7, 5.401e5, 9.384e4, 3.703e4, NINF_NAN);
   RUN(p13, 1.7e7, 6.908e4,    6810,    2300, NINF_NAN);
   RUN(p17, 1.7e7, 2.732e3,     239,     239, NINF_NAN);
   RUN(rat, 1.7e7,      62,       5,       4, NINF_NAN);
   // clang-format on
-  // NOLINTEND(*-signed-bitwise)
 
   return ret > 0;
 }
