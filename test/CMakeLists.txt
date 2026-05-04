@@ -98,6 +98,13 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_exp_bf16_zve32f
+  elementwise/unary_bf16.c
+  exp/exp_bf16_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
   skl_exp_f32_xsfvfexp32e
   elementwise/unary_f32.c
   exp/exp_f32_xsfvfexp32e.c
