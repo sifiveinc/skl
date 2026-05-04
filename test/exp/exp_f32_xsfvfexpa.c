@@ -12,7 +12,7 @@
  */
 
 #include "elementwise/unary_f32.h"
-#include "skl-ref.h" // NOLINT(misc-include-cleaner)
+#include "skl-ref.h"
 #include "skl-test-driver.h"
 #include "skl.h"
 

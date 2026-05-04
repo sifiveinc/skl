@@ -30,5 +30,6 @@ Checks:
 WarningsAsErrors: '*'
 CheckOptions:
   bugprone-reserved-identifier.AllowedIdentifiers: '__riscv_*'
-  readability-function-cognitive-complexity.Threshold: 180
   hicpp-signed-bitwise.IgnorePositiveIntegerLiterals: true
+  misc-include-cleaner.IgnoreHeaders: "skl-ref.h;skl.h"
+  readability-function-cognitive-complexity.Threshold: 180

@@ -15,7 +15,7 @@
 #endif
 
 #include "skl-test.h"
-#include "skl.h" // NOLINT(misc-include-cleaner)
+#include "skl.h"
 #include <inttypes.h>
 #if defined(ENABLE_TEST)
 #include <math.h>

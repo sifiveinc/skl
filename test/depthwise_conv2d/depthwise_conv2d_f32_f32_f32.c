@@ -11,7 +11,7 @@
 #include "depthwise_conv2d_f32_f32_f32.h"
 #include "skl-ref.h"
 #include "skl-test-driver.h"
-#include "skl.h" // NOLINT(misc-include-cleaner)
+#include "skl.h"
 #include <math.h>
 #include <stddef.h>
 #include <stdio.h>

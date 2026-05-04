@@ -36,7 +36,7 @@
 #endif
 
 #include "skl-test.h"
-#include "skl.h" // NOLINT(misc-include-cleaner)
+#include "skl.h"
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdint.h>

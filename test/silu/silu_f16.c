@@ -7,7 +7,6 @@
 #define NUM_ELEMS 1024
 #endif
 
-// NOLINTNEXTLINE(misc-include-cleaner)
 #include "skl-ref.h"
 #include "skl-test.h"
 #include "skl.h"
