@@ -16,7 +16,7 @@ SKL_FUNC void skl_logistic_5u_f32_xsfvfexp32e(float *out, const float *in,
   size_t vl;
   const float b = -0x1.9fe370p+6f; /* Input lower bound */
   const float S = +0x1.35512ep-1f; /* Input split ratio */
-  vfloat32m8_t w, x, y, z;
+  vfloat32m8_t w, x, y, z;	   /* NOLINT(*-isolate-declaration) */
 
   // clang-format off
   for (; n; in += vl, out += vl, n -= vl)
