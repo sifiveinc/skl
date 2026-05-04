@@ -154,7 +154,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x18_f16_f16_f32_zvfh_x390(
               [b2] "=&vr" (b2),
               [b3] "=&vr" (b3),
               [b4] "=&vr" (b4),
-              [b5] "=&vr" (b5),
+              [b5] "=vr" (b5),
               [b_addr] "+&r" (b_addr)
             : [jj_vl_in] "r" (jj_vl),
               [a_addr] "r" (a + ii * rsa + kk),
