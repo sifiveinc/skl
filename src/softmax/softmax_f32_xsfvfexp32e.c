@@ -200,7 +200,7 @@ skl_softmax_2d_nvec_f32_xsfvfexp32e(float *s, const size_t rss, const float *a,
 // NOLINTBEGIN(*-confusable-identifiers,*-suspicious-call-argument)
 SKL_FUNC_PRIVATE vfloat32m1x4_t
 skl_softmax_vget_v_f32m1x8_f32m1x4(vfloat32m1x8_t src, size_t index) {
-  vfloat32m1_t v0, v1, v2, v3; // NOLINT(*-isolate-declaration)
+  vfloat32m1_t v0, v1, v2, v3;
   if (index == 0) {
     v0 = __riscv_vget_v_f32m1x8_f32m1(src, 0);
     v1 = __riscv_vget_v_f32m1x8_f32m1(src, 1);

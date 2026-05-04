@@ -94,7 +94,7 @@ static int check_error(const char *name, const float *in, const float *res,
                        const float *ref, float spanning_tol, float gen2_tol,
                        float gen1_tol, float ge0_tol, uint8_t specials,
                        size_t len) {
-  // NOLINTBEGIN(*-signed-bitwise,*-braces-around-statements,*-isolate-declaration)
+  // NOLINTBEGIN(*-signed-bitwise,*-braces-around-statements)
   float spanning_max = 0, gen2_max = 0, gen1_max = 0, ge0_max = 0;
   for (size_t i = 0; i < len; i++) {
     float err = 0;
@@ -125,7 +125,7 @@ static int check_error(const char *name, const float *in, const float *res,
     if (in[i] >= 0.f && err > ge0_max)
       ge0_max = err;
   }
-  // NOLINTEND(*-signed-bitwise,*-braces-around-statements,*-isolate-declaration)
+  // NOLINTEND(*-signed-bitwise,*-braces-around-statements)
   int ret = spanning_max > spanning_tol || gen2_max > gen2_tol ||
             gen1_max > gen1_tol || ge0_max > ge0_tol;
   // clang-format off
