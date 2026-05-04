@@ -34,3 +34,4 @@ CheckOptions:
   hicpp-signed-bitwise.IgnorePositiveIntegerLiterals: true
   misc-include-cleaner.IgnoreHeaders: "skl-ref.h;skl.h"
   readability-function-cognitive-complexity.Threshold: 180
+  readability-suspicious-call-argument.MinimumIdentifierNameLength: 4
