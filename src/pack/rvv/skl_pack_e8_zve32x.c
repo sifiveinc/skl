@@ -184,29 +184,187 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
                              size_t rsa, uint8_t *SKL_RESTRICT at,
                              size_t rsat) {
 
-  size_t n_begin = 0;
-  size_t n_end = n_begin + ((n - n_begin) / 8) * 8;
+  skl_transpose_mvec_x8_e8_zve32x(m, n / 8 * 8, a, rsa, at, rsat);
 
-  skl_transpose_mvec_x8_e8_zve32x(m, n_end - n_begin, a + n_begin, rsa,
-                                  at + n_begin * rsat, rsat);
+  const uint8_t *in_tile = a + (n / 8) * 8;
+  uint8_t *out_tile = at + (n / 8) * 8 * rsat;
+  const ptrdiff_t input_seg_bstride = (ptrdiff_t)(rsa * sizeof(uint8_t));
+  size_t vl = 0;
 
-  n_begin = n_end;
-  n_end = n_begin + ((n - n_begin) / 4) * 4;
+  switch (n % 8) {
+  case 1: {
+    // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
+    vuint8m8_t vcol = __riscv_vundefined_u8m8();
+    // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+    for (size_t jj = 0; jj < m; jj += vl) {
+      vl = __riscv_vsetvl_e8m8(m - jj);
 
-  skl_transpose_mvec_x4_e8_zve32x(m, n_end - n_begin, a + n_begin, rsa,
-                                  at + n_begin * rsat, rsat);
+      vcol = __riscv_vlse8_v_u8m8(in_tile, input_seg_bstride, vl);
 
-  n_begin = n_end;
-  n_end = n_begin + ((n - n_begin) / 2) * 2;
+      // store continuously along m
+      __riscv_vse8_v_u8m8(out_tile, vcol, vl);
 
-  skl_transpose_mvec_x2_e8_zve32x(m, n_end - n_begin, a + n_begin, rsa,
-                                  at + n_begin * rsat, rsat);
+      in_tile += vl * rsa;
+      out_tile += vl;
+    }
+  } break;
+  case 2: {
+    // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
+    vuint8m4x2_t vcols = __riscv_vundefined_u8m4x2();
+    // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+    for (size_t jj = 0; jj < m; jj += vl) {
+      vl = __riscv_vsetvl_e8m4(m - jj);
 
-  n_begin = n_end;
-  n_end = n;
+      vcols = __riscv_vlsseg2e8_v_u8m4x2(in_tile, input_seg_bstride, vl);
 
-  skl_transpose_mvec_x1_e8_zve32x(m, n_end - n_begin, a + n_begin, rsa,
-                                  at + n_begin * rsat, rsat);
+      uint8_t *write_ptr = out_tile;
+      const size_t output_seg_stride = rsat;
+      // store each segment continuously along m
+      __riscv_vse8_v_u8m4(write_ptr, __riscv_vget_v_u8m4x2_u8m4(vcols, 0), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m4(write_ptr, __riscv_vget_v_u8m4x2_u8m4(vcols, 1), vl);
+
+      in_tile += vl * rsa;
+      out_tile += vl;
+    }
+  } break;
+  case 3: {
+    // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
+    vuint8m2x3_t vcols = __riscv_vundefined_u8m2x3();
+    // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+    for (size_t jj = 0; jj < m; jj += vl) {
+      vl = __riscv_vsetvl_e8m2(m - jj);
+
+      vcols = __riscv_vlsseg3e8_v_u8m2x3(in_tile, input_seg_bstride, vl);
+
+      uint8_t *write_ptr = out_tile;
+      const size_t output_seg_stride = rsat;
+      // store each segment continuously along m
+      __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x3_u8m2(vcols, 0), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x3_u8m2(vcols, 1), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x3_u8m2(vcols, 2), vl);
+
+      in_tile += vl * rsa;
+      out_tile += vl;
+    }
+  } break;
+  case 4: {
+    // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
+    vuint8m2x4_t vcols = __riscv_vundefined_u8m2x4();
+    // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+
+    for (size_t jj = 0; jj < m; jj += vl) {
+      vl = __riscv_vsetvl_e8m2(m - jj);
+
+      vcols = __riscv_vlsseg4e8_v_u8m2x4(in_tile, input_seg_bstride, vl);
+
+      uint8_t *write_ptr = out_tile;
+      const size_t output_seg_stride = rsat;
+      // store each segment continuously along m
+      __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x4_u8m2(vcols, 0), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x4_u8m2(vcols, 1), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x4_u8m2(vcols, 2), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x4_u8m2(vcols, 3), vl);
+
+      in_tile += vl * rsa;
+      out_tile += vl;
+    }
+  } break;
+  case 5: {
+    // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
+    vuint8m1x5_t vcols = __riscv_vundefined_u8m1x5();
+    // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+
+    for (size_t jj = 0; jj < m; jj += vl) {
+      vl = __riscv_vsetvl_e8m1(m - jj);
+
+      vcols = __riscv_vlsseg5e8_v_u8m1x5(in_tile, input_seg_bstride, vl);
+
+      uint8_t *write_ptr = out_tile;
+      const size_t output_seg_stride = rsat;
+      // store each segment continuously along m
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x5_u8m1(vcols, 0), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x5_u8m1(vcols, 1), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x5_u8m1(vcols, 2), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x5_u8m1(vcols, 3), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x5_u8m1(vcols, 4), vl);
+
+      in_tile += vl * rsa;
+      out_tile += vl;
+    }
+  } break;
+  case 6: {
+    // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
+    vuint8m1x6_t vcols = __riscv_vundefined_u8m1x6();
+    // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+
+    for (size_t jj = 0; jj < m; jj += vl) {
+      vl = __riscv_vsetvl_e8m1(m - jj);
+
+      vcols = __riscv_vlsseg6e8_v_u8m1x6(in_tile, input_seg_bstride, vl);
+
+      uint8_t *write_ptr = out_tile;
+      const size_t output_seg_stride = rsat;
+      // store each segment continuously along m
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x6_u8m1(vcols, 0), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x6_u8m1(vcols, 1), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x6_u8m1(vcols, 2), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x6_u8m1(vcols, 3), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x6_u8m1(vcols, 4), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x6_u8m1(vcols, 5), vl);
+
+      in_tile += vl * rsa;
+      out_tile += vl;
+    }
+  } break;
+  case 7: {
+    // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
+    vuint8m1x7_t vcols = __riscv_vundefined_u8m1x7();
+    // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+
+    for (size_t jj = 0; jj < m; jj += vl) {
+      vl = __riscv_vsetvl_e8m1(m - jj);
+
+      vcols = __riscv_vlsseg7e8_v_u8m1x7(in_tile, input_seg_bstride, vl);
+
+      uint8_t *write_ptr = out_tile;
+      const size_t output_seg_stride = rsat;
+      // store each segment continuously along m
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 0), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 1), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 2), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 3), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 4), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 5), vl);
+      write_ptr += output_seg_stride;
+      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 6), vl);
+
+      in_tile += vl * rsa;
+      out_tile += vl;
+    }
+  } break;
+  default:
+    break;
+  }
 }
 
 /* Transposes an M x N row-major matrix (pointed by `a`) to an N x M row-major
