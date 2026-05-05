@@ -53,9 +53,9 @@ void unary_bf16_verify(skl_test_t *t) {
       if (errors++ >= h->ctx.max_errors)
         break;
       SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
-                   "[%4d]: in %15.6a; out %15.6a; ref %15.6a : %.4g ulp "
+                   "[%4d]: in %15.2a; out %15.2a; ref %15.2a : %.4g ulp "
                    "[bound = %.4g ulp]\n",
-                   i, x, Y, y, err, tol);
+                   i, (double)x, (double)Y, (double)y, err, tol);
     }
     ulp = fmaxf(err, ulp);
   }

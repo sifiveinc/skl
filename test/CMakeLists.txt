@@ -112,6 +112,13 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_exp_bf16_xsfvfexp16e
+  elementwise/unary_bf16.c
+  exp/exp_bf16_xsfvfexp16e.c
+  "xsfvfexp16e"
+  ""
+)
+skl_add_test(
   skl_exp_f32_xsfvfexp32e
   elementwise/unary_f32.c
   exp/exp_f32_xsfvfexp32e.c
