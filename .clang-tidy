@@ -23,6 +23,7 @@ Checks:
   - portability-*
   - readability-*
   - -readability-identifier-length
+  - -readability-isolate-declaration
   - -readability-magic-numbers
   - -readability-math-missing-parentheses
   - -*-braces-around-statements
@@ -30,5 +31,7 @@ Checks:
 WarningsAsErrors: '*'
 CheckOptions:
   bugprone-reserved-identifier.AllowedIdentifiers: '__riscv_*'
-  readability-function-cognitive-complexity.Threshold: 180
   hicpp-signed-bitwise.IgnorePositiveIntegerLiterals: true
+  misc-include-cleaner.IgnoreHeaders: "skl-ref.h;skl.h"
+  readability-function-cognitive-complexity.Threshold: 180
+  readability-suspicious-call-argument.MinimumIdentifierNameLength: 4

@@ -197,10 +197,10 @@ skl_softmax_2d_nvec_f32_xsfvfexp32e(float *s, const size_t rss, const float *a,
   }
 }
 
-// NOLINTBEGIN(*-confusable-identifiers,*-suspicious-call-argument)
+// NOLINTBEGIN(*-confusable-identifiers)
 SKL_FUNC_PRIVATE vfloat32m1x4_t
 skl_softmax_vget_v_f32m1x8_f32m1x4(vfloat32m1x8_t src, size_t index) {
-  vfloat32m1_t v0, v1, v2, v3; // NOLINT(*-isolate-declaration)
+  vfloat32m1_t v0, v1, v2, v3;
   if (index == 0) {
     v0 = __riscv_vget_v_f32m1x8_f32m1(src, 0);
     v1 = __riscv_vget_v_f32m1x8_f32m1(src, 1);
@@ -555,7 +555,7 @@ SKL_FUNC_PRIVATE vfloat32m1x8_t skl_softmax_vfmsub_vf_f32m1x8(vfloat32m1x8_t vd,
   v1 = skl_softmax_vfmsub_vf_f32m1x4(v1, rs1, vs2, vl);
   return skl_softmax_vcreate_v_f32m1x4_f32m1x8(v0, v1);
 }
-// NOLINTEND(*-confusable-identifiers,*-suspicious-call-argument)
+// NOLINTEND(*-confusable-identifiers)
 
 /* Element-wise reciprocal approximation where inputs are known to be
    non-zero and infinite inputs are safe to become NaN. */
@@ -784,7 +784,6 @@ SKL_FUNC_PRIVATE void skl_softmax_2d_mvec_f32_xsfvfexp32e(float *s, size_t rss,
     vfloat32m1_t vmax;  /* Global maximum */
     size_t j = 0;       /* column index */
 
-    // NOLINTBEGIN(*-suspicious-call-argument)
     if (n >= 16) {
       vfloat32m1x8_t vx0 =
           __riscv_vlsseg8e32_v_f32m1x8(a + i * rsa + 0, bsa, vl);
@@ -839,7 +838,6 @@ SKL_FUNC_PRIVATE void skl_softmax_2d_mvec_f32_xsfvfexp32e(float *s, size_t rss,
       vss = skl_softmax_vfmadd_vv_f32m1x4(vss, vc, ves, vl);
       vmax = vm;
     }
-    // NOLINTEND(*-suspicious-call-argument)
     for (; j + 8 <= n; j += 8) {
       vfloat32m1x8_t vx =
           __riscv_vlsseg8e32_v_f32m1x8(a + i * rsa + j, bsa, vl);

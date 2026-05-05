@@ -15,7 +15,7 @@
 #endif
 
 #include "skl-test.h"
-#include "skl.h" // NOLINT(misc-include-cleaner)
+#include "skl.h"
 #include <inttypes.h>
 #if defined(ENABLE_TEST)
 #include <math.h>
@@ -94,7 +94,7 @@ static int check_error(const char *name, const float *in, const float *res,
                        const float *ref, float spanning_tol, float gen2_tol,
                        float gen1_tol, float ge0_tol, uint8_t specials,
                        size_t len) {
-  // NOLINTBEGIN(*-signed-bitwise,*-braces-around-statements,*-isolate-declaration)
+  // NOLINTBEGIN(*-signed-bitwise)
   float spanning_max = 0, gen2_max = 0, gen1_max = 0, ge0_max = 0;
   for (size_t i = 0; i < len; i++) {
     float err = 0;
@@ -125,7 +125,7 @@ static int check_error(const char *name, const float *in, const float *res,
     if (in[i] >= 0.f && err > ge0_max)
       ge0_max = err;
   }
-  // NOLINTEND(*-signed-bitwise,*-braces-around-statements,*-isolate-declaration)
+  // NOLINTEND(*-signed-bitwise)
   int ret = spanning_max > spanning_tol || gen2_max > gen2_tol ||
             gen1_max > gen1_tol || ge0_max > ge0_tol;
   // clang-format off
@@ -165,14 +165,12 @@ int main(void) {
 #define RUN(VARIANT, ...)                                                      \
   RUN_(PASTE3(skl_gelu_, VARIANT, _f32_zve32f), "zve32f," #VARIANT, __VA_ARGS__)
 
-  // NOLINTBEGIN(*-signed-bitwise)
   // clang-format off
   RUN(p9,  1.7e7, 5.401e5, 9.384e4, 3.703e4, NINF_NAN);
   RUN(p13, 1.7e7, 6.908e4,    6810,    2300, NINF_NAN);
   RUN(p17, 1.7e7, 2.732e3,     239,     239, NINF_NAN);
   RUN(rat, 1.7e7,      62,       5,       4, NINF_NAN);
   // clang-format on
-  // NOLINTEND(*-signed-bitwise)
 
   return ret > 0;
 }

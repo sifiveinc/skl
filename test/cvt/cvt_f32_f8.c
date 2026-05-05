@@ -9,9 +9,8 @@
  */
 
 #include "cvt_f32_f8.h"
-#include "skl-test-driver.h"
-// NOLINTNEXTLINE(misc-include-cleaner)
 #include "skl-ref.h"
+#include "skl-test-driver.h"
 #include <inttypes.h>
 #include <math.h>
 #include <stddef.h>

@@ -1852,10 +1852,8 @@ SKL_FUNC_PRIVATE void skl_gemm_2tm1tn_a1b01_f8e4m3pc_f8e4m3_f32rcp_xsfmm32a8f(
     size_t tm, size_t tn, size_t k, const uint8_t *a, size_t csa0, size_t rsa1,
     const uint8_t *b, size_t rsb, float *c, size_t rsc0, size_t rsc1,
     bool accum) {
-  // NOLINTBEGIN(readability-suspicious-call-argument)
   skl_gemm_1tm2tn_2tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
       tm, tn, k, b, rsb, a, csa0, rsa1, c, rsc0, rsc1, accum, true);
-  // NOLINTEND(readability-suspicious-call-argument)
 }
 
 /* Process 3 (= 1 x 3) contiguous tm x tn tiles of c.
@@ -1879,10 +1877,8 @@ skl_gemm_3tm1tn_a1b01_f8e4m3pc_f8e4m3_f32rcp_xsfmm32a8f(
     size_t tm, size_t tn, size_t k, const uint8_t *a, size_t csa0, size_t rsa1,
     const uint8_t *b, size_t rsb, float *c, size_t rsc0, size_t rsc1,
     bool accum) {
-  // NOLINTBEGIN(readability-suspicious-call-argument)
   skl_gemm_1tm3tn_3tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
       tm, tn, k, b, rsb, a, csa0, rsa1, c, rsc0, rsc1, accum, true);
-  // NOLINTEND(readability-suspicious-call-argument)
 }
 
 /* Process 4 (= 1 x 4) contiguous tm x tn tiles of c.
@@ -1905,10 +1901,8 @@ SKL_FUNC_PRIVATE void skl_gemm_4tm1tn_a1b01_f8e4m3pc_f8e4m3_f32rcp_xsfmm32a8f(
     size_t tm, size_t tn, size_t k, const uint8_t *a, size_t csa0, size_t rsa1,
     const uint8_t *b, size_t rsb, float *c, size_t rsc0, size_t rsc1,
     bool accum) {
-  // NOLINTBEGIN(readability-suspicious-call-argument)
   skl_gemm_1tm4tn_4tm1tn_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(
       tm, tn, k, b, rsb, a, csa0, rsa1, c, rsc0, rsc1, accum, true);
-  // NOLINTEND(readability-suspicious-call-argument)
 }
 
 /* Process 4 (= 2 x 2) contiguous tn x tn tiles of c. tn must be <= TE. */
