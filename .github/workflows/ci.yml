@@ -27,6 +27,10 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Check license headers 
+      run: |
+        ./check_license_headers.py
+
     - name: Setup QEMU
       run: |
         gh release download $SKL_TAG -p "$QEMU_TARBALL"
