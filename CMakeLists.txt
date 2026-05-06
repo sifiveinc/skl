@@ -110,6 +110,8 @@ add_skl_src(src/logistic/logistic_f32_xsfvfexp32e.c "xsfvfexp32e")
 add_skl_src(src/logistic/logistic_f32_xsfvfexpa.c "xsfvfexpa")
 add_skl_src(src/logistic/logistic_f32_zve32f.c "zve32f")
 
+add_skl_src(src/pack/rvv/skl_pack_e8_zve32x.c "zve32x")
+
 add_skl_src(src/silu/silu_f16_xsfvfexp16e.c "xsfvfexp16e")
 add_skl_src(src/silu/silu_f16_xsfvfexpa_zvfh.c "xsfvfexpa;zvfh")
 add_skl_src(src/silu/silu_f16_zvfh.c "zvfh")
