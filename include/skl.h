@@ -110,6 +110,7 @@
 
 #if defined(__riscv_xsfvfexp32e)
 #include "../src/exp/exp_f32_xsfvfexp32e.h"
+#include "../src/logistic/logistic_f32_xsfvfexp32e.h"
 #endif
 
 #if defined(__riscv_xsfvfexpa) && defined(__riscv_zvfbfmin)
