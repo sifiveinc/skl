@@ -12,6 +12,25 @@
 
 #include "skl-common.h"
 
+SKL_FUNC_PRIVATE void skl_memcpy_e8_zve32x(uint8_t *dst, const uint8_t *src,
+                                           size_t n) {
+  size_t vl = 0;
+  for (size_t i = 0; i < n; i += vl) {
+    vl = __riscv_vsetvl_e8m8(n - i);
+    vuint8m1_t v_src = __riscv_vle8_v_u8m1(src + i, vl);
+    __riscv_vse8_v_u8m8(dst + i, v_src, vl);
+  }
+}
+
+SKL_FUNC_PRIVATE void skl_copy2d_e8_zve32x(size_t m, size_t n,
+                                           const uint8_t *SKL_RESTRICT a,
+                                           size_t rsa, uint8_t *SKL_RESTRICT b,
+                                           size_t rsb) {
+  for (size_t i = 0; i < m; ++i) {
+    skl_memcpy_e8_zve32x(b + i * rsb, a + i * rsa, n);
+  }
+}
+
 SKL_FUNC_PRIVATE bool skl_transpose_e8_is_mvec(size_t m, size_t n) {
   size_t vlmax = __riscv_vsetvlmax_e8m1();
   if (m > n || m >= vlmax) {
@@ -547,9 +566,9 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
                                   at + m_begin, rsat);
 }
 
-SKL_FUNC void skl_transpose_e8_zve32x(size_t m, size_t n,
-                                      const uint8_t *SKL_RESTRICT a, size_t rsa,
-                                      uint8_t *SKL_RESTRICT at, size_t rsat) {
+SKL_FUNC_PRIVATE void
+skl_transpose_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
+                        size_t rsa, uint8_t *SKL_RESTRICT at, size_t rsat) {
   if (skl_transpose_e8_is_mvec(m, n)) {
     skl_transpose_mvec_e8_zve32x(m, n, a, rsa, at, rsat);
   } else {
@@ -557,9 +576,12 @@ SKL_FUNC void skl_transpose_e8_zve32x(size_t m, size_t n,
   }
 }
 
-SKL_FUNC void skl_padd_e8_zve32x(uint8_t *dst, size_t continuous, size_t stride,
-                                 uint8_t pad_val, size_t n_section) {
-  if (continuous == stride) {
+SKL_FUNC_PRIVATE void skl_padd_e8_zve32x(uint8_t *dst, size_t continuous,
+                                         size_t stride, uint8_t pad_val,
+                                         size_t n_section) {
+  if (continuous == 0 || n_section == 0) {
+    return;
+  } else if (continuous == stride) {
     memset(dst, pad_val, continuous * n_section * sizeof(uint8_t));
   } else if (continuous <= 8) {
 
@@ -686,6 +708,12 @@ SKL_FUNC void skl_padd_e8_zve32x(uint8_t *dst, size_t continuous, size_t stride,
 SKL_FUNC_PRIVATE skl_transpose_e8_m_padding_zve32x(
     size_t m_padded, size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
     size_t rsa, uint8_t *SKL_RESTRICT at, size_t rsat, uint8_t pad_val) {
+
+  if (m_padded == m) {
+    skl_transpose_e8_zve32x(m, n, a, rsa, at, rsat);
+    return;
+  }
+
   if (m / 8) {
     skl_transpose_e8_zve32x(m / 8 * 8, n, a, rsa, at, rsat);
   }
@@ -940,7 +968,87 @@ SKL_FUNC_PRIVATE skl_transpose_e8_m_padding_zve32x(
   }
 }
 
-SKL_FUNC void skl_pack_rcbrc_e8_zve32x(
+SKL_FUNC_PRIVATE void skl_pack_e8_e8rcbrc_zve32x(
+    size_t m,           // Num. rows in input matrix
+    size_t n,           // Num. columns in input matrix
+    const uint8_t *src, // Input matrix
+    size_t rs,          // Row stride of input matrix
+    size_t m0,          // Num. rows in a block of the input matrix
+    size_t n0,          // Num. columns in a block of the input matrix
+    uint8_t *dst,       // Output packed matrix [m1 x n1]
+    size_t rs0,         // Row stride within a block of the output matrix
+    size_t cs0,         // Column stride within a block of the output matrix
+    size_t rs1,         // Row stride between blocks of the output matrix
+    size_t cs1          // Column stride between blocks of the output matrix
+) {
+  uint8_t padd_value = 0;
+  size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the input matrix
+  size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the input matrix
+
+  if ((cs0 * n0 == cs1) && rs0 == 1) {
+    for (size_t ii1 = 0; ii1 < m1; ++ii1) {
+      const uint8_t *src_block = src + ii1 * m0 * rs;
+      uint8_t *dst_block = dst + ii1 * rs1;
+      if (ii1 != m1 - 1) {
+        skl_transpose_e8_zve32x(m0, n, src_block, rs, dst_block, cs0);
+        if (n % n0) {
+          // padd right
+          skl_padd_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), m0,
+                             cs0, padd_value, n0 - n % n0);
+        }
+      } else {
+        skl_transpose_e8_m_padding_zve32x(m0, m % m0, n, src_block, rs,
+                                          dst_block, cs0);
+        if (n % n0) {
+          // padd right
+          skl_padd_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), m0,
+                             cs0, 0, n0 - n % n0);
+        }
+      }
+    }
+    return;
+  }
+
+  for (size_t ii1 = 0; ii1 < m1; ++ii1) {
+    for (size_t jj1 = 0; jj1 < n1; ++jj1) {
+      const uint8_t *src_block = src + ii1 * m0 * rs + jj1 * n0;
+      uint8_t *dst_block = dst + ii1 * rs1 + jj1 * cs1;
+
+      if (rs0 == 1) {
+        size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
+        size_t n_length = n0 < n - jj1 * n0 ? n0 : n - jj1 * n0;
+        skl_transpose_e8_m_padding_zve32x(m0, m_length, n_length, src_block, rs,
+                                          dst_block, cs0);
+        // padd right
+        skl_padd_e8_zve32x(dst_block + cs0 * n_length, m0, cs0, padd_value,
+                           n0 - n_length);
+      } else if (cs0 == 1) {
+        size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
+        size_t n_length = n0 < n - jj1 * n0 ? n0 : n - jj1 * n0;
+        skl_copy2d_e8_zve32x(m_length, n_length, src_block, rs, dst_block, cs0);
+        // padd right
+        skl_padd_e8_zve32x(dst_block + n_length, n0 - n_length, rs0, padd_value,
+                           m_length);
+        // padd bottom
+        skl_padd_e8_zve32x(dst_block + (m_length - 1) * rs0, n0, rs0,
+                           padd_value, m0 - m_length);
+      } else {
+        for (size_t ii0 = 0; ii0 < m0; ++ii0) {
+          for (size_t jj0 = 0; jj0 < n0; ++jj0) {
+            if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
+              dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0];
+            } else {
+              // Pad with zeros
+              dst_block[ii0 * rs0 + jj0 * cs0] = padd_value;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+SKL_FUNC void skl_pack_e8rc_e8rcbrc_zve32x(
     size_t m,           // Num. rows in input matrix
     size_t n,           // Num. columns in input matrix
     const uint8_t *src, // Input matrix
@@ -955,52 +1063,17 @@ SKL_FUNC void skl_pack_rcbrc_e8_zve32x(
     size_t cs1          // Column stride between blocks of the output matrix
 ) {
 
-  size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the input matrix
-  size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the input matrix
-
-  if ((cs0 * n0 == cs1) && (cs == 1 && rs0 == 1)) {
+  if (cs == 1) {
+    skl_pack_e8_e8rcbrc_zve32x(m, n, src, rs, m0, n0, dst, rs0, cs0, rs1, cs1);
+  } else if (rs == 1) {
+    skl_pack_e8_e8rcbrc_zve32x(n, m, src, cs, n0, m0, dst, cs0, rs0, cs1, rs1);
+  } else {
+    size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the input matrix
+    size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the input matrix
     for (size_t ii1 = 0; ii1 < m1; ++ii1) {
-      const uint8_t *src_block = src + ii1 * m0 * rs;
-      uint8_t *dst_block = dst + ii1 * rs1;
-      if (ii1 != m1 - 1) {
-        skl_transpose_e8_zve32x(m0, n, src_block, rs, dst_block, cs0);
-        if (n % n0) {
-          // padd right
-          skl_padd_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), m0,
-                             cs0, 0, n0 - n % n0);
-        }
-      } else {
-        skl_transpose_e8_m_padding_zve32x(m0, m - ii1 * m0, n, src_block, rs,
-                                          dst_block, cs0);
-        if (n % n0) {
-          // padd right (bottom included)
-          skl_padd_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), m0,
-                             cs0, 0, n0 - n % n0);
-        }
-      }
-    }
-    return;
-  }
-
-  for (size_t ii1 = 0; ii1 < m1; ++ii1) {
-    for (size_t jj1 = 0; jj1 < n1; ++jj1) {
-      const uint8_t *src_block = src + ii1 * m0 * rs + jj1 * n0 * cs;
-      uint8_t *dst_block = dst + ii1 * rs1 + jj1 * cs1;
-
-      if (rs == 1 && cs0 == 1) {
-        if (not fringe)
-          skl_transpose_e8_zve32x(n0, m0, src_block, cs, dst_block, rs0);
-        else
-          skl_transpose_e8_zve32x(remain_n0, remain_m0, src_block, cs,
-                                  dst_block, rs0);
-      } else if (cs == 1 && rs0 == 1) {
-        if (not fringe)
-          skl_transpose_e8_zve32x(m0, n0, src_block, rs, dst_block, cs0);
-        else
-          skl_transpose_e8_zve32x(remain_m0, remain_n0, src_block, rs,
-                                  dst_block, cs0);
-      } else {
-
+      for (size_t jj1 = 0; jj1 < n1; ++jj1) {
+        const uint8_t *src_block = src + ii1 * m0 * rs + jj1 * n0 * cs;
+        uint8_t *dst_block = dst + ii1 * rs1 + jj1 * cs1;
         for (size_t ii0 = 0; ii0 < m0; ++ii0) {
           for (size_t jj0 = 0; jj0 < n0; ++jj0) {
             if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
