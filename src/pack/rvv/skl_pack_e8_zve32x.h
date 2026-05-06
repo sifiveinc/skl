@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-void skl_pack_rcbrc_e8_zve32x(
+void skl_pack_e8rc_e8rcbrc_zve32x(
   size_t m,           // Num. rows in input matrix
   size_t n,           // Num. columns in input matrix
   const uint8_t* src,  // Input matrix
