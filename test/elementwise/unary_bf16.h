@@ -24,7 +24,7 @@ typedef struct {
   skl_test_steps_t steps;
 
   // Configurable parameters
-  const char *func_name;     // The name of the function to test
+  const char *func_name;      // The name of the function to test
   unary_func_bf16_t func;     // The function to test
   unary_func_bf16_t ref_func; // The reference function
 
@@ -33,8 +33,8 @@ typedef struct {
 
   // Derived parameters and buffers (private to the test harness)
   struct {
-    __bf16 *out;        // Result buffer
-    __bf16 *ref;        // Reference buffer
+    __bf16 *out;       // Result buffer
+    __bf16 *ref;       // Reference buffer
     float max_err;     // Ulp tolerance
     size_t max_errors; // Maximum number of errors to report
   } ctx;
@@ -50,20 +50,20 @@ void unary_bf16_cleanup(skl_test_t *t);
 #define UNARY_BF16_BENCH_DEFAULTS .in = {.len = 1024, .mode = SKL_TEST_SEQ}
 #define BASIC_STEPS                                                            \
   .steps = {                                                                   \
-      .init = unary_bf16_init,                                                  \
-      .execute = unary_bf16_execute,                                            \
-      .cleanup = unary_bf16_cleanup,                                            \
-      .report = unary_bf16_report,                                              \
+      .init = unary_bf16_init,                                                 \
+      .execute = unary_bf16_execute,                                           \
+      .cleanup = unary_bf16_cleanup,                                           \
+      .report = unary_bf16_report,                                             \
   }
 
 #define TEST                                                                   \
-  UNARY_BF16_TEST_DEFAULTS, BASIC_STEPS, .steps.warmup = NULL,                  \
-                                        .steps.verify = unary_bf16_verify,      \
-                                        .ctx.max_errors = 10
+  UNARY_BF16_TEST_DEFAULTS, BASIC_STEPS, .steps.warmup = NULL,                 \
+                                         .steps.verify = unary_bf16_verify,    \
+                                         .ctx.max_errors = 10
 
 #define BENCH                                                                  \
-  UNARY_BF16_BENCH_DEFAULTS, BASIC_STEPS, .steps.warmup = unary_bf16_execute,    \
-                                         .steps.verify = NULL
+  UNARY_BF16_BENCH_DEFAULTS, BASIC_STEPS, .steps.warmup = unary_bf16_execute,  \
+                                          .steps.verify = NULL
 
 #define FUNCTION_TESTS(FUN, REF_FUN, MIN, MAX, ULP)                            \
   {TEST,                                                                       \
