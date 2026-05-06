@@ -119,6 +119,13 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_exp_bf16_xsfvfexpa_zvfbfmin
+  elementwise/unary_bf16.c
+  exp/exp_bf16_xsfvfexpa_zvfbfmin.c
+  "xsfvfexpa;zvfbfmin"
+  ""
+)
+skl_add_test(
   skl_exp_f32_xsfvfexp32e
   elementwise/unary_f32.c
   exp/exp_f32_xsfvfexp32e.c
