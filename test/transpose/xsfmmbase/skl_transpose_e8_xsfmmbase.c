@@ -8,7 +8,6 @@
 #include "transpose/transpose_e8.h"
 
 #include <stddef.h>
-#include <stdint.h>
 
 #if !defined(__riscv_xsfmmbase)
 #error "This file requires the Xsfmmbase extension."

@@ -8,7 +8,6 @@
 #include "transpose/transpose_e16.h"
 
 #include <stddef.h>
-#include <stdint.h>
 
 #if !defined(__riscv_zve32x)
 #error "This file requires the Zve32x extension."

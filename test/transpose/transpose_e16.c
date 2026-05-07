@@ -13,7 +13,6 @@
 #include "transpose_e16.h"
 #include "skl-ref.h"
 #include "skl-test-driver.h"
-#include "skl.h"
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdint.h>
