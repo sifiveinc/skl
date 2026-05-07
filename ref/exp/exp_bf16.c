@@ -3,9 +3,6 @@
 // See LICENSE file in the project root for full license information.
 // SPDX-License-Identifier: MIT
 
-// Copyright 2026 SiFive, Inc.
-// SPDX-License-Identifier: Apache-2.0
-
 #include "skl-common.h"
 #include <math.h>
 #include <stddef.h>
