@@ -26,7 +26,7 @@
                               .warmup = NULL,                                  \
                               .execute = execute,                              \
                               .verify = transpose_e16_verify,                  \
-                              .report = NULL,                                  \
+                              .report = transpose_e16_report_test,             \
                               .cleanup = transpose_e16_cleanup,                \
   }
 
@@ -36,7 +36,7 @@
                               .warmup = execute,                               \
                               .execute = execute,                              \
                               .verify = NULL,                                  \
-                              .report = transpose_e16_report,                  \
+                              .report = transpose_e16_report_benchmark,        \
                               .cleanup = transpose_e16_cleanup,                \
   }
 

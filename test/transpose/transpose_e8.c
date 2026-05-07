@@ -14,6 +14,7 @@
 #include "skl-ref.h"
 #include "skl-test-driver.h"
 #include "skl.h"
+#include <inttypes.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -70,18 +71,26 @@ void transpose_e8_verify(skl_test_t *t) {
   }
 }
 
-void transpose_e8_report(skl_test_t *t) {
+#define INFO(fmt, ...) SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, fmt, __VA_ARGS__)
+
+void transpose_e8_report_test(skl_test_t *t) {
   transpose_e8_t *h = (transpose_e8_t *)t->harness;
 
-#define INFO(fmt, ...) SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, fmt, __VA_ARGS__)
-  INFO("M: %zd, N: %zd\n", h->m, h->n);
-  INFO("RSA: %zd, RSAT: %zd\n", h->rsa, h->rsat);
+  INFO("M: %zu, N: %zu\n", h->m, h->n);
+  INFO("RSA: %zu, RSAT: %zu\n", h->rsa, h->rsat);
+}
+
+void transpose_e8_report_benchmark(skl_test_t *t) {
+  transpose_e8_t *h = (transpose_e8_t *)t->harness;
+
+  transpose_e8_report_test(t);
   INFO("%s", "\n");
   INFO("Warmup: %s\n", h->steps.warmup ? "yes" : "no");
-  INFO("Cycles: %zd\n", t->counters.cycles);
-  INFO("Instructions: %zd\n", t->counters.instret);
-#undef INFO
+  INFO("Cycles: %" PRIu64 "\n", t->counters.cycles);
+  INFO("Instructions: %" PRIu64 "\n", t->counters.instret);
 }
+
+#undef INFO
 
 void transpose_e8_cleanup(skl_test_t *t) {
   transpose_e8_t *h = (transpose_e8_t *)t->harness;
