@@ -71,7 +71,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
   if (k == 0) {
     for (ii = 0; (ii + 1) <= m; ii = ii + 1) {
       for (jj = 0; jj < n; jj = jj + jj_vl) {
-        jj_vl = __riscv_vsetvl_e32m1(n - jj);
+        jj_vl = __riscv_vsetvl_e32m8(n - jj);
         c00 = __riscv_vle32_v_f32m8(c + ii * rsc + jj, jj_vl);
         c00 = __riscv_vfmul_vf_f32m8(c00, beta, jj_vl);
         __riscv_vse32_v_f32m8(c + ii * rsc + jj, c00, jj_vl);
