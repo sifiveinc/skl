@@ -123,7 +123,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
               [a02] "=&f"(a02),
               [b00] "=&vr"(b00),
               [b10] "=&vr"(b10),
-              [b20] "=&vr"(b20)
+              [b20] "=vr"(b20)
             : [jj_vl] "r"(jj_vl),
               [a_addr] "r"(a + ii * rsa + kk),
               [b_addr_0] "r"(b + (kk + 0) * rsb + jj),
