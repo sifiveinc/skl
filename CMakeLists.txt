@@ -1,3 +1,8 @@
+# Copyright (c) 2025-2026 SiFive, Inc. All rights reserved.
+# Licensed under the MIT License.
+# See LICENSE file in the project root for full license information.
+# SPDX-License-Identifier: MIT
+
 cmake_minimum_required(VERSION 3.21)
 
 project(SKL)

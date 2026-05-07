@@ -1,5 +1,7 @@
-// Copyright 2026 SiFive, Inc.
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2026 SiFive, Inc. All rights reserved.
+// Licensed under the MIT License.
+// See LICENSE file in the project root for full license information.
+// SPDX-License-Identifier: MIT
 
 #if !defined(__riscv_zvfh) || __riscv_zvfh < 1000000
 #error This file requires the RISC-V Zvfh extension, version 1000000.
