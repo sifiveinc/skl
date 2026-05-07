@@ -1,5 +1,7 @@
-// Copyright 2026 SiFive, Inc.
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2026 SiFive, Inc. All rights reserved.
+// Licensed under the MIT License.
+// See LICENSE file in the project root for full license information.
+// SPDX-License-Identifier: MIT
 
 #if !(defined(ENABLE_TEST) || defined(ENABLE_BENCHMARK))
 #error Must define at least one of ENABLE_TEST and ENABLE_BENCHMARK

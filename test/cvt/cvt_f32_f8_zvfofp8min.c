@@ -1,5 +1,7 @@
-// Copyright 2026 SiFive, Inc.
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2026 SiFive, Inc. All rights reserved.
+// Licensed under the MIT License.
+// See LICENSE file in the project root for full license information.
+// SPDX-License-Identifier: MIT
 
 #include "cvt_f32_f8.h"
 #include "skl-test-driver.h"

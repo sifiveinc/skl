@@ -2,7 +2,7 @@
 
 ## License
 
-SKL is licensed under the terms of the Apache License v2.0: [LICENSE](LICENSE.txt)
+SKL is licensed under the terms of the MIT License: [LICENSE](LICENSE.txt)
 
 By contributing to this project, you agree to this license and copyright terms and release your contribution under these terms.
 

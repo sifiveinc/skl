@@ -1,3 +1,7 @@
+# Copyright (c) 2025-2026 SiFive, Inc. All rights reserved.
+# Licensed under the MIT License.
+# See LICENSE file in the project root for full license information.
+# SPDX-License-Identifier: MIT
 
 # Use C preprocessor `#define`s to detect which RISC-V extensions are enabled.
 execute_process(COMMAND ${CMAKE_C_COMPILER} -xc -dM -E ${SKL_COMPILE_OPTIONS} /dev/null
