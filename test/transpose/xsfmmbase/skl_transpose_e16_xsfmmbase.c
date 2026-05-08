@@ -5,7 +5,7 @@
 
 #include "skl-test-driver.h"
 #include "skl.h"
-#include "transpose/transpose_e8.h"
+#include "transpose/transpose_e16.h"
 
 #include <stddef.h>
 
@@ -16,33 +16,33 @@
 /**
  * @brief Test cases for transpose with Xsfmmbase extension.
  *
- * This test uses the transpose_e8 harness.
+ * This test uses the transpose_e16 harness.
  */
 
 #define TEST                                                                   \
-  TRANSPOSE_E8_DEFAULTS, .steps = {                                            \
-                             .init = transpose_e8_init,                        \
-                             .warmup = NULL,                                   \
-                             .execute = execute,                               \
-                             .verify = transpose_e8_verify,                    \
-                             .report = transpose_e8_test_report,               \
-                             .cleanup = transpose_e8_cleanup,                  \
+  TRANSPOSE_E16_DEFAULTS, .steps = {                                           \
+                              .init = transpose_e16_init,                      \
+                              .warmup = NULL,                                  \
+                              .execute = execute,                              \
+                              .verify = transpose_e16_verify,                  \
+                              .report = transpose_e16_test_report,             \
+                              .cleanup = transpose_e16_cleanup,                \
   }
 
 #define BENCH                                                                  \
-  TRANSPOSE_E8_DEFAULTS, .steps = {                                            \
-                             .init = transpose_e8_init,                        \
-                             .warmup = execute,                                \
-                             .execute = execute,                               \
-                             .verify = NULL,                                   \
-                             .report = transpose_e8_benchmark_report,          \
-                             .cleanup = transpose_e8_cleanup,                  \
+  TRANSPOSE_E16_DEFAULTS, .steps = {                                           \
+                              .init = transpose_e16_init,                      \
+                              .warmup = execute,                               \
+                              .execute = execute,                              \
+                              .verify = NULL,                                  \
+                              .report = transpose_e16_benchmark_report,        \
+                              .cleanup = transpose_e16_cleanup,                \
   }
 
 static void execute(skl_test_t *t);
 
 // clang-format off
-transpose_e8_t tests[] = {
+transpose_e16_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
   // Benchmark tests
   {BENCH, .m = 64, .n = 128},
@@ -89,16 +89,16 @@ transpose_e8_t tests[] = {
 };
 // clang-format on
 
-static skl_test_suite_t suite = {.name = "skl_transpose_e8_xsfmmbase",
+static skl_test_suite_t suite = {.name = "skl_transpose_e16_xsfmmbase",
                                  .num_tests = sizeof(tests) / sizeof(tests[0]),
-                                 .test_size = sizeof(transpose_e8_t),
+                                 .test_size = sizeof(transpose_e16_t),
                                  .tests = tests};
 
 static void execute(skl_test_t *t) {
-  const transpose_e8_t *h = (transpose_e8_t *)t->harness;
+  const transpose_e16_t *h = (transpose_e16_t *)t->harness;
 
-  skl_transpose_e8_xsfmmbase(h->m, h->n, h->a.data, h->rsa, h->at.data,
-                             h->rsat);
+  skl_transpose_e16_xsfmmbase(h->m, h->n, h->a.data, h->rsa, h->at.data,
+                              h->rsat);
 }
 
 int main(void) {
