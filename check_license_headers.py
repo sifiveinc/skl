@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2025-Present SiFive, Inc. All rights reserved.
+# Copyright (c) 2025-2026 SiFive, Inc. All rights reserved.
 # Licensed under the MIT License.
 # See LICENSE file in the project root for full license information.
 # SPDX-License-Identifier: MIT
@@ -25,9 +25,6 @@ Usage:
     # Show verbose output (lists all valid files)
     ./check_license_headers.py --verbose
 
-    # Show example headers
-    ./check_license_headers.py --examples
-
     # Fix files with missing headers
     ./check_license_headers.py --fix
 
@@ -48,7 +45,7 @@ from typing import List, Tuple, Set
 
 # Expected copyright patterns (allowing for 2025 or 2026)
 COPYRIGHT_PATTERNS = [
-    r"Copyright\s+\(c\)\s+202[56]-Present\s+SiFive,?\s+Inc\.\s+All\s+rights\s+reserved\.",
+    r"Copyright\s+\(c\)\s+202[56](-2026)?\s+SiFive,?\s+Inc\.\s+All\s+rights\s+reserved\.",
 ]
 
 # Expected license reference
@@ -147,7 +144,7 @@ def generate_header(filepath: Path, year: str = "2025") -> str:
         return ""
 
     header_lines = [
-        f"{comment_prefix} Copyright (c) {year}-Present SiFive, Inc. All rights reserved.",
+        f"{comment_prefix} Copyright (c) {year} SiFive, Inc. All rights reserved.",
         f"{comment_prefix} Licensed under the MIT License.",
         f"{comment_prefix} See LICENSE file in the project root for full license information.",
         f"{comment_prefix} SPDX-License-Identifier: MIT",
@@ -241,34 +238,10 @@ def check_file_header(filepath: Path) -> Tuple[bool, List[str]]:
     
     return (len(issues) == 0, issues)
 
-
-def print_example_headers():
-    """Print example headers for different file types."""
-    print("\nEXAMPLE HEADERS:")
-    print("=" * 80)
-
-    print("\nC/C++ files (.c, .h, .cpp, .hpp):")
-    print("-" * 80)
-    print("""// Copyright (c) 2025-Present SiFive, Inc. All rights reserved.
-// Licensed under the MIT License.
-// See LICENSE file in the project root for full license information.
-// SPDX-License-Identifier: MIT
-""")
-
-    print("\nPython/CMake files (.py, .cmake, CMakeLists.txt):")
-    print("-" * 80)
-    print("""# Copyright (c) 2025-Present SiFive, Inc. All rights reserved.
-# Licensed under the MIT License.
-# See LICENSE file in the project root for full license information.
-# SPDX-License-Identifier: MIT
-""")
-
-
 def main():
     """Main function to check all files in the repository."""
     parser = argparse.ArgumentParser(
         description="Check for SiFive copyright and MIT license headers in source files.",
-        epilog="Note: Copyright year can be either 2025-Present or 2026-Present"
     )
     parser.add_argument(
         '-v', '--verbose',
@@ -279,11 +252,6 @@ def main():
         '--summary',
         action='store_true',
         help='Show summary of file types checked'
-    )
-    parser.add_argument(
-        '--examples',
-        action='store_true',
-        help='Show example headers and exit'
     )
     parser.add_argument(
         '--fix',
@@ -302,10 +270,6 @@ def main():
         help='Specific files to check (if not provided, checks entire repository)'
     )
     args = parser.parse_args()
-
-    if args.examples:
-        print_example_headers()
-        return 0
 
     repo_root = Path(__file__).parent.resolve()
 
