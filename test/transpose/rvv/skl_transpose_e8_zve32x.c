@@ -25,7 +25,7 @@
                              .warmup = NULL,                                   \
                              .execute = execute,                               \
                              .verify = transpose_e8_verify,                    \
-                             .report = transpose_e8_report_test,               \
+                             .report = transpose_e8_test_report,               \
                              .cleanup = transpose_e8_cleanup,                  \
   }
 
@@ -35,7 +35,7 @@
                              .warmup = execute,                                \
                              .execute = execute,                               \
                              .verify = NULL,                                   \
-                             .report = transpose_e8_report_benchmark,          \
+                             .report = transpose_e8_benchmark_report,          \
                              .cleanup = transpose_e8_cleanup,                  \
   }
 

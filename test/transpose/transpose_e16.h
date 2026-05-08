@@ -32,6 +32,6 @@ typedef struct {
 
 void transpose_e16_init(skl_test_t *t);
 void transpose_e16_verify(skl_test_t *t);
-void transpose_e16_report_test(skl_test_t *t);
-void transpose_e16_report_benchmark(skl_test_t *t);
+void transpose_e16_test_report(skl_test_t *t);
+void transpose_e16_benchmark_report(skl_test_t *t);
 void transpose_e16_cleanup(skl_test_t *t);

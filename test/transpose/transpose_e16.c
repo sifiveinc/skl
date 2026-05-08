@@ -73,17 +73,17 @@ void transpose_e16_verify(skl_test_t *t) {
 
 #define INFO(fmt, ...) SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, fmt, __VA_ARGS__)
 
-void transpose_e16_report_test(skl_test_t *t) {
+void transpose_e16_test_report(skl_test_t *t) {
   transpose_e16_t *h = (transpose_e16_t *)t->harness;
 
   INFO("M: %zu, N: %zu\n", h->m, h->n);
   INFO("RSA: %zu, RSAT: %zu\n", h->rsa, h->rsat);
 }
 
-void transpose_e16_report_benchmark(skl_test_t *t) {
+void transpose_e16_benchmark_report(skl_test_t *t) {
   transpose_e16_t *h = (transpose_e16_t *)t->harness;
 
-  transpose_e16_report_test(t);
+  transpose_e16_test_report(t);
   INFO("%s", "\n");
   INFO("Warmup: %s\n", h->steps.warmup ? "yes" : "no");
   INFO("Cycles: %" PRIu64 "\n", t->counters.cycles);
