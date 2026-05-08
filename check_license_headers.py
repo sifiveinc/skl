@@ -49,10 +49,15 @@ COPYRIGHT_PATTERNS = [
 ]
 
 # Expected license reference
-LICENSE_REFERENCE = r"Licensed\s+under\s+the\s+MIT\s+License\."
+LICENSE_REFERENCE = [
+    r"Licensed under the MIT License\.",
+    r"See LICENSE file in the project root for full license information\."
+]
 
 # Expected SPDX identifier
-SPDX_IDENTIFIER = r"SPDX-License-Identifier:\s*MIT"
+SPDX_IDENTIFIER = [
+    r"SPDX-License-Identifier:\s*MIT"
+]
 
 # File extensions to check and their comment styles
 FILE_TYPES = {
@@ -205,7 +210,7 @@ def check_file_header(filepath: Path) -> Tuple[bool, List[str]]:
     issues = []
     
     try:
-        with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+        with open(filepath, 'r') as f:
             # Read first 20 lines (header should be in this range)
             header_lines = []
             for i, line in enumerate(f):
@@ -215,23 +220,37 @@ def check_file_header(filepath: Path) -> Tuple[bool, List[str]]:
             
             header_text = ''.join(header_lines)
             
-            # Check for copyright notice
+            copyright_license_lines = COPYRIGHT_PATTERNS + LICENSE_REFERENCE + SPDX_IDENTIFIER
+            # copyright_license_lines = LICENSE_REFERENCE
+            comment_char, _ = get_comment_style(filepath)
+            print(f"comment char is {comment_char}\n")
+            lines = []
+            for line in copyright_license_lines:
+                line = comment_char + r"\s+" + line
+                lines.append(line)
+            copyright_license_pattern = r"(\r)?\n".join(lines)
+
             copyright_found = False
-            for pattern in COPYRIGHT_PATTERNS:
-                if re.search(pattern, header_text, re.IGNORECASE):
-                    copyright_found = True
-                    break
+            if re.search(copyright_license_pattern, header_text):
+                copyright_found = True
+
+            # Check for copyright notice
+            # copyright_found = False
+            # for pattern in COPYRIGHT_PATTERNS:
+            #     if re.search(pattern, header_text, re.IGNORECASE):
+            #         copyright_found = True
+            #         break
             
             if not copyright_found:
                 issues.append("Missing or incorrect SiFive copyright notice (should be '2025-Present' or '2026-Present')")
             
             # Check for MIT license reference
-            if not re.search(LICENSE_REFERENCE, header_text, re.IGNORECASE):
-                issues.append("Missing MIT License reference")
+            # if not re.search(LICENSE_REFERENCE, header_text, re.IGNORECASE):
+            #     issues.append("Missing MIT License reference")
             
             # Check for SPDX identifier
-            if not re.search(SPDX_IDENTIFIER, header_text):
-                issues.append("Missing SPDX-License-Identifier: MIT")
+            # if not re.search(SPDX_IDENTIFIER, header_text):
+            #     issues.append("Missing SPDX-License-Identifier: MIT")
             
     except Exception as e:
         issues.append(f"Error reading file: {e}")
