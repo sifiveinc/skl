@@ -10,7 +10,7 @@ typedef struct {
   // Test function pointers for various steps
   skl_test_steps_t steps;
 
-  // Configurable parameter (Softmax function and arguments)
+  // Configurable parameters (Softmax function and arguments)
   void *func;  // polymorphic pointer to function
   char *name;  // name of the function under test
   size_t m, n; // row and column count
