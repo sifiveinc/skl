@@ -14,6 +14,9 @@
 
 // clang-format off
 softmax_f32_t tests[] = {
+#ifdef SKL_ENABLE_BENCHMARKS
+  VARIANT_BENCHMARKS(ref),
+#endif
 #ifdef SKL_ENABLE_TESTS
   VARIANT_TESTS(ref),
 #endif
