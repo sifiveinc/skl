@@ -35,6 +35,24 @@ void softmax_f32_init(skl_test_t *t) {
   }
 }
 
+typedef void (*skl_softmax_f32_t)(float *, const float *, const float,
+                                  const size_t);
+
+void softmax_f32_execute(skl_test_t *t) {
+  const softmax_f32_t *h = (softmax_f32_t *)t->harness;
+  skl_softmax_f32_t fn = (skl_softmax_f32_t)(h->func);
+  fn(h->ctx.s, h->a.data, h->beta, h->n);
+}
+
+typedef void (*skl_softmax_2d_f32_t)(float *, size_t, const float *, size_t,
+                                     const float, size_t, size_t);
+
+void softmax_2d_f32_execute(skl_test_t *t) {
+  const softmax_f32_t *h = (softmax_f32_t *)t->harness;
+  skl_softmax_2d_f32_t fn = (skl_softmax_2d_f32_t)(h->func);
+  fn(h->ctx.s, h->rss, h->a.data, h->rsa, h->beta, h->m, h->n);
+}
+
 /** Reference softmax producing FP64 results for high accuracy */
 static void softmax_f32_f64(double *out, const float *in, float beta,
                             size_t n) {
@@ -59,12 +77,10 @@ static void softmax_f32_f64(double *out, const float *in, float beta,
 
 void softmax_f32_verify(skl_test_t *t) {
   softmax_f32_t *h = (softmax_f32_t *)t->harness;
-  // NOLINTBEGIN(*-isolate-declaration)
   const size_t M = h->m, N = h->n;
   const float min = h->a.min, max = h->a.max;
   const float beta = h->beta;
   size_t errs = 0;
-  // NOLINTEND(*-isolate-declaration)
 
   // Expected error is error of an N-element summation, i.e. `N u`,
   // plus error introduced by stabilization and beta-scaling.  The
