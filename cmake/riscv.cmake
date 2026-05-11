@@ -3,6 +3,7 @@
 # See LICENSE file in the project root for full license information.
 # SPDX-License-Identifier: MIT
 
+set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR riscv)
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
