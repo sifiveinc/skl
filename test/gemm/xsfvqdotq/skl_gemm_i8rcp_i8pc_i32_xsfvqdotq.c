@@ -1,3 +1,6 @@
+// Copyright 2026 SiFive, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 #include "gemm/gemm_i8rcp_i8pc_i32_xsfvqdotq.h"
 #include "skl-test-driver.h"
 #include "skl.h"
@@ -20,7 +23,7 @@
           .warmup = NULL,                                                      \
           .execute = execute,                                                  \
           .verify = gemm_i8rcp_i8pc_i32_xsfvqdotq_verify,                      \
-          .report = NULL,                                                      \
+          .report = gemm_i8rcp_i8pc_i32_xsfvqdotq_test_report,                 \
           .cleanup = gemm_i8rcp_i8pc_i32_xsfvqdotq_cleanup,                    \
   }
 #define BENCH                                                                  \
@@ -30,7 +33,7 @@
           .warmup = execute,                                                   \
           .execute = execute,                                                  \
           .verify = NULL,                                                      \
-          .report = gemm_i8rcp_i8pc_i32_xsfvqdotq_report,                      \
+          .report = gemm_i8rcp_i8pc_i32_xsfvqdotq_benchmark_report,            \
           .cleanup = gemm_i8rcp_i8pc_i32_xsfvqdotq_cleanup,                    \
   }
 

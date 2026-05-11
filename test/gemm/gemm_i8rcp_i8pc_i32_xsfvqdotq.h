@@ -1,8 +1,6 @@
 // Copyright 2026 SiFive, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-#pragma once
-
 /**
  * @brief Test and benchmark for GEMM: C = alpha * A * B + beta * C.
  *
@@ -18,6 +16,8 @@
  *  - B is K x N with row stride RSB and column stride CSB
  *  - C is M x N with row stride RSC and column stride CSC
  */
+
+#pragma once
 
 #include "skl-test-driver.h"
 #include <stdbool.h>
@@ -48,7 +48,8 @@ typedef struct {
 
 void gemm_i8rcp_i8pc_i32_xsfvqdotq_init(skl_test_t *t);
 void gemm_i8rcp_i8pc_i32_xsfvqdotq_verify(skl_test_t *t);
-void gemm_i8rcp_i8pc_i32_xsfvqdotq_report(skl_test_t *t);
+void gemm_i8rcp_i8pc_i32_xsfvqdotq_test_report(skl_test_t *t);
+void gemm_i8rcp_i8pc_i32_xsfvqdotq_benchmark_report(skl_test_t *t);
 void gemm_i8rcp_i8pc_i32_xsfvqdotq_cleanup(skl_test_t *t);
 
 #define GEMM_I8RCP_I8PC_I32_XSFVQDOTQ_DEFAULTS                                 \
