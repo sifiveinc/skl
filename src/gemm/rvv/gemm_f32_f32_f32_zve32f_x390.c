@@ -333,93 +333,76 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
   size_t jj_vl;
   size_t ii;
   size_t jj;
-  size_t kk_peel;
   size_t kk;
-  size_t kk0;
-  size_t ii0;
-  float alpha0;
-  float beta0;
   float a00;
+  float a10;
+  float a20;
+  float a30;
+  float a40;
+  float a50;
+  float a60;
+  float a70;
   float a01;
+  float a11;
+  float a21;
+  float a31;
+  float a41;
+  float a51;
+  float a61;
+  float a71;
   float a02;
+  float a12;
+  float a22;
+  float a32;
+  float a42;
+  float a52;
+  float a62;
+  float a72;
   float a03;
-  float a04;
-  float a05;
-  float a06;
-  float a07;
-  vfloat32m1_t b0;
-  vfloat32m1_t acc0;
-  vfloat32m1_t acc1;
-  vfloat32m1_t acc2;
-  vfloat32m1_t acc3;
-  vfloat32m1_t acc4;
-  vfloat32m1_t acc5;
-  vfloat32m1_t acc6;
-  vfloat32m1_t acc7;
-  float a000;
-  float a001;
-  float a002;
-  float a003;
-  float a010;
-  float a011;
-  float a012;
-  float a013;
-  float a020;
-  float a021;
-  float a022;
-  float a023;
-  float a030;
-  float a031;
-  float a032;
-  float a033;
-  float a040;
-  float a041;
-  float a042;
-  float a043;
-  float a050;
-  float a051;
-  float a052;
-  float a053;
-  float a060;
-  float a061;
-  float a062;
-  float a063;
-  float a070;
-  float a071;
-  float a072;
-  float a073;
-  vfloat32m1_t b00;
-  vfloat32m1_t b01;
-  vfloat32m1_t b02;
-  vfloat32m1_t b03;
-  vfloat32m1_t c00;
-  vfloat32m1_t c01;
-  vfloat32m1_t c02;
-  vfloat32m1_t c03;
-  vfloat32m1_t c04;
-  vfloat32m1_t c05;
-  vfloat32m1_t c06;
-  vfloat32m1_t c07;
-  float a0;
-  vfloat32m1_t acc;
-  vfloat32m1_t c0;
-  alpha0 = alpha;
-  beta0 = beta;
+  float a13;
+  float a23;
+  float a33;
+  float a43;
+  float a53;
+  float a63;
+  float a73;
+  vfloat32m2_t acc0;
+  vfloat32m2_t acc1;
+  vfloat32m2_t acc2;
+  vfloat32m2_t acc3;
+  vfloat32m2_t acc4;
+  vfloat32m2_t acc5;
+  vfloat32m2_t acc6;
+  vfloat32m2_t acc7;
+  vfloat32m2_t b00;
+  vfloat32m2_t b10;
+  vfloat32m2_t b20;
+  vfloat32m2_t b30;
+  vfloat32m2_t c00;
+  vfloat32m2_t c10;
+  vfloat32m2_t c20;
+  vfloat32m2_t c30;
+  vfloat32m2_t c40;
+  vfloat32m2_t c50;
+  vfloat32m2_t c60;
+  vfloat32m2_t c70;
+
   if (k == 0) {
     for (ii = 0; (ii + 1) <= m; ii = ii + 1) {
       for (jj = 0; jj < n; jj = jj + jj_vl) {
-        jj_vl = __riscv_vsetvl_e32m1(n - jj);
-        c0 = __riscv_vle32_v_f32m1(c + (((ii + 0) * rsc) + ((jj + 0) * 1)),
-                                   jj_vl);
-        c0 = __riscv_vfmul_vf_f32m1(c0, beta0, jj_vl);
-        __riscv_vse32_v_f32m1(c + (((ii + 0) * rsc) + ((jj + 0) * 1)), c0,
-                              jj_vl);
+        jj_vl = __riscv_vsetvl_e32m8(n - jj);
+        vfloat32m8_t c0m8 = __riscv_vle32_v_f32m8(c + ii * rsc + jj, jj_vl);
+        c0m8 = __riscv_vfmul_vf_f32m8(c0m8, beta, jj_vl);
+        __riscv_vse32_v_f32m8(c + ii * rsc + jj, c0m8, jj_vl);
       }
     }
     return;
   }
+
   for (ii = 0; (ii + 8) <= m; ii = ii + 8) {
     for (jj = 0; jj < n; jj = jj + jj_vl) {
+      jj_vl = __riscv_vsetvl_e32m2(n - jj);
+
       const float *a_addr0 = a + (ii + 0) * rsa;
       const float *a_addr1 = a + (ii + 1) * rsa;
       const float *a_addr2 = a + (ii + 2) * rsa;
@@ -428,435 +411,790 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
       const float *a_addr5 = a + (ii + 5) * rsa;
       const float *a_addr6 = a + (ii + 6) * rsa;
       const float *a_addr7 = a + (ii + 7) * rsa;
+
       __asm__ volatile(
+          // clang-format off
           "\n\t"
-          "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
-          "vle32.v %[b0], (%[b_load]) \n\t"
+          "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
+          "vle32.v %[b00], (%[b_load]) \n\t"
+
           "flw %[a00], 0(%[a_addr0]) \n\t"
+          "vfmul.vf %[acc0], %[b00], %[a00] \n\t"
           "addi %[a_addr0], %[a_addr0], 4 \n\t"
-          "flw %[a01], 0(%[a_addr1]) \n\t"
+
+          "flw %[a10], 0(%[a_addr1]) \n\t"
+          "vfmul.vf %[acc1], %[b00], %[a10] \n\t"
           "addi %[a_addr1], %[a_addr1], 4 \n\t"
-          "flw %[a02], 0(%[a_addr2]) \n\t"
+
+          "flw %[a20], 0(%[a_addr2]) \n\t"
+          "vfmul.vf %[acc2], %[b00], %[a20] \n\t"
           "addi %[a_addr2], %[a_addr2], 4 \n\t"
-          "flw %[a03], 0(%[a_addr3]) \n\t"
+
+          "flw %[a30], 0(%[a_addr3]) \n\t"
+          "vfmul.vf %[acc3], %[b00], %[a30] \n\t"
           "addi %[a_addr3], %[a_addr3], 4 \n\t"
-          "flw %[a04], 0(%[a_addr4]) \n\t"
+
+          "flw %[a40], 0(%[a_addr4]) \n\t"
+          "vfmul.vf %[acc4], %[b00], %[a40] \n\t"
           "addi %[a_addr4], %[a_addr4], 4 \n\t"
-          "flw %[a05], 0(%[a_addr5]) \n\t"
+
+          "flw %[a50], 0(%[a_addr5]) \n\t"
+          "vfmul.vf %[acc5], %[b00], %[a50] \n\t"
           "addi %[a_addr5], %[a_addr5], 4 \n\t"
-          "flw %[a06], 0(%[a_addr6]) \n\t"
+
+          "flw %[a60], 0(%[a_addr6]) \n\t"
+          "vfmul.vf %[acc6], %[b00], %[a60] \n\t"
           "addi %[a_addr6], %[a_addr6], 4 \n\t"
-          "flw %[a07], 0(%[a_addr7]) \n\t"
+
+          "flw %[a70], 0(%[a_addr7]) \n\t"
+          "vfmul.vf %[acc7], %[b00], %[a70] \n\t"
           "addi %[a_addr7], %[a_addr7], 4 \n\t"
-          "vfmul.vf %[acc0], %[b0], %[a00] \n\t"
-          "vfmul.vf %[acc1], %[b0], %[a01] \n\t"
-          "vfmul.vf %[acc2], %[b0], %[a02] \n\t"
-          "vfmul.vf %[acc3], %[b0], %[a03] \n\t"
-          "vfmul.vf %[acc4], %[b0], %[a04] \n\t"
-          "vfmul.vf %[acc5], %[b0], %[a05] \n\t"
-          "vfmul.vf %[acc6], %[b0], %[a06] \n\t"
-          "vfmul.vf %[acc7], %[b0], %[a07] \n\t"
-          : [a00] "=&f"(a00), [a01] "=&f"(a01), [a02] "=&f"(a02),
-            [a03] "=&f"(a03), [a04] "=&f"(a04), [a05] "=&f"(a05),
-            [a06] "=&f"(a06), [a07] "=&f"(a07), [jj_vl_out] "=&r"(jj_vl),
-            [b0] "=&vr"(b0), [acc0] "=&vr"(acc0), [acc1] "=&vr"(acc1),
-            [acc2] "=&vr"(acc2), [acc3] "=&vr"(acc3), [acc4] "=&vr"(acc4),
-            [acc5] "=&vr"(acc5), [acc6] "=&vr"(acc6), [acc7] "=vr"(acc7),
-            [a_addr0] "+&r"(a_addr0), [a_addr1] "+&r"(a_addr1),
-            [a_addr2] "+&r"(a_addr2), [a_addr3] "+&r"(a_addr3),
-            [a_addr4] "+&r"(a_addr4), [a_addr5] "+&r"(a_addr5),
-            [a_addr6] "+&r"(a_addr6), [a_addr7] "+&r"(a_addr7)
-          : [jj_vl_in] "r"(n - jj), [b_load] "r"(b + jj)
-          : "vtype", "vl", "memory");
+          : [a00] "=&f"(a00),
+            [a10] "=&f"(a10),
+            [a20] "=&f"(a20),
+            [a30] "=&f"(a30),
+            [a40] "=&f"(a40),
+            [a50] "=&f"(a50),
+            [a60] "=&f"(a60),
+            [a70] "=&f"(a70),
+            [b00] "=&vr"(b00),
+            [acc0] "=vr"(acc0),
+            [acc1] "=vr"(acc1),
+            [acc2] "=vr"(acc2),
+            [acc3] "=vr"(acc3),
+            [acc4] "=vr"(acc4),
+            [acc5] "=vr"(acc5),
+            [acc6] "=vr"(acc6),
+            [acc7] "=vr"(acc7),
+            [a_addr0] "+&r"(a_addr0),
+            [a_addr1] "+&r"(a_addr1),
+            [a_addr2] "+&r"(a_addr2),
+            [a_addr3] "+&r"(a_addr3),
+            [a_addr4] "+&r"(a_addr4),
+            [a_addr5] "+&r"(a_addr5),
+            [a_addr6] "+&r"(a_addr6),
+            [a_addr7] "+&r"(a_addr7)
+          : [jj_vl] "r"(jj_vl),
+            [b_load] "r"(b + jj)
+          : "vtype", "vl", "memory"
+          // clang-format on
+      );
 
-      const float *b_addr0 = b + (1 + 0) * rsb + jj;
-      const float *b_addr1 = b + (1 + 1) * rsb + jj;
-      const float *b_addr2 = b + (1 + 2) * rsb + jj;
-      const float *b_addr3 = b + (1 + 3) * rsb + jj;
       kk = 1;
+      const float *b_addr0 = b + (kk + 0) * rsb + jj;
+      const float *b_addr1 = b + (kk + 1) * rsb + jj;
+      const float *b_addr2 = b + (kk + 2) * rsb + jj;
+      const float *b_addr3 = b + (kk + 3) * rsb + jj;
 
-      if (k - 1 >= 4) {
-        __asm__ volatile( // Initialize pipeline.
+      const size_t preload_distance = 4;
+      const size_t kk_unroll_degree = 12;
+
+      if (kk + kk_unroll_degree + preload_distance <= k) {
+        __asm__ volatile(
+            // clang-format off
             "\n\t"
-            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
+            "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
             "vle32.v %[b00], (%[b_addr0]) \n\t"
-            "vle32.v %[b01], (%[b_addr1]) \n\t"
-            "vle32.v %[b02], (%[b_addr2]) \n\t"
-            "vle32.v %[b03], (%[b_addr3]) \n\t"
-            "flw %[a000], 0(%[a_addr0]) \n\t"
-            "vfmacc.vf %[acc0], %[a000], %[b00] \n\t"
+            "vle32.v %[b10], (%[b_addr1]) \n\t"
+            "vle32.v %[b20], (%[b_addr2]) \n\t"
+            "vle32.v %[b30], (%[b_addr3]) \n\t"
 
-            "flw %[a001], 4(%[a_addr0]) \n\t"
-            "flw %[a010], 0(%[a_addr1]) \n\t"
-            "vfmacc.vf %[acc0], %[a001], %[b01] \n\t"
-            "vfmacc.vf %[acc1], %[a010], %[b00] \n\t"
+            "flw %[a00],  0(%[a_addr0]) \n\t"
+            "flw %[a10],  0(%[a_addr1]) \n\t"
+            "flw %[a20],  0(%[a_addr2]) \n\t"
+            "flw %[a30],  0(%[a_addr3]) \n\t"
+            "flw %[a40],  0(%[a_addr4]) \n\t"
+            "flw %[a50],  0(%[a_addr5]) \n\t"
+            "flw %[a60],  0(%[a_addr6]) \n\t"
+            "flw %[a70],  0(%[a_addr7]) \n\t"
 
-            "flw %[a002], 8(%[a_addr0]) \n\t"
-            "flw %[a011], 4(%[a_addr1]) \n\t"
-            "flw %[a020], 0(%[a_addr2]) \n\t"
-            "vfmacc.vf %[acc0], %[a002], %[b02] \n\t"
-            "vfmacc.vf %[acc1], %[a011], %[b01] \n\t"
-            "vfmacc.vf %[acc2], %[a020], %[b00] \n\t"
-            : [a000] "=&f"(a000), [a001] "=&f"(a001), [a002] "=&f"(a002),
-              [a010] "=&f"(a010), [a011] "=&f"(a011), [a020] "=&f"(a020),
-              [jj_vl_out] "=&r"(jj_vl), [b00] "=&vr"(b00), [b01] "=&vr"(b01),
-              [b02] "=&vr"(b02), [b03] "=&vr"(b03), [acc0] "+&vr"(acc0),
-              [acc1] "+&vr"(acc1), [acc2] "+vr"(acc2)
-            : [rsa] "r"(rsa), [rsb] "r"(rsb), [jj_vl_in] "r"(n - jj),
-              [a_addr0] "r"(a_addr0), [a_addr1] "r"(a_addr1),
-              [a_addr2] "r"(a_addr2), [b_addr0] "r"(b_addr0),
-              [b_addr1] "r"(b_addr1), [b_addr2] "r"(b_addr2),
-              [b_addr3] "r"(b_addr3)
-            : "vtype", "vl", "memory");
+            "flw %[a01],  4(%[a_addr0]) \n\t"
+            "flw %[a11],  4(%[a_addr1]) \n\t"
+            "flw %[a21],  4(%[a_addr2]) \n\t"
+            "flw %[a31],  4(%[a_addr3]) \n\t"
+            "flw %[a41],  4(%[a_addr4]) \n\t"
+            "flw %[a51],  4(%[a_addr5]) \n\t"
+            "flw %[a61],  4(%[a_addr6]) \n\t"
+            "flw %[a71],  4(%[a_addr7]) \n\t"
 
-        for (; (kk + 8) <= k; kk = kk + 4) {
+            "flw %[a02],  8(%[a_addr0]) \n\t"
+            "flw %[a12],  8(%[a_addr1]) \n\t"
+            "flw %[a22],  8(%[a_addr2]) \n\t"
+            "flw %[a32],  8(%[a_addr3]) \n\t"
+            "flw %[a42],  8(%[a_addr4]) \n\t"
+            "flw %[a52],  8(%[a_addr5]) \n\t"
+            "flw %[a62],  8(%[a_addr6]) \n\t"
+            "flw %[a72],  8(%[a_addr7]) \n\t"
+
+            "flw %[a03], 12(%[a_addr0]) \n\t"
+            "flw %[a13], 12(%[a_addr1]) \n\t"
+            "flw %[a23], 12(%[a_addr2]) \n\t"
+            "flw %[a33], 12(%[a_addr3]) \n\t"
+            "flw %[a43], 12(%[a_addr4]) \n\t"
+            "flw %[a53], 12(%[a_addr5]) \n\t"
+            "flw %[a63], 12(%[a_addr6]) \n\t"
+            "flw %[a73], 12(%[a_addr7]) \n\t"
+
+            "add %[a_addr0], %[a_addr0], %[a_inc] \n\t"
+            "add %[a_addr1], %[a_addr1], %[a_inc] \n\t"
+            "add %[a_addr2], %[a_addr2], %[a_inc] \n\t"
+            "add %[a_addr3], %[a_addr3], %[a_inc] \n\t"
+            "add %[a_addr4], %[a_addr4], %[a_inc] \n\t"
+            "add %[a_addr5], %[a_addr5], %[a_inc] \n\t"
+            "add %[a_addr6], %[a_addr6], %[a_inc] \n\t"
+            "add %[a_addr7], %[a_addr7], %[a_inc] \n\t"
+
+            "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
+            "add %[b_addr1], %[b_addr1], %[b_inc] \n\t"
+            "add %[b_addr2], %[b_addr2], %[b_inc] \n\t"
+            "add %[b_addr3], %[b_addr3], %[b_inc] \n\t"
+
+            : [a00] "=f"(a00),
+              [a10] "=f"(a10),
+              [a20] "=f"(a20),
+              [a30] "=f"(a30),
+              [a40] "=f"(a40),
+              [a50] "=f"(a50),
+              [a60] "=f"(a60),
+              [a70] "=f"(a70),
+
+              [a01] "=f"(a01),
+              [a11] "=f"(a11),
+              [a21] "=f"(a21),
+              [a31] "=f"(a31),
+              [a41] "=f"(a41),
+              [a51] "=f"(a51),
+              [a61] "=f"(a61),
+              [a71] "=f"(a71),
+
+              [a02] "=f"(a02),
+              [a12] "=f"(a12),
+              [a22] "=f"(a22),
+              [a32] "=f"(a32),
+              [a42] "=f"(a42),
+              [a52] "=f"(a52),
+              [a62] "=f"(a62),
+              [a72] "=f"(a72),
+
+              [a03] "=f"(a03),
+              [a13] "=f"(a13),
+              [a23] "=f"(a23),
+              [a33] "=f"(a33),
+              [a43] "=f"(a43),
+              [a53] "=f"(a53),
+              [a63] "=f"(a63),
+              [a73] "=f"(a73),
+
+              [b00] "=vr"(b00),
+              [b10] "=vr"(b10),
+              [b20] "=vr"(b20),
+              [b30] "=vr"(b30),
+
+              [a_addr0] "+&r"(a_addr0),
+              [a_addr1] "+&r"(a_addr1),
+              [a_addr2] "+&r"(a_addr2),
+              [a_addr3] "+&r"(a_addr3),
+              [a_addr4] "+&r"(a_addr4),
+              [a_addr5] "+&r"(a_addr5),
+              [a_addr6] "+&r"(a_addr6),
+              [a_addr7] "+&r"(a_addr7),
+
+              [b_addr0] "+&r"(b_addr0),
+              [b_addr1] "+&r"(b_addr1),
+              [b_addr2] "+&r"(b_addr2),
+              [b_addr3] "+&r"(b_addr3)
+            : [a_inc] "r"(sizeof(float) * preload_distance),
+              [b_inc] "r"(sizeof(float) * preload_distance * rsb),
+              [jj_vl] "r"(jj_vl)
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
+
+        for (; kk + kk_unroll_degree + preload_distance <= k;
+             kk += kk_unroll_degree) {
           __asm__ volatile(
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Woverlength-strings"
+              // clang-format off
               "\n\t"
-              "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
+              "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
 
-              "flw %[a003], 12(%[a_addr0]) \n\t"
-              "flw %[a012], 8(%[a_addr1]) \n\t"
-              "flw %[a021], 4(%[a_addr2]) \n\t"
-              "flw %[a030], 0(%[a_addr3]) \n\t"
-              "vfmacc.vf %[acc0], %[a003], %[b03] \n\t"
-              "vfmacc.vf %[acc1], %[a012], %[b02] \n\t"
-              "vfmacc.vf %[acc2], %[a021], %[b01] \n\t"
-              "vfmacc.vf %[acc3], %[a030], %[b00] \n\t"
-
-              "flw %[a013], 12(%[a_addr1]) \n\t"
-              "flw %[a022], 8(%[a_addr2]) \n\t"
-              "flw %[a031], 4(%[a_addr3]) \n\t"
-              "flw %[a040], 0(%[a_addr4]) \n\t"
-              "vfmacc.vf %[acc1], %[a013], %[b03] \n\t"
-              "vfmacc.vf %[acc2], %[a022], %[b02] \n\t"
-              "vfmacc.vf %[acc3], %[a031], %[b01] \n\t"
-              "vfmacc.vf %[acc4], %[a040], %[b00] \n\t"
-
-              "flw %[a023], 12(%[a_addr2]) \n\t"
-              "flw %[a032], 8(%[a_addr3]) \n\t"
-              "flw %[a041], 4(%[a_addr4]) \n\t"
-              "flw %[a050], 0(%[a_addr5]) \n\t"
-              "vfmacc.vf %[acc2], %[a023], %[b03] \n\t"
-              "vfmacc.vf %[acc3], %[a032], %[b02] \n\t"
-              "vfmacc.vf %[acc4], %[a041], %[b01] \n\t"
-              "vfmacc.vf %[acc5], %[a050], %[b00] \n\t"
-
-              "flw %[a033], 12(%[a_addr3]) \n\t"
-              "flw %[a042], 8(%[a_addr4]) \n\t"
-              "flw %[a051], 4(%[a_addr5]) \n\t"
-              "flw %[a060], 0(%[a_addr6]) \n\t"
-              "vfmacc.vf %[acc3], %[a033], %[b03] \n\t"
-              "vfmacc.vf %[acc4], %[a042], %[b02] \n\t"
-              "vfmacc.vf %[acc5], %[a051], %[b01] \n\t"
-              "vfmacc.vf %[acc6], %[a060], %[b00] \n\t"
-
-              "flw %[a043], 12(%[a_addr4]) \n\t"
-              "flw %[a052], 8(%[a_addr5]) \n\t"
-              "flw %[a061], 4(%[a_addr6]) \n\t"
-              "flw %[a070], 0(%[a_addr7]) \n\t"
-              "vfmacc.vf %[acc4], %[a043], %[b03] \n\t"
-              "vfmacc.vf %[acc5], %[a052], %[b02] \n\t"
-              "vfmacc.vf %[acc6], %[a061], %[b01] \n\t"
-              "vfmacc.vf %[acc7], %[a070], %[b00] \n\t"
-
-              // Fusing next kk iteration begins.
-              "add %[b_addr0], %[rsb4], %[b_addr0] \n\t"
-              "addi %[a_addr0], %[a_addr0], 16 \n\t"
+              "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
+              "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
+              "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
+              "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
+              "vfmacc.vf %[acc4], %[a40], %[b00] \n\t"
+              "vfmacc.vf %[acc5], %[a50], %[b00] \n\t"
+              "vfmacc.vf %[acc6], %[a60], %[b00] \n\t"
+              "vfmacc.vf %[acc7], %[a70], %[b00] \n\t"
+              "flw %[a00],  0(%[a_addr0]) \n\t"
+              "flw %[a10],  0(%[a_addr1]) \n\t"
+              "flw %[a20],  0(%[a_addr2]) \n\t"
+              "flw %[a30],  0(%[a_addr3]) \n\t"
+              "flw %[a40],  0(%[a_addr4]) \n\t"
+              "flw %[a50],  0(%[a_addr5]) \n\t"
+              "flw %[a60],  0(%[a_addr6]) \n\t"
+              "flw %[a70],  0(%[a_addr7]) \n\t"
               "vle32.v %[b00], (%[b_addr0]) \n\t"
-              "flw %[a053], 12(%[a_addr5]) \n\t"
-              "flw %[a062], 8(%[a_addr6]) \n\t"
-              "flw %[a071], 4(%[a_addr7]) \n\t"
-              "flw %[a000], 0(%[a_addr0]) \n\t"
-              "vfmacc.vf %[acc5], %[a053], %[b03] \n\t"
-              "vfmacc.vf %[acc6], %[a062], %[b02] \n\t"
-              "vfmacc.vf %[acc7], %[a071], %[b01] \n\t"
-              "vfmacc.vf %[acc0], %[a000], %[b00] \n\t"
+              "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
 
-              "add %[b_addr1], %[rsb4], %[b_addr1] \n\t"
-              "addi %[a_addr1], %[a_addr1], 16 \n\t"
-              "vle32.v %[b01], (%[b_addr1]) \n\t"
-              "flw %[a063], 12(%[a_addr6]) \n\t"
-              "flw %[a072], 8(%[a_addr7]) \n\t"
-              "flw %[a001], 4(%[a_addr0]) \n\t"
-              "flw %[a010], 0(%[a_addr1]) \n\t"
-              "vfmacc.vf %[acc6], %[a063], %[b03] \n\t"
-              "vfmacc.vf %[acc7], %[a072], %[b02] \n\t"
-              "vfmacc.vf %[acc0], %[a001], %[b01] \n\t"
-              "vfmacc.vf %[acc1], %[a010], %[b00] \n\t"
+              "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
+              "vfmacc.vf %[acc1], %[a11], %[b10] \n\t"
+              "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
+              "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
+              "vfmacc.vf %[acc4], %[a41], %[b10] \n\t"
+              "vfmacc.vf %[acc5], %[a51], %[b10] \n\t"
+              "vfmacc.vf %[acc6], %[a61], %[b10] \n\t"
+              "vfmacc.vf %[acc7], %[a71], %[b10] \n\t"
+              "flw %[a01],  4(%[a_addr0]) \n\t"
+              "flw %[a11],  4(%[a_addr1]) \n\t"
+              "flw %[a21],  4(%[a_addr2]) \n\t"
+              "flw %[a31],  4(%[a_addr3]) \n\t"
+              "flw %[a41],  4(%[a_addr4]) \n\t"
+              "flw %[a51],  4(%[a_addr5]) \n\t"
+              "flw %[a61],  4(%[a_addr6]) \n\t"
+              "flw %[a71],  4(%[a_addr7]) \n\t"
+              "vle32.v %[b10], (%[b_addr1]) \n\t"
+              "add %[b_addr1], %[b_addr1], %[b_inc] \n\t"
 
-              "add %[b_addr2], %[rsb4], %[b_addr2] \n\t"
-              "addi %[a_addr2], %[a_addr2], 16 \n\t"
-              "vle32.v %[b02], (%[b_addr2]) \n\t"
-              "flw %[a073], 12(%[a_addr7]) \n\t"
-              "flw %[a002], 8(%[a_addr0]) \n\t"
-              "flw %[a011], 4(%[a_addr1]) \n\t"
-              "flw %[a020], 0(%[a_addr2]) \n\t"
-              "vfmacc.vf %[acc7], %[a073], %[b03] \n\t"
-              "vfmacc.vf %[acc0], %[a002], %[b02] \n\t"
-              "vfmacc.vf %[acc1], %[a011], %[b01] \n\t"
-              "vfmacc.vf %[acc2], %[a020], %[b00] \n\t"
+              "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
+              "vfmacc.vf %[acc1], %[a12], %[b20] \n\t"
+              "vfmacc.vf %[acc2], %[a22], %[b20] \n\t"
+              "vfmacc.vf %[acc3], %[a32], %[b20] \n\t"
+              "vfmacc.vf %[acc4], %[a42], %[b20] \n\t"
+              "vfmacc.vf %[acc5], %[a52], %[b20] \n\t"
+              "vfmacc.vf %[acc6], %[a62], %[b20] \n\t"
+              "vfmacc.vf %[acc7], %[a72], %[b20] \n\t"
+              "flw %[a02],  8(%[a_addr0]) \n\t"
+              "flw %[a12],  8(%[a_addr1]) \n\t"
+              "flw %[a22],  8(%[a_addr2]) \n\t"
+              "flw %[a32],  8(%[a_addr3]) \n\t"
+              "flw %[a42],  8(%[a_addr4]) \n\t"
+              "flw %[a52],  8(%[a_addr5]) \n\t"
+              "flw %[a62],  8(%[a_addr6]) \n\t"
+              "flw %[a72],  8(%[a_addr7]) \n\t"
+              "vle32.v %[b20], (%[b_addr2]) \n\t"
+              "add %[b_addr2], %[b_addr2], %[b_inc] \n\t"
 
-              "add %[b_addr3], %[rsb4], %[b_addr3] \n\t"
-              "vle32.v %[b03], (%[b_addr3]) \n\t"
-              "addi %[a_addr3], %[a_addr3], 16 \n\t"
-              "addi %[a_addr4], %[a_addr4], 16 \n\t"
-              "addi %[a_addr5], %[a_addr5], 16 \n\t"
-              "addi %[a_addr6], %[a_addr6], 16 \n\t"
-              "addi %[a_addr7], %[a_addr7], 16 \n\t"
+              "vfmacc.vf %[acc0], %[a03], %[b30] \n\t"
+              "vfmacc.vf %[acc1], %[a13], %[b30] \n\t"
+              "vfmacc.vf %[acc2], %[a23], %[b30] \n\t"
+              "vfmacc.vf %[acc3], %[a33], %[b30] \n\t"
+              "vfmacc.vf %[acc4], %[a43], %[b30] \n\t"
+              "vfmacc.vf %[acc5], %[a53], %[b30] \n\t"
+              "vfmacc.vf %[acc6], %[a63], %[b30] \n\t"
+              "vfmacc.vf %[acc7], %[a73], %[b30] \n\t"
+              "flw %[a03], 12(%[a_addr0]) \n\t"
+              "flw %[a13], 12(%[a_addr1]) \n\t"
+              "flw %[a23], 12(%[a_addr2]) \n\t"
+              "flw %[a33], 12(%[a_addr3]) \n\t"
+              "flw %[a43], 12(%[a_addr4]) \n\t"
+              "flw %[a53], 12(%[a_addr5]) \n\t"
+              "flw %[a63], 12(%[a_addr6]) \n\t"
+              "flw %[a73], 12(%[a_addr7]) \n\t"
+              "vle32.v %[b30], (%[b_addr3]) \n\t"
+              "add %[b_addr3], %[b_addr3], %[b_inc] \n\t"
 
-              : [a000] "=&f"(a000), [a001] "=&f"(a001), [a002] "=&f"(a002),
-                [a003] "=&f"(a003), [a010] "=&f"(a010), [a011] "=&f"(a011),
-                [a012] "=&f"(a012), [a013] "=&f"(a013), [a020] "=&f"(a020),
-                [a021] "=&f"(a021), [a022] "=&f"(a022), [a023] "=&f"(a023),
-                [a030] "=&f"(a030), [a031] "=&f"(a031), [a032] "=&f"(a032),
-                [a033] "=&f"(a033), [a040] "=&f"(a040), [a041] "=&f"(a041),
-                [a042] "=&f"(a042), [a043] "=&f"(a043), [a050] "=&f"(a050),
-                [a051] "=&f"(a051), [a052] "=&f"(a052), [a053] "=&f"(a053),
-                [a060] "=&f"(a060), [a061] "=&f"(a061), [a062] "=&f"(a062),
-                [a063] "=&f"(a063), [a070] "=&f"(a070), [a071] "=&f"(a071),
-                [a072] "=&f"(a072), [a073] "=&f"(a073),
-                [jj_vl_out] "=&r"(jj_vl), [b00] "+&vr"(b00), [b01] "+&vr"(b01),
-                [b02] "+&vr"(b02), [b03] "+&vr"(b03), [acc0] "+&vr"(acc0),
-                [acc1] "+&vr"(acc1), [acc2] "+&vr"(acc2), [acc3] "+&vr"(acc3),
-                [acc4] "+&vr"(acc4), [acc5] "+&vr"(acc5), [acc6] "+&vr"(acc6),
-                [acc7] "+&vr"(acc7), [a_addr0] "+&r"(a_addr0),
-                [a_addr1] "+&r"(a_addr1), [a_addr2] "+&r"(a_addr2),
-                [a_addr3] "+&r"(a_addr3), [a_addr4] "+&r"(a_addr4),
-                [a_addr5] "+&r"(a_addr5), [a_addr6] "+&r"(a_addr6),
-                [a_addr7] "+r"(a_addr7), [b_addr0] "+&r"(b_addr0),
-                [b_addr1] "+&r"(b_addr1), [b_addr2] "+&r"(b_addr2),
+              "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
+              "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
+              "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
+              "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
+              "vfmacc.vf %[acc4], %[a40], %[b00] \n\t"
+              "vfmacc.vf %[acc5], %[a50], %[b00] \n\t"
+              "vfmacc.vf %[acc6], %[a60], %[b00] \n\t"
+              "vfmacc.vf %[acc7], %[a70], %[b00] \n\t"
+              "flw %[a00], 16(%[a_addr0]) \n\t"
+              "flw %[a10], 16(%[a_addr1]) \n\t"
+              "flw %[a20], 16(%[a_addr2]) \n\t"
+              "flw %[a30], 16(%[a_addr3]) \n\t"
+              "flw %[a40], 16(%[a_addr4]) \n\t"
+              "flw %[a50], 16(%[a_addr5]) \n\t"
+              "flw %[a60], 16(%[a_addr6]) \n\t"
+              "flw %[a70], 16(%[a_addr7]) \n\t"
+              "vle32.v %[b00], (%[b_addr0]) \n\t"
+              "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
+
+              "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
+              "vfmacc.vf %[acc1], %[a11], %[b10] \n\t"
+              "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
+              "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
+              "vfmacc.vf %[acc4], %[a41], %[b10] \n\t"
+              "vfmacc.vf %[acc5], %[a51], %[b10] \n\t"
+              "vfmacc.vf %[acc6], %[a61], %[b10] \n\t"
+              "vfmacc.vf %[acc7], %[a71], %[b10] \n\t"
+              "flw %[a01], 20(%[a_addr0]) \n\t"
+              "flw %[a11], 20(%[a_addr1]) \n\t"
+              "flw %[a21], 20(%[a_addr2]) \n\t"
+              "flw %[a31], 20(%[a_addr3]) \n\t"
+              "flw %[a41], 20(%[a_addr4]) \n\t"
+              "flw %[a51], 20(%[a_addr5]) \n\t"
+              "flw %[a61], 20(%[a_addr6]) \n\t"
+              "flw %[a71], 20(%[a_addr7]) \n\t"
+              "vle32.v %[b10], (%[b_addr1]) \n\t"
+              "add %[b_addr1], %[b_addr1], %[b_inc] \n\t"
+
+              "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
+              "vfmacc.vf %[acc1], %[a12], %[b20] \n\t"
+              "vfmacc.vf %[acc2], %[a22], %[b20] \n\t"
+              "vfmacc.vf %[acc3], %[a32], %[b20] \n\t"
+              "vfmacc.vf %[acc4], %[a42], %[b20] \n\t"
+              "vfmacc.vf %[acc5], %[a52], %[b20] \n\t"
+              "vfmacc.vf %[acc6], %[a62], %[b20] \n\t"
+              "vfmacc.vf %[acc7], %[a72], %[b20] \n\t"
+              "flw %[a02], 24(%[a_addr0]) \n\t"
+              "flw %[a12], 24(%[a_addr1]) \n\t"
+              "flw %[a22], 24(%[a_addr2]) \n\t"
+              "flw %[a32], 24(%[a_addr3]) \n\t"
+              "flw %[a42], 24(%[a_addr4]) \n\t"
+              "flw %[a52], 24(%[a_addr5]) \n\t"
+              "flw %[a62], 24(%[a_addr6]) \n\t"
+              "flw %[a72], 24(%[a_addr7]) \n\t"
+              "vle32.v %[b20], (%[b_addr2]) \n\t"
+              "add %[b_addr2], %[b_addr2], %[b_inc] \n\t"
+
+              "vfmacc.vf %[acc0], %[a03], %[b30] \n\t"
+              "vfmacc.vf %[acc1], %[a13], %[b30] \n\t"
+              "vfmacc.vf %[acc2], %[a23], %[b30] \n\t"
+              "vfmacc.vf %[acc3], %[a33], %[b30] \n\t"
+              "vfmacc.vf %[acc4], %[a43], %[b30] \n\t"
+              "vfmacc.vf %[acc5], %[a53], %[b30] \n\t"
+              "vfmacc.vf %[acc6], %[a63], %[b30] \n\t"
+              "vfmacc.vf %[acc7], %[a73], %[b30] \n\t"
+              "flw %[a03], 28(%[a_addr0]) \n\t"
+              "flw %[a13], 28(%[a_addr1]) \n\t"
+              "flw %[a23], 28(%[a_addr2]) \n\t"
+              "flw %[a33], 28(%[a_addr3]) \n\t"
+              "flw %[a43], 28(%[a_addr4]) \n\t"
+              "flw %[a53], 28(%[a_addr5]) \n\t"
+              "flw %[a63], 28(%[a_addr6]) \n\t"
+              "flw %[a73], 28(%[a_addr7]) \n\t"
+              "vle32.v %[b30], (%[b_addr3]) \n\t"
+              "add %[b_addr3], %[b_addr3], %[b_inc] \n\t"
+
+              "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
+              "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
+              "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
+              "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
+              "vfmacc.vf %[acc4], %[a40], %[b00] \n\t"
+              "vfmacc.vf %[acc5], %[a50], %[b00] \n\t"
+              "vfmacc.vf %[acc6], %[a60], %[b00] \n\t"
+              "vfmacc.vf %[acc7], %[a70], %[b00] \n\t"
+              "flw %[a00], 32(%[a_addr0]) \n\t"
+              "flw %[a10], 32(%[a_addr1]) \n\t"
+              "flw %[a20], 32(%[a_addr2]) \n\t"
+              "flw %[a30], 32(%[a_addr3]) \n\t"
+              "flw %[a40], 32(%[a_addr4]) \n\t"
+              "flw %[a50], 32(%[a_addr5]) \n\t"
+              "flw %[a60], 32(%[a_addr6]) \n\t"
+              "flw %[a70], 32(%[a_addr7]) \n\t"
+              "vle32.v %[b00], (%[b_addr0]) \n\t"
+              "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
+
+              "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
+              "vfmacc.vf %[acc1], %[a11], %[b10] \n\t"
+              "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
+              "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
+              "vfmacc.vf %[acc4], %[a41], %[b10] \n\t"
+              "vfmacc.vf %[acc5], %[a51], %[b10] \n\t"
+              "vfmacc.vf %[acc6], %[a61], %[b10] \n\t"
+              "vfmacc.vf %[acc7], %[a71], %[b10] \n\t"
+              "flw %[a01], 36(%[a_addr0]) \n\t"
+              "flw %[a11], 36(%[a_addr1]) \n\t"
+              "flw %[a21], 36(%[a_addr2]) \n\t"
+              "flw %[a31], 36(%[a_addr3]) \n\t"
+              "flw %[a41], 36(%[a_addr4]) \n\t"
+              "flw %[a51], 36(%[a_addr5]) \n\t"
+              "flw %[a61], 36(%[a_addr6]) \n\t"
+              "flw %[a71], 36(%[a_addr7]) \n\t"
+              "vle32.v %[b10], (%[b_addr1]) \n\t"
+              "add %[b_addr1], %[b_addr1], %[b_inc] \n\t"
+
+              "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
+              "vfmacc.vf %[acc1], %[a12], %[b20] \n\t"
+              "vfmacc.vf %[acc2], %[a22], %[b20] \n\t"
+              "vfmacc.vf %[acc3], %[a32], %[b20] \n\t"
+              "vfmacc.vf %[acc4], %[a42], %[b20] \n\t"
+              "vfmacc.vf %[acc5], %[a52], %[b20] \n\t"
+              "vfmacc.vf %[acc6], %[a62], %[b20] \n\t"
+              "vfmacc.vf %[acc7], %[a72], %[b20] \n\t"
+              "flw %[a02], 40(%[a_addr0]) \n\t"
+              "flw %[a12], 40(%[a_addr1]) \n\t"
+              "flw %[a22], 40(%[a_addr2]) \n\t"
+              "flw %[a32], 40(%[a_addr3]) \n\t"
+              "flw %[a42], 40(%[a_addr4]) \n\t"
+              "flw %[a52], 40(%[a_addr5]) \n\t"
+              "flw %[a62], 40(%[a_addr6]) \n\t"
+              "flw %[a72], 40(%[a_addr7]) \n\t"
+              "vle32.v %[b20], (%[b_addr2]) \n\t"
+              "add %[b_addr2], %[b_addr2], %[b_inc] \n\t"
+
+              "vfmacc.vf %[acc0], %[a03], %[b30] \n\t"
+              "vfmacc.vf %[acc1], %[a13], %[b30] \n\t"
+              "vfmacc.vf %[acc2], %[a23], %[b30] \n\t"
+              "vfmacc.vf %[acc3], %[a33], %[b30] \n\t"
+              "vfmacc.vf %[acc4], %[a43], %[b30] \n\t"
+              "vfmacc.vf %[acc5], %[a53], %[b30] \n\t"
+              "vfmacc.vf %[acc6], %[a63], %[b30] \n\t"
+              "vfmacc.vf %[acc7], %[a73], %[b30] \n\t"
+              "flw %[a03], 44(%[a_addr0]) \n\t"
+              "flw %[a13], 44(%[a_addr1]) \n\t"
+              "flw %[a23], 44(%[a_addr2]) \n\t"
+              "flw %[a33], 44(%[a_addr3]) \n\t"
+              "flw %[a43], 44(%[a_addr4]) \n\t"
+              "flw %[a53], 44(%[a_addr5]) \n\t"
+              "flw %[a63], 44(%[a_addr6]) \n\t"
+              "flw %[a73], 44(%[a_addr7]) \n\t"
+              "vle32.v %[b30], (%[b_addr3]) \n\t"
+              "add %[b_addr3], %[b_addr3], %[b_inc] \n\t"
+
+              "add %[a_addr0], %[a_addr0], %[a_inc] \n\t"
+              "add %[a_addr1], %[a_addr1], %[a_inc] \n\t"
+              "add %[a_addr2], %[a_addr2], %[a_inc] \n\t"
+              "add %[a_addr3], %[a_addr3], %[a_inc] \n\t"
+              "add %[a_addr4], %[a_addr4], %[a_inc] \n\t"
+              "add %[a_addr5], %[a_addr5], %[a_inc] \n\t"
+              "add %[a_addr6], %[a_addr6], %[a_inc] \n\t"
+              "add %[a_addr7], %[a_addr7], %[a_inc] \n\t"
+#pragma clang diagnostic pop
+              : [a00] "+&f"(a00),
+                [a10] "+&f"(a10),
+                [a20] "+&f"(a20),
+                [a30] "+&f"(a30),
+                [a40] "+&f"(a40),
+                [a50] "+&f"(a50),
+                [a60] "+&f"(a60),
+                [a70] "+&f"(a70),
+                [a01] "+&f"(a01),
+                [a11] "+&f"(a11),
+                [a21] "+&f"(a21),
+                [a31] "+&f"(a31),
+                [a41] "+&f"(a41),
+                [a51] "+&f"(a51),
+                [a61] "+&f"(a61),
+                [a71] "+&f"(a71),
+                [a02] "+&f"(a02),
+                [a12] "+&f"(a12),
+                [a22] "+&f"(a22),
+                [a32] "+&f"(a32),
+                [a42] "+&f"(a42),
+                [a52] "+&f"(a52),
+                [a62] "+&f"(a62),
+                [a72] "+&f"(a72),
+                [a03] "+&f"(a03),
+                [a13] "+&f"(a13),
+                [a23] "+&f"(a23),
+                [a33] "+&f"(a33),
+                [a43] "+&f"(a43),
+                [a53] "+&f"(a53),
+                [a63] "+&f"(a63),
+                [a73] "+&f"(a73),
+
+                [b00] "+&vr"(b00),
+                [b10] "+&vr"(b10),
+                [b20] "+&vr"(b20),
+                [b30] "+&vr"(b30),
+
+                [acc0] "+&vr"(acc0),
+                [acc1] "+&vr"(acc1),
+                [acc2] "+&vr"(acc2),
+                [acc3] "+&vr"(acc3),
+                [acc4] "+&vr"(acc4),
+                [acc5] "+&vr"(acc5),
+                [acc6] "+&vr"(acc6),
+                [acc7] "+&vr"(acc7),
+
+                [a_addr0] "+&r"(a_addr0),
+                [a_addr1] "+&r"(a_addr1),
+                [a_addr2] "+&r"(a_addr2),
+                [a_addr3] "+&r"(a_addr3),
+                [a_addr4] "+&r"(a_addr4),
+                [a_addr5] "+&r"(a_addr5),
+                [a_addr6] "+&r"(a_addr6),
+                [a_addr7] "+&r"(a_addr7),
+
+                [b_addr0] "+&r"(b_addr0),
+                [b_addr1] "+&r"(b_addr1),
+                [b_addr2] "+&r"(b_addr2),
                 [b_addr3] "+&r"(b_addr3)
-              : [rsb4] "r"(sizeof(float) * rsb * 4), [jj_vl_in] "r"(n - jj)
-              : "vtype", "vl", "memory");
+              : [a_inc] "r" (sizeof(float) * kk_unroll_degree),
+                [b_inc] "r"(sizeof(float) * rsb * preload_distance),
+                [jj_vl] "r"(jj_vl)
+              : "vtype", "vl", "memory"
+              // clang-format on
+          );
         }
 
-        __asm__ volatile( // Drain pipeline.
-            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
-
-            "flw %[a003], 12(%[a_addr0]) \n\t"
-            "flw %[a012], 8(%[a_addr1]) \n\t"
-            "flw %[a021], 4(%[a_addr2]) \n\t"
-            "flw %[a030], 0(%[a_addr3]) \n\t"
-            "vfmacc.vf %[acc0], %[a003], %[b03] \n\t"
-            "vfmacc.vf %[acc1], %[a012], %[b02] \n\t"
-            "vfmacc.vf %[acc2], %[a021], %[b01] \n\t"
-            "vfmacc.vf %[acc3], %[a030], %[b00] \n\t"
-
-            "flw %[a013], 12(%[a_addr1]) \n\t"
-            "flw %[a022], 8(%[a_addr2]) \n\t"
-            "flw %[a031], 4(%[a_addr3]) \n\t"
-            "flw %[a040], 0(%[a_addr4]) \n\t"
-            "vfmacc.vf %[acc1], %[a013], %[b03] \n\t"
-            "vfmacc.vf %[acc2], %[a022], %[b02] \n\t"
-            "vfmacc.vf %[acc3], %[a031], %[b01] \n\t"
-            "vfmacc.vf %[acc4], %[a040], %[b00] \n\t"
-
-            "flw %[a023], 12(%[a_addr2]) \n\t"
-            "flw %[a032], 8(%[a_addr3]) \n\t"
-            "flw %[a041], 4(%[a_addr4]) \n\t"
-            "flw %[a050], 0(%[a_addr5]) \n\t"
-            "vfmacc.vf %[acc2], %[a023], %[b03] \n\t"
-            "vfmacc.vf %[acc3], %[a032], %[b02] \n\t"
-            "vfmacc.vf %[acc4], %[a041], %[b01] \n\t"
-            "vfmacc.vf %[acc5], %[a050], %[b00] \n\t"
-
-            "flw %[a033], 12(%[a_addr3]) \n\t"
-            "flw %[a042], 8(%[a_addr4]) \n\t"
-            "flw %[a051], 4(%[a_addr5]) \n\t"
-            "flw %[a060], 0(%[a_addr6]) \n\t"
-            "vfmacc.vf %[acc3], %[a033], %[b03] \n\t"
-            "vfmacc.vf %[acc4], %[a042], %[b02] \n\t"
-            "vfmacc.vf %[acc5], %[a051], %[b01] \n\t"
-            "vfmacc.vf %[acc6], %[a060], %[b00] \n\t"
-
-            "flw %[a043], 12(%[a_addr4]) \n\t"
-            "flw %[a052], 8(%[a_addr5]) \n\t"
-            "flw %[a061], 4(%[a_addr6]) \n\t"
-            "flw %[a070], 0(%[a_addr7]) \n\t"
-            "vfmacc.vf %[acc4], %[a043], %[b03] \n\t"
-            "vfmacc.vf %[acc5], %[a052], %[b02] \n\t"
-            "vfmacc.vf %[acc6], %[a061], %[b01] \n\t"
-            "vfmacc.vf %[acc7], %[a070], %[b00] \n\t"
-
-            "flw %[a053], 12(%[a_addr5]) \n\t"
-            "flw %[a062], 8(%[a_addr6]) \n\t"
-            "flw %[a071], 4(%[a_addr7]) \n\t"
-            "vfmacc.vf %[acc5], %[a053], %[b03] \n\t"
-            "vfmacc.vf %[acc6], %[a062], %[b02] \n\t"
-            "vfmacc.vf %[acc7], %[a071], %[b01] \n\t"
-
-            "flw %[a063], 12(%[a_addr6]) \n\t"
-            "flw %[a072], 8(%[a_addr7]) \n\t"
-            "vfmacc.vf %[acc6], %[a063], %[b03] \n\t"
-            "vfmacc.vf %[acc7], %[a072], %[b02] \n\t"
-
-            "flw %[a073], 12(%[a_addr7]) \n\t"
-            "vfmacc.vf %[acc7], %[a073], %[b03] \n\t"
-
-            "addi %[a_addr0], %[a_addr0], 16 \n\t"
-            "addi %[a_addr1], %[a_addr1], 16 \n\t"
-            "addi %[a_addr2], %[a_addr2], 16 \n\t"
-            "addi %[a_addr3], %[a_addr3], 16 \n\t"
-            "addi %[a_addr4], %[a_addr4], 16 \n\t"
-            "addi %[a_addr5], %[a_addr5], 16 \n\t"
-            "addi %[a_addr6], %[a_addr6], 16 \n\t"
-            "addi %[a_addr7], %[a_addr7], 16 \n\t"
-            : [a003] "=&f"(a003), [a012] "=&f"(a012), [a013] "=&f"(a013),
-              [a021] "=&f"(a021), [a022] "=&f"(a022), [a023] "=&f"(a023),
-              [a030] "=&f"(a030), [a031] "=&f"(a031), [a032] "=&f"(a032),
-              [a033] "=&f"(a033), [a040] "=&f"(a040), [a041] "=&f"(a041),
-              [a042] "=&f"(a042), [a043] "=&f"(a043), [a050] "=&f"(a050),
-              [a051] "=&f"(a051), [a052] "=&f"(a052), [a053] "=&f"(a053),
-              [a060] "=&f"(a060), [a061] "=&f"(a061), [a062] "=&f"(a062),
-              [a063] "=&f"(a063), [a070] "=&f"(a070), [a071] "=&f"(a071),
-              [a072] "=&f"(a072), [a073] "=&f"(a073), [jj_vl_out] "=&r"(jj_vl),
-              [acc0] "+&vr"(acc0), [acc1] "+&vr"(acc1), [acc2] "+&vr"(acc2),
-              [acc3] "+&vr"(acc3), [acc4] "+&vr"(acc4), [acc5] "+&vr"(acc5),
-              [acc6] "+&vr"(acc6), [acc7] "+&vr"(acc7),
-              [a_addr0] "+&r"(a_addr0), [a_addr1] "+&r"(a_addr1),
-              [a_addr2] "+&r"(a_addr2), [a_addr3] "+&r"(a_addr3),
-              [a_addr4] "+&r"(a_addr4), [a_addr5] "+&r"(a_addr5),
-              [a_addr6] "+&r"(a_addr6), [a_addr7] "+r"(a_addr7)
-            : [jj_vl_in] "r"(n - jj), [b00] "vr"(b00), [b01] "vr"(b01),
-              [b02] "vr"(b02), [b03] "vr"(b03)
-            : "vtype", "vl", "memory");
-
-        kk += 4; // Account for work done by drain.
-      }
-      for (kk0 = kk; (kk0 + 1) <= k; kk0 = kk0 + 1) {
         __asm__ volatile(
+            // clang-format off
+            "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
+
+            "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
+            "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
+            "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
+            "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
+            "vfmacc.vf %[acc4], %[a40], %[b00] \n\t"
+            "vfmacc.vf %[acc5], %[a50], %[b00] \n\t"
+            "vfmacc.vf %[acc6], %[a60], %[b00] \n\t"
+            "vfmacc.vf %[acc7], %[a70], %[b00] \n\t"
+
+            "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
+            "vfmacc.vf %[acc1], %[a11], %[b10] \n\t"
+            "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
+            "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
+            "vfmacc.vf %[acc4], %[a41], %[b10] \n\t"
+            "vfmacc.vf %[acc5], %[a51], %[b10] \n\t"
+            "vfmacc.vf %[acc6], %[a61], %[b10] \n\t"
+            "vfmacc.vf %[acc7], %[a71], %[b10] \n\t"
+
+            "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
+            "vfmacc.vf %[acc1], %[a12], %[b20] \n\t"
+            "vfmacc.vf %[acc2], %[a22], %[b20] \n\t"
+            "vfmacc.vf %[acc3], %[a32], %[b20] \n\t"
+            "vfmacc.vf %[acc4], %[a42], %[b20] \n\t"
+            "vfmacc.vf %[acc5], %[a52], %[b20] \n\t"
+            "vfmacc.vf %[acc6], %[a62], %[b20] \n\t"
+            "vfmacc.vf %[acc7], %[a72], %[b20] \n\t"
+
+            "vfmacc.vf %[acc0], %[a03], %[b30] \n\t"
+            "vfmacc.vf %[acc1], %[a13], %[b30] \n\t"
+            "vfmacc.vf %[acc2], %[a23], %[b30] \n\t"
+            "vfmacc.vf %[acc3], %[a33], %[b30] \n\t"
+            "vfmacc.vf %[acc4], %[a43], %[b30] \n\t"
+            "vfmacc.vf %[acc5], %[a53], %[b30] \n\t"
+            "vfmacc.vf %[acc6], %[a63], %[b30] \n\t"
+            "vfmacc.vf %[acc7], %[a73], %[b30] \n\t"
+
+            : [acc0] "+&vr"(acc0),
+              [acc1] "+&vr"(acc1),
+              [acc2] "+&vr"(acc2),
+              [acc3] "+&vr"(acc3),
+              [acc4] "+&vr"(acc4),
+              [acc5] "+&vr"(acc5),
+              [acc6] "+&vr"(acc6),
+              [acc7] "+&vr"(acc7)
+            : [jj_vl] "r"(jj_vl),
+              [a00] "f"(a00),
+              [a10] "f"(a10),
+              [a20] "f"(a20),
+              [a30] "f"(a30),
+              [a40] "f"(a40),
+              [a50] "f"(a50),
+              [a60] "f"(a60),
+              [a70] "f"(a70),
+
+              [a01] "f"(a01),
+              [a11] "f"(a11),
+              [a21] "f"(a21),
+              [a31] "f"(a31),
+              [a41] "f"(a41),
+              [a51] "f"(a51),
+              [a61] "f"(a61),
+              [a71] "f"(a71),
+
+              [a02] "f"(a02),
+              [a12] "f"(a12),
+              [a22] "f"(a22),
+              [a32] "f"(a32),
+              [a42] "f"(a42),
+              [a52] "f"(a52),
+              [a62] "f"(a62),
+              [a72] "f"(a72),
+
+              [a03] "f"(a03),
+              [a13] "f"(a13),
+              [a23] "f"(a23),
+              [a33] "f"(a33),
+              [a43] "f"(a43),
+              [a53] "f"(a53),
+              [a63] "f"(a63),
+              [a73] "f"(a73),
+
+              [b00] "vr"(b00),
+              [b10] "vr"(b10),
+              [b20] "vr"(b20),
+              [b30] "vr"(b30)
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
+
+        kk += preload_distance;
+      }
+      for (; kk < k; kk++) {
+        __asm__ volatile(
+            // clang-format off
             "\n\t"
-            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
-            "vle32.v %[b0], (%[b_load]) \n\t"
+            "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
+
+            "vle32.v %[b00], (%[b_addr0]) \n\t"
             "flw %[a00], 0(%[a_addr0]) \n\t"
-            "addi %[a_addr0], %[a_addr0], 4 \n\t"
-            "flw %[a01], 0(%[a_addr1]) \n\t"
-            "addi %[a_addr1], %[a_addr1], 4 \n\t"
-            "flw %[a02], 0(%[a_addr2]) \n\t"
-            "addi %[a_addr2], %[a_addr2], 4 \n\t"
-            "flw %[a03], 0(%[a_addr3]) \n\t"
-            "addi %[a_addr3], %[a_addr3], 4 \n\t"
-            "flw %[a04], 0(%[a_addr4]) \n\t"
-            "addi %[a_addr4], %[a_addr4], 4 \n\t"
-            "flw %[a05], 0(%[a_addr5]) \n\t"
-            "addi %[a_addr5], %[a_addr5], 4 \n\t"
-            "flw %[a06], 0(%[a_addr6]) \n\t"
-            "addi %[a_addr6], %[a_addr6], 4 \n\t"
-            "flw %[a07], 0(%[a_addr7]) \n\t"
-            "addi %[a_addr7], %[a_addr7], 4 \n\t"
-            "vfmacc.vf %[acc0], %[a00], %[b0] \n\t"
-            "vfmacc.vf %[acc1], %[a01], %[b0] \n\t"
-            "vfmacc.vf %[acc2], %[a02], %[b0] \n\t"
-            "vfmacc.vf %[acc3], %[a03], %[b0] \n\t"
-            "vfmacc.vf %[acc4], %[a04], %[b0] \n\t"
-            "vfmacc.vf %[acc5], %[a05], %[b0] \n\t"
-            "vfmacc.vf %[acc6], %[a06], %[b0] \n\t"
-            "vfmacc.vf %[acc7], %[a07], %[b0] \n\t"
-            : [a00] "=&f"(a00), [a01] "=&f"(a01), [a02] "=&f"(a02),
-              [a03] "=&f"(a03), [a04] "=&f"(a04), [a05] "=&f"(a05),
-              [a06] "=&f"(a06), [a07] "=&f"(a07), [jj_vl_out] "=&r"(jj_vl),
-              [b0] "=&vr"(b0), [acc0] "+&vr"(acc0), [acc1] "+&vr"(acc1),
-              [acc2] "+&vr"(acc2), [acc3] "+&vr"(acc3), [acc4] "+&vr"(acc4),
-              [acc5] "+&vr"(acc5), [acc6] "+&vr"(acc6), [acc7] "+vr"(acc7),
-              [a_addr0] "+&r"(a_addr0), [a_addr1] "+&r"(a_addr1),
-              [a_addr2] "+&r"(a_addr2), [a_addr3] "+&r"(a_addr3),
-              [a_addr4] "+&r"(a_addr4), [a_addr5] "+&r"(a_addr5),
-              [a_addr6] "+&r"(a_addr6), [a_addr7] "+&r"(a_addr7)
-            : [jj_vl_in] "r"(n - jj), [b_load] "r"(b + kk0 * rsb + jj)
-            : "vtype", "vl", "memory");
+            "flw %[a10], 0(%[a_addr1]) \n\t"
+            "flw %[a20], 0(%[a_addr2]) \n\t"
+            "flw %[a30], 0(%[a_addr3]) \n\t"
+            "flw %[a40], 0(%[a_addr4]) \n\t"
+            "flw %[a50], 0(%[a_addr5]) \n\t"
+            "flw %[a60], 0(%[a_addr6]) \n\t"
+            "flw %[a70], 0(%[a_addr7]) \n\t"
+            "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
+            "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
+            "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
+            "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
+            "vfmacc.vf %[acc4], %[a40], %[b00] \n\t"
+            "vfmacc.vf %[acc5], %[a50], %[b00] \n\t"
+            "vfmacc.vf %[acc6], %[a60], %[b00] \n\t"
+            "vfmacc.vf %[acc7], %[a70], %[b00] \n\t"
+            : [a00] "=&f"(a00),
+              [a10] "=&f"(a10),
+              [a20] "=&f"(a20),
+              [a30] "=&f"(a30),
+              [a40] "=&f"(a40),
+              [a50] "=&f"(a50),
+              [a60] "=&f"(a60),
+              [a70] "=&f"(a70),
+              [b00] "=&vr"(b00),
+              [acc0] "+&vr"(acc0),
+              [acc1] "+&vr"(acc1),
+              [acc2] "+&vr"(acc2),
+              [acc3] "+&vr"(acc3),
+              [acc4] "+&vr"(acc4),
+              [acc5] "+&vr"(acc5),
+              [acc6] "+&vr"(acc6),
+              [acc7] "+vr"(acc7)
+            : [jj_vl] "r"(jj_vl),
+              [a_addr0] "r"(a + (ii + 0) * rsa + kk),
+              [a_addr1] "r"(a + (ii + 1) * rsa + kk),
+              [a_addr2] "r"(a + (ii + 2) * rsa + kk),
+              [a_addr3] "r"(a + (ii + 3) * rsa + kk),
+              [a_addr4] "r"(a + (ii + 4) * rsa + kk),
+              [a_addr5] "r"(a + (ii + 5) * rsa + kk),
+              [a_addr6] "r"(a + (ii + 6) * rsa + kk),
+              [a_addr7] "r"(a + (ii + 7) * rsa + kk),
+              [b_addr0] "r"(b + kk * rsb + jj)
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
       }
       __asm__ volatile(
+          // clang-format off
           "\n\t"
-          "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
-          "vle32.v %[c00], (%[c_addr_0]) \n\t"
-          "vle32.v %[c01], (%[c_addr_1]) \n\t"
-          "vle32.v %[c02], (%[c_addr_2]) \n\t"
-          "vfmul.vf %[c00], %[c00], %[beta0] \n\t"
-          "vfmul.vf %[c01], %[c01], %[beta0] \n\t"
-          "vfmul.vf %[c02], %[c02], %[beta0] \n\t"
-          "vle32.v %[c03], (%[c_addr_3]) \n\t"
-          "vle32.v %[c04], (%[c_addr_4]) \n\t"
-          "vle32.v %[c05], (%[c_addr_5]) \n\t"
-          "vfmul.vf %[c03], %[c03], %[beta0] \n\t"
-          "vle32.v %[c06], (%[c_addr_6]) \n\t"
-          "vfmul.vf %[c04], %[c04], %[beta0] \n\t"
-          "vle32.v %[c07], (%[c_addr_7]) \n\t"
-          "vfmacc.vf %[c00], %[alpha0], %[acc0] \n\t"
-          "vfmul.vf %[c05], %[c05], %[beta0] \n\t"
-          "vfmacc.vf %[c01], %[alpha0], %[acc1] \n\t"
-          "vfmul.vf %[c06], %[c06], %[beta0] \n\t"
-          "vfmacc.vf %[c02], %[alpha0], %[acc2] \n\t"
-          "vfmul.vf %[c07], %[c07], %[beta0] \n\t"
-          "vfmacc.vf %[c03], %[alpha0], %[acc3] \n\t"
-          "vfmacc.vf %[c04], %[alpha0], %[acc4] \n\t"
-          "vse32.v %[c00], (%[c_addr_0]) \n\t"
-          "vfmacc.vf %[c05], %[alpha0], %[acc5] \n\t"
-          "vse32.v %[c01], (%[c_addr_1]) \n\t"
-          "vfmacc.vf %[c06], %[alpha0], %[acc6] \n\t"
-          "vse32.v %[c02], (%[c_addr_2]) \n\t"
-          "vfmacc.vf %[c07], %[alpha0], %[acc7] \n\t"
-          "vse32.v %[c03], (%[c_addr_3]) \n\t"
-          "vse32.v %[c04], (%[c_addr_4]) \n\t"
-          "vse32.v %[c05], (%[c_addr_5]) \n\t"
-          "vse32.v %[c06], (%[c_addr_6]) \n\t"
-          "vse32.v %[c07], (%[c_addr_7]) \n\t"
-          : [jj_vl_out] "=&r"(jj_vl), [c00] "=&vr"(c00), [c01] "=&vr"(c01),
-            [c02] "=&vr"(c02), [c03] "=&vr"(c03), [c04] "=&vr"(c04),
-            [c05] "=&vr"(c05), [c06] "=&vr"(c06), [c07] "=&vr"(c07)
-          : [jj_vl_in] "r"(n - jj), [c_addr_0] "r"(c + (ii + 0) * rsc + jj),
-            [c_addr_1] "r"(c + (ii + 1) * rsc + jj),
-            [c_addr_2] "r"(c + (ii + 2) * rsc + jj),
-            [c_addr_3] "r"(c + (ii + 3) * rsc + jj),
-            [c_addr_4] "r"(c + (ii + 4) * rsc + jj),
-            [c_addr_5] "r"(c + (ii + 5) * rsc + jj),
-            [c_addr_6] "r"(c + (ii + 6) * rsc + jj),
-            [c_addr_7] "r"(c + (ii + 7) * rsc + jj), [beta0] "f"(beta0),
-            [alpha0] "f"(alpha0), [acc0] "vr"(acc0), [acc1] "vr"(acc1),
-            [acc2] "vr"(acc2), [acc3] "vr"(acc3), [acc4] "vr"(acc4),
-            [acc5] "vr"(acc5), [acc6] "vr"(acc6), [acc7] "vr"(acc7)
-          : "vtype", "vl", "memory");
+          "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
+          "vle32.v %[c00], (%[c_addr0]) \n\t"
+          "vle32.v %[c10], (%[c_addr1]) \n\t"
+          "vle32.v %[c20], (%[c_addr2]) \n\t"
+          "vle32.v %[c30], (%[c_addr3]) \n\t"
+          "vle32.v %[c40], (%[c_addr4]) \n\t"
+          "vle32.v %[c50], (%[c_addr5]) \n\t"
+          "vle32.v %[c60], (%[c_addr6]) \n\t"
+          "vle32.v %[c70], (%[c_addr7]) \n\t"
+          "vfmul.vf %[c00], %[c00], %[beta] \n\t"
+          "vfmul.vf %[c10], %[c10], %[beta] \n\t"
+          "vfmul.vf %[c20], %[c20], %[beta] \n\t"
+          "vfmul.vf %[c30], %[c30], %[beta] \n\t"
+          "vfmul.vf %[c40], %[c40], %[beta] \n\t"
+          "vfmul.vf %[c50], %[c50], %[beta] \n\t"
+          "vfmul.vf %[c60], %[c60], %[beta] \n\t"
+          "vfmul.vf %[c70], %[c70], %[beta] \n\t"
+          "vfmacc.vf %[c00], %[alpha], %[acc0] \n\t"
+          "vfmacc.vf %[c10], %[alpha], %[acc1] \n\t"
+          "vfmacc.vf %[c20], %[alpha], %[acc2] \n\t"
+          "vfmacc.vf %[c30], %[alpha], %[acc3] \n\t"
+          "vfmacc.vf %[c40], %[alpha], %[acc4] \n\t"
+          "vfmacc.vf %[c50], %[alpha], %[acc5] \n\t"
+          "vfmacc.vf %[c60], %[alpha], %[acc6] \n\t"
+          "vfmacc.vf %[c70], %[alpha], %[acc7] \n\t"
+          "vse32.v %[c00], (%[c_addr0]) \n\t"
+          "vse32.v %[c10], (%[c_addr1]) \n\t"
+          "vse32.v %[c20], (%[c_addr2]) \n\t"
+          "vse32.v %[c30], (%[c_addr3]) \n\t"
+          "vse32.v %[c40], (%[c_addr4]) \n\t"
+          "vse32.v %[c50], (%[c_addr5]) \n\t"
+          "vse32.v %[c60], (%[c_addr6]) \n\t"
+          "vse32.v %[c70], (%[c_addr7]) \n\t"
+          : [c00] "=&vr"(c00),
+            [c10] "=&vr"(c10),
+            [c20] "=&vr"(c20),
+            [c30] "=&vr"(c30),
+            [c40] "=&vr"(c40),
+            [c50] "=&vr"(c50),
+            [c60] "=&vr"(c60),
+            [c70] "=&vr"(c70)
+          : [jj_vl] "r"(jj_vl),
+            [c_addr0] "r"(c + (ii + 0) * rsc + jj),
+            [c_addr1] "r"(c + (ii + 1) * rsc + jj),
+            [c_addr2] "r"(c + (ii + 2) * rsc + jj),
+            [c_addr3] "r"(c + (ii + 3) * rsc + jj),
+            [c_addr4] "r"(c + (ii + 4) * rsc + jj),
+            [c_addr5] "r"(c + (ii + 5) * rsc + jj),
+            [c_addr6] "r"(c + (ii + 6) * rsc + jj),
+            [c_addr7] "r"(c + (ii + 7) * rsc + jj),
+            [beta] "f"(beta),
+            [alpha] "f"(alpha),
+            [acc0] "vr"(acc0),
+            [acc1] "vr"(acc1),
+            [acc2] "vr"(acc2),
+            [acc3] "vr"(acc3),
+            [acc4] "vr"(acc4),
+            [acc5] "vr"(acc5),
+            [acc6] "vr"(acc6),
+            [acc7] "vr"(acc7)
+          : "vtype", "vl", "memory"
+          // clang-format on
+      );
     }
   }
-  for (ii0 = ii; (ii0 + 1) <= m; ii0 = ii0 + 1) {
-    for (jj = 0; jj < n; jj = jj + jj_vl) {
-      for (kk_peel = 0; ((kk_peel + 1) <= k) && (kk_peel < (0 + (1 * 1)));
-           kk_peel = kk_peel + 1) {
-        __asm__ volatile(
+  for (; ii < m; ii++) {
+    for (jj = 0; jj < n; jj += jj_vl) {
+      jj_vl = __riscv_vsetvl_e32m2(n - jj);
+      __asm__ volatile(
+          // clang-format off
             "\n\t"
-            "flw %[a0], 0(%[a_addr]) \n\t"
-            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
-            "vle32.v %[b0], (%[b_addr]) \n\t"
-            "vfmul.vf %[acc], %[b0], %[a0] \n\t"
-            : [a0] "=&f"(a0), [jj_vl_out] "=&r"(jj_vl), [b0] "=&vr"(b0),
-              [acc] "=vr"(acc)
-            : [a_addr] "r"(a + ii0 * rsa + kk_peel), [jj_vl_in] "r"(n - jj),
-              [b_addr] "r"(b + kk_peel * rsb + jj)
-            : "vtype", "vl", "memory");
-      }
-      for (kk = kk_peel; (kk + 1) <= k; kk = kk + 1) {
+            "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
+            "flw %[a00], 0(%[a_addr]) \n\t"
+            "vle32.v %[b00], (%[b_addr]) \n\t"
+            "vfmul.vf %[acc0], %[b00], %[a00] \n\t"
+            : [a00] "=&f"(a00),
+              [b00] "=&vr"(b00),
+              [acc0] "=vr"(acc0)
+            : [jj_vl] "r"(jj_vl),
+              [a_addr] "r"(a + ii * rsa),
+              [b_addr] "r"(b + jj)
+            : "vtype", "vl", "memory"
+          // clang-format on
+      );
+      for (kk = 1; kk < k; kk++) {
         __asm__ volatile(
+            // clang-format off
             "\n\t"
-            "flw %[a0], 0(%[a_addr]) \n\t"
-            "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
-            "vle32.v %[b0], (%[b_addr]) \n\t"
-            "vfmacc.vf %[acc], %[a0], %[b0] \n\t"
-            : [a0] "=&f"(a0), [jj_vl_out] "=&r"(jj_vl), [b0] "=&vr"(b0),
-              [acc] "+vr"(acc)
-            : [a_addr] "r"(a + ii0 * rsa + kk), [jj_vl_in] "r"(n - jj),
+            "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
+            "flw %[a00], 0(%[a_addr]) \n\t"
+            "vle32.v %[b00], (%[b_addr]) \n\t"
+            "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
+            : [a00] "=&f"(a00),
+              [b00] "=&vr"(b00),
+              [acc0] "+vr"(acc0)
+            : [jj_vl] "r"(jj_vl),
+              [a_addr] "r"(a + ii * rsa + kk),
               [b_addr] "r"(b + kk * rsb + jj)
-            : "vtype", "vl", "memory");
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
       }
       __asm__ volatile(
+          // clang-format off
           "\n\t"
-          "vsetvli %[jj_vl_out], %[jj_vl_in], e32, m1, ta, ma \n\t"
-          "vle32.v %[c0], (%[c_addr]) \n\t"
-          "vfmul.vf %[c0], %[c0], %[beta0] \n\t"
-          "vfmacc.vf %[c0], %[alpha0], %[acc] \n\t"
-          "vse32.v %[c0], (%[c_addr]) \n\t"
-          : [jj_vl_out] "=&r"(jj_vl), [c0] "=&vr"(c0)
-          : [jj_vl_in] "r"(n - jj), [c_addr] "r"(c + ii0 * rsc + jj),
-            [beta0] "f"(beta0), [alpha0] "f"(alpha0), [acc] "vr"(acc)
-          : "vtype", "vl", "memory");
+          "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
+          "vle32.v %[c00], (%[c_addr]) \n\t"
+          "vfmul.vf %[c00], %[c00], %[beta] \n\t"
+          "vfmacc.vf %[c00], %[alpha], %[acc0] \n\t"
+          "vse32.v %[c00], (%[c_addr]) \n\t"
+          : [c00] "=&vr"(c00)
+          : [jj_vl] "r"(jj_vl),
+            [c_addr] "r"(c + ii * rsc + jj),
+            [beta] "f"(beta),
+            [alpha] "f"(alpha),
+            [acc0] "vr"(acc0)
+          : "vtype", "vl", "memory"
+          // clang-format on
+      );
     }
   }
 }
