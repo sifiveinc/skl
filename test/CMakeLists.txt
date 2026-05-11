@@ -284,6 +284,34 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_softmax_f16_ref
+  softmax/softmax_f16.c
+  softmax/skl_softmax_f16_ref.c
+  ""
+  ""
+)
+skl_add_test(
+  skl_softmax_f16_zvfh
+  softmax/softmax_f16.c
+  softmax/skl_softmax_f16_zvfh.c
+  "zvfh"
+  ""
+)
+skl_add_test(
+  skl_softmax_f16_xsfvfexpa_zvfh
+  softmax/softmax_f16.c
+  softmax/skl_softmax_f16_xsfvfexpa_zvfh.c
+  "xsfvfexpa;zvfh"
+  ""
+)
+skl_add_test(
+  skl_softmax_f16_xsfvfexp16e
+  softmax/softmax_f16.c
+  softmax/skl_softmax_f16_xsfvfexp16e.c
+  "xsfvfexp16e"
+  ""
+)
+skl_add_test(
   skl_softmax_f32_ref
   softmax/softmax_f32.c
   softmax/skl_softmax_f32_ref.c
