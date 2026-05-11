@@ -12,6 +12,7 @@
  */
 
 #include "gemm_i8rcp_i8pc_i32_xsfvqdotq.h"
+#include "skl-ref.h"
 #include "skl-test-driver.h"
 #include "skl_test_gemm.h"
 #include <inttypes.h>
@@ -20,26 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-static void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_ref(
-    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
-    size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
-    int32_t *c, size_t rsc) {
-  for (size_t ii1 = 0; ii1 < m; ++ii1) {
-    for (size_t jj1 = 0; jj1 < n; ++jj1) {
-      int32_t acc = 0;
-      for (size_t kk1 = 0; kk1 < (k + 3) / 4; ++kk1) {
-        const int8_t *ap_block = a_pack + ii1 * rsa1 + kk1 * csa1;
-        const int8_t *bp_block = b_pack + kk1 * rsb1 + jj1 * 4;
-        size_t k0 = (k - kk1 * 4) >= 4 ? 4 : (k - kk1 * 4);
-        for (size_t kk0 = 0; kk0 < k0; ++kk0) {
-          acc += ap_block[kk0] * bp_block[kk0];
-        }
-      }
-      c[ii1 * rsc + jj1] = beta * c[ii1 * rsc + jj1] + alpha * acc;
-    }
-  }
-}
 
 // NOLINTBEGIN(readability-function-cognitive-complexity)
 void gemm_i8rcp_i8pc_i32_xsfvqdotq_init(skl_test_t *t) {
@@ -136,11 +117,18 @@ void gemm_i8rcp_i8pc_i32_xsfvqdotq_verify(skl_test_t *t) {
   size_t k = h->k;
   size_t m0 = 1;
   size_t n0 = 1;
+  size_t k0 = 4;
   size_t m1 = m;
   size_t n1 = n;
+  size_t k1 = k / k0;
+  size_t rsa0 = 4;
+  size_t csa0 = 1;
   size_t rsa1 = h->rsa1;
   size_t csa1 = h->csa1;
+  size_t rsb0 = 1;
+  size_t csb0 = 4;
   size_t rsb1 = h->rsb1;
+  size_t csb1 = 4;
   size_t rsc0 = 1;
   size_t csc0 = 1;
   size_t rsc1 = h->rsc;
@@ -154,8 +142,12 @@ void gemm_i8rcp_i8pc_i32_xsfvqdotq_verify(skl_test_t *t) {
   int32_t *ref_c = h->ctx.ref_c;
 
   /* Compute the reference matrix output. */
-  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_ref(m, n, k, alpha, a_pack, rsa1, csa1,
-                                        b_pack, rsb1, beta, ref_c, rsc1);
+  skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
+      m0, n0, k0, m1, n1, k1, alpha, a_pack, rsa0, csa0, rsa1, csa1, b_pack,
+      rsb0, csb0, rsb1, csb1, beta, ref_c, rsc0, csc0, rsc1, csc1);
+  skl_gemm_i8rc_i8rc_i32rc_ref(m, n, k % k0, alpha, a_pack + k1 * csa1, rsa1,
+                               csa0, b_pack + k1 * rsb1, rsb0, csb1, 1, ref_c,
+                               rsc1, csc1);
 
   /* Compare the reference and test outputs. */
   for (size_t i1 = 0; i1 < m1; ++i1) {
