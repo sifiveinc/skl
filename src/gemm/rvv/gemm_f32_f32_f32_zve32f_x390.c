@@ -322,12 +322,12 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
  *     c, rsc, 1
  * );
  * ```
- * Uses an 8 x LMUL=1 x 4 register tile. Vectorized across the N dimension.
+ * Uses an 8 x LMUL=2 x 12 register tile. Vectorized across the N dimension.
  *
  * @note
- * Works best when `m >= 8` and `n <= 2*__riscv_vsetvlmax_e32m1()`.
+ * Works best when `m >= 8` and `n <= __riscv_vsetvlmax_e32m2()`.
  */
-SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
+SKL_FUNC_PRIVATE void skl_gemm_8xm2x12_f32_f32_f32_zve32f_x390(
     size_t m, size_t n, size_t k, float alpha, const float *a, size_t rsa,
     const float *b, size_t rsb, float beta, float *c, size_t rsc) {
   size_t jj_vl;
@@ -1716,8 +1716,8 @@ SKL_FUNC void skl_gemm_f32_f32_f32_zve32f_x390(size_t m, size_t n, size_t k,
     return;
   }
   if (n <= __riscv_vsetvlmax_e32m2()) {
-    skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(m, n, k, alpha, a, rsa, b, rsb,
-                                            beta, c, rsc);
+    skl_gemm_8xm2x12_f32_f32_f32_zve32f_x390(m, n, k, alpha, a, rsa, b, rsb,
+                                             beta, c, rsc);
     return;
   }
   skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(m, n, k, alpha, a, rsa, b, rsb, beta,
