@@ -494,61 +494,62 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
             // clang-format off
             "\n\t"
             "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
+
             "vle32.v %[b00], (%[b_addr0]) \n\t"
-            "vle32.v %[b10], (%[b_addr1]) \n\t"
-            "vle32.v %[b20], (%[b_addr2]) \n\t"
-            "vle32.v %[b30], (%[b_addr3]) \n\t"
-
-            "flw %[a00],  0(%[a_addr0]) \n\t"
-            "flw %[a10],  0(%[a_addr1]) \n\t"
-            "flw %[a20],  0(%[a_addr2]) \n\t"
-            "flw %[a30],  0(%[a_addr3]) \n\t"
-            "flw %[a40],  0(%[a_addr4]) \n\t"
-            "flw %[a50],  0(%[a_addr5]) \n\t"
-            "flw %[a60],  0(%[a_addr6]) \n\t"
-            "flw %[a70],  0(%[a_addr7]) \n\t"
-
-            "flw %[a01],  4(%[a_addr0]) \n\t"
-            "flw %[a11],  4(%[a_addr1]) \n\t"
-            "flw %[a21],  4(%[a_addr2]) \n\t"
-            "flw %[a31],  4(%[a_addr3]) \n\t"
-            "flw %[a41],  4(%[a_addr4]) \n\t"
-            "flw %[a51],  4(%[a_addr5]) \n\t"
-            "flw %[a61],  4(%[a_addr6]) \n\t"
-            "flw %[a71],  4(%[a_addr7]) \n\t"
-
-            "flw %[a02],  8(%[a_addr0]) \n\t"
-            "flw %[a12],  8(%[a_addr1]) \n\t"
-            "flw %[a22],  8(%[a_addr2]) \n\t"
-            "flw %[a32],  8(%[a_addr3]) \n\t"
-            "flw %[a42],  8(%[a_addr4]) \n\t"
-            "flw %[a52],  8(%[a_addr5]) \n\t"
-            "flw %[a62],  8(%[a_addr6]) \n\t"
-            "flw %[a72],  8(%[a_addr7]) \n\t"
-
-            "flw %[a03], 12(%[a_addr0]) \n\t"
-            "flw %[a13], 12(%[a_addr1]) \n\t"
-            "flw %[a23], 12(%[a_addr2]) \n\t"
-            "flw %[a33], 12(%[a_addr3]) \n\t"
-            "flw %[a43], 12(%[a_addr4]) \n\t"
-            "flw %[a53], 12(%[a_addr5]) \n\t"
-            "flw %[a63], 12(%[a_addr6]) \n\t"
-            "flw %[a73], 12(%[a_addr7]) \n\t"
-
-            "add %[a_addr0], %[a_addr0], %[a_inc] \n\t"
-            "add %[a_addr1], %[a_addr1], %[a_inc] \n\t"
-            "add %[a_addr2], %[a_addr2], %[a_inc] \n\t"
-            "add %[a_addr3], %[a_addr3], %[a_inc] \n\t"
-            "add %[a_addr4], %[a_addr4], %[a_inc] \n\t"
-            "add %[a_addr5], %[a_addr5], %[a_inc] \n\t"
-            "add %[a_addr6], %[a_addr6], %[a_inc] \n\t"
-            "add %[a_addr7], %[a_addr7], %[a_inc] \n\t"
-
             "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
-            "add %[b_addr1], %[b_addr1], %[b_inc] \n\t"
-            "add %[b_addr2], %[b_addr2], %[b_inc] \n\t"
-            "add %[b_addr3], %[b_addr3], %[b_inc] \n\t"
+            "flw %[a00],  0(%[a_addr0]) \n\t"
+            "flw %[a01],  4(%[a_addr0]) \n\t"
+            "flw %[a02],  8(%[a_addr0]) \n\t"
+            "flw %[a03], 12(%[a_addr0]) \n\t"
+            "add %[a_addr0], %[a_addr0], %[a_inc] \n\t"
 
+            "vle32.v %[b10], (%[b_addr1]) \n\t"
+            "add %[b_addr1], %[b_addr1], %[b_inc] \n\t"
+            "flw %[a10],  0(%[a_addr1]) \n\t"
+            "flw %[a11],  4(%[a_addr1]) \n\t"
+            "flw %[a12],  8(%[a_addr1]) \n\t"
+            "flw %[a13], 12(%[a_addr1]) \n\t"
+            "add %[a_addr1], %[a_addr1], %[a_inc] \n\t"
+
+            "vle32.v %[b20], (%[b_addr2]) \n\t"
+            "add %[b_addr2], %[b_addr2], %[b_inc] \n\t"
+            "flw %[a20],  0(%[a_addr2]) \n\t"
+            "flw %[a21],  4(%[a_addr2]) \n\t"
+            "flw %[a22],  8(%[a_addr2]) \n\t"
+            "flw %[a23], 12(%[a_addr2]) \n\t"
+            "add %[a_addr2], %[a_addr2], %[a_inc] \n\t"
+
+            "vle32.v %[b30], (%[b_addr3]) \n\t"
+            "add %[b_addr3], %[b_addr3], %[b_inc] \n\t"
+            "flw %[a30],  0(%[a_addr3]) \n\t"
+            "flw %[a31],  4(%[a_addr3]) \n\t"
+            "flw %[a32],  8(%[a_addr3]) \n\t"
+            "flw %[a33], 12(%[a_addr3]) \n\t"
+            "add %[a_addr3], %[a_addr3], %[a_inc] \n\t"
+
+            "flw %[a40],  0(%[a_addr4]) \n\t"
+            "flw %[a41],  4(%[a_addr4]) \n\t"
+            "flw %[a42],  8(%[a_addr4]) \n\t"
+            "flw %[a43], 12(%[a_addr4]) \n\t"
+            "add %[a_addr4], %[a_addr4], %[a_inc] \n\t"
+
+            "flw %[a50],  0(%[a_addr5]) \n\t"
+            "flw %[a51],  4(%[a_addr5]) \n\t"
+            "flw %[a52],  8(%[a_addr5]) \n\t"
+            "flw %[a53], 12(%[a_addr5]) \n\t"
+            "add %[a_addr5], %[a_addr5], %[a_inc] \n\t"
+
+            "flw %[a60],  0(%[a_addr6]) \n\t"
+            "flw %[a61],  4(%[a_addr6]) \n\t"
+            "flw %[a62],  8(%[a_addr6]) \n\t"
+            "flw %[a63], 12(%[a_addr6]) \n\t"
+            "add %[a_addr6], %[a_addr6], %[a_inc] \n\t"
+
+            "flw %[a70],  0(%[a_addr7]) \n\t"
+            "flw %[a71],  4(%[a_addr7]) \n\t"
+            "flw %[a72],  8(%[a_addr7]) \n\t"
+            "flw %[a73], 12(%[a_addr7]) \n\t"
+            "add %[a_addr7], %[a_addr7], %[a_inc] \n\t"
             : [a00] "=f"(a00),
               [a10] "=f"(a10),
               [a20] "=f"(a20),
@@ -621,228 +622,324 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
 
               "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
               "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
+              NTL_P1
+              "flw %[a00],  0(%[a_addr0]) \n\t"
+              NTL_P1
+              "flw %[a10],  0(%[a_addr1]) \n\t"
               "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
               "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
+              NTL_P1
+              "flw %[a20],  0(%[a_addr2]) \n\t"
+              NTL_P1
+              "flw %[a30],  0(%[a_addr3]) \n\t"
               "vfmacc.vf %[acc4], %[a40], %[b00] \n\t"
               "vfmacc.vf %[acc5], %[a50], %[b00] \n\t"
+              NTL_P1
+              "flw %[a40],  0(%[a_addr4]) \n\t"
+              NTL_P1
+              "flw %[a50],  0(%[a_addr5]) \n\t"
               "vfmacc.vf %[acc6], %[a60], %[b00] \n\t"
               "vfmacc.vf %[acc7], %[a70], %[b00] \n\t"
-              "flw %[a00],  0(%[a_addr0]) \n\t"
-              "flw %[a10],  0(%[a_addr1]) \n\t"
-              "flw %[a20],  0(%[a_addr2]) \n\t"
-              "flw %[a30],  0(%[a_addr3]) \n\t"
-              "flw %[a40],  0(%[a_addr4]) \n\t"
-              "flw %[a50],  0(%[a_addr5]) \n\t"
+              NTL_P1
               "flw %[a60],  0(%[a_addr6]) \n\t"
+              NTL_P1
               "flw %[a70],  0(%[a_addr7]) \n\t"
               "vle32.v %[b00], (%[b_addr0]) \n\t"
               "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
 
               "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
               "vfmacc.vf %[acc1], %[a11], %[b10] \n\t"
+              NTL_P1
+              "flw %[a01],  4(%[a_addr0]) \n\t"
+              NTL_P1
+              "flw %[a11],  4(%[a_addr1]) \n\t"
               "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
               "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
+              NTL_P1
+              "flw %[a21],  4(%[a_addr2]) \n\t"
+              NTL_P1
+              "flw %[a31],  4(%[a_addr3]) \n\t"
               "vfmacc.vf %[acc4], %[a41], %[b10] \n\t"
               "vfmacc.vf %[acc5], %[a51], %[b10] \n\t"
+              NTL_P1
+              "flw %[a41],  4(%[a_addr4]) \n\t"
+              NTL_P1
+              "flw %[a51],  4(%[a_addr5]) \n\t"
               "vfmacc.vf %[acc6], %[a61], %[b10] \n\t"
               "vfmacc.vf %[acc7], %[a71], %[b10] \n\t"
-              "flw %[a01],  4(%[a_addr0]) \n\t"
-              "flw %[a11],  4(%[a_addr1]) \n\t"
-              "flw %[a21],  4(%[a_addr2]) \n\t"
-              "flw %[a31],  4(%[a_addr3]) \n\t"
-              "flw %[a41],  4(%[a_addr4]) \n\t"
-              "flw %[a51],  4(%[a_addr5]) \n\t"
+              NTL_P1
               "flw %[a61],  4(%[a_addr6]) \n\t"
+              NTL_P1
               "flw %[a71],  4(%[a_addr7]) \n\t"
               "vle32.v %[b10], (%[b_addr1]) \n\t"
               "add %[b_addr1], %[b_addr1], %[b_inc] \n\t"
 
               "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
               "vfmacc.vf %[acc1], %[a12], %[b20] \n\t"
+              NTL_P1
+              "flw %[a02],  8(%[a_addr0]) \n\t"
+              NTL_P1
+              "flw %[a12],  8(%[a_addr1]) \n\t"
               "vfmacc.vf %[acc2], %[a22], %[b20] \n\t"
               "vfmacc.vf %[acc3], %[a32], %[b20] \n\t"
+              NTL_P1
+              "flw %[a22],  8(%[a_addr2]) \n\t"
+              NTL_P1
+              "flw %[a32],  8(%[a_addr3]) \n\t"
               "vfmacc.vf %[acc4], %[a42], %[b20] \n\t"
               "vfmacc.vf %[acc5], %[a52], %[b20] \n\t"
+              NTL_P1
+              "flw %[a42],  8(%[a_addr4]) \n\t"
+              NTL_P1
+              "flw %[a52],  8(%[a_addr5]) \n\t"
               "vfmacc.vf %[acc6], %[a62], %[b20] \n\t"
               "vfmacc.vf %[acc7], %[a72], %[b20] \n\t"
-              "flw %[a02],  8(%[a_addr0]) \n\t"
-              "flw %[a12],  8(%[a_addr1]) \n\t"
-              "flw %[a22],  8(%[a_addr2]) \n\t"
-              "flw %[a32],  8(%[a_addr3]) \n\t"
-              "flw %[a42],  8(%[a_addr4]) \n\t"
-              "flw %[a52],  8(%[a_addr5]) \n\t"
+              NTL_P1
               "flw %[a62],  8(%[a_addr6]) \n\t"
+              NTL_P1
               "flw %[a72],  8(%[a_addr7]) \n\t"
               "vle32.v %[b20], (%[b_addr2]) \n\t"
               "add %[b_addr2], %[b_addr2], %[b_inc] \n\t"
 
               "vfmacc.vf %[acc0], %[a03], %[b30] \n\t"
               "vfmacc.vf %[acc1], %[a13], %[b30] \n\t"
+              NTL_P1
+              "flw %[a03], 12(%[a_addr0]) \n\t"
+              NTL_P1
+              "flw %[a13], 12(%[a_addr1]) \n\t"
               "vfmacc.vf %[acc2], %[a23], %[b30] \n\t"
               "vfmacc.vf %[acc3], %[a33], %[b30] \n\t"
+              NTL_P1
+              "flw %[a23], 12(%[a_addr2]) \n\t"
+              NTL_P1
+              "flw %[a33], 12(%[a_addr3]) \n\t"
               "vfmacc.vf %[acc4], %[a43], %[b30] \n\t"
               "vfmacc.vf %[acc5], %[a53], %[b30] \n\t"
+              NTL_P1
+              "flw %[a43], 12(%[a_addr4]) \n\t"
+              NTL_P1
+              "flw %[a53], 12(%[a_addr5]) \n\t"
               "vfmacc.vf %[acc6], %[a63], %[b30] \n\t"
               "vfmacc.vf %[acc7], %[a73], %[b30] \n\t"
-              "flw %[a03], 12(%[a_addr0]) \n\t"
-              "flw %[a13], 12(%[a_addr1]) \n\t"
-              "flw %[a23], 12(%[a_addr2]) \n\t"
-              "flw %[a33], 12(%[a_addr3]) \n\t"
-              "flw %[a43], 12(%[a_addr4]) \n\t"
-              "flw %[a53], 12(%[a_addr5]) \n\t"
+              NTL_P1
               "flw %[a63], 12(%[a_addr6]) \n\t"
+              NTL_P1
               "flw %[a73], 12(%[a_addr7]) \n\t"
               "vle32.v %[b30], (%[b_addr3]) \n\t"
               "add %[b_addr3], %[b_addr3], %[b_inc] \n\t"
 
               "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
               "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
+              NTL_P1
+              "flw %[a00], 16(%[a_addr0]) \n\t"
+              NTL_P1
+              "flw %[a10], 16(%[a_addr1]) \n\t"
               "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
               "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
+              NTL_P1
+              "flw %[a20], 16(%[a_addr2]) \n\t"
+              NTL_P1
+              "flw %[a30], 16(%[a_addr3]) \n\t"
               "vfmacc.vf %[acc4], %[a40], %[b00] \n\t"
               "vfmacc.vf %[acc5], %[a50], %[b00] \n\t"
+              NTL_P1
+              "flw %[a40], 16(%[a_addr4]) \n\t"
+              NTL_P1
+              "flw %[a50], 16(%[a_addr5]) \n\t"
               "vfmacc.vf %[acc6], %[a60], %[b00] \n\t"
               "vfmacc.vf %[acc7], %[a70], %[b00] \n\t"
-              "flw %[a00], 16(%[a_addr0]) \n\t"
-              "flw %[a10], 16(%[a_addr1]) \n\t"
-              "flw %[a20], 16(%[a_addr2]) \n\t"
-              "flw %[a30], 16(%[a_addr3]) \n\t"
-              "flw %[a40], 16(%[a_addr4]) \n\t"
-              "flw %[a50], 16(%[a_addr5]) \n\t"
+              NTL_P1
               "flw %[a60], 16(%[a_addr6]) \n\t"
+              NTL_P1
               "flw %[a70], 16(%[a_addr7]) \n\t"
               "vle32.v %[b00], (%[b_addr0]) \n\t"
               "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
 
               "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
               "vfmacc.vf %[acc1], %[a11], %[b10] \n\t"
+              NTL_P1
+              "flw %[a01], 20(%[a_addr0]) \n\t"
+              NTL_P1
+              "flw %[a11], 20(%[a_addr1]) \n\t"
               "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
               "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
+              NTL_P1
+              "flw %[a21], 20(%[a_addr2]) \n\t"
+              NTL_P1
+              "flw %[a31], 20(%[a_addr3]) \n\t"
               "vfmacc.vf %[acc4], %[a41], %[b10] \n\t"
               "vfmacc.vf %[acc5], %[a51], %[b10] \n\t"
+              NTL_P1
+              "flw %[a41], 20(%[a_addr4]) \n\t"
+              NTL_P1
+              "flw %[a51], 20(%[a_addr5]) \n\t"
               "vfmacc.vf %[acc6], %[a61], %[b10] \n\t"
               "vfmacc.vf %[acc7], %[a71], %[b10] \n\t"
-              "flw %[a01], 20(%[a_addr0]) \n\t"
-              "flw %[a11], 20(%[a_addr1]) \n\t"
-              "flw %[a21], 20(%[a_addr2]) \n\t"
-              "flw %[a31], 20(%[a_addr3]) \n\t"
-              "flw %[a41], 20(%[a_addr4]) \n\t"
-              "flw %[a51], 20(%[a_addr5]) \n\t"
+              NTL_P1
               "flw %[a61], 20(%[a_addr6]) \n\t"
+              NTL_P1
               "flw %[a71], 20(%[a_addr7]) \n\t"
               "vle32.v %[b10], (%[b_addr1]) \n\t"
               "add %[b_addr1], %[b_addr1], %[b_inc] \n\t"
 
               "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
               "vfmacc.vf %[acc1], %[a12], %[b20] \n\t"
+              NTL_P1
+              "flw %[a02], 24(%[a_addr0]) \n\t"
+              NTL_P1
+              "flw %[a12], 24(%[a_addr1]) \n\t"
               "vfmacc.vf %[acc2], %[a22], %[b20] \n\t"
               "vfmacc.vf %[acc3], %[a32], %[b20] \n\t"
+              NTL_P1
+              "flw %[a22], 24(%[a_addr2]) \n\t"
+              NTL_P1
+              "flw %[a32], 24(%[a_addr3]) \n\t"
               "vfmacc.vf %[acc4], %[a42], %[b20] \n\t"
               "vfmacc.vf %[acc5], %[a52], %[b20] \n\t"
+              NTL_P1
+              "flw %[a42], 24(%[a_addr4]) \n\t"
+              NTL_P1
+              "flw %[a52], 24(%[a_addr5]) \n\t"
               "vfmacc.vf %[acc6], %[a62], %[b20] \n\t"
               "vfmacc.vf %[acc7], %[a72], %[b20] \n\t"
-              "flw %[a02], 24(%[a_addr0]) \n\t"
-              "flw %[a12], 24(%[a_addr1]) \n\t"
-              "flw %[a22], 24(%[a_addr2]) \n\t"
-              "flw %[a32], 24(%[a_addr3]) \n\t"
-              "flw %[a42], 24(%[a_addr4]) \n\t"
-              "flw %[a52], 24(%[a_addr5]) \n\t"
+              NTL_P1
               "flw %[a62], 24(%[a_addr6]) \n\t"
+              NTL_P1
               "flw %[a72], 24(%[a_addr7]) \n\t"
               "vle32.v %[b20], (%[b_addr2]) \n\t"
               "add %[b_addr2], %[b_addr2], %[b_inc] \n\t"
 
               "vfmacc.vf %[acc0], %[a03], %[b30] \n\t"
               "vfmacc.vf %[acc1], %[a13], %[b30] \n\t"
+              NTL_P1
+              "flw %[a03], 28(%[a_addr0]) \n\t"
+              NTL_P1
+              "flw %[a13], 28(%[a_addr1]) \n\t"
               "vfmacc.vf %[acc2], %[a23], %[b30] \n\t"
               "vfmacc.vf %[acc3], %[a33], %[b30] \n\t"
+              NTL_P1
+              "flw %[a23], 28(%[a_addr2]) \n\t"
+              NTL_P1
+              "flw %[a33], 28(%[a_addr3]) \n\t"
               "vfmacc.vf %[acc4], %[a43], %[b30] \n\t"
               "vfmacc.vf %[acc5], %[a53], %[b30] \n\t"
+              NTL_P1
+              "flw %[a43], 28(%[a_addr4]) \n\t"
+              NTL_P1
+              "flw %[a53], 28(%[a_addr5]) \n\t"
               "vfmacc.vf %[acc6], %[a63], %[b30] \n\t"
               "vfmacc.vf %[acc7], %[a73], %[b30] \n\t"
-              "flw %[a03], 28(%[a_addr0]) \n\t"
-              "flw %[a13], 28(%[a_addr1]) \n\t"
-              "flw %[a23], 28(%[a_addr2]) \n\t"
-              "flw %[a33], 28(%[a_addr3]) \n\t"
-              "flw %[a43], 28(%[a_addr4]) \n\t"
-              "flw %[a53], 28(%[a_addr5]) \n\t"
+              NTL_P1
               "flw %[a63], 28(%[a_addr6]) \n\t"
+              NTL_P1
               "flw %[a73], 28(%[a_addr7]) \n\t"
               "vle32.v %[b30], (%[b_addr3]) \n\t"
               "add %[b_addr3], %[b_addr3], %[b_inc] \n\t"
 
               "vfmacc.vf %[acc0], %[a00], %[b00] \n\t"
               "vfmacc.vf %[acc1], %[a10], %[b00] \n\t"
+              NTL_P1
+              "flw %[a00], 32(%[a_addr0]) \n\t"
+              NTL_P1
+              "flw %[a10], 32(%[a_addr1]) \n\t"
               "vfmacc.vf %[acc2], %[a20], %[b00] \n\t"
               "vfmacc.vf %[acc3], %[a30], %[b00] \n\t"
+              NTL_P1
+              "flw %[a20], 32(%[a_addr2]) \n\t"
+              NTL_P1
+              "flw %[a30], 32(%[a_addr3]) \n\t"
               "vfmacc.vf %[acc4], %[a40], %[b00] \n\t"
               "vfmacc.vf %[acc5], %[a50], %[b00] \n\t"
+              NTL_P1
+              "flw %[a40], 32(%[a_addr4]) \n\t"
+              NTL_P1
+              "flw %[a50], 32(%[a_addr5]) \n\t"
               "vfmacc.vf %[acc6], %[a60], %[b00] \n\t"
               "vfmacc.vf %[acc7], %[a70], %[b00] \n\t"
-              "flw %[a00], 32(%[a_addr0]) \n\t"
-              "flw %[a10], 32(%[a_addr1]) \n\t"
-              "flw %[a20], 32(%[a_addr2]) \n\t"
-              "flw %[a30], 32(%[a_addr3]) \n\t"
-              "flw %[a40], 32(%[a_addr4]) \n\t"
-              "flw %[a50], 32(%[a_addr5]) \n\t"
+              NTL_P1
               "flw %[a60], 32(%[a_addr6]) \n\t"
+              NTL_P1
               "flw %[a70], 32(%[a_addr7]) \n\t"
               "vle32.v %[b00], (%[b_addr0]) \n\t"
               "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
 
               "vfmacc.vf %[acc0], %[a01], %[b10] \n\t"
               "vfmacc.vf %[acc1], %[a11], %[b10] \n\t"
+              NTL_P1
+              "flw %[a01], 36(%[a_addr0]) \n\t"
+              NTL_P1
+              "flw %[a11], 36(%[a_addr1]) \n\t"
               "vfmacc.vf %[acc2], %[a21], %[b10] \n\t"
               "vfmacc.vf %[acc3], %[a31], %[b10] \n\t"
+              NTL_P1
+              "flw %[a21], 36(%[a_addr2]) \n\t"
+              NTL_P1
+              "flw %[a31], 36(%[a_addr3]) \n\t"
               "vfmacc.vf %[acc4], %[a41], %[b10] \n\t"
               "vfmacc.vf %[acc5], %[a51], %[b10] \n\t"
+              NTL_P1
+              "flw %[a41], 36(%[a_addr4]) \n\t"
+              NTL_P1
+              "flw %[a51], 36(%[a_addr5]) \n\t"
               "vfmacc.vf %[acc6], %[a61], %[b10] \n\t"
               "vfmacc.vf %[acc7], %[a71], %[b10] \n\t"
-              "flw %[a01], 36(%[a_addr0]) \n\t"
-              "flw %[a11], 36(%[a_addr1]) \n\t"
-              "flw %[a21], 36(%[a_addr2]) \n\t"
-              "flw %[a31], 36(%[a_addr3]) \n\t"
-              "flw %[a41], 36(%[a_addr4]) \n\t"
-              "flw %[a51], 36(%[a_addr5]) \n\t"
+              NTL_P1
               "flw %[a61], 36(%[a_addr6]) \n\t"
+              NTL_P1
               "flw %[a71], 36(%[a_addr7]) \n\t"
               "vle32.v %[b10], (%[b_addr1]) \n\t"
               "add %[b_addr1], %[b_addr1], %[b_inc] \n\t"
 
               "vfmacc.vf %[acc0], %[a02], %[b20] \n\t"
               "vfmacc.vf %[acc1], %[a12], %[b20] \n\t"
+              NTL_P1
+              "flw %[a02], 40(%[a_addr0]) \n\t"
+              NTL_P1
+              "flw %[a12], 40(%[a_addr1]) \n\t"
               "vfmacc.vf %[acc2], %[a22], %[b20] \n\t"
               "vfmacc.vf %[acc3], %[a32], %[b20] \n\t"
+              NTL_P1
+              "flw %[a22], 40(%[a_addr2]) \n\t"
+              NTL_P1
+              "flw %[a32], 40(%[a_addr3]) \n\t"
               "vfmacc.vf %[acc4], %[a42], %[b20] \n\t"
               "vfmacc.vf %[acc5], %[a52], %[b20] \n\t"
+              NTL_P1
+              "flw %[a42], 40(%[a_addr4]) \n\t"
+              NTL_P1
+              "flw %[a52], 40(%[a_addr5]) \n\t"
               "vfmacc.vf %[acc6], %[a62], %[b20] \n\t"
               "vfmacc.vf %[acc7], %[a72], %[b20] \n\t"
-              "flw %[a02], 40(%[a_addr0]) \n\t"
-              "flw %[a12], 40(%[a_addr1]) \n\t"
-              "flw %[a22], 40(%[a_addr2]) \n\t"
-              "flw %[a32], 40(%[a_addr3]) \n\t"
-              "flw %[a42], 40(%[a_addr4]) \n\t"
-              "flw %[a52], 40(%[a_addr5]) \n\t"
+              NTL_P1
               "flw %[a62], 40(%[a_addr6]) \n\t"
+              NTL_P1
               "flw %[a72], 40(%[a_addr7]) \n\t"
               "vle32.v %[b20], (%[b_addr2]) \n\t"
               "add %[b_addr2], %[b_addr2], %[b_inc] \n\t"
 
               "vfmacc.vf %[acc0], %[a03], %[b30] \n\t"
               "vfmacc.vf %[acc1], %[a13], %[b30] \n\t"
+              NTL_P1
+              "flw %[a03], 44(%[a_addr0]) \n\t"
+              NTL_P1
+              "flw %[a13], 44(%[a_addr1]) \n\t"
               "vfmacc.vf %[acc2], %[a23], %[b30] \n\t"
               "vfmacc.vf %[acc3], %[a33], %[b30] \n\t"
+              NTL_P1
+              "flw %[a23], 44(%[a_addr2]) \n\t"
+              NTL_P1
+              "flw %[a33], 44(%[a_addr3]) \n\t"
               "vfmacc.vf %[acc4], %[a43], %[b30] \n\t"
               "vfmacc.vf %[acc5], %[a53], %[b30] \n\t"
+              NTL_P1
+              "flw %[a43], 44(%[a_addr4]) \n\t"
+              NTL_P1
+              "flw %[a53], 44(%[a_addr5]) \n\t"
               "vfmacc.vf %[acc6], %[a63], %[b30] \n\t"
               "vfmacc.vf %[acc7], %[a73], %[b30] \n\t"
-              "flw %[a03], 44(%[a_addr0]) \n\t"
-              "flw %[a13], 44(%[a_addr1]) \n\t"
-              "flw %[a23], 44(%[a_addr2]) \n\t"
-              "flw %[a33], 44(%[a_addr3]) \n\t"
-              "flw %[a43], 44(%[a_addr4]) \n\t"
-              "flw %[a53], 44(%[a_addr5]) \n\t"
+              NTL_P1
               "flw %[a63], 44(%[a_addr6]) \n\t"
+              NTL_P1
               "flw %[a73], 44(%[a_addr7]) \n\t"
               "vle32.v %[b30], (%[b_addr3]) \n\t"
               "add %[b_addr3], %[b_addr3], %[b_inc] \n\t"
@@ -1078,36 +1175,43 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm1x4_f32_f32_f32_zve32f_x390(
           "\n\t"
           "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
           "vle32.v %[c00], (%[c_addr0]) \n\t"
-          "vle32.v %[c10], (%[c_addr1]) \n\t"
-          "vle32.v %[c20], (%[c_addr2]) \n\t"
-          "vle32.v %[c30], (%[c_addr3]) \n\t"
-          "vle32.v %[c40], (%[c_addr4]) \n\t"
-          "vle32.v %[c50], (%[c_addr5]) \n\t"
-          "vle32.v %[c60], (%[c_addr6]) \n\t"
-          "vle32.v %[c70], (%[c_addr7]) \n\t"
           "vfmul.vf %[c00], %[c00], %[beta] \n\t"
-          "vfmul.vf %[c10], %[c10], %[beta] \n\t"
-          "vfmul.vf %[c20], %[c20], %[beta] \n\t"
-          "vfmul.vf %[c30], %[c30], %[beta] \n\t"
-          "vfmul.vf %[c40], %[c40], %[beta] \n\t"
-          "vfmul.vf %[c50], %[c50], %[beta] \n\t"
-          "vfmul.vf %[c60], %[c60], %[beta] \n\t"
-          "vfmul.vf %[c70], %[c70], %[beta] \n\t"
           "vfmacc.vf %[c00], %[alpha], %[acc0] \n\t"
-          "vfmacc.vf %[c10], %[alpha], %[acc1] \n\t"
-          "vfmacc.vf %[c20], %[alpha], %[acc2] \n\t"
-          "vfmacc.vf %[c30], %[alpha], %[acc3] \n\t"
-          "vfmacc.vf %[c40], %[alpha], %[acc4] \n\t"
-          "vfmacc.vf %[c50], %[alpha], %[acc5] \n\t"
-          "vfmacc.vf %[c60], %[alpha], %[acc6] \n\t"
-          "vfmacc.vf %[c70], %[alpha], %[acc7] \n\t"
+          "vle32.v %[c10], (%[c_addr1]) \n\t"
           "vse32.v %[c00], (%[c_addr0]) \n\t"
+
+          "vfmul.vf %[c10], %[c10], %[beta] \n\t"
+          "vfmacc.vf %[c10], %[alpha], %[acc1] \n\t"
+          "vle32.v %[c20], (%[c_addr2]) \n\t"
           "vse32.v %[c10], (%[c_addr1]) \n\t"
+
+          "vfmul.vf %[c20], %[c20], %[beta] \n\t"
+          "vfmacc.vf %[c20], %[alpha], %[acc2] \n\t"
+          "vle32.v %[c30], (%[c_addr3]) \n\t"
           "vse32.v %[c20], (%[c_addr2]) \n\t"
+
+          "vfmul.vf %[c30], %[c30], %[beta] \n\t"
+          "vfmacc.vf %[c30], %[alpha], %[acc3] \n\t"
+          "vle32.v %[c40], (%[c_addr4]) \n\t"
           "vse32.v %[c30], (%[c_addr3]) \n\t"
+
+          "vfmul.vf %[c40], %[c40], %[beta] \n\t"
+          "vfmacc.vf %[c40], %[alpha], %[acc4] \n\t"
+          "vle32.v %[c50], (%[c_addr5]) \n\t"
           "vse32.v %[c40], (%[c_addr4]) \n\t"
+
+          "vfmul.vf %[c50], %[c50], %[beta] \n\t"
+          "vfmacc.vf %[c50], %[alpha], %[acc5] \n\t"
+          "vle32.v %[c60], (%[c_addr6]) \n\t"
           "vse32.v %[c50], (%[c_addr5]) \n\t"
+
+          "vfmul.vf %[c60], %[c60], %[beta] \n\t"
+          "vfmacc.vf %[c60], %[alpha], %[acc6] \n\t"
+          "vle32.v %[c70], (%[c_addr7]) \n\t"
           "vse32.v %[c60], (%[c_addr6]) \n\t"
+
+          "vfmul.vf %[c70], %[c70], %[beta] \n\t"
+          "vfmacc.vf %[c70], %[alpha], %[acc7] \n\t"
           "vse32.v %[c70], (%[c_addr7]) \n\t"
           : [c00] "=&vr"(c00),
             [c10] "=&vr"(c10),
