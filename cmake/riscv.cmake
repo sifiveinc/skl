@@ -9,10 +9,6 @@ set(CMAKE_SYSTEM_PROCESSOR riscv)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 
 set(CMAKE_C_COMPILER riscv64-unknown-elf-clang)
-option(SKL_ENABLE_CLANG_TIDY "Enable clang-tidy command" ON)
-if(SKL_ENABLE_CLANG_TIDY)
-  set(CMAKE_C_CLANG_TIDY riscv64-unknown-elf-clang-tidy)
-endif()
 
 set(SKL_ARCH_EXTENSIONS
   rv64gcv

@@ -13,6 +13,12 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE "${DEFAULT_CMAKE_BUILD_TYPE}" CACHE STRING "Build type (default ${DEFAULT_CMAKE_BUILD_TYPE})" FORCE)
 endif()
 
+# Set up clang-tidy
+option(SKL_ENABLE_CLANG_TIDY "Enable clang-tidy command" ON)
+if(SKL_ENABLE_CLANG_TIDY)
+    set(CMAKE_C_CLANG_TIDY riscv64-unknown-elf-clang-tidy)
+endif()
+
 # Build the library itself
 
 set(SKL_LIBRARY skl)
