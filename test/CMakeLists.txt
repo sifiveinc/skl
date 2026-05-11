@@ -284,6 +284,69 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_softmax_bf16_ref
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_ref.c
+  ""
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_xsfvfbfa
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_xsfvfbfa.c
+  "xsfvfbfa"
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_xsfvfbfexp16e_xsfvfbfa
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_xsfvfbfexp16e_xsfvfbfa.c
+  "xsfvfbfexp16e;xsfvfbfa"
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_xsfvfbfexp16e_zvfbfmin
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_xsfvfbfexp16e_zvfbfmin.c
+  "xsfvfbfexp16e;zvfbfmin"
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_xsfvfexp32e_zvfbfmin
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_xsfvfexp32e_zvfbfmin.c
+  "xsfvfexp32e;zvfbfmin"
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_xsfvfexpa_xsfvfbfa
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_xsfvfexpa_xsfvfbfa.c
+  "xsfvfexpa;xsfvfbfa"
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_xsfvfexpa_zvfbfmin
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_xsfvfexpa_zvfbfmin.c
+  "xsfvfexpa;zvfbfmin"
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_zve32f
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_zvfbfmin
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_zvfbfmin.c
+  "zvfbfmin"
+  ""
+)
+skl_add_test(
   skl_softmax_f16_ref
   softmax/softmax_f16.c
   softmax/skl_softmax_f16_ref.c
