@@ -5,12 +5,29 @@
 
 cmake_minimum_required(VERSION 3.21)
 
+# This option may affect the call to `project` and thus must come first.
+option(SKL_ENABLE_CLANG_TIDY "Enable linting with clang-tidy" ON)
+
 project(SKL)
 
 set(DEFAULT_CMAKE_BUILD_TYPE "Release")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "No build type selected, default to ${DEFAULT_CMAKE_BUILD_TYPE}")
   set(CMAKE_BUILD_TYPE "${DEFAULT_CMAKE_BUILD_TYPE}" CACHE STRING "Build type (default ${DEFAULT_CMAKE_BUILD_TYPE})" FORCE)
+endif()
+
+# Set up clang-tidy
+if(SKL_ENABLE_CLANG_TIDY)
+    find_program(SKL_CLANG_TIDY_EXE NAMES
+        riscv64-unknown-elf-clang-tidy
+        riscv64-unknown-linux-gnu-clang-tidy
+    )
+    set(SKL_CLANG_TIDY_EXE "${SKL_CLANG_TIDY_EXE}" CACHE FILEPATH "Path to clang-tidy")
+    if(SKL_CLANG_TIDY_EXE)
+        set(CMAKE_C_CLANG_TIDY "${SKL_CLANG_TIDY_EXE}" CACHE STRING "clang-tidy command")
+    endif()
+else()
+    unset(CMAKE_C_CLANG_TIDY CACHE)
 endif()
 
 # Build the library itself
