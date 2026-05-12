@@ -203,8 +203,6 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test_legacy(exp_f16 exp/exp_f16.c "-DRUN_ZVFH;-DRUN_VFEXPA;-DRUN_VFEXP")
     skl_add_test_legacy(skl_gemm_f16_f16_f16_zvfh_x390_wrapper gemm/gemm_f16rc_f16rc_f16rc.c
       "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
-    skl_add_test_legacy(skl_gemm_f16_f16_f32_zvfh_x390_wrapper gemm/gemm_f16rc_f16rc_f32rc.c
-      "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
     skl_add_test_legacy(logistic_f16_zvfh logistic/logistic_f16.c "-DRUN_ALL")
     skl_add_test_legacy(silu_f16_zvfh silu/silu_f16.c "-DRUN_ALL")
   endif()
@@ -246,11 +244,7 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   if("xsfmm32a16f" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f_wrapper gemm/gemm_bf16rc_bf16rc_f32rc.c
       "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1.f;-DBETA=0.f")
-    skl_add_test_legacy(skl_gemm_a1b01_f16c_f16_f32_xsfmm32a16f_wrapper gemm/gemm_f16rc_f16rc_f32rc.c
-      "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1.f;-DBETA=0.f")
     skl_add_test_legacy(skl_gemm_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f_wrapper gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc.c
-      "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
-    skl_add_test_legacy(skl_gemm_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f_wrapper gemm/gemm_f16rcprc_f16rcprc_f32rcprc.c
       "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
   endif()
   if("xsfvqdotq" IN_LIST RISCV_EXTENSIONS)
