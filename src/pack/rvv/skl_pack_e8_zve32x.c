@@ -1,5 +1,7 @@
-// Copyright 2025 SiFive, Inc.
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (c) 2026 SiFive, Inc. All rights reserved.
+// Licensed under the MIT License.
+// See LICENSE file in the project root for full license information.
+// SPDX-License-Identifier: MIT
 
 #if !defined(__riscv_zve32x)
 #error This source file requires compiler support for the RISC-V Zve32x extension.
@@ -12,8 +14,7 @@
 
 #include "skl-common.h"
 
-SKL_FUNC_PRIVATE void skl_memset_e8_zve32x(uint8_t *dst, uint8_t value,
-                                           size_t n) {
+SKL_FUNC_PRIVATE void skl_set_e8_zve32x(uint8_t *dst, uint8_t value, size_t n) {
   size_t vl = 0;
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e8m8(n - i);
@@ -21,8 +22,9 @@ SKL_FUNC_PRIVATE void skl_memset_e8_zve32x(uint8_t *dst, uint8_t value,
     __riscv_vse8_v_u8m8(dst + i, v_value, vl);
   }
 }
-SKL_FUNC_PRIVATE void skl_memcpy_e8_zve32x(uint8_t *dst, const uint8_t *src,
-                                           size_t n) {
+
+SKL_FUNC_PRIVATE void skl_copy_e8_zve32x(uint8_t *dst, const uint8_t *src,
+                                         size_t n) {
   size_t vl = 0;
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e8m8(n - i);
@@ -36,16 +38,8 @@ SKL_FUNC_PRIVATE void skl_copy2d_e8_zve32x(size_t m, size_t n,
                                            size_t rsa, uint8_t *SKL_RESTRICT b,
                                            size_t rsb) {
   for (size_t i = 0; i < m; ++i) {
-    skl_memcpy_e8_zve32x(b + i * rsb, a + i * rsa, n);
+    skl_copy_e8_zve32x(b + i * rsb, a + i * rsa, n);
   }
-}
-
-SKL_FUNC_PRIVATE bool skl_transpose_e8_is_mvec(size_t m, size_t n) {
-  size_t vlmax = __riscv_vsetvlmax_e8m1();
-  if (m > n || m >= vlmax) {
-    return true;
-  }
-  return false;
 }
 
 /* Transposes an M x N row-major matrix (pointed by `a`) to an N x M row-major
@@ -123,7 +117,7 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
 
       vcol = __riscv_vlse8_v_u8m8(in_tile, input_seg_bstride, vl);
 
-      // store continuously along m
+      // store extently along m
       __riscv_vse8_v_u8m8(out_tile, vcol, vl);
 
       in_tile += vl * rsa;
@@ -142,7 +136,7 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
 
       uint8_t *write_ptr = out_tile;
       const size_t output_seg_stride = rsat;
-      // store each segment continuously along m
+      // store each segment extently along m
       __riscv_vse8_v_u8m4(write_ptr, __riscv_vget_v_u8m4x2_u8m4(vcols, 0), vl);
       write_ptr += output_seg_stride;
       __riscv_vse8_v_u8m4(write_ptr, __riscv_vget_v_u8m4x2_u8m4(vcols, 1), vl);
@@ -163,7 +157,7 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
 
       uint8_t *write_ptr = out_tile;
       const size_t output_seg_stride = rsat;
-      // store each segment continuously along m
+      // store each segment extently along m
       __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x3_u8m2(vcols, 0), vl);
       write_ptr += output_seg_stride;
       __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x3_u8m2(vcols, 1), vl);
@@ -187,7 +181,7 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
 
       uint8_t *write_ptr = out_tile;
       const size_t output_seg_stride = rsat;
-      // store each segment continuously along m
+      // store each segment extently along m
       __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x4_u8m2(vcols, 0), vl);
       write_ptr += output_seg_stride;
       __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x4_u8m2(vcols, 1), vl);
@@ -213,7 +207,7 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
 
       uint8_t *write_ptr = out_tile;
       const size_t output_seg_stride = rsat;
-      // store each segment continuously along m
+      // store each segment extently along m
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x5_u8m1(vcols, 0), vl);
       write_ptr += output_seg_stride;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x5_u8m1(vcols, 1), vl);
@@ -241,7 +235,7 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
 
       uint8_t *write_ptr = out_tile;
       const size_t output_seg_stride = rsat;
-      // store each segment continuously along m
+      // store each segment extently along m
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x6_u8m1(vcols, 0), vl);
       write_ptr += output_seg_stride;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x6_u8m1(vcols, 1), vl);
@@ -271,7 +265,7 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
 
       uint8_t *write_ptr = out_tile;
       const size_t output_seg_stride = rsat;
-      // store each segment continuously along m
+      // store each segment extently along m
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 0), vl);
       write_ptr += output_seg_stride;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 1), vl);
@@ -525,6 +519,14 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
   }
 }
 
+SKL_FUNC_PRIVATE bool skl_transpose_e8_is_mvec(size_t m, size_t n) {
+  size_t vlmax = __riscv_vsetvlmax_e8m1();
+  if (m > n || m >= vlmax) {
+    return true;
+  }
+  return false;
+}
+
 SKL_FUNC_PRIVATE void
 skl_transpose_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
                         size_t rsa, uint8_t *SKL_RESTRICT at, size_t rsat) {
@@ -535,17 +537,17 @@ skl_transpose_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
   }
 }
 
-SKL_FUNC_PRIVATE void skl_padd_e8_zve32x(uint8_t *dst, size_t continuous,
+SKL_FUNC_PRIVATE void skl_padd_e8_zve32x(uint8_t *dst, size_t extent,
                                          size_t stride, uint8_t pad_val,
-                                         size_t n) {
-  if (continuous == 0 || n == 0) {
+                                         size_t n_segs) {
+  if (extent == 0 || n_segs == 0) {
     return;
   }
-  if (continuous == stride) {
-    skl_memset_e8_zve32x(dst, pad_val, continuous * n * sizeof(uint8_t));
+  if (extent == stride) {
+    skl_set_e8_zve32x(dst, pad_val, extent * n_segs);
     return;
   }
-  if (continuous <= 8) {
+  if (extent <= 8) {
 
     vuint8m1_t padd_vec0 =
         __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
@@ -564,12 +566,12 @@ SKL_FUNC_PRIVATE void skl_padd_e8_zve32x(uint8_t *dst, size_t continuous,
     vuint8m1_t padd_vec7 =
         __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
 
-    switch (continuous) {
+    switch (extent) {
     case 1: {
       vuint8m8_t padd_vec_group1 = __riscv_vcreate_v_u8m1_u8m8(
           padd_vec0, padd_vec1, padd_vec2, padd_vec3, padd_vec4, padd_vec5,
           padd_vec6, padd_vec7);
-      for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m8(avl);
         __riscv_vsse8_v_u8m8(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                              padd_vec_group1, vl);
@@ -583,7 +585,7 @@ SKL_FUNC_PRIVATE void skl_padd_e8_zve32x(uint8_t *dst, size_t continuous,
                                       padd_vec3),
           __riscv_vcreate_v_u8m1_u8m4(padd_vec4, padd_vec5, padd_vec6,
                                       padd_vec7));
-      for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m4(avl);
         __riscv_vssseg2e8_v_u8m4x2(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                                    padd_vec_group2, vl);
@@ -596,7 +598,7 @@ SKL_FUNC_PRIVATE void skl_padd_e8_zve32x(uint8_t *dst, size_t continuous,
           __riscv_vcreate_v_u8m1_u8m2(padd_vec0, padd_vec1),
           __riscv_vcreate_v_u8m1_u8m2(padd_vec2, padd_vec3),
           __riscv_vcreate_v_u8m1_u8m2(padd_vec4, padd_vec5));
-      for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m2(avl);
         __riscv_vssseg3e8_v_u8m2x3(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                                    padd_vec_group3, vl);
@@ -610,7 +612,7 @@ SKL_FUNC_PRIVATE void skl_padd_e8_zve32x(uint8_t *dst, size_t continuous,
           __riscv_vcreate_v_u8m1_u8m2(padd_vec2, padd_vec3),
           __riscv_vcreate_v_u8m1_u8m2(padd_vec4, padd_vec5),
           __riscv_vcreate_v_u8m1_u8m2(padd_vec6, padd_vec7));
-      for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m2(avl);
         __riscv_vssseg4e8_v_u8m2x4(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                                    padd_vec_group4, vl);
@@ -621,7 +623,7 @@ SKL_FUNC_PRIVATE void skl_padd_e8_zve32x(uint8_t *dst, size_t continuous,
     case 5: {
       vuint8m1x5_t padd_vec_group5 = __riscv_vcreate_v_u8m1x5(
           padd_vec0, padd_vec1, padd_vec2, padd_vec3, padd_vec4);
-      for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg5e8_v_u8m1x5(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                                    padd_vec_group5, vl);
@@ -632,7 +634,7 @@ SKL_FUNC_PRIVATE void skl_padd_e8_zve32x(uint8_t *dst, size_t continuous,
     case 6: {
       vuint8m1x6_t padd_vec_group6 = __riscv_vcreate_v_u8m1x6(
           padd_vec0, padd_vec1, padd_vec2, padd_vec3, padd_vec4, padd_vec5);
-      for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg6e8_v_u8m1x6(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                                    padd_vec_group6, vl);
@@ -644,7 +646,7 @@ SKL_FUNC_PRIVATE void skl_padd_e8_zve32x(uint8_t *dst, size_t continuous,
       vuint8m1x7_t padd_vec_group7 =
           __riscv_vcreate_v_u8m1x7(padd_vec0, padd_vec1, padd_vec2, padd_vec3,
                                    padd_vec4, padd_vec5, padd_vec6);
-      for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg7e8_v_u8m1x7(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                                    padd_vec_group7, vl);
@@ -656,7 +658,7 @@ SKL_FUNC_PRIVATE void skl_padd_e8_zve32x(uint8_t *dst, size_t continuous,
       vuint8m1x8_t padd_vec_group8 =
           __riscv_vcreate_v_u8m1x8(padd_vec0, padd_vec1, padd_vec2, padd_vec3,
                                    padd_vec4, padd_vec5, padd_vec6, padd_vec7);
-      for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg8e8_v_u8m1x8(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                                    padd_vec_group8, vl);
@@ -668,14 +670,14 @@ SKL_FUNC_PRIVATE void skl_padd_e8_zve32x(uint8_t *dst, size_t continuous,
       break;
     }
   } else {
-    for (size_t i = 0; i < n; ++i) {
-      skl_memset_e8_zve32x(dst, pad_val, continuous * sizeof(uint8_t));
+    for (size_t i = 0; i < n_segs; ++i) {
+      skl_set_e8_zve32x(dst, pad_val, extent);
       dst += stride;
     }
   }
 }
 
-SKL_FUNC_PRIVATE void skl_transpose_e8_m_padding_zve32x(
+SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
     size_t m_padded, size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
     size_t rsa, uint8_t *SKL_RESTRICT at, size_t rsat, uint8_t pad_val) {
 
@@ -972,8 +974,8 @@ SKL_FUNC_PRIVATE void skl_pack_e8_e8rcbrc_zve32x(
       const uint8_t *src_block = src + ii1 * m0 * rs;
       uint8_t *dst_block = dst + ii1 * rs1;
       size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
-      skl_transpose_e8_m_padding_zve32x(m0, m_length, n, src_block, rs,
-                                        dst_block, cs0, padd_value);
+      skl_transpose_padded_m_e8_zve32x(m0, m_length, n, src_block, rs,
+                                       dst_block, cs0, padd_value);
       if (n % n0) {
         // padd right
         skl_padd_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), m0, cs0,
@@ -991,8 +993,8 @@ SKL_FUNC_PRIVATE void skl_pack_e8_e8rcbrc_zve32x(
       if (rs0 == 1) {
         size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
         size_t n_length = n0 < n - jj1 * n0 ? n0 : n - jj1 * n0;
-        skl_transpose_e8_m_padding_zve32x(m0, m_length, n_length, src_block, rs,
-                                          dst_block, cs0, padd_value);
+        skl_transpose_padded_m_e8_zve32x(m0, m_length, n_length, src_block, rs,
+                                         dst_block, cs0, padd_value);
         // padd right
         skl_padd_e8_zve32x(dst_block + cs0 * n_length, m0, cs0, padd_value,
                            n0 - n_length);
@@ -1040,8 +1042,7 @@ SKL_FUNC void skl_pack_e8rc_e8rcbrc_zve32x(
   if (cs == 1) {
     skl_pack_e8_e8rcbrc_zve32x(m, n, src, rs, m0, n0, dst, rs0, cs0, rs1, cs1);
   } else if (rs == 1) {
-    // When input is column-major (rs==1), transpose both dimensions and
-    // strides NOLINTNEXTLINE(readability-suspicious-call-argument)
+    // When input is column-major (rs==1), transpose both dimensions and strides
     skl_pack_e8_e8rcbrc_zve32x(n, m, src, cs, n0, m0, dst, cs0, rs0, cs1, rs1);
   } else {
     size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the input matrix
