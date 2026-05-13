@@ -14,19 +14,20 @@ See the [list of packing kernels](#list-of-packing-kernels) for details.
 
 These functions specialize the general form:
 ```c
-void skl_pack_rcbrc_<datatype>_<isa>(
-  size_t m,           // Num. rows in input matrix
-  size_t n,           // Num. columns in input matrix
-  const <type>* src,  // Input matrix
-  size_t rs,          // Row stride of input matrix
-  size_t cs,          // Column stride of input matrix
-  size_t m0,          // Num. rows in a block of the input matrix
-  size_t n0,          // Num. columns in a block of the input matrix
-  <type>* dst,        // Output packed matrix [m1 x n1]
-  size_t rs0,         // Row stride within a block of the output matrix
-  size_t cs0,         // Column stride within a block of the output matrix
-  size_t rs1,         // Row stride between blocks of the output matrix
-  size_t cs1          // Column stride between blocks of the output matrix
+void skl_pack_<datatype>rc_<datatype>prcbrc_<isa>(
+  size_t m,            // Num. rows in input matrix
+  size_t n,            // Num. columns in input matrix
+  const <type>* src,   // Input matrix
+  size_t rs,           // Row stride of input matrix
+  size_t cs,           // Column stride of input matrix
+  size_t m0,           // Num. rows in a block of the output matrix
+  size_t n0,           // Num. columns in a block of the output matrix
+  <type>* dst,         // Output packed matrix [m1 x n1]
+  size_t rs0,          // Row stride within a block of the output matrix
+  size_t cs0,          // Column stride within a block of the output matrix
+  size_t rs1,          // Row stride between blocks of the output matrix
+  size_t cs1,          // Column stride between blocks of the output matrix
+  <type> padding_value // Value to use for padding
 ) {
   size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the input matrix
   size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the input matrix
@@ -40,7 +41,7 @@ void skl_pack_rcbrc_<datatype>_<isa>(
             dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0 * cs];
           } else {
             // Pad with zeros
-            dst_block[ii0 * rs0 + jj0 * cs0] = 0;
+            dst_block[ii0 * rs0 + jj0 * cs0] = padding_value;
           }
         }
       }
@@ -52,16 +53,16 @@ Unpacking functions work analogously.
 
 
 As in the case of GEMM kernels, most packing kernels will fully specialize or constrain most of the parameters, and they are thus omitted from the API.
-Usually, `m0`, `n0`, `rs0`, and `cs0` are all fixed by the target's layout, and indicated in the kernel's name as part of the _layout term_ (`_rcbrc_` in the generic case shown above).
+Usually, `m0`, `n0`, `rs0`, and `cs0` are all fixed by the target's layout, and indicated in the kernel's name as part of the _layout term_ (`_prcbrc_` in the generic case shown above).
 
 ### Naming Convention for Packing Kernels
 
 The name of the packing kernel indicates the block size and ISA extension required by the kernel, and whether it is required or optional.
-The general form is `skl_pack_<layout>_<datatype>_<isa>`.
+The general form is `skl_pack_<input_type><layout>_<output_type>p<layout>_<isa>`.
 
 > **Note**: As in other kernel families, the ISA suffix indicates the minimum requirement to execute the packing kernel itself (normally `zve32x`), but its primary intended use may be for a particular matrix extension. This is indicated in the documentation for each kernel (packing and GEMM).
 >
-> The `skl_pack_tex1c_e8_xsfmm` function is an exception, as it uses the matrix engine to accelerate transposition within blocks.
+> The `skl_pack_e8_e8ptex1c_xsfmm` function is an exception, as it uses the matrix engine to accelerate transposition within blocks.
 
 #### Layout Term
 
@@ -173,28 +174,28 @@ It is for illustrative purposes only.
 All of these kernels are required for correct operation of the corresponding GEMM kernels.
 
 #### Xsfvqdotq
-- `skl_pack_4x1c_e8_zve32x`: Pack the B matrix into 4x1 panels (4x1 block-row-major example above) to use `sf.vqdot.vx` without reduction summation.
+- `skl_pack_e8_e8p4x1c_zve32x`: Pack the B matrix into 4x1 panels (4x1 block-row-major example above) to use `sf.vqdot.vx` without reduction summation.
 
 #### Xsfvqmaccqoq
 These kernels are required for use of the `sf.vqmacc.4x8x4` instruction.
 Because the of the small block size, significant specialization is required to achieve reasonable performance.
-- `skl_pack_4x4_e32_zve32x`: Used for the C matrix.
-- `skl_unpack_4x4_e32_zve32x`: Inverse of `skl_pack_4x4_e32_zve32x`.
-- `skl_pack_4x8_e8_zve32x`: Used for the A matrix.
-- `skl_pack_8x4_e8_zve32x`: Used for the B matrix.
+- `skl_pack_e32_e32p4x4_zve32x`: Used for the C matrix.
+- `skl_unpack_e32p4x4_e32_zve32x`: Inverse of `skl_pack_e32_e32p4x4_zve32x`.
+- `skl_pack_e8_e8p4x8_zve32x`: Used for the A matrix.
+- `skl_pack_e8_e8p8x4_zve32x`: Used for the B matrix.
 
 ### Optional Packing Kernels
 None of these are strictly required for correct operation of the corresponding GEMM kernels, but they may be useful for performance or compatibility reasons.
 (For Xsfmm, it is never required to pack any matrix; only [transposition](../transpose/README.md) is required if the A matrix is in row-major format, or B is in column-major format.)
-- `skl_pack_tex1c_e8_xsfmm`: Transpose (TE x K) panels using the matrix engine. Used on a row-major A matrix or column-major B matrix.
+- `skl_pack_e8_e8ptex1c_xsfmm`: Transpose (TE x K) panels using the matrix engine. Used on a row-major A matrix or column-major B matrix.
 
 ### Packing Kernels That Do Not Exist
 These names refer to kernels that users might expect to exist, but do not, because they can be implemented with an appropriate block size in the generic RVV packing kernel at reasonable performance.
 In general, so long as the block size is large enough in at least one dimension (as is the case in paneling), a generic packing kernel with a large enough vector length can achieve reasonable performance.
 
-- ~~`skl_pack_1xte_e8_zve32x`~~: Pack (K x TE) panels. Used on a column-major A matrix or row-major B matrix.
-- ~~`skl_pack_texte_e32_zve32x`~~: Pack (TE x TE) blocks without transposition. Used on a C matrix.
-- ~~`skl_pack_1xvlm8_e8_zve32x`~~: Pack (1 x VLMAX*8) column panels.
+- ~~`skl_pack_e8_e8p_1xte_zve32x`~~: Pack (K x TE) panels. Used on a column-major A matrix or row-major B matrix.
+- ~~`skl_pack_e32_e32ptexte_zve32x`~~: Pack (TE x TE) blocks without transposition. Used on a C matrix.
+- ~~`skl_pack_e8_e8p1xvlm8_zve32x`~~: Pack (1 x VLMAX*8) column panels.
 
 In addition to being unnecessary for correct execution, these can all be implemented by supplying the machine-dependent dimension (TE or VLMAX) to the generic packing kernel.
 

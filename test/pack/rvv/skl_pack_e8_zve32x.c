@@ -122,9 +122,9 @@ static skl_test_suite_t suite = {.name = "skl_pack_e8_zve32x",
 static void execute(skl_test_t *t) {
   const pack_e8_t *h = (pack_e8_t *)t->harness;
 
-  skl_pack_e8rc_e8rcbrc_zve32x(h->m, h->n, h->src.data, h->rs, h->cs, h->m0,
-                               h->n0, h->dst.data, h->rs0, h->cs0, h->rs1,
-                               h->cs1, h->padding_value);
+  skl_pack_e8rc_e8prcbrc_zve32x(h->m, h->n, h->src.data, h->rs, h->cs, h->m0,
+                                h->n0, h->dst.data, h->rs0, h->cs0, h->rs1,
+                                h->cs1, h->padding_value);
 }
 
 int main(void) { return skl_test_driver_run_suite(&suite); }
