@@ -136,6 +136,13 @@ skl_add_test(
   "xsfmm32a8f"
   ""
 )
+skl_add_test(
+  skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f
+  gemm/gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f.c
+  "xsfmm32a8f"
+  ""
+)
 # skl_add_test(
 #   skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f
 #   gemm/gemm_f32rcprc_f32rcprc_f32rcprc.c
