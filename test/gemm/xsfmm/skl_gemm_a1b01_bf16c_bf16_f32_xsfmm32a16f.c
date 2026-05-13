@@ -6,7 +6,6 @@
 #include "gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc.h"
 #include "skl-test-driver.h"
 #include "skl.h"
-#include <stdbool.h>
 #include <stddef.h>
 
 #if !defined(__riscv_xsfmm32a16f)
