@@ -8,7 +8,7 @@
 #endif
 
 /**
- * @brief Test cases for BF16 Exponential with Xsfvfbda extension.
+ * @brief Test cases for BF16 Exponential with Xsfvfbfa extension.
  *
  * This test uses the unary_bf16 harness.
  */
