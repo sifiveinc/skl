@@ -17,7 +17,6 @@
 #include "skl_test_gemm.h"
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
