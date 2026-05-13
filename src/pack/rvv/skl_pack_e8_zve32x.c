@@ -537,131 +537,128 @@ skl_transpose_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
   }
 }
 
-SKL_FUNC_PRIVATE void skl_padd_e8_zve32x(uint8_t *dst, size_t extent,
-                                         size_t stride, uint8_t pad_val,
-                                         size_t n_segs) {
+SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
+                                        size_t stride, uint8_t padding_value,
+                                        size_t n_segs) {
   if (extent == 0 || n_segs == 0) {
     return;
   }
   if (extent == stride) {
-    skl_set_e8_zve32x(dst, pad_val, extent * n_segs);
+    skl_set_e8_zve32x(dst, padding_value, extent * n_segs);
     return;
   }
   if (extent <= 8) {
 
-    vuint8m1_t padd_vec0 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t padd_vec1 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t padd_vec2 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t padd_vec3 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t padd_vec4 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t padd_vec5 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t padd_vec6 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t padd_vec7 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec0 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec1 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec2 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec3 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec4 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec5 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec6 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec7 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
 
     switch (extent) {
     case 1: {
-      vuint8m8_t padd_vec_group1 = __riscv_vcreate_v_u8m1_u8m8(
-          padd_vec0, padd_vec1, padd_vec2, padd_vec3, padd_vec4, padd_vec5,
-          padd_vec6, padd_vec7);
+      vuint8m8_t pad_vec_group1 =
+          __riscv_vcreate_v_u8m1_u8m8(pad_vec0, pad_vec1, pad_vec2, pad_vec3,
+                                      pad_vec4, pad_vec5, pad_vec6, pad_vec7);
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m8(avl);
         __riscv_vsse8_v_u8m8(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
-                             padd_vec_group1, vl);
+                             pad_vec_group1, vl);
         dst += vl * stride;
       }
       break;
     }
     case 2: {
-      vuint8m4x2_t padd_vec_group2 = __riscv_vcreate_v_u8m4x2(
-          __riscv_vcreate_v_u8m1_u8m4(padd_vec0, padd_vec1, padd_vec2,
-                                      padd_vec3),
-          __riscv_vcreate_v_u8m1_u8m4(padd_vec4, padd_vec5, padd_vec6,
-                                      padd_vec7));
+      vuint8m4x2_t pad_vec_group2 = __riscv_vcreate_v_u8m4x2(
+          __riscv_vcreate_v_u8m1_u8m4(pad_vec0, pad_vec1, pad_vec2, pad_vec3),
+          __riscv_vcreate_v_u8m1_u8m4(pad_vec4, pad_vec5, pad_vec6, pad_vec7));
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m4(avl);
         __riscv_vssseg2e8_v_u8m4x2(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
-                                   padd_vec_group2, vl);
+                                   pad_vec_group2, vl);
         dst += vl * stride;
       }
       break;
     }
     case 3: {
-      vuint8m2x3_t padd_vec_group3 = __riscv_vcreate_v_u8m2x3(
-          __riscv_vcreate_v_u8m1_u8m2(padd_vec0, padd_vec1),
-          __riscv_vcreate_v_u8m1_u8m2(padd_vec2, padd_vec3),
-          __riscv_vcreate_v_u8m1_u8m2(padd_vec4, padd_vec5));
+      vuint8m2x3_t pad_vec_group3 = __riscv_vcreate_v_u8m2x3(
+          __riscv_vcreate_v_u8m1_u8m2(pad_vec0, pad_vec1),
+          __riscv_vcreate_v_u8m1_u8m2(pad_vec2, pad_vec3),
+          __riscv_vcreate_v_u8m1_u8m2(pad_vec4, pad_vec5));
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m2(avl);
         __riscv_vssseg3e8_v_u8m2x3(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
-                                   padd_vec_group3, vl);
+                                   pad_vec_group3, vl);
         dst += vl * stride;
       }
       break;
     }
     case 4: {
-      vuint8m2x4_t padd_vec_group4 = __riscv_vcreate_v_u8m2x4(
-          __riscv_vcreate_v_u8m1_u8m2(padd_vec0, padd_vec1),
-          __riscv_vcreate_v_u8m1_u8m2(padd_vec2, padd_vec3),
-          __riscv_vcreate_v_u8m1_u8m2(padd_vec4, padd_vec5),
-          __riscv_vcreate_v_u8m1_u8m2(padd_vec6, padd_vec7));
+      vuint8m2x4_t pad_vec_group4 = __riscv_vcreate_v_u8m2x4(
+          __riscv_vcreate_v_u8m1_u8m2(pad_vec0, pad_vec1),
+          __riscv_vcreate_v_u8m1_u8m2(pad_vec2, pad_vec3),
+          __riscv_vcreate_v_u8m1_u8m2(pad_vec4, pad_vec5),
+          __riscv_vcreate_v_u8m1_u8m2(pad_vec6, pad_vec7));
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m2(avl);
         __riscv_vssseg4e8_v_u8m2x4(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
-                                   padd_vec_group4, vl);
+                                   pad_vec_group4, vl);
         dst += vl * stride;
       }
       break;
     }
     case 5: {
-      vuint8m1x5_t padd_vec_group5 = __riscv_vcreate_v_u8m1x5(
-          padd_vec0, padd_vec1, padd_vec2, padd_vec3, padd_vec4);
+      vuint8m1x5_t pad_vec_group5 = __riscv_vcreate_v_u8m1x5(
+          pad_vec0, pad_vec1, pad_vec2, pad_vec3, pad_vec4);
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg5e8_v_u8m1x5(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
-                                   padd_vec_group5, vl);
+                                   pad_vec_group5, vl);
         dst += vl * stride;
       }
       break;
     }
     case 6: {
-      vuint8m1x6_t padd_vec_group6 = __riscv_vcreate_v_u8m1x6(
-          padd_vec0, padd_vec1, padd_vec2, padd_vec3, padd_vec4, padd_vec5);
+      vuint8m1x6_t pad_vec_group6 = __riscv_vcreate_v_u8m1x6(
+          pad_vec0, pad_vec1, pad_vec2, pad_vec3, pad_vec4, pad_vec5);
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg6e8_v_u8m1x6(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
-                                   padd_vec_group6, vl);
+                                   pad_vec_group6, vl);
         dst += vl * stride;
       }
       break;
     }
     case 7: {
-      vuint8m1x7_t padd_vec_group7 =
-          __riscv_vcreate_v_u8m1x7(padd_vec0, padd_vec1, padd_vec2, padd_vec3,
-                                   padd_vec4, padd_vec5, padd_vec6);
+      vuint8m1x7_t pad_vec_group7 = __riscv_vcreate_v_u8m1x7(
+          pad_vec0, pad_vec1, pad_vec2, pad_vec3, pad_vec4, pad_vec5, pad_vec6);
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg7e8_v_u8m1x7(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
-                                   padd_vec_group7, vl);
+                                   pad_vec_group7, vl);
         dst += vl * stride;
       }
       break;
     }
     case 8: {
-      vuint8m1x8_t padd_vec_group8 =
-          __riscv_vcreate_v_u8m1x8(padd_vec0, padd_vec1, padd_vec2, padd_vec3,
-                                   padd_vec4, padd_vec5, padd_vec6, padd_vec7);
+      vuint8m1x8_t pad_vec_group8 =
+          __riscv_vcreate_v_u8m1x8(pad_vec0, pad_vec1, pad_vec2, pad_vec3,
+                                   pad_vec4, pad_vec5, pad_vec6, pad_vec7);
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg8e8_v_u8m1x8(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
-                                   padd_vec_group8, vl);
+                                   pad_vec_group8, vl);
         dst += vl * stride;
       }
       break;
@@ -671,7 +668,7 @@ SKL_FUNC_PRIVATE void skl_padd_e8_zve32x(uint8_t *dst, size_t extent,
     }
   } else {
     for (size_t i = 0; i < n_segs; ++i) {
-      skl_set_e8_zve32x(dst, pad_val, extent);
+      skl_set_e8_zve32x(dst, padding_value, extent);
       dst += stride;
     }
   }
@@ -679,7 +676,7 @@ SKL_FUNC_PRIVATE void skl_padd_e8_zve32x(uint8_t *dst, size_t extent,
 
 SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
     size_t m_padded, size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
-    size_t rsa, uint8_t *SKL_RESTRICT at, size_t rsat, uint8_t pad_val) {
+    size_t rsa, uint8_t *SKL_RESTRICT at, size_t rsat, uint8_t padding_value) {
 
   if (m_padded == m) {
     skl_transpose_e8_zve32x(m, n, a, rsa, at, rsat);
@@ -693,244 +690,243 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
   uint8_t *out_tile = at + m / 8 * 8;
   if (m % 8) {
     size_t m_transition = m_padded - m / 8 * 8 > 8 ? 8 : m_padded - m / 8 * 8;
-    vuint8m1_t padd_vec0 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t padd_vec1 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t padd_vec2 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t padd_vec3 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t padd_vec4 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t padd_vec5 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t padd_vec6 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t padd_vec7 =
-        __riscv_vmv_v_x_u8m1(pad_val, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec0 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec1 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec2 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec3 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec4 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec5 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec6 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m1_t pad_vec7 =
+        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
 
     switch (m_transition) {
     case 2: {
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m4(avl);
-        vuint8m4x2_t padd_vec_group2 = __riscv_vcreate_v_u8m4x2(
+        vuint8m4x2_t pad_vec_group2 = __riscv_vcreate_v_u8m4x2(
             __riscv_vle8_v_u8m4(in_tile, vl),
-            __riscv_vcreate_v_u8m1_u8m4(padd_vec4, padd_vec5, padd_vec6,
-                                        padd_vec7));
+            __riscv_vcreate_v_u8m1_u8m4(pad_vec4, pad_vec5, pad_vec6,
+                                        pad_vec7));
         __riscv_vssseg2e8_v_u8m4x2(
-            out_tile, (ptrdiff_t)(rsat * sizeof(uint8_t)), padd_vec_group2, vl);
+            out_tile, (ptrdiff_t)(rsat * sizeof(uint8_t)), pad_vec_group2, vl);
         in_tile += vl;
         out_tile += vl * rsat;
       }
       break;
     }
     case 3: {
-      vuint8m2x3_t padd_vec_group3 = __riscv_vcreate_v_u8m2x3(
-          __riscv_vcreate_v_u8m1_u8m2(padd_vec0, padd_vec1),
-          __riscv_vcreate_v_u8m1_u8m2(padd_vec2, padd_vec3),
-          __riscv_vcreate_v_u8m1_u8m2(padd_vec4, padd_vec5));
+      vuint8m2x3_t pad_vec_group3 = __riscv_vcreate_v_u8m2x3(
+          __riscv_vcreate_v_u8m1_u8m2(pad_vec0, pad_vec1),
+          __riscv_vcreate_v_u8m1_u8m2(pad_vec2, pad_vec3),
+          __riscv_vcreate_v_u8m1_u8m2(pad_vec4, pad_vec5));
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m2(avl);
         switch (m % 8) {
         case 2:
-          padd_vec_group3 = __riscv_vset_v_u8m2_u8m2x3(
-              padd_vec_group3, 1, __riscv_vle8_v_u8m2(in_tile + 1 * rsa, vl));
+          pad_vec_group3 = __riscv_vset_v_u8m2_u8m2x3(
+              pad_vec_group3, 1, __riscv_vle8_v_u8m2(in_tile + 1 * rsa, vl));
           __attribute__((fallthrough));
         case 1:
-          padd_vec_group3 = __riscv_vset_v_u8m2_u8m2x3(
-              padd_vec_group3, 0, __riscv_vle8_v_u8m2(in_tile, vl));
+          pad_vec_group3 = __riscv_vset_v_u8m2_u8m2x3(
+              pad_vec_group3, 0, __riscv_vle8_v_u8m2(in_tile, vl));
           __attribute__((fallthrough));
         default:
           break;
         }
         __riscv_vssseg3e8_v_u8m2x3(
-            out_tile, (ptrdiff_t)(rsat * sizeof(uint8_t)), padd_vec_group3, vl);
+            out_tile, (ptrdiff_t)(rsat * sizeof(uint8_t)), pad_vec_group3, vl);
         in_tile += vl;
         out_tile += vl * rsat;
       }
       break;
     }
     case 4: {
-      vuint8m2x4_t padd_vec_group4 = __riscv_vcreate_v_u8m2x4(
-          __riscv_vcreate_v_u8m1_u8m2(padd_vec0, padd_vec1),
-          __riscv_vcreate_v_u8m1_u8m2(padd_vec2, padd_vec3),
-          __riscv_vcreate_v_u8m1_u8m2(padd_vec4, padd_vec5),
-          __riscv_vcreate_v_u8m1_u8m2(padd_vec6, padd_vec7));
+      vuint8m2x4_t pad_vec_group4 = __riscv_vcreate_v_u8m2x4(
+          __riscv_vcreate_v_u8m1_u8m2(pad_vec0, pad_vec1),
+          __riscv_vcreate_v_u8m1_u8m2(pad_vec2, pad_vec3),
+          __riscv_vcreate_v_u8m1_u8m2(pad_vec4, pad_vec5),
+          __riscv_vcreate_v_u8m1_u8m2(pad_vec6, pad_vec7));
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m2(avl);
         switch (m % 8) {
         case 3:
-          padd_vec_group4 = __riscv_vset_v_u8m2_u8m2x4(
-              padd_vec_group4, 2, __riscv_vle8_v_u8m2(in_tile + 2 * rsa, vl));
+          pad_vec_group4 = __riscv_vset_v_u8m2_u8m2x4(
+              pad_vec_group4, 2, __riscv_vle8_v_u8m2(in_tile + 2 * rsa, vl));
           __attribute__((fallthrough));
         case 2:
-          padd_vec_group4 = __riscv_vset_v_u8m2_u8m2x4(
-              padd_vec_group4, 1, __riscv_vle8_v_u8m2(in_tile + 1 * rsa, vl));
+          pad_vec_group4 = __riscv_vset_v_u8m2_u8m2x4(
+              pad_vec_group4, 1, __riscv_vle8_v_u8m2(in_tile + 1 * rsa, vl));
           __attribute__((fallthrough));
         case 1:
-          padd_vec_group4 = __riscv_vset_v_u8m2_u8m2x4(
-              padd_vec_group4, 0, __riscv_vle8_v_u8m2(in_tile, vl));
+          pad_vec_group4 = __riscv_vset_v_u8m2_u8m2x4(
+              pad_vec_group4, 0, __riscv_vle8_v_u8m2(in_tile, vl));
           __attribute__((fallthrough));
         default:
           break;
         }
         __riscv_vssseg4e8_v_u8m2x4(
-            out_tile, (ptrdiff_t)(rsat * sizeof(uint8_t)), padd_vec_group4, vl);
+            out_tile, (ptrdiff_t)(rsat * sizeof(uint8_t)), pad_vec_group4, vl);
         in_tile += vl;
         out_tile += vl * rsat;
       }
       break;
     }
     case 5: {
-      vuint8m1x5_t padd_vec_group5 = __riscv_vcreate_v_u8m1x5(
-          padd_vec0, padd_vec1, padd_vec2, padd_vec3, padd_vec4);
+      vuint8m1x5_t pad_vec_group5 = __riscv_vcreate_v_u8m1x5(
+          pad_vec0, pad_vec1, pad_vec2, pad_vec3, pad_vec4);
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         switch (m % 8) {
         case 4:
-          padd_vec_group5 = __riscv_vset_v_u8m1_u8m1x5(
-              padd_vec_group5, 3, __riscv_vle8_v_u8m1(in_tile + 3 * rsa, vl));
+          pad_vec_group5 = __riscv_vset_v_u8m1_u8m1x5(
+              pad_vec_group5, 3, __riscv_vle8_v_u8m1(in_tile + 3 * rsa, vl));
           __attribute__((fallthrough));
         case 3:
-          padd_vec_group5 = __riscv_vset_v_u8m1_u8m1x5(
-              padd_vec_group5, 2, __riscv_vle8_v_u8m1(in_tile + 2 * rsa, vl));
+          pad_vec_group5 = __riscv_vset_v_u8m1_u8m1x5(
+              pad_vec_group5, 2, __riscv_vle8_v_u8m1(in_tile + 2 * rsa, vl));
           __attribute__((fallthrough));
         case 2:
-          padd_vec_group5 = __riscv_vset_v_u8m1_u8m1x5(
-              padd_vec_group5, 1, __riscv_vle8_v_u8m1(in_tile + 1 * rsa, vl));
+          pad_vec_group5 = __riscv_vset_v_u8m1_u8m1x5(
+              pad_vec_group5, 1, __riscv_vle8_v_u8m1(in_tile + 1 * rsa, vl));
           __attribute__((fallthrough));
         case 1:
-          padd_vec_group5 = __riscv_vset_v_u8m1_u8m1x5(
-              padd_vec_group5, 0, __riscv_vle8_v_u8m1(in_tile, vl));
+          pad_vec_group5 = __riscv_vset_v_u8m1_u8m1x5(
+              pad_vec_group5, 0, __riscv_vle8_v_u8m1(in_tile, vl));
           __attribute__((fallthrough));
         default:
           break;
         }
         __riscv_vssseg5e8_v_u8m1x5(
-            out_tile, (ptrdiff_t)(rsat * sizeof(uint8_t)), padd_vec_group5, vl);
+            out_tile, (ptrdiff_t)(rsat * sizeof(uint8_t)), pad_vec_group5, vl);
         in_tile += vl;
         out_tile += vl * rsat;
       }
       break;
     }
     case 6: {
-      vuint8m1x6_t padd_vec_group6 = __riscv_vcreate_v_u8m1x6(
-          padd_vec0, padd_vec1, padd_vec2, padd_vec3, padd_vec4, padd_vec5);
+      vuint8m1x6_t pad_vec_group6 = __riscv_vcreate_v_u8m1x6(
+          pad_vec0, pad_vec1, pad_vec2, pad_vec3, pad_vec4, pad_vec5);
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         switch (m % 8) {
         case 5:
-          padd_vec_group6 = __riscv_vset_v_u8m1_u8m1x6(
-              padd_vec_group6, 4, __riscv_vle8_v_u8m1(in_tile + 4 * rsa, vl));
+          pad_vec_group6 = __riscv_vset_v_u8m1_u8m1x6(
+              pad_vec_group6, 4, __riscv_vle8_v_u8m1(in_tile + 4 * rsa, vl));
           __attribute__((fallthrough));
         case 4:
-          padd_vec_group6 = __riscv_vset_v_u8m1_u8m1x6(
-              padd_vec_group6, 3, __riscv_vle8_v_u8m1(in_tile + 3 * rsa, vl));
+          pad_vec_group6 = __riscv_vset_v_u8m1_u8m1x6(
+              pad_vec_group6, 3, __riscv_vle8_v_u8m1(in_tile + 3 * rsa, vl));
           __attribute__((fallthrough));
         case 3:
-          padd_vec_group6 = __riscv_vset_v_u8m1_u8m1x6(
-              padd_vec_group6, 2, __riscv_vle8_v_u8m1(in_tile + 2 * rsa, vl));
+          pad_vec_group6 = __riscv_vset_v_u8m1_u8m1x6(
+              pad_vec_group6, 2, __riscv_vle8_v_u8m1(in_tile + 2 * rsa, vl));
           __attribute__((fallthrough));
         case 2:
-          padd_vec_group6 = __riscv_vset_v_u8m1_u8m1x6(
-              padd_vec_group6, 1, __riscv_vle8_v_u8m1(in_tile + 1 * rsa, vl));
+          pad_vec_group6 = __riscv_vset_v_u8m1_u8m1x6(
+              pad_vec_group6, 1, __riscv_vle8_v_u8m1(in_tile + 1 * rsa, vl));
           __attribute__((fallthrough));
         case 1:
-          padd_vec_group6 = __riscv_vset_v_u8m1_u8m1x6(
-              padd_vec_group6, 0, __riscv_vle8_v_u8m1(in_tile, vl));
+          pad_vec_group6 = __riscv_vset_v_u8m1_u8m1x6(
+              pad_vec_group6, 0, __riscv_vle8_v_u8m1(in_tile, vl));
           __attribute__((fallthrough));
         default:
           break;
         }
         __riscv_vssseg6e8_v_u8m1x6(
-            out_tile, (ptrdiff_t)(rsat * sizeof(uint8_t)), padd_vec_group6, vl);
+            out_tile, (ptrdiff_t)(rsat * sizeof(uint8_t)), pad_vec_group6, vl);
         in_tile += vl;
         out_tile += vl * rsat;
       }
       break;
     }
     case 7: {
-      vuint8m1x7_t padd_vec_group7 =
-          __riscv_vcreate_v_u8m1x7(padd_vec0, padd_vec1, padd_vec2, padd_vec3,
-                                   padd_vec4, padd_vec5, padd_vec6);
+      vuint8m1x7_t pad_vec_group7 = __riscv_vcreate_v_u8m1x7(
+          pad_vec0, pad_vec1, pad_vec2, pad_vec3, pad_vec4, pad_vec5, pad_vec6);
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         switch (m % 8) {
         case 6:
-          padd_vec_group7 = __riscv_vset_v_u8m1_u8m1x7(
-              padd_vec_group7, 5, __riscv_vle8_v_u8m1(in_tile + 5 * rsa, vl));
+          pad_vec_group7 = __riscv_vset_v_u8m1_u8m1x7(
+              pad_vec_group7, 5, __riscv_vle8_v_u8m1(in_tile + 5 * rsa, vl));
           __attribute__((fallthrough));
         case 5:
-          padd_vec_group7 = __riscv_vset_v_u8m1_u8m1x7(
-              padd_vec_group7, 4, __riscv_vle8_v_u8m1(in_tile + 4 * rsa, vl));
+          pad_vec_group7 = __riscv_vset_v_u8m1_u8m1x7(
+              pad_vec_group7, 4, __riscv_vle8_v_u8m1(in_tile + 4 * rsa, vl));
           __attribute__((fallthrough));
         case 4:
-          padd_vec_group7 = __riscv_vset_v_u8m1_u8m1x7(
-              padd_vec_group7, 3, __riscv_vle8_v_u8m1(in_tile + 3 * rsa, vl));
+          pad_vec_group7 = __riscv_vset_v_u8m1_u8m1x7(
+              pad_vec_group7, 3, __riscv_vle8_v_u8m1(in_tile + 3 * rsa, vl));
           __attribute__((fallthrough));
         case 3:
-          padd_vec_group7 = __riscv_vset_v_u8m1_u8m1x7(
-              padd_vec_group7, 2, __riscv_vle8_v_u8m1(in_tile + 2 * rsa, vl));
+          pad_vec_group7 = __riscv_vset_v_u8m1_u8m1x7(
+              pad_vec_group7, 2, __riscv_vle8_v_u8m1(in_tile + 2 * rsa, vl));
           __attribute__((fallthrough));
         case 2:
-          padd_vec_group7 = __riscv_vset_v_u8m1_u8m1x7(
-              padd_vec_group7, 1, __riscv_vle8_v_u8m1(in_tile + 1 * rsa, vl));
+          pad_vec_group7 = __riscv_vset_v_u8m1_u8m1x7(
+              pad_vec_group7, 1, __riscv_vle8_v_u8m1(in_tile + 1 * rsa, vl));
           __attribute__((fallthrough));
         case 1:
-          padd_vec_group7 = __riscv_vset_v_u8m1_u8m1x7(
-              padd_vec_group7, 0, __riscv_vle8_v_u8m1(in_tile, vl));
+          pad_vec_group7 = __riscv_vset_v_u8m1_u8m1x7(
+              pad_vec_group7, 0, __riscv_vle8_v_u8m1(in_tile, vl));
           __attribute__((fallthrough));
         default:
           break;
         }
         __riscv_vssseg7e8_v_u8m1x7(
-            out_tile, (ptrdiff_t)(rsat * sizeof(uint8_t)), padd_vec_group7, vl);
+            out_tile, (ptrdiff_t)(rsat * sizeof(uint8_t)), pad_vec_group7, vl);
         in_tile += vl;
         out_tile += vl * rsat;
       }
       break;
     }
     case 8: {
-      vuint8m1x8_t padd_vec_group8 =
-          __riscv_vcreate_v_u8m1x8(padd_vec0, padd_vec1, padd_vec2, padd_vec3,
-                                   padd_vec4, padd_vec5, padd_vec6, padd_vec7);
+      vuint8m1x8_t pad_vec_group8 =
+          __riscv_vcreate_v_u8m1x8(pad_vec0, pad_vec1, pad_vec2, pad_vec3,
+                                   pad_vec4, pad_vec5, pad_vec6, pad_vec7);
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         switch (m % 8) {
         case 7:
-          padd_vec_group8 = __riscv_vset_v_u8m1_u8m1x8(
-              padd_vec_group8, 6, __riscv_vle8_v_u8m1(in_tile + 6 * rsa, vl));
+          pad_vec_group8 = __riscv_vset_v_u8m1_u8m1x8(
+              pad_vec_group8, 6, __riscv_vle8_v_u8m1(in_tile + 6 * rsa, vl));
           __attribute__((fallthrough));
         case 6:
-          padd_vec_group8 = __riscv_vset_v_u8m1_u8m1x8(
-              padd_vec_group8, 5, __riscv_vle8_v_u8m1(in_tile + 5 * rsa, vl));
+          pad_vec_group8 = __riscv_vset_v_u8m1_u8m1x8(
+              pad_vec_group8, 5, __riscv_vle8_v_u8m1(in_tile + 5 * rsa, vl));
           __attribute__((fallthrough));
         case 5:
-          padd_vec_group8 = __riscv_vset_v_u8m1_u8m1x8(
-              padd_vec_group8, 4, __riscv_vle8_v_u8m1(in_tile + 4 * rsa, vl));
+          pad_vec_group8 = __riscv_vset_v_u8m1_u8m1x8(
+              pad_vec_group8, 4, __riscv_vle8_v_u8m1(in_tile + 4 * rsa, vl));
           __attribute__((fallthrough));
         case 4:
-          padd_vec_group8 = __riscv_vset_v_u8m1_u8m1x8(
-              padd_vec_group8, 3, __riscv_vle8_v_u8m1(in_tile + 3 * rsa, vl));
+          pad_vec_group8 = __riscv_vset_v_u8m1_u8m1x8(
+              pad_vec_group8, 3, __riscv_vle8_v_u8m1(in_tile + 3 * rsa, vl));
           __attribute__((fallthrough));
         case 3:
-          padd_vec_group8 = __riscv_vset_v_u8m1_u8m1x8(
-              padd_vec_group8, 2, __riscv_vle8_v_u8m1(in_tile + 2 * rsa, vl));
+          pad_vec_group8 = __riscv_vset_v_u8m1_u8m1x8(
+              pad_vec_group8, 2, __riscv_vle8_v_u8m1(in_tile + 2 * rsa, vl));
           __attribute__((fallthrough));
         case 2:
-          padd_vec_group8 = __riscv_vset_v_u8m1_u8m1x8(
-              padd_vec_group8, 1, __riscv_vle8_v_u8m1(in_tile + 1 * rsa, vl));
+          pad_vec_group8 = __riscv_vset_v_u8m1_u8m1x8(
+              pad_vec_group8, 1, __riscv_vle8_v_u8m1(in_tile + 1 * rsa, vl));
           __attribute__((fallthrough));
         case 1:
-          padd_vec_group8 = __riscv_vset_v_u8m1_u8m1x8(
-              padd_vec_group8, 0, __riscv_vle8_v_u8m1(in_tile, vl));
+          pad_vec_group8 = __riscv_vset_v_u8m1_u8m1x8(
+              pad_vec_group8, 0, __riscv_vle8_v_u8m1(in_tile, vl));
           __attribute__((fallthrough));
         default:
           break;
         }
         __riscv_vssseg8e8_v_u8m1x8(
-            out_tile, (ptrdiff_t)(rsat * sizeof(uint8_t)), padd_vec_group8, vl);
+            out_tile, (ptrdiff_t)(rsat * sizeof(uint8_t)), pad_vec_group8, vl);
         in_tile += vl;
         out_tile += vl * rsat;
       }
@@ -942,22 +938,24 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
   } // End if (m % 8)
   if (m_padded > (m + 7) / 8 * 8) {
     out_tile = at + (m + 7) / 8 * 8;
-    skl_padd_e8_zve32x(out_tile, m_padded - (m + 7) / 8 * 8, rsat, pad_val, n);
+    skl_pad_e8_zve32x(out_tile, m_padded - (m + 7) / 8 * 8, rsat, padding_value,
+                      n);
   }
 }
 
 SKL_FUNC_PRIVATE void skl_pack_e8_e8rcbrc_zve32x(
-    size_t m,           // Num. rows in input matrix
-    size_t n,           // Num. columns in input matrix
-    const uint8_t *src, // Input matrix
-    size_t rs,          // Row stride of input matrix
-    size_t m0,          // Num. rows in a block of the input matrix
-    size_t n0,          // Num. columns in a block of the input matrix
-    uint8_t *dst,       // Output packed matrix [m1 x n1]
-    size_t rs0,         // Row stride within a block of the output matrix
-    size_t cs0,         // Column stride within a block of the output matrix
-    size_t rs1,         // Row stride between blocks of the output matrix
-    size_t cs1          // Column stride between blocks of the output matrix
+    size_t m,             // Num. rows in input matrix
+    size_t n,             // Num. columns in input matrix
+    const uint8_t *src,   // Input matrix
+    size_t rs,            // Row stride of input matrix
+    size_t m0,            // Num. rows in a block of the input matrix
+    size_t n0,            // Num. columns in a block of the input matrix
+    uint8_t *dst,         // Output packed matrix [m1 x n1]
+    size_t rs0,           // Row stride within a block of the output matrix
+    size_t cs0,           // Column stride within a block of the output matrix
+    size_t rs1,           // Row stride between blocks of the output matrix
+    size_t cs1,           // Column stride between blocks of the output matrix
+    uint8_t padding_value // Value to use for padding
 ) {
 
   // Handle division by zero
@@ -965,7 +963,6 @@ SKL_FUNC_PRIVATE void skl_pack_e8_e8rcbrc_zve32x(
     return;
   }
 
-  uint8_t padd_value = 0;
   size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the input matrix
   size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the input matrix
 
@@ -975,11 +972,11 @@ SKL_FUNC_PRIVATE void skl_pack_e8_e8rcbrc_zve32x(
       uint8_t *dst_block = dst + ii1 * rs1;
       size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
       skl_transpose_padded_m_e8_zve32x(m0, m_length, n, src_block, rs,
-                                       dst_block, cs0, padd_value);
+                                       dst_block, cs0, padding_value);
       if (n % n0) {
-        // padd right
-        skl_padd_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), m0, cs0,
-                           0, n0 - n % n0);
+        // pad right
+        skl_pad_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), m0, cs0,
+                          padding_value, n0 - n % n0);
       }
     }
     return;
@@ -994,20 +991,20 @@ SKL_FUNC_PRIVATE void skl_pack_e8_e8rcbrc_zve32x(
         size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
         size_t n_length = n0 < n - jj1 * n0 ? n0 : n - jj1 * n0;
         skl_transpose_padded_m_e8_zve32x(m0, m_length, n_length, src_block, rs,
-                                         dst_block, cs0, padd_value);
-        // padd right
-        skl_padd_e8_zve32x(dst_block + cs0 * n_length, m0, cs0, padd_value,
-                           n0 - n_length);
+                                         dst_block, cs0, padding_value);
+        // pad right
+        skl_pad_e8_zve32x(dst_block + cs0 * n_length, m0, cs0, padding_value,
+                          n0 - n_length);
       } else if (cs0 == 1) {
         size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
         size_t n_length = n0 < n - jj1 * n0 ? n0 : n - jj1 * n0;
         skl_copy2d_e8_zve32x(m_length, n_length, src_block, rs, dst_block, rs0);
-        // padd right: pad (n0 - n_length) elements in each of m_length rows
-        skl_padd_e8_zve32x(dst_block + n_length, n0 - n_length, rs0, padd_value,
-                           m_length);
-        // padd bottom: pad (m0 - m_length) rows, each with n0 elements
-        skl_padd_e8_zve32x(dst_block + m_length * rs0, n0, rs0, padd_value,
-                           m0 - m_length);
+        // pad right: pad (n0 - n_length) elements in each of m_length rows
+        skl_pad_e8_zve32x(dst_block + n_length, n0 - n_length, rs0,
+                          padding_value, m_length);
+        // pad bottom: pad (m0 - m_length) rows, each with n0 elements
+        skl_pad_e8_zve32x(dst_block + m_length * rs0, n0, rs0, padding_value,
+                          m0 - m_length);
       } else {
         for (size_t ii0 = 0; ii0 < m0; ++ii0) {
           for (size_t jj0 = 0; jj0 < n0; ++jj0) {
@@ -1015,7 +1012,7 @@ SKL_FUNC_PRIVATE void skl_pack_e8_e8rcbrc_zve32x(
               dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0];
             } else {
               // Pad with zeros
-              dst_block[ii0 * rs0 + jj0 * cs0] = padd_value;
+              dst_block[ii0 * rs0 + jj0 * cs0] = padding_value;
             }
           }
         }
@@ -1025,25 +1022,28 @@ SKL_FUNC_PRIVATE void skl_pack_e8_e8rcbrc_zve32x(
 }
 
 SKL_FUNC void skl_pack_e8rc_e8rcbrc_zve32x(
-    size_t m,           // Num. rows in input matrix
-    size_t n,           // Num. columns in input matrix
-    const uint8_t *src, // Input matrix
-    size_t rs,          // Row stride of input matrix
-    size_t cs,          // Column stride of input matrix
-    size_t m0,          // Num. rows in a block of the input matrix
-    size_t n0,          // Num. columns in a block of the input matrix
-    uint8_t *dst,       // Output packed matrix [m1 x n1]
-    size_t rs0,         // Row stride within a block of the output matrix
-    size_t cs0,         // Column stride within a block of the output matrix
-    size_t rs1,         // Row stride between blocks of the output matrix
-    size_t cs1          // Column stride between blocks of the output matrix
+    size_t m,             // Num. rows in input matrix
+    size_t n,             // Num. columns in input matrix
+    const uint8_t *src,   // Input matrix
+    size_t rs,            // Row stride of input matrix
+    size_t cs,            // Column stride of input matrix
+    size_t m0,            // Num. rows in a block of the input matrix
+    size_t n0,            // Num. columns in a block of the input matrix
+    uint8_t *dst,         // Output packed matrix [m1 x n1]
+    size_t rs0,           // Row stride within a block of the output matrix
+    size_t cs0,           // Column stride within a block of the output matrix
+    size_t rs1,           // Row stride between blocks of the output matrix
+    size_t cs1,           // Column stride between blocks of the output matrix
+    uint8_t padding_value // Value to use for padding
 ) {
 
   if (cs == 1) {
-    skl_pack_e8_e8rcbrc_zve32x(m, n, src, rs, m0, n0, dst, rs0, cs0, rs1, cs1);
+    skl_pack_e8_e8rcbrc_zve32x(m, n, src, rs, m0, n0, dst, rs0, cs0, rs1, cs1,
+                               padding_value);
   } else if (rs == 1) {
     // When input is column-major (rs==1), transpose both dimensions and strides
-    skl_pack_e8_e8rcbrc_zve32x(n, m, src, cs, n0, m0, dst, cs0, rs0, cs1, rs1);
+    skl_pack_e8_e8rcbrc_zve32x(n, m, src, cs, n0, m0, dst, cs0, rs0, cs1, rs1,
+                               padding_value);
   } else {
     size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the input matrix
     size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the input matrix
@@ -1057,7 +1057,7 @@ SKL_FUNC void skl_pack_e8rc_e8rcbrc_zve32x(
               dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0 * cs];
             } else {
               // Pad with zeros
-              dst_block[ii0 * rs0 + jj0 * cs0] = 0;
+              dst_block[ii0 * rs0 + jj0 * cs0] = padding_value;
             }
           }
         }

@@ -19,20 +19,22 @@
 #include <stdlib.h>
 #include <string.h>
 
+// TODO(hchen): Move the reference function to ref/
 // Reference implementation for pack
 static void skl_pack_e8rc_e8rcbrc_ref(
-    size_t m,           // Num. rows in input matrix
-    size_t n,           // Num. columns in input matrix
-    const uint8_t *src, // Input matrix
-    size_t rs,          // Row stride of input matrix
-    size_t cs,          // Column stride of input matrix
-    size_t m0,          // Num. rows in a block of the input matrix
-    size_t n0,          // Num. columns in a block of the input matrix
-    uint8_t *dst,       // Output packed matrix
-    size_t rs0,         // Row stride within a block of the output matrix
-    size_t cs0,         // Column stride within a block of the output matrix
-    size_t rs1,         // Row stride between blocks of the output matrix
-    size_t cs1          // Column stride between blocks of the output matrix
+    size_t m,             // Num. rows in input matrix
+    size_t n,             // Num. columns in input matrix
+    const uint8_t *src,   // Input matrix
+    size_t rs,            // Row stride of input matrix
+    size_t cs,            // Column stride of input matrix
+    size_t m0,            // Num. rows in a block of the input matrix
+    size_t n0,            // Num. columns in a block of the input matrix
+    uint8_t *dst,         // Output packed matrix
+    size_t rs0,           // Row stride within a block of the output matrix
+    size_t cs0,           // Column stride within a block of the output matrix
+    size_t rs1,           // Row stride between blocks of the output matrix
+    size_t cs1,           // Column stride between blocks of the output matrix
+    uint8_t padding_value // Value to use for padding
 ) {
   size_t m1 = (m + m0 - 1) / m0; // Num. row blocks
   size_t n1 = (n + n0 - 1) / n0; // Num. column blocks
@@ -48,7 +50,7 @@ static void skl_pack_e8rc_e8rcbrc_ref(
             dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0 * cs];
           } else {
             // Pad with zeros
-            dst_block[ii0 * rs0 + jj0 * cs0] = 0;
+            dst_block[ii0 * rs0 + jj0 * cs0] = padding_value;
           }
         }
       }
@@ -127,7 +129,8 @@ void pack_e8_verify(skl_test_t *t) {
 
   // Compute reference value
   skl_pack_e8rc_e8rcbrc_ref(h->m, h->n, h->src.data, h->rs, h->cs, h->m0, h->n0,
-                            ref_dst, h->rs0, h->cs0, h->rs1, h->cs1);
+                            ref_dst, h->rs0, h->cs0, h->rs1, h->cs1,
+                            h->padding_value);
 
   // Verify result
   for (size_t i = 0; i < h->dst.len; ++i) {
