@@ -124,7 +124,7 @@ static void execute(skl_test_t *t) {
 
   skl_pack_e8rc_e8rcbrc_zve32x(h->m, h->n, h->src.data, h->rs, h->cs, h->m0,
                                h->n0, h->dst.data, h->rs0, h->cs0, h->rs1,
-                               h->cs1);
+                               h->cs1, h->padding_value);
 }
 
 int main(void) { return skl_test_driver_run_suite(&suite); }
