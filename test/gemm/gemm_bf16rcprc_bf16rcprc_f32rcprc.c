@@ -93,7 +93,6 @@ void gemm_bf16rcprc_bf16rcprc_f32rcprc_init(skl_test_t *t) {
 }
 
 void gemm_bf16rcprc_bf16rcprc_f32rcprc_verify(skl_test_t *t) {
-  /* Compute the reference matrix output. */
   gemm_bf16rcprc_bf16rcprc_f32rcprc_t *h =
       (gemm_bf16rcprc_bf16rcprc_f32rcprc_t *)t->harness;
 
