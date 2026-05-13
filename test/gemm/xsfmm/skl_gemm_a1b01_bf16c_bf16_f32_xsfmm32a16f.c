@@ -56,8 +56,8 @@ static void execute(skl_test_t *t);
 gemm_bf16rcprc_bf16rcprc_f32rcprc_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
     // Benchmark tests
-    {BENCH, .m1 = 128, .n1 = 128, .k1 = 2048, .alpha = 1.f, .beta = 0.f},
-    {BENCH, .m1 = 128, .n1 = 128, .k1 = 2048, .alpha = 1.f, .beta = 1.f},
+    {BENCH, .m1 = 128, .n1 = 128, .k1 = 4096, .alpha = 1.f, .beta = 0.f},
+    {BENCH, .m1 = 128, .n1 = 128, .k1 = 4096, .alpha = 1.f, .beta = 1.f},
 #endif // SKL_ENABLE_BENCHMARKS
 
 #ifdef SKL_ENABLE_TESTS
