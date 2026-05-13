@@ -5,11 +5,7 @@
 
 #pragma once
 
-#if !defined(__riscv_zve32x)
-#error This source file requires compiler support for the RISC-V Zve32x extension.
-#endif
-
-#include <stdbool.h>
+#include "skl-common.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -18,7 +14,8 @@ extern "C" {
 #endif
 
 /**
- * @brief RVV-based 8-bit general matrix pack kernel (2D to blocked 4D layout).
+ * @brief Reference implementation for packing an 8-bit 2D matrix into a 4D
+ * blocked matrix layout.
  *
  * @param m - Number of rows in the input matrix
  * @param n - Number of columns in the input matrix
@@ -44,11 +41,21 @@ extern "C" {
  * a multiple of n0, the incomplete blocks are padded with the specified padding
  * value.
  */
-void skl_pack_e8rc_e8prcbrc_zve32x(size_t m, size_t n, const uint8_t *src,
-                                   size_t rs, size_t cs, size_t m0, size_t n0,
-                                   uint8_t *dst, size_t rs0, size_t cs0,
-                                   size_t rs1, size_t cs1,
-                                   uint8_t padding_value);
+void skl_pack_e8rc_e8prcbrc_ref(
+    size_t m,             // Num. rows in input matrix
+    size_t n,             // Num. columns in input matrix
+    const uint8_t *src,   // Input matrix
+    size_t rs,            // Row stride of input matrix
+    size_t cs,            // Column stride of input matrix
+    size_t m0,            // Num. rows in a block of the input matrix
+    size_t n0,            // Num. columns in a block of the input matrix
+    uint8_t *dst,         // Output packed matrix
+    size_t rs0,           // Row stride within a block of the output matrix
+    size_t cs0,           // Column stride within a block of the output matrix
+    size_t rs1,           // Row stride between blocks of the output matrix
+    size_t cs1,           // Column stride between blocks of the output matrix
+    uint8_t padding_value // Value to use for padding
+);
 
 #if defined(__cplusplus)
 } // extern "C"

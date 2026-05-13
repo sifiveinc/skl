@@ -11,6 +11,7 @@
  */
 
 #include "pack_e8.h"
+#include "skl-ref.h"
 #include "skl-test-driver.h"
 #include "skl.h" // NOLINT(misc-include-cleaner)
 #include <stddef.h>
@@ -18,45 +19,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-// TODO(hchen): Move the reference function to ref/
-// Reference implementation for pack
-static void skl_pack_e8rc_e8rcbrc_ref(
-    size_t m,             // Num. rows in input matrix
-    size_t n,             // Num. columns in input matrix
-    const uint8_t *src,   // Input matrix
-    size_t rs,            // Row stride of input matrix
-    size_t cs,            // Column stride of input matrix
-    size_t m0,            // Num. rows in a block of the input matrix
-    size_t n0,            // Num. columns in a block of the input matrix
-    uint8_t *dst,         // Output packed matrix
-    size_t rs0,           // Row stride within a block of the output matrix
-    size_t cs0,           // Column stride within a block of the output matrix
-    size_t rs1,           // Row stride between blocks of the output matrix
-    size_t cs1,           // Column stride between blocks of the output matrix
-    uint8_t padding_value // Value to use for padding
-) {
-  size_t m1 = (m + m0 - 1) / m0; // Num. row blocks
-  size_t n1 = (n + n0 - 1) / n0; // Num. column blocks
-
-  for (size_t ii1 = 0; ii1 < m1; ++ii1) {
-    for (size_t jj1 = 0; jj1 < n1; ++jj1) {
-      const uint8_t *src_block = src + ii1 * m0 * rs + jj1 * n0 * cs;
-      uint8_t *dst_block = dst + ii1 * rs1 + jj1 * cs1;
-
-      for (size_t ii0 = 0; ii0 < m0; ++ii0) {
-        for (size_t jj0 = 0; jj0 < n0; ++jj0) {
-          if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
-            dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0 * cs];
-          } else {
-            // Pad with zeros
-            dst_block[ii0 * rs0 + jj0 * cs0] = padding_value;
-          }
-        }
-      }
-    }
-  }
-}
 
 void pack_e8_init(skl_test_t *t) {
   pack_e8_t *h = (pack_e8_t *)t->harness;
@@ -128,9 +90,9 @@ void pack_e8_verify(skl_test_t *t) {
   uint8_t *ref_dst = h->ctx.ref_dst;
 
   // Compute reference value
-  skl_pack_e8rc_e8rcbrc_ref(h->m, h->n, h->src.data, h->rs, h->cs, h->m0, h->n0,
-                            ref_dst, h->rs0, h->cs0, h->rs1, h->cs1,
-                            h->padding_value);
+  skl_pack_e8rc_e8prcbrc_ref(h->m, h->n, h->src.data, h->rs, h->cs, h->m0,
+                             h->n0, ref_dst, h->rs0, h->cs0, h->rs1, h->cs1,
+                             h->padding_value);
 
   // Verify result
   for (size_t i = 0; i < h->dst.len; ++i) {

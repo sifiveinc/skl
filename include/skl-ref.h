@@ -83,4 +83,10 @@
 #include "../ref/softmax/softmax_f16.h"
 #include "../ref/softmax/softmax_f32.h"
 
+/*
+ * Pack Kernels
+ */
+
+#include "../ref/pack/pack_e8rc_e8prcbrc.h"
+
 // IWYU pragma: end_exports
