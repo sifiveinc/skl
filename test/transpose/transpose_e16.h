@@ -18,20 +18,20 @@ typedef struct {
   size_t rsa, rsat;
 
   // Buffer generation settings for a, at
-  SKL_TEST_BUFFER(uint8_t) a, at;
+  SKL_TEST_BUFFER(uint16_t) a, at;
 
   // Derived parameters & buffers (private to the test harness)
   struct {
-    uint8_t *ref_at;
+    uint16_t *ref_at;
   } ctx;
-} transpose_e8_t;
+} transpose_e16_t;
 
-#define TRANSPOSE_E8_DEFAULTS                                                  \
-  .a = {.min = 0, .max = UINT8_MAX, .mode = SKL_TEST_RANDOM},                  \
-  .at = {.min = 0, .max = UINT8_MAX, .mode = SKL_TEST_RANDOM}
+#define TRANSPOSE_E16_DEFAULTS                                                 \
+  .a = {.min = 0, .max = UINT16_MAX, .mode = SKL_TEST_RANDOM},                 \
+  .at = {.min = 0, .max = UINT16_MAX, .mode = SKL_TEST_RANDOM}
 
-void transpose_e8_init(skl_test_t *t);
-void transpose_e8_verify(skl_test_t *t);
-void transpose_e8_test_report(skl_test_t *t);
-void transpose_e8_benchmark_report(skl_test_t *t);
-void transpose_e8_cleanup(skl_test_t *t);
+void transpose_e16_init(skl_test_t *t);
+void transpose_e16_verify(skl_test_t *t);
+void transpose_e16_test_report(skl_test_t *t);
+void transpose_e16_benchmark_report(skl_test_t *t);
+void transpose_e16_cleanup(skl_test_t *t);

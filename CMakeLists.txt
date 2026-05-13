@@ -5,12 +5,29 @@
 
 cmake_minimum_required(VERSION 3.21)
 
+# This option may affect the call to `project` and thus must come first.
+option(SKL_ENABLE_CLANG_TIDY "Enable linting with clang-tidy" ON)
+
 project(SKL)
 
 set(DEFAULT_CMAKE_BUILD_TYPE "Release")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "No build type selected, default to ${DEFAULT_CMAKE_BUILD_TYPE}")
   set(CMAKE_BUILD_TYPE "${DEFAULT_CMAKE_BUILD_TYPE}" CACHE STRING "Build type (default ${DEFAULT_CMAKE_BUILD_TYPE})" FORCE)
+endif()
+
+# Set up clang-tidy
+if(SKL_ENABLE_CLANG_TIDY)
+    find_program(SKL_CLANG_TIDY_EXE NAMES
+        riscv64-unknown-elf-clang-tidy
+        riscv64-unknown-linux-gnu-clang-tidy
+    )
+    set(SKL_CLANG_TIDY_EXE "${SKL_CLANG_TIDY_EXE}" CACHE FILEPATH "Path to clang-tidy")
+    if(SKL_CLANG_TIDY_EXE)
+        set(CMAKE_C_CLANG_TIDY "${SKL_CLANG_TIDY_EXE}" CACHE STRING "clang-tidy command")
+    endif()
+else()
+    unset(CMAKE_C_CLANG_TIDY CACHE)
 endif()
 
 # Build the library itself
@@ -180,15 +197,11 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   if("zve32x" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_i8_i8_i32_zve32x_x390_wrapper gemm/gemm_i8rc_i8rc_i32rc.c
       "-DM=32;-DN=32;-DK=32;-DALPHA=1;-DBETA=0")
-    skl_add_test_legacy(skl_transpose_e16_zve32x transpose/transpose_e16.c "")
-    skl_add_test_legacy(skl_transpose_e32_zve32x transpose/transpose_e32.c "")
     skl_add_test_legacy(skl_pack_b_i8_xsfvqdotq gemm/pack_b_i8_xsfvqdotq.c "-DK=126;-DN=128")
   endif()
   if("zvfh" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(exp_f16 exp/exp_f16.c "-DRUN_ZVFH;-DRUN_VFEXPA;-DRUN_VFEXP")
     skl_add_test_legacy(skl_gemm_f16_f16_f16_zvfh_x390_wrapper gemm/gemm_f16rc_f16rc_f16rc.c
-      "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
-    skl_add_test_legacy(skl_gemm_f16_f16_f32_zvfh_x390_wrapper gemm/gemm_f16rc_f16rc_f32rc.c
       "-DM=32;-DN=32;-DK=32;-DALPHA=1.f;-DBETA=0.f")
     skl_add_test_legacy(logistic_f16_zvfh logistic/logistic_f16.c "-DRUN_ALL")
     skl_add_test_legacy(silu_f16_zvfh silu/silu_f16.c "-DRUN_ALL")
@@ -228,16 +241,8 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   if("xsfmm32a16f" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f_wrapper gemm/gemm_bf16rc_bf16rc_f32rc.c
       "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1.f;-DBETA=0.f")
-    skl_add_test_legacy(skl_gemm_a1b01_f16c_f16_f32_xsfmm32a16f_wrapper gemm/gemm_f16rc_f16rc_f32rc.c
-      "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1.f;-DBETA=0.f")
     skl_add_test_legacy(skl_gemm_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f_wrapper gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc.c
       "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
-    skl_add_test_legacy(skl_gemm_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f_wrapper gemm/gemm_f16rcprc_f16rcprc_f32rcprc.c
-      "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
-  endif()
-  if("xsfmmbase" IN_LIST RISCV_EXTENSIONS)
-    skl_add_test_legacy(skl_transpose_e16_xsfmmbase transpose/transpose_e16.c "")
-    skl_add_test_legacy(skl_transpose_e32_xsfmmbase transpose/transpose_e32.c "")
   endif()
   if("xsfvqdotq" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_i8_i8pc_i32_xsfvqdotq gemm/gemm_i8_i8pc_i32_xsfvqdotq.c "-DM=128;-DN=128;-DK=256;-DALPHA=1;-DBETA=1")
