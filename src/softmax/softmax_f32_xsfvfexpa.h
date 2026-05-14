@@ -31,8 +31,8 @@ extern "C" {
  * Exploits the SiFive vector floating-point exponential approximation
  * instruction to compute the e^x part of softmax.
  */
-void skl_softmax_f32_xsfvfexpa(float *pDst, const float *pSrc, const float beta,
-                               const size_t n);
+void skl_softmax_f32_xsfvfexpa(float *pDst, const float *pSrc, float beta,
+                               size_t n);
 
 /**
  * @brief FP32 2D stable softmax, reducing rows.

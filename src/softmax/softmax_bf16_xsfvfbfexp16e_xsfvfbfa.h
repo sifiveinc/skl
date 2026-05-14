@@ -29,7 +29,7 @@ extern "C" {
  * ```
  */
 void skl_softmax_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *pDst, const __bf16 *pSrc,
-                                             const __bf16 beta, const size_t n);
+                                             __bf16 beta, size_t n);
 
 #if defined(__cplusplus)
 } // extern "C"

@@ -33,7 +33,7 @@ extern "C" {
  * function instruction to compute the e^x part of softmax.
  */
 void skl_softmax_bf16_xsfvfbfexp16e_zvfbfmin(__bf16 *pDst, const __bf16 *pSrc,
-                                             const __bf16 beta, const size_t n);
+                                             __bf16 beta, size_t n);
 
 #if defined(__cplusplus)
 } // extern "C"
