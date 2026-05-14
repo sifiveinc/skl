@@ -19,9 +19,6 @@ Usage:
     # Check specific files
     ./check_license_headers.py file1.c file2.h
 
-    # Show file type summary
-    ./check_license_headers.py --summary
-
     # Show verbose output (lists all valid files)
     ./check_license_headers.py --verbose
 
@@ -40,6 +37,7 @@ import os
 import sys
 import re
 import argparse
+import subprocess
 from pathlib import Path
 from typing import List, Tuple, Set
 
@@ -220,10 +218,18 @@ def check_file_header(filepath: Path) -> Tuple[bool, List[str]]:
             
             header_text = ''.join(header_lines)
             
+            year_created = subprocess.check_output(['git', 'log', '--pretty=format:%cI', '--follow', filepath]).split(b'\n')[-1].split(b'-')[0].decode('utf-8')
+            year_modified = subprocess.check_output(['git', 'log', '-1', '--pretty=format:%cI', filepath]).split(b'-')[0].decode('utf-8')
+            if year_created != year_modified:
+                year_str = rf"{year_created}-{year_modified}"
+            else:
+                year_str = rf"{year_modified}"
+            COPYRIGHT_PATTERNS = [
+                rf"Copyright\s+\(c\)\s+202[56](-2026)?\s+\SiFive,\s+Inc\.\s+All\s+rights\s+reserved\.",
+            ]
+            
             copyright_license_lines = COPYRIGHT_PATTERNS + LICENSE_REFERENCE + SPDX_IDENTIFIER
-            # copyright_license_lines = LICENSE_REFERENCE
             comment_char, _ = get_comment_style(filepath)
-            print(f"comment char is {comment_char}\n")
             lines = []
             for line in copyright_license_lines:
                 line = comment_char + r"\s+" + line
@@ -235,22 +241,8 @@ def check_file_header(filepath: Path) -> Tuple[bool, List[str]]:
                 copyright_found = True
 
             # Check for copyright notice
-            # copyright_found = False
-            # for pattern in COPYRIGHT_PATTERNS:
-            #     if re.search(pattern, header_text, re.IGNORECASE):
-            #         copyright_found = True
-            #         break
-            
             if not copyright_found:
-                issues.append("Missing or incorrect SiFive copyright notice (should be '2025-Present' or '2026-Present')")
-            
-            # Check for MIT license reference
-            # if not re.search(LICENSE_REFERENCE, header_text, re.IGNORECASE):
-            #     issues.append("Missing MIT License reference")
-            
-            # Check for SPDX identifier
-            # if not re.search(SPDX_IDENTIFIER, header_text):
-            #     issues.append("Missing SPDX-License-Identifier: MIT")
+                issues.append("Missing or incorrect SiFive copyright notice (should be" + copyright_license_pattern + ")")
             
     except Exception as e:
         issues.append(f"Error reading file: {e}")
@@ -268,20 +260,9 @@ def main():
         help='Show verbose output including all checked files'
     )
     parser.add_argument(
-        '--summary',
-        action='store_true',
-        help='Show summary of file types checked'
-    )
-    parser.add_argument(
         '--fix',
         action='store_true',
         help='Automatically add missing headers to files'
-    )
-    parser.add_argument(
-        '--year',
-        choices=['2025', '2026'],
-        default='2025',
-        help='Copyright year to use when fixing files (default: 2025)'
     )
     parser.add_argument(
         'files',
@@ -295,7 +276,6 @@ def main():
     files_checked = 0
     files_with_issues = 0
     all_issues = []
-    file_type_counts = {}
     files_ok = []
     files_fixed = []
 
@@ -327,7 +307,6 @@ def main():
                 ext = 'CMakeLists.txt'
             else:
                 ext = filepath.suffix if filepath.suffix else filepath.name
-            file_type_counts[ext] = file_type_counts.get(ext, 0) + 1
 
             has_valid_header, issues = check_file_header(filepath)
 
@@ -377,7 +356,6 @@ def main():
                     ext = 'CMakeLists.txt'
                 else:
                     ext = filepath.suffix if filepath.suffix else filepath.name
-                file_type_counts[ext] = file_type_counts.get(ext, 0) + 1
 
                 has_valid_header, issues = check_file_header(filepath)
 
@@ -408,14 +386,6 @@ def main():
         print(f"Files fixed: {len(files_fixed)}")
     print(f"Files with issues: {files_with_issues}")
     print(f"Files OK: {files_checked - files_with_issues}")
-
-    # Show file type summary if requested
-    if args.summary:
-        print("\n" + "=" * 80)
-        print("FILE TYPE SUMMARY:")
-        print("=" * 80)
-        for ext, count in sorted(file_type_counts.items()):
-            print(f"  {ext:20s}: {count:4d} files")
 
     # Show fixed files
     if files_fixed:
