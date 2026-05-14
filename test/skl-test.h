@@ -124,7 +124,7 @@ static inline void report_perf_mpc(const char *name, uint64_t cycles,
 #define SKL_TEST_PERF_REPORT report_perf_epc
 #else
 void SKL_TEST_PERF_REPORT(const char *name, uint64_t cycles, uint64_t insts,
-                          size_t num_elems);
+                          size_t n);
 #endif
 
 /**
