@@ -49,6 +49,7 @@
  * Logistic Function Kernels
  */
 
+#include "../ref/logistic/logistic_bf16.h"
 #include "../ref/logistic/logistic_f16.h"
 #include "../ref/logistic/logistic_f32.h"
 

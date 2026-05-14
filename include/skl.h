@@ -82,49 +82,76 @@
  * Exponential and Logistic Function Kernels
  */
 
-#if defined(__riscv_zvfbfmin)
-#include "../src/exp/exp_bf16_zvfbfmin.h"
-#endif
-
-#if defined(__riscv_xsfvfbfa)
-#include "../src/exp/exp_bf16_xsfvfbfa.h"
-#endif
-
 #if defined(__riscv_zvfh)
 #include "../src/exp/exp_f16_zvfh.h"
-#include "../src/logistic/logistic_f16_zvfh.h"
 #endif
-
-#if defined(__riscv_zve32f)
-#include "../src/exp/exp_bf16_zve32f.h"
-#include "../src/exp/exp_f32_zve32f.h"
-#include "../src/logistic/logistic_f32_zve32f.h"
-#endif
-
-#if defined(__riscv_xsfvfbfexp16e)
-#include "../src/exp/exp_bf16_xsfvfbfexp16e.h"
-#endif
-
 #if defined(__riscv_xsfvfexp16e)
 #include "../src/exp/exp_f16_xsfvfexp16e.h"
-#include "../src/logistic/logistic_f16_xsfvfexp16e.h"
 #endif
-
-#if defined(__riscv_xsfvfexp32e)
-#include "../src/exp/exp_f32_xsfvfexp32e.h"
-#include "../src/logistic/logistic_f32_xsfvfexp32e.h"
-#endif
-
-#if defined(__riscv_xsfvfexpa) && defined(__riscv_zvfbfmin)
-#include "../src/exp/exp_bf16_xsfvfexpa_zvfbfmin.h"
-#endif
-
 #if defined(__riscv_xsfvfexpa) && defined(__riscv_zvfh)
 #include "../src/exp/exp_f16_xsfvfexpa_zvfh.h"
 #endif
 
+#if defined(__riscv_zve32f)
+#include "../src/exp/exp_bf16_zve32f.h"
+#endif
+#if defined(__riscv_xsfvfbfa)
+#include "../src/exp/exp_bf16_xsfvfbfa.h"
+#endif
+#if defined(__riscv_xsfvfbfexp16e)
+#include "../src/exp/exp_bf16_xsfvfbfexp16e.h"
+#endif
+#if defined(__riscv_xsfvfexpa) && defined(__riscv_zvfbfmin)
+#include "../src/exp/exp_bf16_xsfvfexpa_zvfbfmin.h"
+#endif
+#if defined(__riscv_zvfbfmin)
+#include "../src/exp/exp_bf16_zvfbfmin.h"
+#endif
+
+#if defined(__riscv_zve32f)
+#include "../src/exp/exp_f32_zve32f.h"
+#endif
+#if defined(__riscv_xsfvfexp32e)
+#include "../src/exp/exp_f32_xsfvfexp32e.h"
+#endif
 #if defined(__riscv_xsfvfexpa)
 #include "../src/exp/exp_f32_xsfvfexpa.h"
+#endif
+
+/*
+ * Logistic Function Kernels
+ */
+
+#if defined(__riscv_zvfh)
+#include "../src/logistic/logistic_f16_zvfh.h"
+#endif
+#if defined(__riscv_xsfvfexp16e)
+#include "../src/logistic/logistic_f16_xsfvfexp16e.h"
+#endif
+
+#if defined(__riscv_zve32f)
+#include "../src/logistic/logistic_bf16_zve32f.h"
+#endif
+#if defined(__riscv_xsfvfbfa)
+#include "../src/logistic/logistic_bf16_xsfvfbfa.h"
+#endif
+#if defined(__riscv_xsfvfbfexp16e) && defined(__riscv_xsfvfbfa)
+#include "../src/logistic/logistic_bf16_xsfvfbfexp16e_xsfvfbfa.h"
+#endif
+#if defined(__riscv_xsfvfexp32e)
+#include "../src/logistic/logistic_bf16_xsfvfexp32e.h"
+#endif
+#if defined(__riscv_xsfvfexpa)
+#include "../src/logistic/logistic_bf16_xsfvfexpa.h"
+#endif
+
+#if defined(__riscv_zve32f)
+#include "../src/logistic/logistic_f32_zve32f.h"
+#endif
+#if defined(__riscv_xsfvfexp32e)
+#include "../src/logistic/logistic_f32_xsfvfexp32e.h"
+#endif
+#if defined(__riscv_xsfvfexpa)
 #include "../src/logistic/logistic_f32_xsfvfexpa.h"
 #endif
 
