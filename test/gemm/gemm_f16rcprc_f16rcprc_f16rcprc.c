@@ -14,11 +14,8 @@
 #include "skl-ref.h"
 #include "skl-test-driver.h"
 #include "skl_test_gemm.h"
-#include <inttypes.h>
 #include <math.h>
 #include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -95,7 +92,6 @@ void gemm_f16rcprc_f16rcprc_f16rcprc_init(skl_test_t *t) {
 }
 
 void gemm_f16rcprc_f16rcprc_f16rcprc_verify(skl_test_t *t) {
-  /* Compute the reference matrix output. */
   gemm_f16rcprc_f16rcprc_f16rcprc_t *h =
       (gemm_f16rcprc_f16rcprc_f16rcprc_t *)t->harness;
 
