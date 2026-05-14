@@ -51,10 +51,11 @@ static inline void riscv_fence(void) {
 }
 
 // No floating-point support in some bare-metal libc printf, so emulate
+// Note: input value must be in [INT_MIN, INT_MAX].
 static inline void print_float(float x) {
   x += 0.00005f;
   int i = (int)x;
-  int f = (x - i) * 10000;
+  int f = (int)((x - (float)i) * 10000);
   printf("%d.%04d", i, f);
 }
 
@@ -349,9 +350,9 @@ static inline float skl_error_ulp_bf16(const __bf16 *res, const __bf16 *ref,
  * then returns 0 if the maximum is less than or equal to the given
  * tolerance or non-zero if greater.
  */
-static inline float skl_check_error_ulp_f32(const char *name, const float *res,
-                                            const float *ref, float tol,
-                                            size_t len) {
+static inline int skl_check_error_ulp_f32(const char *name, const float *res,
+                                          const float *ref, float tol,
+                                          size_t len) {
   float err = skl_error_ulp_f32(res, ref, len);
   skl_print_max_error(name, err);
   return err > tol;
@@ -361,10 +362,9 @@ static inline float skl_check_error_ulp_f32(const char *name, const float *res,
  * @brief Check maximum error for _Float16 data
  * @details @copydetails skl_check_error_ulp_f32
  */
-static inline float skl_check_error_ulp_f16(const char *name,
-                                            const _Float16 *res,
-                                            const _Float16 *ref, float tol,
-                                            size_t len) {
+static inline int skl_check_error_ulp_f16(const char *name, const _Float16 *res,
+                                          const _Float16 *ref, float tol,
+                                          size_t len) {
   float err = skl_error_ulp_f16(res, ref, len);
   skl_print_max_error(name, err);
   return err > tol;
