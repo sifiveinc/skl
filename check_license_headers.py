@@ -6,27 +6,19 @@
 
 """
 Script to check for SiFive copyright and MIT license headers in source files.
+This script verifies that each relevant file contains the following header:
 
-This script verifies that each relevant file contains:
-1. A copyright notice with "SiFive, Inc." and years 2025-Present or 2026-Present
-2. MIT License reference
-3. Proper SPDX-License-Identifier
+    Copyright (c) {year_str} SiFive, Inc. All rights reserved.
+    Licensed under the MIT License.
+    See LICENSE file in the project root for full license information.
+    SPDX-License-Identifier: MIT
 
 Usage:
-    # Check all files in the repository
-    ./check_license_headers.py
-
     # Check specific files
     ./check_license_headers.py file1.c file2.h
 
     # Show verbose output (lists all valid files)
     ./check_license_headers.py --verbose
-
-    # Fix files with missing headers
-    ./check_license_headers.py --fix
-
-    # Fix specific files only
-    ./check_license_headers.py --fix file1.c file2.h
 
 Exit codes:
     0 - All files have proper headers
@@ -41,23 +33,8 @@ import subprocess
 from pathlib import Path
 from typing import List, Tuple, Set
 
-# Expected copyright patterns (allowing for 2025 or 2026)
-COPYRIGHT_PATTERNS = [
-    r"Copyright\s+\(c\)\s+202[56](-2026)?\s+SiFive,?\s+Inc\.\s+All\s+rights\s+reserved\.",
-]
-
-# Expected license reference
-LICENSE_REFERENCE = [
-    r"Licensed under the MIT License\.",
-    r"See LICENSE file in the project root for full license information\."
-]
-
-# Expected SPDX identifier
-SPDX_IDENTIFIER = [
-    r"SPDX-License-Identifier:\s*MIT"
-]
-
-# File extensions to check and their comment styles
+# Comment styles for different file types
+# The script defaults to '' for types not listed here
 FILE_TYPES = {
     # C/C++ style comments
     '.c': '//',
@@ -71,145 +48,64 @@ FILE_TYPES = {
     'CMakeLists.txt': '#',
 }
 
-# Directories to exclude
-EXCLUDE_DIRS = {
-    '.git',
-    'build',
-    'doc/html',
-    '__pycache__',
-    '.pytest_cache',
-}
-
 # Exclude files matching these patterns
+# The script looks for a match at the beginning of a file's path relative to
+# the root of the repo.
 EXCLUDE_PATTERNS = [
-    r'.*\.md$',  # Exclude all markdown files
+    r'.*\.md$',
     '.clang-tidy',
     '.clang-format',
+    r'.*Doxyfile$',
+    '.github/',
     '.gitignore',
     'LICENSE.txt',
-    'CHANGELOG.md',
-    'README.md',
-    'CONTRIBUTING.md',
-    'CONTRIBUTORS.md',
-    '.github/CODEOWNERS',
 ]
 
 def should_check_file(filepath: Path, repo_root: Path) -> bool:
-    """Determine if a file should be checked for license headers."""
-    # Check if in excluded directory
+    """Determine if a file should be checked."""
     rel_path = filepath.relative_to(repo_root)
-    for part in rel_path.parts:
-        if part in EXCLUDE_DIRS:
-            return False
-
-    # Check against exclude patterns
     rel_path_str = str(rel_path)
     for pattern in EXCLUDE_PATTERNS:
         if re.match(pattern, rel_path_str):
             return False
-
-    # Check file extension or name
-    if filepath.name == 'CMakeLists.txt':
-        return True
-
-    return filepath.suffix in FILE_TYPES
+    return True
 
 
-def get_comment_style(filepath: Path) -> Tuple[str, str]:
+def get_comment_style(filepath: Path) -> str:
     """Get the comment style for a file."""
     if filepath.name == 'CMakeLists.txt':
-        return FILE_TYPES['CMakeLists.txt']
-    return FILE_TYPES.get(filepath.suffix)
+        return FILE_TYPES[filepath.name]
+    return FILE_TYPES.get(filepath.suffix, '')
 
 
-def generate_header(filepath: Path) -> str:
-    """
-    Generate the appropriate copyright header for a file.
+def get_copyright_year(filepath: Path) -> str:
+    year_from_date = lambda date: date.split(b'-')[0].decode('utf-8')
 
-    Args:
-        filepath: Path to the file
-        year: Starting copyright year (2025 or 2026)
+    date_created = subprocess.check_output(['git', 'log', '--pretty=format:%cI', '--follow', filepath]).rsplit(b'\n', 1)[-1]
+    date_modified = subprocess.check_output(['git', 'log', '-1', '--pretty=format:%cI', filepath])
+    year_created = year_from_date(date_created)
+    year_modified = year_from_date(date_modified)
 
-    Returns:
-        String containing the copyright header
-    """
-    comment_prefix = get_comment_style(filepath)
-
-    if comment_prefix is None:
-        return ""
-
-    year_created = subprocess.check_output(['git', 'log', '--pretty=format:%cI', '--follow', filepath]).split(b'\n')[-1].split(b'-')[0].decode('utf-8')
-    year_modified = subprocess.check_output(['git', 'log', '-1', '--pretty=format:%cI', filepath]).split(b'-')[0].decode('utf-8')
     if year_created != year_modified:
-        year_str = rf"{year_created}-{year_modified}"
+        year_str = f"{year_created}-{year_modified}"
     else:
-        year_str = rf"{year_modified}"
+        year_str = f"{year_modified}"
+    
+    return year_str
+
+
+def generate_copyright_pattern(filepath: Path) -> str:
+    """Generate the appropriate copyright header pattern for a file."""
+    comment_prefix = get_comment_style(filepath)
+    year_str = get_copyright_year(filepath)
     header_lines = [
-    #     rf"Copyright\s+\(c\)\s+202[56](-2026)?\s+\SiFive,\s+Inc\.\s+All\s+rights\s+reserved\.",
-        f"{comment_prefix} Copyright (c) {year_str} SiFive, Inc. All rights reserved.",
-        f"{comment_prefix} Licensed under the MIT License.",
-        f"{comment_prefix} See LICENSE file in the project root for full license information.",
-        f"{comment_prefix} SPDX-License-Identifier: MIT",
+        rf"{comment_prefix} Copyright \(c\) {year_str} SiFive, Inc\. All rights reserved\.(\r)?\n",
+        rf"{comment_prefix} Licensed under the MIT License\.(\r)?\n",
+        rf"{comment_prefix} See LICENSE file in the project root for full license information\.(\r)?\n",
+        rf"{comment_prefix} SPDX-License-Identifier: MIT(\r)?\n",
         ""
     ]
-    
-    # copyright_license_lines = COPYRIGHT_PATTERNS + LICENSE_REFERENCE + SPDX_IDENTIFIER
-
-    # header_lines = [
-    #     f"{comment_prefix} Copyright (c) {year} SiFive, Inc. All rights reserved.",
-    #     f"{comment_prefix} Licensed under the MIT License.",
-    #     f"{comment_prefix} See LICENSE file in the project root for full license information.",
-    #     f"{comment_prefix} SPDX-License-Identifier: MIT",
-    #     ""
-    # ]
-
-    return '\n'.join(header_lines)
-
-
-def fix_file_header(filepath: Path) -> bool:
-    """
-    Add the copyright header to a file that's missing it.
-
-    Args:
-        filepath: Path to the file to fix
-        year: Starting copyright year (2025 or 2026)
-
-    Returns:
-        True if file was modified, False otherwise
-    """
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            original_content = f.read()
-
-        header = generate_header(filepath)
-        if not header:
-            return False
-
-        print(header)
-
-        # Check if file starts with shebang
-        new_content = ""
-        if original_content.startswith('#!'):
-            # Preserve shebang line
-            lines = original_content.split('\n', 1)
-            shebang = lines[0] + '\n'
-            rest = lines[1] if len(lines) > 1 else ""
-            new_content = shebang + header + '\n' + rest
-        else:
-            new_content = header + '\n' + original_content
-
-        # Write the modified content
-        with open(filepath, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-        with open(filepath, 'w', encoding='utf-8') as f:
-            lines = header + ''.join(lines[4:])
-            f.write(lines)
-
-        return True
-
-    except Exception as e:
-        print(f"Error fixing file {filepath}: {e}")
-        return False
+    return ''.join(header_lines)
 
 
 def check_file_header(filepath: Path) -> Tuple[bool, List[str]]:
@@ -223,180 +119,88 @@ def check_file_header(filepath: Path) -> Tuple[bool, List[str]]:
     
     try:
         with open(filepath, 'r') as f:
-            # Read first 20 lines (header should be in this range)
+            # Read first 6 lines (header should be in this range)
             header_lines = []
             for i, line in enumerate(f):
-                if i >= 20:
+                if i >= 6:
                     break
                 header_lines.append(line)
-            
             header_text = ''.join(header_lines)
-            
-            year_created = subprocess.check_output(['git', 'log', '--pretty=format:%cI', '--follow', filepath]).split(b'\n')[-1].split(b'-')[0].decode('utf-8')
-            year_modified = subprocess.check_output(['git', 'log', '-1', '--pretty=format:%cI', filepath]).split(b'-')[0].decode('utf-8')
-            if year_created != year_modified:
-                year_str = rf"{year_created}-{year_modified}"
-            else:
-                year_str = rf"{year_modified}"
-            COPYRIGHT_PATTERNS = [
-            #     rf"Copyright\s+\(c\)\s+202[56](-2026)?\s+\SiFive,\s+Inc\.\s+All\s+rights\s+reserved\.",
-                rf"Copyright\s+\(c\)\s+{year_str}?\s+\SiFive,\s+Inc\.\s+All\s+rights\s+reserved\.",
-            ]
-            
-            copyright_license_lines = COPYRIGHT_PATTERNS + LICENSE_REFERENCE + SPDX_IDENTIFIER
-            comment_char = get_comment_style(filepath)
-            lines = []
-            for line in copyright_license_lines:
-                line = comment_char + r"\s+" + line
-                lines.append(line)
-            copyright_license_pattern = r"(\r)?\n".join(lines)
 
-            copyright_found = False
-            if re.search(copyright_license_pattern, header_text):
-                copyright_found = True
-
-            # Check for copyright notice
-            if not copyright_found:
-                issues.append("Missing or incorrect SiFive copyright notice (should be" + copyright_license_pattern + ")")
+            copyright_pattern = generate_copyright_pattern(filepath)
+            if not re.search(copyright_pattern, header_text):
+                issues.append("Missing or incorrect header. Should be: " + copyright_pattern)
             
     except Exception as e:
         issues.append(f"Error reading file: {e}")
     
     return (len(issues) == 0, issues)
 
+
 def main():
-    """Main function to check all files in the repository."""
+    """Main function to check given files in the repository."""
     parser = argparse.ArgumentParser(
         description="Check for SiFive copyright and MIT license headers in source files.",
+    )
+    parser.add_argument(
+        'files',
+        nargs='*',
+        help='Files to check'
     )
     parser.add_argument(
         '-v', '--verbose',
         action='store_true',
         help='Show verbose output including all checked files'
     )
-    parser.add_argument(
-        '--fix',
-        action='store_true',
-        help='Automatically add missing headers to files'
-    )
-    parser.add_argument(
-        'files',
-        nargs='*',
-        help='Specific files to check (if not provided, checks entire repository)'
-    )
     args = parser.parse_args()
 
     repo_root = Path(__file__).parent.resolve()
 
     files_checked = 0
+    files_skipped = 0
     files_with_issues = 0
-    all_issues = []
     files_ok = []
-    files_fixed = []
+    all_issues = []
 
-    # If specific files are provided, check only those
-    if args.files:
-        files_to_check = [Path(f).resolve() for f in args.files]
-        print(f"Checking {len(files_to_check)} specified file(s)")
-        print("=" * 80)
+    files_to_check = [Path(f).resolve() for f in args.files]
+    print(f"Checking {len(files_to_check)} specified file(s)")
+    print("=" * 80)
 
-        for filepath in files_to_check:
-            if not filepath.exists():
-                print(f"Warning: File not found: {filepath}")
-                continue
+    for filepath in files_to_check:
+        if not filepath.exists():
+            print(f"Warning: File not found: {filepath}")
+            continue
 
-            if not filepath.is_file():
-                print(f"Warning: Not a file: {filepath}")
-                continue
+        if not filepath.is_file():
+            print(f"Warning: Not a file: {filepath}")
+            continue
 
-            try:
-                rel_path = filepath.relative_to(repo_root)
-            except ValueError:
-                print(f"Warning: File outside repository: {filepath}")
-                continue
+        try:
+            rel_path = filepath.relative_to(repo_root)
+        except ValueError:
+            print(f"Warning: File outside repository: {filepath}")
+            continue
 
-            files_checked += 1
+        if not should_check_file(filepath, repo_root):
+            files_skipped += 1
+            print(f"Skipping {filepath}")
+            continue
 
-            has_valid_header, issues = check_file_header(filepath)
+        files_checked += 1
 
-            if not has_valid_header:
-                if args.fix:
-                    # Try to fix the file
-                    if fix_file_header(filepath):
-                        files_fixed.append(rel_path)
-                        # Re-check to verify the fix worked
-                        has_valid_header, issues = check_file_header(filepath)
-                        if has_valid_header:
-                            files_ok.append(rel_path)
-                        else:
-                            files_with_issues += 1
-                            all_issues.append((rel_path, issues))
-                    else:
-                        files_with_issues += 1
-                        all_issues.append((rel_path, issues))
-                else:
-                    files_with_issues += 1
-                    all_issues.append((rel_path, issues))
-            else:
-                files_ok.append(rel_path)
-    else:
-        # Check all files in repository
-        print(f"Checking license headers in: {repo_root}")
-        print("=" * 80)
+        has_valid_header, issues = check_file_header(filepath)
 
-        # Walk through all files
-        for root, dirs, files in os.walk(repo_root):
-            root_path = Path(root)
-
-            # Filter out excluded directories
-            dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS]
-
-            for filename in files:
-                filepath = root_path / filename
-
-                if not should_check_file(filepath, repo_root):
-                    continue
-
-                files_checked += 1
-                rel_path = filepath.relative_to(repo_root)
-
-                has_valid_header, issues = check_file_header(filepath)
-
-                if not has_valid_header:
-                    if args.fix:
-                        # Try to fix the file
-                        if fix_file_header(filepath):
-                            files_fixed.append(rel_path)
-                            # Re-check to verify the fix worked
-                            has_valid_header, issues = check_file_header(filepath)
-                            if has_valid_header:
-                                files_ok.append(rel_path)
-                            else:
-                                files_with_issues += 1
-                                all_issues.append((rel_path, issues))
-                        else:
-                            files_with_issues += 1
-                            all_issues.append((rel_path, issues))
-                    else:
-                        files_with_issues += 1
-                        all_issues.append((rel_path, issues))
-                else:
-                    files_ok.append(rel_path)
+        if has_valid_header:
+            files_ok.append(rel_path)
+        else:
+            files_with_issues += 1
+            all_issues.append((rel_path, issues))
 
     # Print results
     print(f"\nFiles checked: {files_checked}")
-    if args.fix and files_fixed:
-        print(f"Files fixed: {len(files_fixed)}")
+    print(f"Files skipped: {files_skipped}")
+    print(f"Files OK: {len(files_ok)}")
     print(f"Files with issues: {files_with_issues}")
-    print(f"Files OK: {files_checked - files_with_issues}")
-
-    # Show fixed files
-    if files_fixed:
-        print("\n" + "=" * 80)
-        print("FILES FIXED:")
-        print("=" * 80)
-        for filepath in sorted(files_fixed):
-            print(f"  ✓ {filepath}")
 
     # Show verbose output if requested
     if args.verbose and files_ok:
