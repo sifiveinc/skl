@@ -94,8 +94,8 @@ def get_copyright_year(filepath: Path) -> str:
     return year_str
 
 
-def generate_copyright_pattern(filepath: Path) -> str:
-    """Generate the appropriate copyright header pattern for a file."""
+def generate_license_pattern(filepath: Path) -> str:
+    """Generate the appropriate license header pattern for a file."""
     comment_prefix = get_comment_style(filepath)
     year_str = get_copyright_year(filepath)
     header_lines = [
@@ -127,9 +127,9 @@ def check_file_header(filepath: Path) -> Tuple[bool, List[str]]:
                 header_lines.append(line)
             header_text = ''.join(header_lines)
 
-            copyright_pattern = generate_copyright_pattern(filepath)
-            if not re.search(copyright_pattern, header_text):
-                issues.append("Missing or incorrect header. Should be: " + copyright_pattern)
+            license_pattern = generate_license_pattern(filepath)
+            if not re.search(license_pattern, header_text):
+                issues.append("Missing or incorrect header. Should be: " + license_pattern)
 
     except Exception as e:
         issues.append(f"Error reading file: {e}")
