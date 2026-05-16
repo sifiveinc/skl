@@ -90,7 +90,7 @@ def get_copyright_year(filepath: Path) -> str:
         year_str = f"{year_created}-{year_modified}"
     else:
         year_str = f"{year_modified}"
-    
+
     return year_str
 
 
@@ -111,12 +111,12 @@ def generate_copyright_pattern(filepath: Path) -> str:
 def check_file_header(filepath: Path) -> Tuple[bool, List[str]]:
     """
     Check if a file has the required copyright and license header.
-    
+
     Returns:
         Tuple of (has_valid_header, list_of_issues)
     """
     issues = []
-    
+
     try:
         with open(filepath, 'r') as f:
             # Read first 6 lines (header should be in this range)
@@ -130,10 +130,10 @@ def check_file_header(filepath: Path) -> Tuple[bool, List[str]]:
             copyright_pattern = generate_copyright_pattern(filepath)
             if not re.search(copyright_pattern, header_text):
                 issues.append("Missing or incorrect header. Should be: " + copyright_pattern)
-            
+
     except Exception as e:
         issues.append(f"Error reading file: {e}")
-    
+
     return (len(issues) == 0, issues)
 
 
