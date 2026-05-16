@@ -166,8 +166,6 @@ When one dimension is not packed, its specifier dimension is set to `1`: `p4x1` 
 For block-row-major layouts (no `c` or `rc` before the `p`), if the last dimension is `1`, then it is followed by `c` to emphasize that elements within the block are in column-major order (although this is only vacuously true); when the first dimension is `1`, then its only difference from a non-packed matrix is that it is padded to a multiple of the block length along the packed dimension.
 For block-column-major, an inverted but analogous logic applies.
 
-The block dimensions are not included in the name, as they are target-specific and implied by the `<isa>` field.
-
 ## APIs for Packing & Unpacking Kernels
 Packing and unpacking must be performed by the user, and is not automatically applied by the GEMM functions for a variety of reasons:
 - The packing may be impossible to perform in-place, requiring a separate buffer that the caller must allocate
