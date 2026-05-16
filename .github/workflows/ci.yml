@@ -27,9 +27,12 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Check license headers 
+    - name: Check license headers
       run: |
-        ./check_license_headers.py
+        HEAD_SHA=${{ github.event.pull_request.head.sha }}
+        BASE_SHA=${{ github.event.pull_request.base.sha }}
+        MERGE_BASE_SHA=$(git merge-base $HEAD_SHA $BASE_SHA)
+        git diff --name-only $MERGE_BASE_SHA $HEAD_SHA | xargs ./check_license_headers.py
 
     - name: Setup QEMU
       run: |
