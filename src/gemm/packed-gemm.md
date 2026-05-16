@@ -154,12 +154,17 @@ However, in practice, these innermost loops (`ii0`, `jj0`, and `kk0`) correspond
 
 ### Naming Convention
 The naming convention for packed GEMM APIs is similar to that of the basic GEMM APIs, but uses the `<datatypes>` field to indicate packing.
-Specifically, a `p` is inserted after each matrix type to indicate that it is packed.
+Specifically, a `p<m0xn0>` specifier is inserted after each matrix type to indicate that it is packed in blocks of size `m0` by `n0` (or `k0` and `n0` etc.).
 
 On either side of `p`, transposition specifiers are used as usual:
-- `f32p` for a packed, row-major matrix
-- `f32pc` for a packed matrix with blocks in column-major format
-- `f32cpc` for a packed matrix with blocks in column-major format and columns of blocks in column-major format
+- `f32p<...>` for a packed, row-major matrix
+- `f32p<...>c` for a packed matrix with blocks in column-major format
+- `f32cp<...>c` for a packed matrix with blocks in column-major format and columns of blocks in column-major format
+- `f32rcp<...>` for a packed matrix in either block-row-major or block-column-major format, but whose blocks are themselves row-major
+
+When one dimension is not packed, its specifier dimension is set to `1`: `p4x1` for instance.
+For block-row-major layouts (no `c` or `rc` before the `p`), if the last dimension is `1`, then it is followed by `c` to emphasize that elements within the block are in column-major order (although this is only vacuously true); when the first dimension is `1`, then its only difference from a non-packed matrix is that the it is padded to a multiple of the block length along the packed dimension.
+For block-column-major, an inverted but analogous logic applies.
 
 The block dimensions are not included in the name, as they are target-specific and implied by the `<isa>` field.
 
@@ -194,13 +199,16 @@ Each column of the `4xN` blocks of B can be thought of as one of these `4x1` blo
 And since each `4xN` block of B is column-major and stored contiguously in memory, we find that `rsb0=1` and `csb1=k0*n0`.
 Note that `csb0` is unused since each `4x1` block has only one column.
 
+In the A matrix, the "packed" dimension in `p1x4` simply indicates that the row length has been _padded_ to a multiple of 4.
+Ideally, if the original `k` was a multiple of 4 or the A matrix was already padded, it can be used without modification.
+
 The packed kernel could be depicted as implemented by the following wrapper for the general packed GEMM API:
 ```c
-void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(
+void skl_gemm_a1b01_i8p1x4_i8p4x1c_i32_xsfvqdotq(
   size_t m,             // Num. rows in A and C
   size_t n,             // Num. columns in B and C
-  size_t k,             // Num. columns in A and rows in B
-  const int8_t* a,      // Input matrix A [m x k]
+  size_t k1,            // Num. 1x4 k blocks in A and 4x1 blocks in B
+  const int8_t* a_pack, // Padded  matrix A [m x ceil(k/4) x 4].
   size_t rsa,           // Row stride of A
   const int8_t* b_pack, // Packed matrix B [ceil(k/4) x n x (4 x 1)]
   size_t rsb1,          // Row stride between blocks of B
@@ -208,36 +216,16 @@ void skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(
   size_t rsc,           // Row stride of C
   bool accum            // Whether to accumulate into C
 ) {
-  // NOTE: in the real implementation, the optimized kernel handles all the
-  // K-fringe elements; this is just for illustration
-  size_t k1 = k / 4;
-  size_t kfix = k % 4;
   skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
     1, 1, 4, m, n, k1,      // m0, n0, k0, m1, n1, k1
     1,                      // alpha
-    a, 0, 1, rsa, 4,        // a_pack, rsa0, csa0, rsa1, csa1
+    a_pack, 0, 1, rsa, 4,   // a_pack, rsa0, csa0, rsa1, csa1
     b_pack, 1, 0, rsb1, 4,  // b_pack, rsb0, csb0, rsb1, csb1
     accum ? 1 : 0,          // beta
     c, 0, 0, rsc, 1         // c_pack, rsc0, csc0, rsc1, csc1
   );
-  if (kfix != 0) {
-    // Handle the dot-product fringe manually
-    for (size_t ii = 0; ii < m; ++ii) {
-      for (size_t jj = 0; jj < n; ++jj) {
-        int32_t acc = 0;
-        size_t kstart = k1 * 4;
-        for (size_t kk = kstart; kk < k; ++kk) {
-          acc += a[ii * rsa + kk] * b_pack[k1 * rsb1 + jj * 4 + (kk % 4)];
-        }
-        c[ii * rsc + jj] += acc;
-      }
-    }
-  }
 }
 ```
-
-Note that the `k` dimension provided is the original value, not its padded multiple of 4.
-This allows only the `B` matrix to be packed, while `A` and `C` remain in their original format, as the specialized kernel simply substitutes `0` for any elements of `A` that lie beyond the original `k` boundary.
 
 ### Xsfmm + IREE Framework: Pack M- & N-Dimensions (TExTE)
 
@@ -261,7 +249,7 @@ If all matrices were packed into `TE` x `TE` blocks, then the kernel could be ca
 However, to obtain peak performance it is often necessary for the kernel to use `2*TE` x `2*TE` register tiles, so the strides between blocks must necessarily be exposed to the implementation, motivating the provision of a packed API for this target:
 
 ```c
-void skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
+void skl_gemm_a1b01_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f(
   size_t m1,            // Num. row blocks in A and C
   size_t n1,            // Num. column blocks in B and C
   size_t k,             // Num. columns in A, rows in B
@@ -275,6 +263,11 @@ void skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
   bool accum            // Whether to accumulate into C
 );
 ```
+
+The matrix specifiers should be interpreted as:
+- A: `f32ptex1c` TE x 1 column vectors of A packed in block-row-major order
+- B: `f32cp1xte` 1 x TE row vectors of B packed in block-column-major order
+- C; `f32rcptexte` TE x TE blocks of C packed in either block-row- or block-column-major order, depending `rsc1` and `csc1`
 
 In this case, the packing is performed by the IREE framework itself, and the SKL kernel is called directly with the packed matrices; because of the arbitrary inter-block strides of `C`, it is up to the framework how the individual blocks are arranged with respect to one another.
 
@@ -294,16 +287,22 @@ The specific kernel provided by SKL also assumes a block-row-major layout for th
 
 The packed kernel's API is thus:
 ```c
-void skl_gemm_a1b01_i8p_i8p_i32p_xsfvqmaccqoq(
+void skl_gemm_a1b01_i8p4x8_i8p8x4_i32p4x4_xsfvqmaccqoq(
   size_t m1,            // Num. row blocks in A and C
   size_t n1,            // Num. column blocks in B and C
   size_t k1,            // Num. column blocks in A, row blocks in B
   const int8_t* a_pack, // Packed matrix A [m1 x k1 x (4 x 8)]
+  size_t rsa1,          // Stride between block-rows of packed A
   const int8_t* b_pack, // Packed matrix B [k1 x n1 x (8 x 4)]
+  size_t rsb1,          // Stride between block-rows of packed B
   int32_t* c_pack,      // Packed matrix C [m1 x n1 x (4 x 4)]
+  size_t rsc1           // Stride between block rows of packed C
   bool accum            // Whether to accumulate into C
 );
 ```
+
+The block row strides `rs{a,b,c}1` allow this kernel to perform a partial multiplication on some portion of a larger problem size.
+
 ## Cache Tiling with Packing
 
 It may sometimes be desirable to combine explicit cache blocking with packing.
@@ -337,7 +336,7 @@ void example_blocked_gemm(size_t m, size_t n, size_t k, const int8_t *a,
         size_t k0 = min(k_tile, k - kk_tile);
         // Pack and compute tile
         skl_pack_b_i8_xsfvqdotq(k0, n0, b + kk_tile * rsb + jj_tile, rsb, b_pack, 4 * n0);
-        skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(
+        skl_gemm_a1b01_i8p1x4_i8p4x1c_i32_xsfvqdotq(
             m0, n0, k0, a + ii_tile * rsa + kk_tile, rsa, b_pack,
             4 * n0, c + ii_tile * rsc + jj_tile, rsc, kk_tile > 0 /* accum */);
       }
