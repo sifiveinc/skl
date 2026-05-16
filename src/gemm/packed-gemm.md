@@ -163,7 +163,7 @@ On either side of `p`, transposition specifiers are used as usual:
 - `f32rcp<...>` for a packed matrix in either block-row-major or block-column-major format, but whose blocks are themselves row-major
 
 When one dimension is not packed, its specifier dimension is set to `1`: `p4x1` for instance.
-For block-row-major layouts (no `c` or `rc` before the `p`), if the last dimension is `1`, then it is followed by `c` to emphasize that elements within the block are in column-major order (although this is only vacuously true); when the first dimension is `1`, then its only difference from a non-packed matrix is that the it is padded to a multiple of the block length along the packed dimension.
+For block-row-major layouts (no `c` or `rc` before the `p`), if the last dimension is `1`, then it is followed by `c` to emphasize that elements within the block are in column-major order (although this is only vacuously true); when the first dimension is `1`, then its only difference from a non-packed matrix is that it is padded to a multiple of the block length along the packed dimension.
 For block-column-major, an inverted but analogous logic applies.
 
 The block dimensions are not included in the name, as they are target-specific and implied by the `<isa>` field.
@@ -267,7 +267,7 @@ void skl_gemm_a1b01_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f(
 The matrix specifiers should be interpreted as:
 - A: `f32ptex1c` TE x 1 column vectors of A packed in block-row-major order
 - B: `f32cp1xte` 1 x TE row vectors of B packed in block-column-major order
-- C; `f32rcptexte` TE x TE blocks of C packed in either block-row- or block-column-major order, depending `rsc1` and `csc1`
+- C: `f32rcptexte` TE x TE blocks of C packed in either block-row- or block-column-major order, depending on `rsc1` and `csc1`
 
 In this case, the packing is performed by the IREE framework itself, and the SKL kernel is called directly with the packed matrices; because of the arbitrary inter-block strides of `C`, it is up to the framework how the individual blocks are arranged with respect to one another.
 
@@ -278,7 +278,7 @@ The `sf.vqmacc.4x8x4` instruction computes a fat dot product:
 C[i:i+4, j:j+4] += A[i:i+4, k:k+8] * B[k:k+8, j:j+4]
 ```
 Where the element types of `A` and `B` are `int8_t` and `C` is accumulated as `int32_t`.
-As in the `sf.vqdot.vx` example, `VL` is the vector length, but here the `C` matrix operands is a 4x4 sub-matrix, while `A` and `B` are 4x8 and 8x4 sub-matrices, respectively.
+As in the `sf.vqdot.vx` example, `VL` is the vector length, but here the `C` matrix operand is a 4x4 sub-matrix, while `A` and `B` are 4x8 and 8x4 sub-matrices, respectively.
 
 In order to make use of this instruction, all matrices must be packed such that `m0=4`, `n0=4`, and `k0=8`.
 Within each block, the `sf.vqmacc.4x8x4` instruction requires a row-major layout, so `rsa0=8`, `rsb0=4`, `rsc0=4`, and all three column strides are `1`.
@@ -296,7 +296,7 @@ void skl_gemm_a1b01_i8p4x8_i8p8x4_i32p4x4_xsfvqmaccqoq(
   const int8_t* b_pack, // Packed matrix B [k1 x n1 x (8 x 4)]
   size_t rsb1,          // Stride between block-rows of packed B
   int32_t* c_pack,      // Packed matrix C [m1 x n1 x (4 x 4)]
-  size_t rsc1           // Stride between block rows of packed C
+  size_t rsc1,          // Stride between block rows of packed C
   bool accum            // Whether to accumulate into C
 );
 ```
@@ -337,7 +337,7 @@ void example_blocked_gemm(size_t m, size_t n, size_t k, const int8_t *a,
         // Pack and compute tile
         skl_pack_b_i8_xsfvqdotq(k0, n0, b + kk_tile * rsb + jj_tile, rsb, b_pack, 4 * n0);
         skl_gemm_a1b01_i8p1x4_i8p4x1c_i32_xsfvqdotq(
-            m0, n0, k0, a + ii_tile * rsa + kk_tile, rsa, b_pack,
+            m0, n0, (k0 + 3) / 4, a + ii_tile * rsa + kk_tile, rsa, b_pack,
             4 * n0, c + ii_tile * rsc + jj_tile, rsc, kk_tile > 0 /* accum */);
       }
     }
