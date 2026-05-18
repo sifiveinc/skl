@@ -112,7 +112,7 @@ Here are the pairs of input and filter for channel-wise dot-product:
 Input channel index:  [0, 0, ..., 0]     [1, 1,     ..., 1]         [I - 1, I - 1,                 ..., I - 1]
 Filter channel index: [0, 1, ..., M - 1] [M, M + 1, ..., 2 * M - 1] [I * (M - 1), I * (M - 1) + 1, ..., I * M - 1]
 
-The pairs will be interated through the height and width of filter tensor.
+The pairs will be iterated through the height and width of filter tensor for each output element.
 Following the order of nested loops, we express filter as `hwim` from the outmost loop to the innermost loop.
 ```
 
