@@ -28,9 +28,7 @@
 #pragma once
 
 #include "skl-test-driver.h"
-#include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
 
 typedef struct {
   // Test function pointers for various steps
