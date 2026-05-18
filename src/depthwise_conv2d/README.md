@@ -95,7 +95,7 @@ Below is the format of RVV Kernel name:
 
 where
 - `specialization` includes the contraints of filter size, strides, and dilations, expressed in `f[number]x[number]s[number]d[number]i[number]`.
-If any of them is not specified, it indiates any positive integer.
+If any of them is not specified, it indicates any positive integer.
   - `f` for filter size. `[number]` should be an exact positive integer
   - `s` for strides
   - `d` for dilations
