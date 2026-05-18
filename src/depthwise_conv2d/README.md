@@ -94,12 +94,12 @@ Below is the format of RVV Kernel name:
 **`skl_depthwise_conv2d_<specialization>_<input_data_type><input_layout>_<filter_data_type><filter_layout>_<output_data_type><output_layout>_<isa>`**
 
 where
-- `specialization` includes the contraints of filter size, strides, and dilations, expressed in f[number]x[number]s[number]d[number]i[number].
+- `specialization` includes the contraints of filter size, strides, and dilations, expressed in `f[number]x[number]s[number]d[number]i[number]`.
 If any of them is not specified, it indiates any positive integer.
- - `f` for filter size. `[number]` should be an exact positive integer
- - `s` for strides
- - `d` for dilations
- - `i` for input channel size
+  - `f` for filter size. `[number]` should be an exact positive integer
+  - `s` for strides
+  - `d` for dilations
+  - `i` for input channel size
 - `layout`: `hwc` or `chw` for input/output data layout. `hwim` for filter data layout.
 - `data_type` for data type of tensors (input, filter, output).
 - `isa` for target architecture, e.g. `zve32x`.
