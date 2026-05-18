@@ -67,7 +67,7 @@ extern "C" {
  * float32 depthwise convolution kernels where input and output are in HWC data
  * layout, and vectorizes along the channel dimension.
  */
-void skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f32_f32_f32_zve32f(
+void skl_depthwise_conv2d_f32hwc_f32hwim_f32hwc_zve32f(
     float *output, const float *input, const float *filter, size_t input_height,
     size_t input_width, size_t input_channel, size_t filter_height,
     size_t filter_width, size_t output_height, size_t output_width,
@@ -111,7 +111,7 @@ void skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f32_f32_f32_zve32f(
  *
  * @note Filter dimensions must be exactly 3x3.
  */
-void skl_depthwise_conv2d_vc_f3x3_sn_dn_mn_in_hwc_f32_f32_f32_zve32f(
+void skl_depthwise_conv2d_f3x3_f32hwc_f32hwim_f32hwc_zve32f(
     float *output, const float *input, const float *filter, size_t input_height,
     size_t input_width, size_t input_channel, size_t output_height,
     size_t output_width, size_t output_channel, size_t depth_multiplier,

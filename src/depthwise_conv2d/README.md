@@ -20,12 +20,12 @@ Currently supports `int8` input/filter with `int32` output, as well as `float16`
 ## Kernel List
 
 ### Scalar Implementation (Int8)
-#### **`skl_depthwise_conv2d_hwc_i8_i8_i32_ref`**
+#### **`skl_depthwise_conv2d_i8hwc_i8hwim_i32hwc_ref`**
 - Generic implementation
 - Data layout: Input (HWC), Filter (HWIM), Output (HWC)
 
 ```c
-void skl_depthwise_conv2d_hwc_i8_i8_i32_ref(
+void skl_depthwise_conv2d_i8hwc_i8hwim_i32hwc_ref(
     int32_t *output,                   // Output tensor (HWC layout)
     const int8_t *input,               // Input tensor (HWC layout)
     const int8_t *filter,              // Filter tensor (HWIM layout)
@@ -54,12 +54,12 @@ void skl_depthwise_conv2d_hwc_i8_i8_i32_ref(
 
 
 ### Scalar Implementation (Float16)
-#### `skl_depthwise_conv2d_hwc_f16_f16_f16_ref`
+#### `skl_depthwise_conv2d_f16hwc_f16hwim_f16hwc_ref`
 - Generic implementation
 - Data layout: Input (HWC), Filter (HWIM), Output (HWC)
 
 ```c
-void skl_depthwise_conv2d_hwc_f16_f16_f16_ref(
+void skl_depthwise_conv2d_f16hwc_f16hwim_f16hwc_ref(
     _Float16 *output, const _Float16 *input, const _Float16 *filter,
     size_t input_height, size_t input_width, size_t input_channel,
     size_t filter_height, size_t filter_width, size_t output_height,
@@ -71,12 +71,12 @@ void skl_depthwise_conv2d_hwc_f16_f16_f16_ref(
 ```
 
 ### Scalar Implementation (Float32)
-#### `skl_depthwise_conv2d_hwc_f32_f32_f32_ref`
+#### `skl_depthwise_conv2d_f32hwc_f32hwim_f32hwc_ref`
 - Generic implementation
 - Data layout: Input (HWC), Filter (HWIM), Output (HWC)
 
 ```c
-void skl_depthwise_conv2d_hwc_f32_f32_f32_ref(
+void skl_depthwise_conv2d_f32hwc_f32hwim_f32hwc_ref(
     float *output, const float *input, const float *filter, size_t input_height,
     size_t input_width, size_t input_channel, size_t filter_height,
     size_t filter_width, size_t output_height, size_t output_width,
@@ -91,26 +91,26 @@ void skl_depthwise_conv2d_hwc_f32_f32_f32_ref(
 
 Below is the format of RVV Kernel name:
 
-**`skl_depthwise_conv2d_v[dimensions]_f[number]x[number]_s[number]_d[number]_i[number]_[layout]_[data_type]_[architecture]`**
+**`skl_depthwise_conv2d_<specialization>_<input_data_type><input_layout>_<filter_data_type><filter_layout>_<output_data_type><output_layout>_<isa>`**
 
 where
-- `v` for vectorized dimensions. `[dimension]` should be a combination of `h` (height), `w` (width) and `c` (channel)
-- `f` for filter size. `[number]` should be an exact positive integer or `n` for any positive integer
-- `s` for strides
-- `d` for dilations
-- `i` for input channel size
-- `layout` for input/output data layout, `hwc` or `chw`
-- `data_type` for data type of tensors (input, filter, output) and separated by underscores
-- `architecture` for target architecture
+- `specialization` includes the contraints of filter size, strides, and dilations, expressed in f[number]x[number]s[number]d[number]i[number].
+If any of them is not specified, it indiates any positive integer.
+ - `f` for filter size. `[number]` should be an exact positive integer
+ - `s` for strides
+ - `d` for dilations
+ - `i` for input channel size
+- `layout`: `hwc` or `chw` for input/output data layout. `hwim` for filter data layout.
+- `data_type` for data type of tensors (input, filter, output).
+- `isa` for target architecture, e.g. `zve32x`.
 
 ### RVV Implementations (Int8)
-#### **`skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_i8_i8_i32_zve32x`**
+#### **`skl_depthwise_conv2d_i8hwc_i8hwim_i32hwc_zve32x`**
 - Generic RVV implementation
 - Data layout: Input (HWC), Filter (HWIM), Output (HWC)
-- Vectorize along the channel dimension
 
 ```c
-void skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_i8_i8_i32_zve32x(
+void skl_depthwise_conv2d_i8hwc_i8hwim_i32hwc_zve32x(
     int32_t *output, const int8_t *input, const int8_t *filter,
     size_t input_height, size_t input_width, size_t input_channel,
     size_t filter_height, size_t filter_width, size_t output_height,
@@ -122,14 +122,13 @@ void skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_i8_i8_i32_zve32x(
     int32_t input_zero_point);
 ```
 
-#### **`skl_depthwise_conv2d_vc_f3x3_sn_dn_m1_in_hwc_i8_i8_i32_zve32x`**
+#### **`skl_depthwise_conv2d_f3x3m1_i8hwc_i8hwim_i32hwc_zve32x`**
 - Specialized RVV implementation
 - Data layout: Input (HWC), Filter (HWIM), Output (HWC)
 - Optimized for 3x3 filters and `depth_multiplier` = 1
-- Vectorize along the channel dimension
 
 ```c
-void skl_depthwise_conv2d_vc_f3x3_sn_dn_m1_in_hwc_i8_i8_i32_zve32x(
+void skl_depthwise_conv2d_f3x3m1_i8hwc_i8hwim_i32hwc_zve32x(
     int32_t *output, const int8_t *input, const int8_t *filter,
     size_t input_height, size_t input_width, size_t input_channel,
     size_t output_height, size_t output_width, size_t output_channel,
@@ -141,12 +140,11 @@ void skl_depthwise_conv2d_vc_f3x3_sn_dn_m1_in_hwc_i8_i8_i32_zve32x(
 ```
 
 ### RVV Implementations (Float16)
-#### **`skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f16_f16_f16_zvfh`**
+#### **`skl_depthwise_conv2d_f16hwc_f16hwim_f16hwc_zvfh`**
 - Data layout: Input (HWC), Filter (HWIM), Output (HWC)
-- Vectorize along the channel dimension
 
 ```c
-void skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f16_f16_f16_zvfh(
+void skl_depthwise_conv2d_f16hwc_f16hwim_f16hwc_zvfh(
     _Float16 *output, const _Float16 *input, const _Float16 *filter,
     size_t input_height, size_t input_width, size_t input_channel,
     size_t filter_height, size_t filter_width, size_t output_height,
@@ -157,14 +155,13 @@ void skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f16_f16_f16_zvfh(
     size_t output_row_stride, size_t output_col_stride);
 ```
 
-#### **`skl_depthwise_conv2d_vc_f3x3_sn_dn_mn_in_hwc_f16_f16_f16_zvfh`**
+#### **`skl_depthwise_conv2d_f3x3_f16hwc_f16hwim_f16hwc_zvfh`**
 - Specialized RVV implementation
 - Data layout: Input (HWC), Filter (HWIM), Output (HWC)
 - Optimized for 3x3 filters
-- Vectorize along the channel dimension
 
 ```c
-void skl_depthwise_conv2d_vc_f3x3_sn_dn_mn_in_hwc_f16_f16_f16_zvfh(
+void skl_depthwise_conv2d_f3x3_f16hwc_f16hwim_f16hwc_zvfh(
     _Float16 *output, const _Float16 *input, const _Float16 *filter,
     size_t input_height, size_t input_width, size_t input_channel,
     size_t output_height, size_t output_width, size_t output_channel,
@@ -175,12 +172,11 @@ void skl_depthwise_conv2d_vc_f3x3_sn_dn_mn_in_hwc_f16_f16_f16_zvfh(
 ```
 
 ### RVV Implementations (Float32)
-#### **`skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f32_f32_f32_zve32f`**
+#### **`skl_depthwise_conv2d_f32hwc_f32hwim_f32hwc_zve32f`**
 - Data layout: Input (HWC), Filter (HWIM), Output (HWC)
-- Vectorize along the channel dimension
 
 ```c
-void skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f32_f32_f32_zve32f(
+void skl_depthwise_conv2d_f32hwc_f32hwim_f32hwc_zve32f(
     float *output, const float *input, const float *filter, size_t input_height,
     size_t input_width, size_t input_channel, size_t filter_height,
     size_t filter_width, size_t output_height, size_t output_width,
@@ -191,14 +187,13 @@ void skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f32_f32_f32_zve32f(
     size_t output_row_stride, size_t output_col_stride);
 ```
 
-#### **`skl_depthwise_conv2d_vc_f3x3_sn_dn_mn_in_hwc_f32_f32_f32_zve32f`**
+#### **`skl_depthwise_conv2d_f3x3_f32hwc_f32hwim_f32hwc_zve32f`**
 - Specialized RVV implementation
 - Data layout: Input (HWC), Filter (HWIM), Output (HWC)
 - Optimized for 3x3 filters
-- Vectorize along the channel dimension
 
 ```c
-void skl_depthwise_conv2d_vc_f3x3_sn_dn_mn_in_hwc_f32_f32_f32_zve32f(
+void skl_depthwise_conv2d_f3x3_f32hwc_f32hwim_f32hwc_zve32f(
     float *output, const float *input, const float *filter, size_t input_height,
     size_t input_width, size_t input_channel, size_t output_height,
     size_t output_width, size_t output_channel, size_t depth_multiplier,

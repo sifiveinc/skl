@@ -50,7 +50,7 @@ void depthwise_conv2d_i8_i8_i32_verify(skl_test_t *t) {
   int32_t *ref_output = h->ctx.ref_output;
 
   // Compute reference value
-  skl_depthwise_conv2d_hwc_i8_i8_i32_ref(
+  skl_depthwise_conv2d_i8hwc_i8hwim_i32hwc_ref(
       ref_output, input, filter, h->input_height, h->input_width,
       h->input_channel, h->filter_height, h->filter_width, h->output_height,
       h->output_width, h->output_channel, h->depth_multiplier, h->stride_height,
