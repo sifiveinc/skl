@@ -15,7 +15,7 @@ See the [list of packing kernels](#list-of-packing-kernels) for details.
 
 These functions specialize the general form:
 ```c
-void skl_pack_<datatypes>_<isa>(
+void skl_pack_<src type>_<dst_type>_<isa>(
   size_t m,           // Num. rows in input matrix
   size_t n,           // Num. columns in input matrix
   const <type>* src,  // Input matrix
@@ -66,7 +66,7 @@ Thus, the `<dst type>` term may further be broken down as `e<sew>[rc]p<m0>x<n0>[
 
 It is assumed by default that the ordering of elements within a block is fixed to be row-major.
 If instead the layout within a block is column-major, the inner-block-order term is `c`, and if it may be either, `rc` is used.
-Similarly, the ordering of blocks relative to each other is assumed to be block-row-major, but if it is either block-column-major or configurable, then either `c` or `rc` is inserted before the packing specifier `p`.
+Similarly, the ordering of blocks relative to each other is assumed to be block-row-major, but if it is either block-column-major or configurable, then either `c` or `rc` is inserted, respectively, before the packing specifier `p`.
 
 When one of the dimensions is `1`, there is technically no difference in memory ordering between row- and column-major; however, the order is still said to be "column-major" when the second dimension is `1`, as this corresponds to the canonical layout of a column vector, and better communicates the transposition implied by the layout.
 Use of `1` for either block dimension effectively creates a block with one side of arbitrary size, referred to as a _panel_.
@@ -76,6 +76,8 @@ Use of `1` for either block dimension effectively creates a block with one side 
 > The `skl_pack_e8_e8ptex1c_xsfmm` function is an exception, as it uses the matrix engine to accelerate transposition within blocks.
 
 ## Packing Layout Examples
+
+Several examples of packed layouts are shown below, with element types omitted.
 
 ### Example: p4x1c Block Layout (Block-Row-Major with Inner Transposition)
 ```
@@ -175,7 +177,7 @@ All of these kernels are required for correct operation of the corresponding GEM
 
 #### Xsfvqmaccqoq
 These kernels are required for use of the `sf.vqmacc.4x8x4` instruction.
-Because the of the small block size, significant specialization is required to achieve reasonable performance.
+Because of the small block size, significant specialization is required to achieve reasonable performance.
 - `skl_pack_e32_e32p4x4_zve32x`: Used for the C matrix.
 - `skl_unpack_e32p4x4_e32_zve32x`: Inverse of `skl_pack_e32_e32p4x4_zve32x`.
 - `skl_pack_e8_e8p4x8_zve32x`: Used for the A matrix.
