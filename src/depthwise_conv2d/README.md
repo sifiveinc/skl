@@ -104,6 +104,18 @@ If any of them is not specified, it indicates any positive integer.
 - `data_type` for data type of tensors (input, filter, output).
 - `isa` for target architecture, e.g. `zve32x`.
 
+Below is the description of filter layout:
+```
+Given M = depth multiplier, I = input channel size
+Here are the pairs of input and filter for channel-wise dot-product:
+
+Input channel index:  [0, 0, ..., 0]     [1, 1,     ..., 1]         [I - 1, I - 1,                 ..., I - 1]
+Filter channel index: [0, 1, ..., M - 1] [M, M + 1, ..., 2 * M - 1] [I * (M - 1), I * (M - 1) + 1, ..., I * M - 1]
+
+The pairs will be interated through the height and width of filter tensor.
+Following the order of nested loops, we express filter as `hwim` from the outmost loop to the innermost loop.
+```
+
 ### RVV Implementations (Int8)
 #### **`skl_depthwise_conv2d_i8hwc_i8hwim_i32hwc_zve32x`**
 - Generic RVV implementation
