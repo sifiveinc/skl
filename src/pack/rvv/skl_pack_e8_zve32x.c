@@ -37,6 +37,10 @@ SKL_FUNC_PRIVATE void skl_copy2d_e8_zve32x(size_t m, size_t n,
                                            const uint8_t *SKL_RESTRICT a,
                                            size_t rsa, uint8_t *SKL_RESTRICT b,
                                            size_t rsb) {
+  if (rsa == n && rsb == n) {
+    skl_copy_e8_zve32x(b, a, m * n);
+    return;
+  }
   for (size_t i = 0; i < m; ++i) {
     skl_copy_e8_zve32x(b + i * rsb, a + i * rsa, n);
   }
@@ -978,6 +982,39 @@ SKL_FUNC_PRIVATE void skl_pack_e8_e8prcbrc_zve32x(
         skl_pad_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), m0, cs0,
                           padding_value, n0 - n % n0);
       }
+    }
+    return;
+  }
+
+  if ((rs0 * m0 == rs1) && cs0 == 1) {
+    for (size_t jj1 = 0; jj1 < n1; ++jj1) {
+      const uint8_t *src_block = src + jj1 * n0;
+      uint8_t *dst_block = dst + jj1 * cs1;
+      size_t n_length = n0 < n - jj1 * n0 ? n0 : n - jj1 * n0;
+      skl_copy2d_e8_zve32x(m, n_length, src_block, rs, dst_block, rs0);
+      if (m % m0) {
+        // pad bottom
+        skl_pad_e8_zve32x(dst_block + m * rs0, n0, rs0, padding_value,
+                          m0 - m % m0);
+      }
+      // pad right: pad (n0 - n_length) elements in each of m rows
+      skl_pad_e8_zve32x(dst_block + n_length, n0 - n_length, rs0, padding_value,
+                        m);
+    }
+    return;
+  }
+
+  if (rs0 == 1 && n0 == 1 && m0 == rs1) {
+    skl_transpose_padded_m_e8_zve32x(m0 * m1, m, n, src, rs, dst, cs1,
+                                     padding_value);
+    return;
+  }
+
+  if (cs0 == 1 && m0 == 1 && n0 == cs1) {
+    skl_copy2d_e8_zve32x(m, n, src, rs, dst, rs1);
+    // pad right
+    if (n % n0) {
+      skl_pad_e8_zve32x(dst + n, n0 - n % n0, rs1, padding_value, m);
     }
     return;
   }
