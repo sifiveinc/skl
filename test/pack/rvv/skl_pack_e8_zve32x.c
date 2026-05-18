@@ -105,6 +105,34 @@ pack_e8_t tests[] = {
   {TEST, .m = 8, .n = 32, .m0 = 8, .n0 = 8, .rs = 32, .cs = 1,
    .rs0 = 1, .cs0 = 8, .rs1 = 256, .cs1 = 64},
 
+  /* Specialization 1: (cs0 * n0 == cs1) && rs0 == 1 */
+  {TEST, .m = 16, .n = 12, .m0 = 4, .n0 = 3, .rs = 12, .cs = 1,
+   .rs0 = 1, .cs0 = 4, .rs1 = 48, .cs1 = 12},
+  {TEST, .m = 10, .n = 8, .m0 = 4, .n0 = 3, .rs = 8, .cs = 1,
+   .rs0 = 1, .cs0 = 4, .rs1 = 36, .cs1 = 12},
+  {TEST, .m = 10, .n = 18, .m0 = 4, .n0 = 1, .rs = 18, .cs = 1,
+   .rs0 = 1, .cs0 = 4, .rs1 = 72, .cs1 = 4},
+
+  /* Specialization 2: (rs0 * m0 == rs1) && cs0 == 1 */
+  {TEST, .m = 12, .n = 16, .m0 = 4, .n0 = 8, .rs = 16, .cs = 1,
+   .rs0 = 8, .cs0 = 1, .rs1 = 32, .cs1 = 96},
+  {TEST, .m = 16, .n = 12, .m0 = 2, .n0 = 5, .rs = 12, .cs = 1,
+   .rs0 = 5, .cs0 = 1, .rs1 = 10, .cs1 = 80},
+  {TEST, .m = 10, .n = 8, .m0 = 4, .n0 = 8, .rs = 8, .cs = 1,
+   .rs0 = 8, .cs0 = 1, .rs1 = 32, .cs1 = 32},
+
+  /* Specialization 3: rs0 == 1 && n0 == 1 && m0 == rs1 - Column panel transpose */
+  {TEST, .m = 12, .n = 8, .m0 = 4, .n0 = 1, .rs = 8, .cs = 1,
+   .rs0 = 1, .cs0 = 4, .rs1 = 4, .cs1 = 12},
+  {TEST, .m = 20, .n = 16, .m0 = 8, .n0 = 1, .rs = 16, .cs = 1,
+   .rs0 = 1, .cs0 = 8, .rs1 = 8, .cs1 = 24},
+
+  /* Specialization 4: cs0 == 1 && m0 == 1 && n0 == cs1 - Row panel copy */
+  {TEST, .m = 8, .n = 12, .m0 = 1, .n0 = 4, .rs = 12, .cs = 1,
+   .rs0 = 4, .cs0 = 1, .rs1 = 12, .cs1 = 4},
+  {TEST, .m = 12, .n = 10, .m0 = 1, .n0 = 4, .rs = 10, .cs = 1,
+   .rs0 = 4, .cs0 = 1, .rs1 = 12, .cs1 = 4},
+
   /* Larger matrices */
   {TEST, .m = 64, .n = 64, .m0 = 8, .n0 = 8, .rs = 64, .cs = 1,
    .rs0 = 1, .cs0 = 8, .rs1 = 512, .cs1 = 64},
