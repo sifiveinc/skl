@@ -723,6 +723,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm3tn_3tm1tn_a1b01_i8c_i8_i32_xsfmm32a8i(
                        "v21", "v24", "v25", "v26", "v27", "v28", "v29", "vtype",
                        "vl", "memory");
   } else {
+    // NOLINTNEXTLINE(bugprone-branch-clone)
     if (tm0 == tn0) {
       __asm__ volatile(
           "sf.vsettnt x0, %[tn0], e8, w4\n"
@@ -1334,6 +1335,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm4tn_4tm1tn_a1b01_i8c_i8_i32_xsfmm32a8i(
           "v13", "v16", "v17", "v18", "v19", "v20", "v21", "vtype", "vl",
           "memory");
   } else {
+    // NOLINTNEXTLINE(bugprone-branch-clone)
     if (tm0 == tn0) {
       __asm__ volatile(
           "sf.vsettnt x0, %[tn0], e8, w4\n"
