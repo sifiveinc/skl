@@ -14,6 +14,9 @@ This script verifies that each relevant file contains the following header:
     SPDX-License-Identifier: MIT
 
 Usage:
+    # Check all git-tracked files
+    ./check_license_headers.py
+
     # Check specific files
     ./check_license_headers.py file1.c file2.h
 
@@ -78,16 +81,11 @@ def get_comment_style(filepath: Path) -> str:
     return ''
 
 
-def year_from_date(date: str) -> str:
-    """Extract the year from a date string in %cI format"""
-    return date.split(b'-')[0].decode('utf-8')
-
-
 def get_copyright_year(filepath: Path) -> str:
-    date_created = subprocess.check_output(['git', 'log', '--pretty=format:%cI', '--follow', filepath]).rsplit(b'\n', 1)[-1]
-    date_modified = subprocess.check_output(['git', 'log', '-1', '--pretty=format:%cI', filepath])
-    year_created = year_from_date(date_created)
-    year_modified = year_from_date(date_modified)
+    date_created = subprocess.check_output(['git', 'log', '--pretty=format:%cI', '--follow', filepath]).decode('utf-8').rsplit('\n', 1)[-1]
+    date_modified = subprocess.check_output(['git', 'log', '-1', '--pretty=format:%cI', filepath]).decode('utf-8')
+    year_created = date_created.split('-')[0]
+    year_modified = date_modified.split('-')[0]
 
     if year_created != year_modified:
         year_str = f"{year_created}-{year_modified}"
@@ -148,7 +146,7 @@ def main():
     parser.add_argument(
         'files',
         nargs='*',
-        help='Files to check'
+        help='Files to check. If none are provided, checks all git-tracked files.'
     )
     parser.add_argument(
         '-v', '--verbose',
@@ -163,7 +161,12 @@ def main():
     files_ok = []
     all_issues = []
 
-    files_to_check = [Path(f).resolve() for f in args.files]
+    if args.files:
+        files_to_check = [Path(f).resolve() for f in args.files]
+    else:
+        tracked_files = subprocess.check_output(['git', 'ls-files']).decode('utf-8').rstrip().split('\n')
+        files_to_check = [Path(f).resolve() for f in tracked_files]
+
     print(f"Checking {len(files_to_check)} specified file(s)")
     print("=" * 80)
 
