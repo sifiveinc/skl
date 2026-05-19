@@ -44,11 +44,11 @@ extern "C" {
  * a multiple of n0, the incomplete blocks are padded with the specified padding
  * value.
  */
-void skl_pack_e8rc_e8prcbrc_zve32x(size_t m, size_t n, const uint8_t *src,
-                                   size_t rs, size_t cs, size_t m0, size_t n0,
-                                   uint8_t *dst, size_t rs0, size_t cs0,
-                                   size_t rs1, size_t cs1,
-                                   uint8_t padding_value);
+void skl_pack_e8rc_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *src,
+                                  size_t rs, size_t cs, size_t m0, size_t n0,
+                                  uint8_t *dst, size_t rs0, size_t cs0,
+                                  size_t rs1, size_t cs1,
+                                  uint8_t padding_value);
 
 #if defined(__cplusplus)
 } // extern "C"

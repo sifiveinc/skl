@@ -90,9 +90,9 @@ void pack_e8_verify(skl_test_t *t) {
   uint8_t *ref_dst = h->ctx.ref_dst;
 
   // Compute reference value
-  skl_pack_e8rc_e8prcbrc_ref(h->m, h->n, h->src.data, h->rs, h->cs, h->m0,
-                             h->n0, ref_dst, h->rs0, h->cs0, h->rs1, h->cs1,
-                             h->padding_value);
+  skl_pack_e8rc_e8rcprc_ref(h->m, h->n, h->src.data, h->rs, h->cs, h->m0, h->n0,
+                            ref_dst, h->rs0, h->cs0, h->rs1, h->cs1,
+                            h->padding_value);
 
   // Verify result
   for (size_t i = 0; i < h->dst.len; ++i) {

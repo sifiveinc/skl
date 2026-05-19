@@ -41,7 +41,7 @@ extern "C" {
  * a multiple of n0, the incomplete blocks are padded with the specified padding
  * value.
  */
-void skl_pack_e8rc_e8prcbrc_ref(
+void skl_pack_e8rc_e8rcprc_ref(
     size_t m,             // Num. rows in input matrix
     size_t n,             // Num. columns in input matrix
     const uint8_t *src,   // Input matrix
