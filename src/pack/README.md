@@ -5,7 +5,10 @@ It includes a set of packing and, when relevant, unpacking functions for each GE
 
 These routines reorder the elements of a 2D, row-major matrix of size `m` x `n` into a blocked layout where blocks of size `m0` x `n0` are stored contiguously, and padded with zeros if necessary, for a total of `m1` x `n1` blocks, where `m1 = ceil(m/m0)` and `n1 = ceil(n/n0)`.
 Depending on the requirements of the target ISA or application, the elements within each block may also be transposed, and the blocks themselves may be stored in row- or column-major order.
+
 When a matrix is packed along only one dimension and no transposition is implied, then the "packing" operation consists entirely of _padding_ the matrix to a multiple of the block size.
+For an `m` x `n` row-major array to be packed into `m0` x `n` blocks, no data reordering is required.
+However, if the array is packed into `m` x `n0`, data reordering occurs whenever `n0` < `n`.
 
 Not all extensions require packing for all matrices, but kernels for such cases may nevertheless be provided, as some applications may require similar layouts across all matrices, or seek locality benefits from arranging data in the shape of the underlying multiplication operation, or one of its dimensions.
 The documentation for each kernel indicates whether it is required or optional.
