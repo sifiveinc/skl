@@ -106,11 +106,15 @@ If any of them is not specified, it indicates any positive integer.
 
 Below is the description of filter layout:
 ```
-Given M = depth multiplier, I = input channel size
-Here are the pairs of input and filter for channel-wise dot-product:
+Given M = depth multiplier > 1, I = input channel size
+In general, filter's channel size is equal to M * input's channel size.
 
-Input channel index:  [0, 0, ..., 0]     [1, 1,     ..., 1]         [I - 1, I - 1,                 ..., I - 1]
-Filter channel index: [0, 1, ..., M - 1] [M, M + 1, ..., 2 * M - 1] [I * (M - 1), I * (M - 1) + 1, ..., I * M - 1]
+Here are the pairs of input and filter for channel-wise dot-product, where input's elements will be repeated M times in each channel group.
+
+Input channel index:  [0, 0, ..., 0]     [1, 1,     ..., 1]         [(I - 1),     (I - 1),         ..., (I - 1)]
+Filter channel index: [0, 1, ..., M - 1] [M, M + 1, ..., 2 * M - 1] [(I - 1) * M, (I - 1) * M + 1, ..., I * M - 1]
+
+In the special case M = 1, filter's channel size is equal to input's channel size.
 
 The pairs will be iterated through the height and width of filter tensor for each output element.
 Following the order of nested loops, we express filter as `hwim` from the outmost loop to the innermost loop.
