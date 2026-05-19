@@ -111,7 +111,7 @@ def generate_license_pattern(filepath: Path) -> str:
     return ''.join(header_lines)
 
 
-def check_file_header(filepath: Path) -> Tuple[bool, List[str]]:
+def check_file_header(filepath: Path) -> List[str]:
     """
     Check if a file has the required copyright and license header.
 
@@ -137,7 +137,7 @@ def check_file_header(filepath: Path) -> Tuple[bool, List[str]]:
     except Exception as e:
         issues.append(f"Error reading file: {e}")
 
-    return (len(issues) == 0, issues)
+    return issues
 
 
 def main():
@@ -159,9 +159,7 @@ def main():
 
     repo_root = Path(__file__).parent.resolve()
 
-    files_checked = 0
     files_skipped = 0
-    files_with_issues = 0
     files_ok = []
     all_issues = []
 
@@ -189,21 +187,17 @@ def main():
             print(f"Skipping {filepath}")
             continue
 
-        files_checked += 1
+        issues = check_file_header(filepath)
 
-        has_valid_header, issues = check_file_header(filepath)
-
-        if has_valid_header:
-            files_ok.append(rel_path)
-        else:
-            files_with_issues += 1
+        if issues:
             all_issues.append((rel_path, issues))
+        else:
+            files_ok.append(rel_path)
 
     # Print results
-    print(f"\nFiles checked: {files_checked}")
     print(f"Files skipped: {files_skipped}")
     print(f"Files OK: {len(files_ok)}")
-    print(f"Files with issues: {files_with_issues}")
+    print(f"Files with issues: {len(all_issues)}")
 
     # Show verbose output if requested
     if args.verbose and files_ok:
@@ -225,12 +219,12 @@ def main():
 
     print("\n" + "=" * 80)
 
-    if files_with_issues == 0:
+    if all_issues:
+        print(f"✗ Found {len(all_issues)} file(s) with missing or incorrect headers.")
+        return 1
+    else:
         print("✓ All files have proper copyright and license headers!")
         return 0
-    else:
-        print(f"✗ Found {files_with_issues} file(s) with missing or incorrect headers.")
-        return 1
 
 
 if __name__ == '__main__':
