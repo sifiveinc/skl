@@ -340,7 +340,7 @@ void example_blocked_gemm(size_t m, size_t n, size_t k, const int8_t *a,
         size_t kt = min(k_tile, k - kk_tile);
 
         size_t k0 = 4;
-        size_t k1 = (k0 + 3) / 4;
+        size_t k1 = (kt + 3) / 4;
         uint8_t pad = 0; // Padding value
 
         // Pack and pad B tile:
