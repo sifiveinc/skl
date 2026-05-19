@@ -139,7 +139,7 @@ add_skl_src(src/transpose/xsfmm/transpose_e16_xsfmmbase.c "xsfmmbase")
 add_skl_src(src/transpose/xsfmm/transpose_e32_xsfmmbase.c "xsfmmbase")
 add_skl_src(src/transpose/xsfmm/transpose_e8_xsfmmbase.c "xsfmmbase")
 
-# Optionally build library tests and examples
+# Optionally build library tests
 
 if(NOT DEFINED SKL_TESTER)
   set(SKL_TESTER "qemu-riscv64")
@@ -158,7 +158,6 @@ message(STATUS "SKL_ENABLE_BENCHMARKS: ${SKL_ENABLE_BENCHMARKS}")
 
 if(SKL_ENABLE_TESTS OR SKL_ENABLE_BENCHMARKS)
   enable_testing()
-  add_subdirectory(example)
   add_subdirectory(test)
 endif()
 

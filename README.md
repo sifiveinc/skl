@@ -133,11 +133,6 @@ extern "C" {
 
 **Note**: This usage model is experimental and may require additional integration work.
 
-## Examples
-
-In addition to the testsuite described below, SKL provides a set of example programs in the `example` directory that demonstrate how to combine multiple SKL kernels to implement more complex operations.
-See the Examples [README.md](./example/README.md) for details.
-
 ## Testing and Benchmarking
 
 SKL provides a set of test programs for each family of kernels that can be used to test their operation and performance.
