@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: MIT
 
 #if !defined(__riscv_zve32x)
-#error This source file requires compiler support for the RISC-V Zve32x extension.
+#error This file requires the Zve32x extension
 #endif
 
 #include <riscv_vector.h>
@@ -23,7 +23,8 @@ SKL_FUNC_PRIVATE void skl_set_e8_zve32x(uint8_t *dst, uint8_t value, size_t n) {
   }
 }
 
-SKL_FUNC_PRIVATE void skl_copy_e8_zve32x(uint8_t *dst, const uint8_t *src,
+SKL_FUNC_PRIVATE void skl_copy_e8_zve32x(uint8_t *SKL_RESTRICT dst,
+                                         const uint8_t *SKL_RESTRICT src,
                                          size_t n) {
   size_t vl = 0;
   for (size_t i = 0; i < n; i += vl) {
@@ -932,20 +933,11 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
   }
 }
 
-SKL_FUNC_PRIVATE void skl_pack_e8_e8rcprc_zve32x(
-    size_t m,             // Num. rows in input matrix
-    size_t n,             // Num. columns in input matrix
-    const uint8_t *src,   // Input matrix
-    size_t rs,            // Row stride of input matrix
-    size_t m0,            // Num. rows in a block of the input matrix
-    size_t n0,            // Num. columns in a block of the input matrix
-    uint8_t *dst,         // Output packed matrix [m1 x n1]
-    size_t rs0,           // Row stride within a block of the output matrix
-    size_t cs0,           // Column stride within a block of the output matrix
-    size_t rs1,           // Row stride between blocks of the output matrix
-    size_t cs1,           // Column stride between blocks of the output matrix
-    uint8_t padding_value // Value to use for padding
-) {
+SKL_FUNC_PRIVATE void
+skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
+                           size_t rs, size_t m0, size_t n0,
+                           uint8_t *SKL_RESTRICT dst, size_t rs0, size_t cs0,
+                           size_t rs1, size_t cs1, uint8_t padding_value) {
 
   // Handle division by zero
   if (m0 == 0 || n0 == 0) {
@@ -1043,21 +1035,12 @@ SKL_FUNC_PRIVATE void skl_pack_e8_e8rcprc_zve32x(
   }
 }
 
-SKL_FUNC void skl_pack_e8rc_e8rcprc_zve32x(
-    size_t m,             // Num. rows in input matrix
-    size_t n,             // Num. columns in input matrix
-    const uint8_t *src,   // Input matrix
-    size_t rs,            // Row stride of input matrix
-    size_t cs,            // Column stride of input matrix
-    size_t m0,            // Num. rows in a block of the input matrix
-    size_t n0,            // Num. columns in a block of the input matrix
-    uint8_t *dst,         // Output packed matrix [m1 x n1]
-    size_t rs0,           // Row stride within a block of the output matrix
-    size_t cs0,           // Column stride within a block of the output matrix
-    size_t rs1,           // Row stride between blocks of the output matrix
-    size_t cs1,           // Column stride between blocks of the output matrix
-    uint8_t padding_value // Value to use for padding
-) {
+SKL_FUNC void skl_pack_e8rc_e8rcprc_zve32x(size_t m, size_t n,
+                                           const uint8_t *SKL_RESTRICT src,
+                                           size_t rs, size_t cs, size_t m0,
+                                           size_t n0, uint8_t *SKL_RESTRICT dst,
+                                           size_t rs0, size_t cs0, size_t rs1,
+                                           size_t cs1, uint8_t padding_value) {
 
   if (cs == 1) {
     skl_pack_e8_e8rcprc_zve32x(m, n, src, rs, m0, n0, dst, rs0, cs0, rs1, cs1,
