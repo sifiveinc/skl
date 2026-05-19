@@ -10,8 +10,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifndef __riscv_zve32x
-#error "This file requires the Zve32x extension."
+#if !defined(__riscv_zve32x)
+#error This file requires the Zve32x extension
 #endif
 
 /**

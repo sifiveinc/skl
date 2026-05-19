@@ -6,10 +6,10 @@
 #pragma once
 
 #if !defined(__riscv_zve32x)
-#error This source file requires compiler support for the RISC-V Zve32x extension.
+#error This file requires the Zve32x extension
 #endif
 
-#include <stdbool.h>
+#include "skl-common.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -43,11 +43,14 @@ extern "C" {
  * Each block has dimensions m0 × n0. If m is not a multiple of m0 or n is not
  * a multiple of n0, the incomplete blocks are padded with the specified padding
  * value.
+ *
+ * @note Input and output matrices must not overlap.
  */
-void skl_pack_e8rc_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *src,
-                                  size_t rs, size_t cs, size_t m0, size_t n0,
-                                  uint8_t *dst, size_t rs0, size_t cs0,
-                                  size_t rs1, size_t cs1,
+void skl_pack_e8rc_e8rcprc_zve32x(size_t m, size_t n,
+                                  const uint8_t *SKL_RESTRICT src, size_t rs,
+                                  size_t cs, size_t m0, size_t n0,
+                                  uint8_t *SKL_RESTRICT dst, size_t rs0,
+                                  size_t cs0, size_t rs1, size_t cs1,
                                   uint8_t padding_value);
 
 #if defined(__cplusplus)
