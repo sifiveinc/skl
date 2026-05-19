@@ -79,9 +79,12 @@ def get_comment_style(filepath: Path) -> str:
     return ''
 
 
-def get_copyright_year(filepath: Path) -> str:
-    year_from_date = lambda date: date.split(b'-')[0].decode('utf-8')
+def year_from_date(date: str) -> str:
+    """Extract the year from a date string in %cI format"""
+    return date.split(b'-')[0].decode('utf-8')
 
+
+def get_copyright_year(filepath: Path) -> str:
     date_created = subprocess.check_output(['git', 'log', '--pretty=format:%cI', '--follow', filepath]).rsplit(b'\n', 1)[-1]
     date_modified = subprocess.check_output(['git', 'log', '-1', '--pretty=format:%cI', filepath])
     year_created = year_from_date(date_created)
