@@ -102,10 +102,10 @@ def generate_license_pattern(filepath: Path) -> str:
     comment_prefix = get_comment_style(filepath)
     year_str = get_copyright_year(filepath)
     header_lines = [
-        rf"{comment_prefix} Copyright \(c\) {year_str} SiFive, Inc\. All rights reserved\.(\r)?\n",
-        rf"{comment_prefix} Licensed under the MIT License\.(\r)?\n",
-        rf"{comment_prefix} See LICENSE file in the project root for full license information\.(\r)?\n",
-        rf"{comment_prefix} SPDX-License-Identifier: MIT(\r)?\n",
+        f"{comment_prefix} Copyright (c) {year_str} SiFive, Inc. All rights reserved.\n",
+        f"{comment_prefix} Licensed under the MIT License.\n",
+        f"{comment_prefix} See LICENSE file in the project root for full license information.\n",
+        f"{comment_prefix} SPDX-License-Identifier: MIT\n",
         ""
     ]
     return ''.join(header_lines)
@@ -131,8 +131,8 @@ def check_file_header(filepath: Path) -> List[str]:
             header_text = ''.join(header_lines)
 
             license_pattern = generate_license_pattern(filepath)
-            if not re.search(license_pattern, header_text):
-                issues.append("Missing or incorrect header. Should be: " + license_pattern)
+            if not license_pattern in header_text:
+                issues.append("Missing or incorrect header. Should be:\n" + license_pattern)
 
     except Exception as e:
         issues.append(f"Error reading file: {e}")
