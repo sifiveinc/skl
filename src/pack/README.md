@@ -73,7 +73,7 @@ Use of `1` for either block dimension effectively creates a block with one side 
 
 > **Note**: As in other kernel families, the ISA suffix indicates the minimum requirement to execute the packing kernel itself (normally `zve32x`), but its primary intended use may be for a particular matrix extension. This is indicated in the documentation for each kernel (packing and GEMM).
 >
-> The `skl_pack_e8_e8ptex1c_xsfmm` function is an exception, as it uses the matrix engine to accelerate transposition within blocks.
+> The `skl_pack_e8_e8ptex1c_xsfmmbase` function is an exception, as it uses the matrix engine to accelerate transposition within blocks.
 
 ## Packing Layout Examples
 
@@ -186,7 +186,7 @@ Because of the small block size, significant specialization is required to achie
 ### Optional Packing Kernels
 None of these are strictly required for correct operation of the corresponding GEMM kernels, but they may be useful for performance or compatibility reasons.
 (For Xsfmm, it is never required to pack any matrix; only [transposition](../transpose/README.md) is required if the A matrix is in row-major format, or B is in column-major format.)
-- `skl_pack_e8_e8ptex1c_xsfmm`: Transpose (TE x K) panels using the matrix engine. Used on a row-major A matrix or column-major B matrix.
+- `skl_pack_e8_e8ptex1c_xsfmmbase`: Transpose (TE x K) panels using the matrix engine. Used on a row-major A matrix or column-major B matrix.
 
 ### Packing Kernels That Do Not Exist
 These names refer to kernels that users might expect to exist, but do not, because they can be implemented with an appropriate block size in the generic RVV packing kernel at reasonable performance.

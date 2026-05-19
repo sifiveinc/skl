@@ -202,12 +202,13 @@ Ideally, if the original `k` was a multiple of 4 or the A matrix was already pad
 
 The packed kernel could be depicted as implemented by the following wrapper for the general packed GEMM API:
 ```c
-void skl_gemm_a1b01_i8p1x4_i8p4x1c_i32_xsfvqdotq(
+void skl_gemm_a1b01_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
   size_t m,             // Num. rows in A and C
   size_t n,             // Num. columns in B and C
   size_t k1,            // Num. 1x4 k blocks in A and 4x1 blocks in B
   const int8_t* a_pack, // Padded  matrix A [m x ceil(k/4) x 4].
-  size_t rsa,           // Row stride of A
+  size_t rsa1,           // Row stride between blocks of A
+  size_t csa1,           // Column stride between blocks of A
   const int8_t* b_pack, // Packed matrix B [ceil(k/4) x n x (4 x 1)]
   size_t rsb1,          // Row stride between blocks of B
   int32_t* c,           // Output matrix C [m x n]
@@ -217,7 +218,7 @@ void skl_gemm_a1b01_i8p1x4_i8p4x1c_i32_xsfvqdotq(
   skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
     1, 1, 4, m, n, k1,      // m0, n0, k0, m1, n1, k1
     1,                      // alpha
-    a_pack, 0, 1, rsa, 4,   // a_pack, rsa0, csa0, rsa1, csa1
+    a_pack, 0, 1, rsa1, csa1,   // a_pack, rsa0, csa0, rsa1, csa1
     b_pack, 1, 0, rsb1, 4,  // b_pack, rsb0, csb0, rsb1, csb1
     accum ? 1 : 0,          // beta
     c, 0, 0, rsc, 1         // c_pack, rsc0, csc0, rsc1, csc1
@@ -334,8 +335,8 @@ void example_blocked_gemm(size_t m, size_t n, size_t k, const int8_t *a,
         size_t k0 = min(k_tile, k - kk_tile);
         // Pack and compute tile
         skl_pack_b_i8_xsfvqdotq(k0, n0, b + kk_tile * rsb + jj_tile, rsb, b_pack, 4 * n0);
-        skl_gemm_a1b01_i8p1x4_i8p4x1c_i32_xsfvqdotq(
-            m0, n0, (k0 + 3) / 4, a + ii_tile * rsa + kk_tile, rsa, b_pack,
+        skl_gemm_a1b01_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
+            m0, n0, (k0 + 3) / 4, a + ii_tile * rsa + kk_tile, rsa, 4, b_pack,
             4 * n0, c + ii_tile * rsc + jj_tile, rsc, kk_tile > 0 /* accum */);
       }
     }
