@@ -25,13 +25,12 @@ Exit codes:
     1 - One or more files are missing headers
 """
 
-import os
 import sys
 import re
 import argparse
 import subprocess
 from pathlib import Path
-from typing import List, Tuple, Set
+from typing import List, Tuple
 
 # Comment styles for different file types
 # The script defaults to '' for types not listed here
