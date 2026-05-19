@@ -73,9 +73,10 @@ def should_check_file(filepath: Path, repo_root: Path) -> bool:
 
 def get_comment_style(filepath: Path) -> str:
     """Get the comment style for a file."""
-    if filepath.name == 'CMakeLists.txt':
-        return FILE_TYPES[filepath.name]
-    return FILE_TYPES.get(filepath.suffix, '')
+    for suffix in FILE_TYPES:
+        if str(filepath).endswith(suffix):
+            return FILE_TYPES[suffix]
+    return ''
 
 
 def get_copyright_year(filepath: Path) -> str:
