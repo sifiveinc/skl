@@ -316,7 +316,12 @@ const size_t m_tile = 256; // Application-chosen tile sizes
 const size_t n_tile = 128;
 const size_t k_tile = 128;
 
-static int8_t b_pack[k_tile * n_tile]; // Workspace for packed B
+// Need to ensure A-matrix is at least 4-byte aligned,
+// so just used 64-byte alignment for both.
+#define ALIGN _Alignas(64)
+
+ALIGN static int8_t b_tile[k_tile * n_tile];  // Workspace for packed B
+ALIGN static int8_t a_tile[k_tile * m_tile];  // Workspace for padded A
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -328,16 +333,42 @@ void example_blocked_gemm(size_t m, size_t n, size_t k, const int8_t *a,
                           size_t rsa, const int8_t *b, size_t rsb, int32_t *c,
                           size_t rsc) {
   for (size_t ii_tile = 0; ii_tile < m; ii_tile += m_tile) {
-    size_t m0 = min(m_tile, m - ii_tile);
+    size_t mt = min(m_tile, m - ii_tile);
     for (size_t jj_tile = 0; jj_tile < n; jj_tile += n_tile) {
-      size_t n0 = min(n_tile, n - jj_tile);
+      size_t nt = min(n_tile, n - jj_tile);
       for (size_t kk_tile = 0; kk_tile < k; kk_tile += k_tile) {
-        size_t k0 = min(k_tile, k - kk_tile);
-        // Pack and compute tile
-        skl_pack_b_i8_xsfvqdotq(k0, n0, b + kk_tile * rsb + jj_tile, rsb, b_pack, 4 * n0);
+        size_t kt = min(k_tile, k - kk_tile);
+
+        size_t k0 = 4;
+        size_t k1 = (k0 + 3) / 4;
+        uint8_t pad = 0; // Padding value
+
+        // Pack and pad B tile:
+        // Pack into [k1 x nt] x [ 4 x  1] col-major, block-row-major layout
+        //        =  [k1 x n1] x [k0 x n0]
+        size_t rsb1 = 4 * nt;
+        size_t csb1 = 4;
+        // Use specialized packing function for Xsfvqdot ISA
+        skl_pack_e8_e8rcp4x1c_zve32x(kt, nt, b + kk_tile * rsb + jj_tile, rsb,
+                                     b_tile, rsb_1, pad);
+
+        // Pad A tile to ensure k0 * k1 width (multiple of 4):
+        // "Pack" into [mt x k1] x [ 1 x  4] block-row-major layout
+        //           = [m1 x k1] x [m0 x k0]
+        size_t m0 = 1;
+        size_t rsa0 = 0; // Unused: only one row in block
+        size_t csa0 = 1;
+        size_t rsa1 = k0 * k1;
+        size_t csa1 = k0;
+        // Use generic "packing" function to tile/pad A
+        skl_pack_e8_e8rcprc_zve32x(mt, kt, a + ii_tile * rsa + kk_tile, rsa, 1,
+                                   m0, k0, a_tile, rsa0, csa0, rsa1, csa1, pad);
+
+        // Multiply A and B tiles, accumulate into un-tiled C
         skl_gemm_a1b01_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
-            m0, n0, (k0 + 3) / 4, a + ii_tile * rsa + kk_tile, rsa, 4, b_pack,
-            4 * n0, c + ii_tile * rsc + jj_tile, rsc, kk_tile > 0 /* accum */);
+            mt, nt, k1, a_tile, rsa1, csa1, b_tile,
+            rsb1, csb1, c + ii_tile * rsc + jj_tile, rsc,
+            kk_tile > 0 /* accum */);
       }
     }
   }
