@@ -947,7 +947,7 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
   }
 }
 
-SKL_FUNC_PRIVATE void skl_pack_e8_e8prcbrc_zve32x(
+SKL_FUNC_PRIVATE void skl_pack_e8_e8rcprc_zve32x(
     size_t m,             // Num. rows in input matrix
     size_t n,             // Num. columns in input matrix
     const uint8_t *src,   // Input matrix
@@ -1058,7 +1058,7 @@ SKL_FUNC_PRIVATE void skl_pack_e8_e8prcbrc_zve32x(
   }
 }
 
-SKL_FUNC void skl_pack_e8rc_e8prcbrc_zve32x(
+SKL_FUNC void skl_pack_e8rc_e8rcprc_zve32x(
     size_t m,             // Num. rows in input matrix
     size_t n,             // Num. columns in input matrix
     const uint8_t *src,   // Input matrix
@@ -1075,12 +1075,12 @@ SKL_FUNC void skl_pack_e8rc_e8prcbrc_zve32x(
 ) {
 
   if (cs == 1) {
-    skl_pack_e8_e8prcbrc_zve32x(m, n, src, rs, m0, n0, dst, rs0, cs0, rs1, cs1,
-                                padding_value);
+    skl_pack_e8_e8rcprc_zve32x(m, n, src, rs, m0, n0, dst, rs0, cs0, rs1, cs1,
+                               padding_value);
   } else if (rs == 1) {
     // When input is column-major (rs==1), transpose both dimensions and strides
-    skl_pack_e8_e8prcbrc_zve32x(n, m, src, cs, n0, m0, dst, cs0, rs0, cs1, rs1,
-                                padding_value);
+    skl_pack_e8_e8rcprc_zve32x(n, m, src, cs, n0, m0, dst, cs0, rs0, cs1, rs1,
+                               padding_value);
   } else {
     size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the input matrix
     size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the input matrix
