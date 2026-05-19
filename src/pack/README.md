@@ -30,7 +30,8 @@ void skl_pack_<src type>_<dst_type>_<isa>(
   size_t rs0,         // Row stride within a block of the output matrix
   size_t cs0,         // Column stride within a block of the output matrix
   size_t rs1,         // Row stride between blocks of the output matrix
-  size_t cs1          // Column stride between blocks of the output matrix
+  size_t cs1,         // Column stride between blocks of the output matrix
+  <dst type> pad      // Value to insert for padded elements (usually 0)
 ) {
   size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the input matrix
   size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the input matrix
@@ -44,7 +45,7 @@ void skl_pack_<src type>_<dst_type>_<isa>(
             dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0 * cs];
           } else {
             // Pad with zeros
-            dst_block[ii0 * rs0 + jj0 * cs0] = 0;
+            dst_block[ii0 * rs0 + jj0 * cs0] = pad;
           }
         }
       }
@@ -176,7 +177,7 @@ It is for illustrative purposes only.
 All of these kernels are required for correct operation of the corresponding GEMM kernels.
 
 #### Xsfvqdotq
-- `skl_pack_e8_e8p4x1c_zve32x`: Pack the B matrix into 4x1 panels (4x1 block-row-major example above) to use `sf.vqdot.vx` without reduction summation.
+- `skl_pack_e8_e8rcp4x1c_zve32x`: Pack the B matrix into 4x1 panels (4x1 block-row-major example above) to use `sf.vqdot.vx` without reduction summation.
 
 #### Xsfvqmaccqoq
 These kernels are required for use of the `sf.vqmacc.4x8x4` instruction.
