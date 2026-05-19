@@ -8,7 +8,7 @@
 
 #include "skl-common.h"
 
-SKL_FUNC void skl_depthwise_conv2d_hwc_i8_i8_i32_ref(
+SKL_FUNC void skl_depthwise_conv2d_i8hwc_i8hwim_i32hwc_ref(
     int32_t *output, const int8_t *input, const int8_t *filter,
     size_t input_height, size_t input_width, size_t input_channel,
     size_t filter_height, size_t filter_width, size_t output_height,

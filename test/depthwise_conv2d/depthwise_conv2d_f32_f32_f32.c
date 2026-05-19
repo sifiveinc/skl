@@ -85,7 +85,7 @@ void depthwise_conv2d_f32_f32_f32_verify(skl_test_t *t) {
 
   // Compute bound = roundoff_scaling * (|input| ⊗ |filter|)
   // where ⊗ denotes depthwise convolution
-  skl_depthwise_conv2d_hwc_f64_f64_f64_ref(
+  skl_depthwise_conv2d_f64hwc_f64hwim_f64hwc_ref(
       h->ctx.bound, h->ctx.input_abs, h->ctx.filter_abs, h->input_height,
       h->input_width, h->input_channel, h->filter_height, h->filter_width,
       h->output_height, h->output_width, h->output_channel, h->depth_multiplier,
@@ -100,7 +100,7 @@ void depthwise_conv2d_f32_f32_f32_verify(skl_test_t *t) {
   }
 
   // Compute the reference result
-  skl_depthwise_conv2d_hwc_f32_f32_f32_ref(
+  skl_depthwise_conv2d_f32hwc_f32hwim_f32hwc_ref(
       h->ctx.ref_output, h->input.data, h->filter.data, h->input_height,
       h->input_width, h->input_channel, h->filter_height, h->filter_width,
       h->output_height, h->output_width, h->output_channel, h->depth_multiplier,

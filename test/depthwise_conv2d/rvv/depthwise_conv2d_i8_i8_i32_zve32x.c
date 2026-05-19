@@ -223,7 +223,7 @@ static void execute(skl_test_t *t) {
 
   if (h->use_specialization && h->filter_height == 3 && h->filter_width == 3 &&
       h->depth_multiplier == 1) {
-    skl_depthwise_conv2d_vc_f3x3_sn_dn_m1_in_hwc_i8_i8_i32_zve32x(
+    skl_depthwise_conv2d_f3x3m1_i8hwc_i8hwim_i32hwc_zve32x(
         output, input, filter, h->input_height, h->input_width,
         h->input_channel, h->output_height, h->output_width, h->output_channel,
         h->stride_height, h->stride_width, h->dilation_height_factor,
@@ -231,7 +231,7 @@ static void execute(skl_test_t *t) {
         h->filter_row_stride, h->filter_col_stride, h->output_row_stride,
         h->output_col_stride, h->input_zero_point);
   } else {
-    skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_i8_i8_i32_zve32x(
+    skl_depthwise_conv2d_i8hwc_i8hwim_i32hwc_zve32x(
         output, input, filter, h->input_height, h->input_width,
         h->input_channel, h->filter_height, h->filter_width, h->output_height,
         h->output_width, h->output_channel, h->depth_multiplier,
