@@ -3,7 +3,7 @@
 This family of kernels implements the pack and unpack operations for matrices used in the [packed GEMM kernels](../gemm/packed-gemm.md).
 It includes a set of packing and, when relevant, unpacking functions for each GEMM-related ISA extension.
 
-These routines reorder the elements of a 2D, row-major matrix of size `m` x `n` into a blocked layout where blocks of size `m0` x `n0` are stored contiguously, and padded with zeros if necessary, for a total of `m1` x `n1` blocks, where `m1 = ceil(m/m0)` and `n1 = ceil(n/n0)`.
+These routines reorder the elements of a 2D, row-major matrix of size `m` x `n` into a blocked layout where blocks of size `m0` x `n0` are stored contiguously, and padded if necessary, for a total of `m1` x `n1` blocks, where `m1 = ceil(m/m0)` and `n1 = ceil(n/n0)`.
 Depending on the requirements of the target ISA or application, the elements within each block may also be transposed, and the blocks themselves may be stored in row- or column-major order.
 
 When a matrix is packed along only one dimension and no transposition is implied, then the "packing" operation consists entirely of _padding_ the matrix to a multiple of the block size.
