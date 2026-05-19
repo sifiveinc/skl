@@ -47,56 +47,6 @@ SKL_FUNC_PRIVATE void skl_copy2d_e8_zve32x(size_t m, size_t n,
 }
 
 /* Transposes an M x N row-major matrix (pointed by `a`) to an N x M row-major
- * matrix (pointed by `at`) using strided segment-8 loads and unit-strided
- * stores. Vectorization is performed along the M dimension, and N is expected
- * to be a multiple of 8.
- */
-SKL_FUNC_PRIVATE void
-skl_transpose_mvec_x8_e8_zve32x(size_t m, size_t n,
-                                const uint8_t *SKL_RESTRICT a, size_t rsa,
-                                uint8_t *SKL_RESTRICT at, size_t rsat) {
-
-  const ptrdiff_t input_seg_bstride = (ptrdiff_t)(rsa * sizeof(uint8_t));
-
-  size_t vl = 0;
-  for (size_t ii = 0; ii + 7 < n; ii += 8) {
-    // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
-    vuint8m1x8_t vcols = __riscv_vundefined_u8m1x8();
-    // NOLINTEND(clang-analyzer-deadcode.DeadStores)
-
-    const uint8_t *in_tile = a + ii;
-    uint8_t *out_tile = at + ii * rsat;
-    for (size_t jj = 0; jj < m; jj += vl) {
-      vl = __riscv_vsetvl_e8m1(m - jj);
-
-      vcols = __riscv_vlsseg8e8_v_u8m1x8(in_tile, input_seg_bstride, vl);
-
-      uint8_t *write_ptr = out_tile;
-      const size_t output_seg_stride = rsat;
-      // store each segment continuously along m
-      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 0), vl);
-      write_ptr += output_seg_stride;
-      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 1), vl);
-      write_ptr += output_seg_stride;
-      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 2), vl);
-      write_ptr += output_seg_stride;
-      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 3), vl);
-      write_ptr += output_seg_stride;
-      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 4), vl);
-      write_ptr += output_seg_stride;
-      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 5), vl);
-      write_ptr += output_seg_stride;
-      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 6), vl);
-      write_ptr += output_seg_stride;
-      __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 7), vl);
-
-      in_tile += vl * rsa;
-      out_tile += vl;
-    }
-  }
-}
-
-/* Transposes an M x N row-major matrix (pointed by `a`) to an N x M row-major
  * matrix (pointed by `at`) with vectorization along the M dimension.
  */
 SKL_FUNC_PRIVATE void
@@ -104,12 +54,58 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
                              size_t rsa, uint8_t *SKL_RESTRICT at,
                              size_t rsat) {
 
-  skl_transpose_mvec_x8_e8_zve32x(m, n / 8 * 8, a, rsa, at, rsat);
-
-  const uint8_t *in_tile = a + (n / 8) * 8;
-  uint8_t *out_tile = at + (n / 8) * 8 * rsat;
-  const ptrdiff_t input_seg_bstride = (ptrdiff_t)(rsa * sizeof(uint8_t));
   size_t vl = 0;
+  size_t n_multiple_8 = n / 8 * 8;
+  const ptrdiff_t input_seg_bstride = (ptrdiff_t)(rsa * sizeof(uint8_t));
+
+  if (n_multiple_8) {
+    for (size_t ii = 0; ii + 7 < n_multiple_8; ii += 8) {
+      // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
+      vuint8m1x8_t vcols = __riscv_vundefined_u8m1x8();
+      // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+
+      const uint8_t *in_tile = a + ii;
+      uint8_t *out_tile = at + ii * rsat;
+      for (size_t jj = 0; jj < m; jj += vl) {
+        vl = __riscv_vsetvl_e8m1(m - jj);
+
+        vcols = __riscv_vlsseg8e8_v_u8m1x8(in_tile, input_seg_bstride, vl);
+
+        uint8_t *write_ptr = out_tile;
+        const size_t output_seg_stride = rsat;
+        // store each segment continuously along m
+        __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 0),
+                            vl);
+        write_ptr += output_seg_stride;
+        __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 1),
+                            vl);
+        write_ptr += output_seg_stride;
+        __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 2),
+                            vl);
+        write_ptr += output_seg_stride;
+        __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 3),
+                            vl);
+        write_ptr += output_seg_stride;
+        __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 4),
+                            vl);
+        write_ptr += output_seg_stride;
+        __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 5),
+                            vl);
+        write_ptr += output_seg_stride;
+        __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 6),
+                            vl);
+        write_ptr += output_seg_stride;
+        __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 7),
+                            vl);
+
+        in_tile += vl * rsa;
+        out_tile += vl;
+      }
+    }
+  }
+
+  const uint8_t *in_tile = a + n_multiple_8;
+  uint8_t *out_tile = at + n_multiple_8 * rsat;
 
   switch (n % 8) {
   case 1: {
@@ -295,59 +291,6 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
 }
 
 /* Transposes an M x N row-major matrix (pointed by `a`) to an N x M row-major
- * matrix (pointed by `at`) using unit-strided loads and strided segment-8
- * stores. Vectorization is performed along the N dimension, and M is expected
- * to be a multiple of 8.
- */
-SKL_FUNC_PRIVATE void
-skl_transpose_nvec_x8_e8_zve32x(size_t m, size_t n,
-                                const uint8_t *SKL_RESTRICT a, size_t rsa,
-                                uint8_t *SKL_RESTRICT at, size_t rsat) {
-  size_t vl = 0;
-  const ptrdiff_t output_seg_bstride = (ptrdiff_t)(rsat * sizeof(uint8_t));
-
-  // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
-  vuint8m1_t vrow0 = __riscv_vundefined_u8m1();
-  vuint8m1_t vrow1 = __riscv_vundefined_u8m1();
-  vuint8m1_t vrow2 = __riscv_vundefined_u8m1();
-  vuint8m1_t vrow3 = __riscv_vundefined_u8m1();
-  vuint8m1_t vrow4 = __riscv_vundefined_u8m1();
-  vuint8m1_t vrow5 = __riscv_vundefined_u8m1();
-  vuint8m1_t vrow6 = __riscv_vundefined_u8m1();
-  vuint8m1_t vrow7 = __riscv_vundefined_u8m1();
-  // NOLINTEND(clang-analyzer-deadcode.DeadStores)
-
-  for (size_t ii = 0; ii + 7 < m; ii += 8) {
-    for (size_t jj = 0; jj < n; jj += vl) {
-      const uint8_t *read_ptr = a + ii * rsa + jj;
-      vl = __riscv_vsetvl_e8m1(n - jj);
-
-      vrow0 = __riscv_vle8_v_u8m1(read_ptr, vl);
-      read_ptr += rsa;
-      vrow1 = __riscv_vle8_v_u8m1(read_ptr, vl);
-      read_ptr += rsa;
-      vrow2 = __riscv_vle8_v_u8m1(read_ptr, vl);
-      read_ptr += rsa;
-      vrow3 = __riscv_vle8_v_u8m1(read_ptr, vl);
-      read_ptr += rsa;
-      vrow4 = __riscv_vle8_v_u8m1(read_ptr, vl);
-      read_ptr += rsa;
-      vrow5 = __riscv_vle8_v_u8m1(read_ptr, vl);
-      read_ptr += rsa;
-      vrow6 = __riscv_vle8_v_u8m1(read_ptr, vl);
-      read_ptr += rsa;
-      vrow7 = __riscv_vle8_v_u8m1(read_ptr, vl);
-
-      vuint8m1x8_t vrows = __riscv_vcreate_v_u8m1x8(vrow0, vrow1, vrow2, vrow3,
-                                                    vrow4, vrow5, vrow6, vrow7);
-
-      __riscv_vssseg8e8_v_u8m1x8(at + (jj * rsat) + ii, output_seg_bstride,
-                                 vrows, vl);
-    }
-  }
-}
-
-/* Transposes an M x N row-major matrix (pointed by `a`) to an N x M row-major
  * matrix (pointed by `at`) with vectorization along the N dimension.
  */
 SKL_FUNC_PRIVATE void
@@ -355,12 +298,54 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
                              size_t rsa, uint8_t *SKL_RESTRICT at,
                              size_t rsat) {
 
-  skl_transpose_nvec_x8_e8_zve32x(m / 8 * 8, n, a, rsa, at, rsat);
-
-  const uint8_t *in_tile = a + (m / 8) * 8 * rsa;
-  uint8_t *out_tile = at + (m / 8) * 8;
-  const ptrdiff_t output_bstride = (ptrdiff_t)(rsat * sizeof(uint8_t));
   size_t vl = 0;
+  size_t m_multiple_8 = m / 8 * 8;
+  const ptrdiff_t output_seg_bstride = (ptrdiff_t)(rsat * sizeof(uint8_t));
+
+  if (m_multiple_8) {
+    // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
+    vuint8m1_t vrow0 = __riscv_vundefined_u8m1();
+    vuint8m1_t vrow1 = __riscv_vundefined_u8m1();
+    vuint8m1_t vrow2 = __riscv_vundefined_u8m1();
+    vuint8m1_t vrow3 = __riscv_vundefined_u8m1();
+    vuint8m1_t vrow4 = __riscv_vundefined_u8m1();
+    vuint8m1_t vrow5 = __riscv_vundefined_u8m1();
+    vuint8m1_t vrow6 = __riscv_vundefined_u8m1();
+    vuint8m1_t vrow7 = __riscv_vundefined_u8m1();
+    // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+
+    for (size_t ii = 0; ii + 7 < m_multiple_8; ii += 8) {
+      for (size_t jj = 0; jj < n; jj += vl) {
+        const uint8_t *read_ptr = a + ii * rsa + jj;
+        vl = __riscv_vsetvl_e8m1(n - jj);
+
+        vrow0 = __riscv_vle8_v_u8m1(read_ptr, vl);
+        read_ptr += rsa;
+        vrow1 = __riscv_vle8_v_u8m1(read_ptr, vl);
+        read_ptr += rsa;
+        vrow2 = __riscv_vle8_v_u8m1(read_ptr, vl);
+        read_ptr += rsa;
+        vrow3 = __riscv_vle8_v_u8m1(read_ptr, vl);
+        read_ptr += rsa;
+        vrow4 = __riscv_vle8_v_u8m1(read_ptr, vl);
+        read_ptr += rsa;
+        vrow5 = __riscv_vle8_v_u8m1(read_ptr, vl);
+        read_ptr += rsa;
+        vrow6 = __riscv_vle8_v_u8m1(read_ptr, vl);
+        read_ptr += rsa;
+        vrow7 = __riscv_vle8_v_u8m1(read_ptr, vl);
+
+        vuint8m1x8_t vrows = __riscv_vcreate_v_u8m1x8(
+            vrow0, vrow1, vrow2, vrow3, vrow4, vrow5, vrow6, vrow7);
+
+        __riscv_vssseg8e8_v_u8m1x8(at + (jj * rsat) + ii, output_seg_bstride,
+                                   vrows, vl);
+      }
+    }
+  }
+
+  const uint8_t *in_tile = a + m_multiple_8 * rsa;
+  uint8_t *out_tile = at + m_multiple_8;
 
   switch (m % 8) {
   case 1: {
@@ -370,7 +355,7 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
     for (size_t jj = 0; jj < n; jj += vl) {
       vl = __riscv_vsetvl_e8m8(n - jj);
       vrow = __riscv_vle8_v_u8m8(in_tile, vl);
-      __riscv_vsse8_v_u8m8(out_tile, output_bstride, vrow, vl);
+      __riscv_vsse8_v_u8m8(out_tile, output_seg_bstride, vrow, vl);
 
       in_tile += vl;
       out_tile += vl * rsat;
@@ -389,7 +374,7 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
       vrow0 = __riscv_vle8_v_u8m4(in_tile, vl);
       vrow1 = __riscv_vle8_v_u8m4(in_tile + rsa, vl);
       vuint8m4x2_t vrows = __riscv_vcreate_v_u8m4x2(vrow0, vrow1);
-      __riscv_vssseg2e8_v_u8m4x2(out_tile, output_bstride, vrows, vl);
+      __riscv_vssseg2e8_v_u8m4x2(out_tile, output_seg_bstride, vrows, vl);
       in_tile += vl;
       out_tile += vl * rsat;
     }
@@ -409,7 +394,7 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
       vrow1 = __riscv_vle8_v_u8m2(in_tile + rsa, vl);
       vrow2 = __riscv_vle8_v_u8m2(in_tile + 2 * rsa, vl);
       vuint8m2x3_t vrows = __riscv_vcreate_v_u8m2x3(vrow0, vrow1, vrow2);
-      __riscv_vssseg3e8_v_u8m2x3(out_tile, output_bstride, vrows, vl);
+      __riscv_vssseg3e8_v_u8m2x3(out_tile, output_seg_bstride, vrows, vl);
       in_tile += vl;
       out_tile += vl * rsat;
     }
@@ -431,7 +416,7 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
       vrow2 = __riscv_vle8_v_u8m2(in_tile + 2 * rsa, vl);
       vrow3 = __riscv_vle8_v_u8m2(in_tile + 3 * rsa, vl);
       vuint8m2x4_t vrows = __riscv_vcreate_v_u8m2x4(vrow0, vrow1, vrow2, vrow3);
-      __riscv_vssseg4e8_v_u8m2x4(out_tile, output_bstride, vrows, vl);
+      __riscv_vssseg4e8_v_u8m2x4(out_tile, output_seg_bstride, vrows, vl);
       in_tile += vl;
       out_tile += vl * rsat;
     }
@@ -456,7 +441,7 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
       vrow4 = __riscv_vle8_v_u8m1(in_tile + 4 * rsa, vl);
       vuint8m1x5_t vrows =
           __riscv_vcreate_v_u8m1x5(vrow0, vrow1, vrow2, vrow3, vrow4);
-      __riscv_vssseg5e8_v_u8m1x5(out_tile, output_bstride, vrows, vl);
+      __riscv_vssseg5e8_v_u8m1x5(out_tile, output_seg_bstride, vrows, vl);
       in_tile += vl;
       out_tile += vl * rsat;
     }
@@ -483,7 +468,7 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
       vrow5 = __riscv_vle8_v_u8m1(in_tile + 5 * rsa, vl);
       vuint8m1x6_t vrows =
           __riscv_vcreate_v_u8m1x6(vrow0, vrow1, vrow2, vrow3, vrow4, vrow5);
-      __riscv_vssseg6e8_v_u8m1x6(out_tile, output_bstride, vrows, vl);
+      __riscv_vssseg6e8_v_u8m1x6(out_tile, output_seg_bstride, vrows, vl);
       in_tile += vl;
       out_tile += vl * rsat;
     }
@@ -512,7 +497,7 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
       vrow6 = __riscv_vle8_v_u8m1(in_tile + 6 * rsa, vl);
       vuint8m1x7_t vrows = __riscv_vcreate_v_u8m1x7(vrow0, vrow1, vrow2, vrow3,
                                                     vrow4, vrow5, vrow6);
-      __riscv_vssseg7e8_v_u8m1x7(out_tile, output_bstride, vrows, vl);
+      __riscv_vssseg7e8_v_u8m1x7(out_tile, output_seg_bstride, vrows, vl);
       in_tile += vl;
       out_tile += vl * rsat;
     }
