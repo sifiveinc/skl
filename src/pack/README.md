@@ -62,7 +62,7 @@ The general form is `skl_pack_<src type>_<dst type>_<isa>`.
 
 The datatype specifiers follow the same conventions as in the corresponding [GEMM kernels](../gemm/packed-gemm.md) in which the matrix will be used, except that only the element width is indicated, as the internal format is irrelevant to the packing implementation (e.g. `e32` is used rather than `f32`).
 
-Thus, the `<dst type>` term may further be broken down as `e<sew>[rc]p<m0>x<n0>[rc]`, where `m0` and `n0` are the block dimensions (rows and columns per block, respectively).
+Thus, the `<dst type>` term may further be broken down as `e<sew>[<outer-block-order>]p<m0>x<n0>[<inner-block-order>]`, where `m0` and `n0` are the block dimensions (rows and columns per block, respectively).
 
 It is assumed by default that the ordering of elements within a block is fixed to be row-major.
 If instead the layout within a block is column-major, the inner-block-order term is `c`, and if it may be either, `rc` is used.
