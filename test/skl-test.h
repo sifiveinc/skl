@@ -9,7 +9,9 @@
 #include <float.h>
 #include <inttypes.h>
 #include <math.h>
+#if __STDC_VERSION__ < 202311L
 #include <stdbool.h>
+#endif
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

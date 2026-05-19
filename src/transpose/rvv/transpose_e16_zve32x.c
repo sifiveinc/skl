@@ -9,7 +9,9 @@
 
 #include <riscv_vector.h>
 
+#if __STDC_VERSION__ < 202311L
 #include <stdbool.h>
+#endif
 #include <stddef.h>
 #include <stdint.h>
 
@@ -21,10 +23,7 @@
  */
 SKL_FUNC_PRIVATE bool skl_transpose_e16_is_mvec(size_t m, size_t n) {
   size_t vlmax = __riscv_vsetvlmax_e16m1();
-  if (m > n || m >= vlmax) {
-    return true;
-  }
-  return false;
+  return m > n || m >= vlmax;
 }
 
 /* Transposes an M x N row-major matrix (pointed by `a`) to an N x M row-major

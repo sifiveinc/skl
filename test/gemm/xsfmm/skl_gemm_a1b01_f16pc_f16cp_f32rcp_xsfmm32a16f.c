@@ -7,7 +7,9 @@
 #include "gemm/skl_test_gemm.h"
 #include "skl-test-driver.h"
 #include "skl.h"
+#if __STDC_VERSION__ < 202311L
 #include <stdbool.h>
+#endif
 #include <stddef.h>
 
 #if !defined(__riscv_xsfmm32a16f)
