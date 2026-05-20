@@ -41,6 +41,7 @@
  * Exponential Function Kernels
  */
 
+#include "../ref/exp/exp_bf16.h"
 #include "../ref/exp/exp_f16.h"
 #include "../ref/exp/exp_f32.h"
 
