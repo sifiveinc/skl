@@ -72,7 +72,7 @@ extern "C" {
  * depthwise convolution kernels with int32 accumulators where input and output
  * are in HWC data layout, and vectorizes along the channel dimension.
  */
-void skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_i8_i8_i32_zve32x(
+void skl_depthwise_conv2d_i8hwc_i8hwim_i32hwc_zve32x(
     int32_t *output, const int8_t *input, const int8_t *filter,
     size_t input_height, size_t input_width, size_t input_channel,
     size_t filter_height, size_t filter_width, size_t output_height,
@@ -115,7 +115,7 @@ void skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_i8_i8_i32_zve32x(
  *
  * Equivalent to calling the generic function:
  * ```
- * skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_i8_i8_i32_zve32x(
+ * skl_depthwise_conv2d_i8hwc_i8hwim_i32hwc_zve32x(
  *     output, input, filter, input_height, input_width, input_channel,
  *     3, 3, output_height, output_width, output_channel, 1,
  *     stride_height, stride_width, dilation_height_factor,
@@ -127,7 +127,7 @@ void skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_i8_i8_i32_zve32x(
  * @note Filter dimensions must be exactly 3x3.
  * @note Depth multiplier must be exactly 1.
  */
-void skl_depthwise_conv2d_vc_f3x3_sn_dn_m1_in_hwc_i8_i8_i32_zve32x(
+void skl_depthwise_conv2d_f3x3m1_i8hwc_i8hwim_i32hwc_zve32x(
     int32_t *output, const int8_t *input, const int8_t *filter,
     size_t input_height, size_t input_width, size_t input_channel,
     size_t output_height, size_t output_width, size_t output_channel,

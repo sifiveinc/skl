@@ -226,7 +226,7 @@ static void execute(skl_test_t *t) {
   _Float16 *output = h->output.data;
 
   if (h->use_specialization && h->filter_height == 3 && h->filter_width == 3) {
-    skl_depthwise_conv2d_vc_f3x3_sn_dn_mn_in_hwc_f16_f16_f16_zvfh(
+    skl_depthwise_conv2d_f3x3_f16hwc_f16hwim_f16hwc_zvfh(
         output, input, filter, h->input_height, h->input_width,
         h->input_channel, h->output_height, h->output_width, h->output_channel,
         h->depth_multiplier, h->stride_height, h->stride_width,
@@ -234,7 +234,7 @@ static void execute(skl_test_t *t) {
         h->input_row_stride, h->input_col_stride, h->filter_row_stride,
         h->filter_col_stride, h->output_row_stride, h->output_col_stride);
   } else {
-    skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f16_f16_f16_zvfh(
+    skl_depthwise_conv2d_f16hwc_f16hwim_f16hwc_zvfh(
         output, input, filter, h->input_height, h->input_width,
         h->input_channel, h->filter_height, h->filter_width, h->output_height,
         h->output_width, h->output_channel, h->depth_multiplier,

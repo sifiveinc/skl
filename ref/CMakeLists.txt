@@ -23,6 +23,7 @@ add_library(skl-ref
     gemm/gemm_f8e5m2rc_f8e5m2rc_f32rc.c
     gemm/gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc.c
     gemm/gemm_f16rc_f16rc_f16rc.c
+    gemm/gemm_f16rcprc_f16rcprc_f16rcprc.c
     gemm/gemm_f16rc_f16rc_f32rc.c
     gemm/gemm_f16rcprc_f16rcprc_f32rcprc.c
     gemm/gemm_f32rc_f32rc_f32rc.c
