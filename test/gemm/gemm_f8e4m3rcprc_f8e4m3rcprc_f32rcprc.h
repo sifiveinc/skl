@@ -31,6 +31,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+typedef enum { F8E4M3, F8E5M2 } gemm_ofp8_type_t;
+
 typedef struct {
   // Test function pointers for various steps
   // *** This field must be placed first within this struct ***
@@ -44,6 +46,9 @@ typedef struct {
   size_t rsb0, csb0, rsb1, csb1;
   float beta;
   size_t rsc0, csc0, rsc1, csc1;
+
+  // OFP8 type for A_pack and B_pack
+  gemm_ofp8_type_t input_type;
 
   // Buffer generation settings for A_pack, B_pack, C_pack
   SKL_TEST_BUFFER(uint8_t) a_pack;

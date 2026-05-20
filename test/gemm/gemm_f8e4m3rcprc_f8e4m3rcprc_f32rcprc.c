@@ -151,11 +151,22 @@ void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_verify(skl_test_t *t) {
   // skl_test_init) which are needed for the |beta| * |C| term in the error
   // bound.
   //
+  float (*skl_cvt_f8_f32)(uint8_t);
+  switch (h->input_type) {
+  case F8E4M3:
+    skl_cvt_f8_f32 = &skl_cvt_f8e4m3_f32;
+    break;
+  case F8E5M2:
+    skl_cvt_f8_f32 = &skl_cvt_f8e5m2_f32;
+    break;
+  default:
+    break;
+  }
   for (size_t i = 0; i < a_pack_len; ++i) {
-    a_wide[i] = fabsf(skl_cvt_f8e4m3_f32(a_pack[i]));
+    a_wide[i] = fabsf(skl_cvt_f8_f32(a_pack[i]));
   }
   for (size_t i = 0; i < b_pack_len; ++i) {
-    b_wide[i] = fabsf(skl_cvt_f8e4m3_f32(b_pack[i]));
+    b_wide[i] = fabsf(skl_cvt_f8_f32(b_pack[i]));
   }
   for (size_t i = 0; i < c_pack_len; ++i) {
     bound[i] = fabsf(ref_c[i]);
