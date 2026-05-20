@@ -165,7 +165,7 @@ cd build/
 ctest
 ```
 
-Test programs are defined via a testing suite, such as test/gemm/rvv/gemm/skl_gemm_f32_f32_f32_zve32f_x390.c, that specify the testing parameters to use during execution.
+Test programs are defined via a testing suite, such as [test/gemm/rvv/gemm/skl_gemm_f32_f32_f32_zve32f_x390.c](./test/gemm/rvv/gemm/skl_gemm_f32_f32_f32_zve32f_x390.c), that specify the testing parameters to use during execution.
 Tests parameters can be easily reconfigured within such test suites, and new tests can be easily added to the suite by extending the test array appropriately.
 
 ### Benchmark Mode (`-DSKL_ENABLE_BENCHMARKS=TRUE`)
