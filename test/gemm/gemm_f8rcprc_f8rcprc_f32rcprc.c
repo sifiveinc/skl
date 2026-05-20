@@ -170,6 +170,8 @@ void gemm_f8rcprc_f8rcprc_f32rcprc_verify(skl_test_t *t) {
         skl_gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc_ref;
     break;
   default:
+    skl_cvt_f8_f32 = NULL;
+    skl_gemm_f8rcprc_f8rcprc_f32rcprc_ref = NULL;
     break;
   }
   for (size_t i = 0; i < a_pack_len; ++i) {
@@ -225,6 +227,19 @@ void gemm_f8rcprc_f8rcprc_f32rcprc_test_report(skl_test_t *t) {
   gemm_f8rcprc_f8rcprc_f32rcprc_t *h =
       (gemm_f8rcprc_f8rcprc_f32rcprc_t *)t->harness;
 
+  const char *input_type_str;
+  switch (h->input_type) {
+  case F8E4M3:
+    input_type_str = "F8E4M3";
+    break;
+  case F8E5M2:
+    input_type_str = "F8E5M2";
+    break;
+  default:
+    input_type_str = "";
+    break;
+  }
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Input type: %s\n", input_type_str);
   gemm_rcprc_rcprc_rcprc_report_matrix_params(
       t, h->m0, h->n0, h->k0, h->m1, h->n1, h->k1, h->rsa0, h->csa0, h->rsa1,
       h->csa1, h->rsb0, h->csb0, h->rsb1, h->csb1, h->rsc0, h->csc0, h->rsc1,
