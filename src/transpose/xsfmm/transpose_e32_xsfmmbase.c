@@ -28,7 +28,7 @@ SKL_FUNC void skl_transpose_e32_xsfmmbase(size_t m, size_t n,
   for (size_t i = 0; i < m; i += tm) {
     for (size_t j = 0; j < n; j += tn) {
       size_t mt0_load = 0;
-      size_t mt0_store = (size_t)(1) << kShiftCol;
+      size_t mt0_store = 1 << kShiftCol;
 
       const uint32_t *SKL_RESTRICT a_load = a + i * rsa + j;
       uint32_t *SKL_RESTRICT at_store = at + j * rsat + i;

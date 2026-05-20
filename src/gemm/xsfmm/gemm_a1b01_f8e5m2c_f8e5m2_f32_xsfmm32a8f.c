@@ -212,9 +212,9 @@ skl_gemm_1tm2tn_2tm1tn_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f(
 
   const size_t tm0 = bta ? tn : tm;
   const size_t tn0 = bta ? tm : tn;
-  const size_t tss_pattern = bta ? (size_t)(1) << kShiftPattern : 0;
+  const size_t tss_pattern = bta ? 1 << kShiftPattern : 0;
   const size_t mt0 = 0 | tss_pattern;
-  const size_t mt4 = (size_t)(4) << kShiftTile | tss_pattern;
+  const size_t mt4 = 4 << kShiftTile | tss_pattern;
 
   float *c0 = c;
   float *c1 = c0 + tsc1;
@@ -575,10 +575,10 @@ skl_gemm_1tm3tn_3tm1tn_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f(
 
   const size_t tm0 = bta ? tn : tm;
   const size_t tn0 = bta ? tm : tn;
-  const size_t tss_pattern = bta ? (size_t)(1) << kShiftPattern : 0;
+  const size_t tss_pattern = bta ? 1 << kShiftPattern : 0;
   const size_t mt0 = 0 | tss_pattern;
-  const size_t mt4 = (size_t)(4) << kShiftTile | tss_pattern;
-  const size_t mt8 = (size_t)(8) << kShiftTile | tss_pattern;
+  const size_t mt4 = 4 << kShiftTile | tss_pattern;
+  const size_t mt8 = 8 << kShiftTile | tss_pattern;
 
   float *c0 = c;
   float *c1 = c0 + tsc1;
@@ -726,6 +726,7 @@ skl_gemm_1tm3tn_3tm1tn_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f(
                        "v21", "v24", "v25", "v26", "v27", "v28", "v29", "vtype",
                        "vl", "memory");
   } else {
+    // NOLINTNEXTLINE(bugprone-branch-clone)
     if (tm0 == tn0) {
       __asm__ volatile(
           "sf.vsettnt x0, %[tn0], e8, w4\n"
@@ -1159,11 +1160,11 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f(
 
   const size_t tm0 = bta ? tn : tm;
   const size_t tn0 = bta ? tm : tn;
-  const size_t tss_pattern = bta ? (size_t)(1) << kShiftPattern : 0;
+  const size_t tss_pattern = bta ? 1 << kShiftPattern : 0;
   const size_t mt0 = 0 | tss_pattern;
-  const size_t mt4 = (size_t)(4) << kShiftTile | tss_pattern;
-  const size_t mt8 = (size_t)(8) << kShiftTile | tss_pattern;
-  const size_t mt12 = (size_t)(12) << kShiftTile | tss_pattern;
+  const size_t mt4 = 4 << kShiftTile | tss_pattern;
+  const size_t mt8 = 8 << kShiftTile | tss_pattern;
+  const size_t mt12 = 12 << kShiftTile | tss_pattern;
 
   float *c0 = c;
   float *c1 = c0 + tsc1;
@@ -1338,6 +1339,7 @@ skl_gemm_1tm4tn_4tm1tn_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f(
           "v13", "v16", "v17", "v18", "v19", "v20", "v21", "vtype", "vl",
           "memory");
   } else {
+    // NOLINTNEXTLINE(bugprone-branch-clone)
     if (tm0 == tn0) {
       __asm__ volatile(
           "sf.vsettnt x0, %[tn0], e8, w4\n"
@@ -1925,9 +1927,9 @@ SKL_FUNC_PRIVATE void skl_gemm_2tn2tn_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f(
   const size_t kRowInc = 1;
 
   const size_t mt0 = 0;
-  const size_t mt4 = (size_t)(4) << kShiftTile;
-  const size_t mt8 = (size_t)(8) << kShiftTile;
-  const size_t mt12 = (size_t)(12) << kShiftTile;
+  const size_t mt4 = 4 << kShiftTile;
+  const size_t mt8 = 8 << kShiftTile;
+  const size_t mt12 = 12 << kShiftTile;
 
   float *c00 = c;
   float *c01 = c00 + csc1;

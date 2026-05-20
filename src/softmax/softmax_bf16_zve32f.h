@@ -28,8 +28,8 @@ extern "C" {
  * skl_softmax_bf16_ref(pDst, pSrc, beta, n);
  * ```
  */
-void skl_softmax_bf16_zve32f(__bf16 *pDst, const __bf16 *pSrc,
-                             const __bf16 beta, const size_t n);
+void skl_softmax_bf16_zve32f(__bf16 *pDst, const __bf16 *pSrc, __bf16 beta,
+                             size_t n);
 
 #if defined(__cplusplus)
 } // extern "C"
