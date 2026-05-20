@@ -215,7 +215,7 @@ void gemm_f64rcprc_f64rcprc_f64rcprc_verify(skl_test_t *t) {
             SKL_TEST_LOG(
                 t, SKL_TEST_LOG_ERROR,
                 "result [%zu, %zu, %zu, %zu] (%.10f) != reference (%.10f) "
-                "[bound = %.20Lf]\n",
+                "[bound = %.8Le]\n",
                 i1, j1, i0, j0, c_pack[idx], ref_c[idx], bound[idx]);
             t->status.verify_status = SKL_TEST_FAIL;
             return;
