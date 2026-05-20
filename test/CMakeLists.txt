@@ -180,28 +180,28 @@ skl_add_test(
 )
 skl_add_test(
   skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f
-  gemm/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc.c
+  gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
   gemm/xsfmm/skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c
   "xsfmm32a8f"
   ""
 )
 skl_add_test(
   skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f
-  gemm/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc.c
+  gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
   gemm/xsfmm/skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f.c
   "xsfmm32a8f"
   ""
 )
 skl_add_test(
   skl_gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f
-  gemm/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc.c
+  gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
   gemm/xsfmm/skl_gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c
   "xsfmm32a8f"
   ""
 )
 skl_add_test(
   skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f
-  gemm/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc.c
+  gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
   gemm/xsfmm/skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f.c
   "xsfmm32a8f"
   ""

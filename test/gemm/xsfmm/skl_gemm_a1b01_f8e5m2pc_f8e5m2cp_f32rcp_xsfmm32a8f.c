@@ -3,7 +3,7 @@
 // See LICENSE file in the project root for full license information.
 // SPDX-License-Identifier: MIT
 
-#include "gemm/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc.h"
+#include "gemm/gemm_f8rcprc_f8rcprc_f32rcprc.h"
 #include "gemm/skl_test_gemm.h"
 #include "skl-test-driver.h"
 #include "skl.h"
@@ -37,9 +37,9 @@
           .init = init,                                                        \
           .warmup = NULL,                                                      \
           .execute = execute,                                                  \
-          .verify = gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_verify,              \
-          .report = gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_test_report,         \
-          .cleanup = gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_cleanup,            \
+          .verify = gemm_f8rcprc_f8rcprc_f32rcprc_verify,                      \
+          .report = gemm_f8rcprc_f8rcprc_f32rcprc_test_report,                 \
+          .cleanup = gemm_f8rcprc_f8rcprc_f32rcprc_cleanup,                    \
   }
 
 #define BENCH                                                                  \
@@ -49,15 +49,15 @@
           .warmup = execute,                                                   \
           .execute = execute,                                                  \
           .verify = NULL,                                                      \
-          .report = gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_benchmark_report,    \
-          .cleanup = gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_cleanup,            \
+          .report = gemm_f8rcprc_f8rcprc_f32rcprc_benchmark_report,            \
+          .cleanup = gemm_f8rcprc_f8rcprc_f32rcprc_cleanup,                    \
   }
 
 static void init(skl_test_t *t);
 static void execute(skl_test_t *t);
 
 // clang-format off
-gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t tests[] = {
+gemm_f8rcprc_f8rcprc_f32rcprc_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
     // Benchmark tests
     {BENCH, .m1 = 2, .n1 = 2, .k1 = 8192, .alpha = 1.f, .beta = 0.f},
@@ -232,12 +232,12 @@ gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t tests[] = {
 static skl_test_suite_t suite = {
     .name = "skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f",
     .num_tests = sizeof(tests) / sizeof(tests[0]),
-    .test_size = sizeof(gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t),
+    .test_size = sizeof(gemm_f8rcprc_f8rcprc_f32rcprc_t),
     .tests = tests};
 
 static void init(skl_test_t *t) {
-  const gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t *h =
-      (gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t *)t->harness;
+  const gemm_f8rcprc_f8rcprc_f32rcprc_t *h =
+      (gemm_f8rcprc_f8rcprc_f32rcprc_t *)t->harness;
 
   size_t ete = skl_get_ete_xsfmmbase();
   SKL_TEST_REQUIRE(t, init_status, h->m0 == ete);
@@ -252,12 +252,12 @@ static void init(skl_test_t *t) {
   SKL_TEST_REQUIRE(t, init_status, h->alpha == 1.f);
   SKL_TEST_REQUIRE(t, init_status, h->beta == 0.f || h->beta == 1.f);
 
-  gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_init(t);
+  gemm_f8rcprc_f8rcprc_f32rcprc_init(t);
 }
 
 static void execute(skl_test_t *t) {
-  const gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t *h =
-      (gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t *)t->harness;
+  const gemm_f8rcprc_f8rcprc_f32rcprc_t *h =
+      (gemm_f8rcprc_f8rcprc_f32rcprc_t *)t->harness;
 
   // Call the kernel with the appropriate parameters
   // The kernel signature is: (m1, n1, k, a_pack, rsa1, b_pack, csb1, c_pack,

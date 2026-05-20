@@ -4,15 +4,15 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * @brief Implementation of the gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc test
+ * @brief Implementation of the gemm_f8rcprc_f8rcprc_f32rcprc test
  * harness.
  *
  * This file defines all harness functions _except_ `skl_test_execute`, which is
  * defined in the test file (e.g.
- * xsfmm/skl_gemm_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c).
+ * xsfmm/skl_gemm_f8c_f8_f32_xsfmm32a8f.c).
  */
 
-#include "gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc.h"
+#include "gemm_f8rcprc_f8rcprc_f32rcprc.h"
 #include "skl-ref.h"
 #include "skl-test-driver.h"
 #include "skl_test_gemm.h"
@@ -23,9 +23,9 @@
 #include <string.h>
 
 // NOLINTBEGIN(readability-function-cognitive-complexity)
-void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_init(skl_test_t *t) {
-  gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t *h =
-      (gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t *)t->harness;
+void gemm_f8rcprc_f8rcprc_f32rcprc_init(skl_test_t *t) {
+  gemm_f8rcprc_f8rcprc_f32rcprc_t *h =
+      (gemm_f8rcprc_f8rcprc_f32rcprc_t *)t->harness;
 
   size_t m0 = h->m0;
   size_t n0 = h->n0;
@@ -96,9 +96,9 @@ void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_init(skl_test_t *t) {
 }
 // NOLINTEND(readability-function-cognitive-complexity)
 
-void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_verify(skl_test_t *t) {
-  gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t *h =
-      (gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t *)t->harness;
+void gemm_f8rcprc_f8rcprc_f32rcprc_verify(skl_test_t *t) {
+  gemm_f8rcprc_f8rcprc_f32rcprc_t *h =
+      (gemm_f8rcprc_f8rcprc_f32rcprc_t *)t->harness;
 
   size_t m0 = h->m0;
   size_t n0 = h->n0;
@@ -221,9 +221,9 @@ void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_verify(skl_test_t *t) {
                                         csc1);
 }
 
-void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_test_report(skl_test_t *t) {
-  gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t *h =
-      (gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t *)t->harness;
+void gemm_f8rcprc_f8rcprc_f32rcprc_test_report(skl_test_t *t) {
+  gemm_f8rcprc_f8rcprc_f32rcprc_t *h =
+      (gemm_f8rcprc_f8rcprc_f32rcprc_t *)t->harness;
 
   gemm_rcprc_rcprc_rcprc_report_matrix_params(
       t, h->m0, h->n0, h->k0, h->m1, h->n1, h->k1, h->rsa0, h->csa0, h->rsa1,
@@ -233,19 +233,19 @@ void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_test_report(skl_test_t *t) {
                h->beta);
 }
 
-void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_benchmark_report(skl_test_t *t) {
-  gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t *h =
-      (gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t *)t->harness;
+void gemm_f8rcprc_f8rcprc_f32rcprc_benchmark_report(skl_test_t *t) {
+  gemm_f8rcprc_f8rcprc_f32rcprc_t *h =
+      (gemm_f8rcprc_f8rcprc_f32rcprc_t *)t->harness;
 
-  gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_test_report(t);
+  gemm_f8rcprc_f8rcprc_f32rcprc_test_report(t);
 
   size_t maccs = h->m1 * h->n1 * h->k1 * h->m0 * h->n0 * h->k0;
   gemm_rcprc_rcprc_rcprc_report_perf(t, h->steps.warmup, maccs);
 }
 
-void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_cleanup(skl_test_t *t) {
-  gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t *h =
-      (gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t *)t->harness;
+void gemm_f8rcprc_f8rcprc_f32rcprc_cleanup(skl_test_t *t) {
+  gemm_f8rcprc_f8rcprc_f32rcprc_t *h =
+      (gemm_f8rcprc_f8rcprc_f32rcprc_t *)t->harness;
 
   // Free buffers
   SKL_TEST_BUF_FREE(t, &h->a_pack);

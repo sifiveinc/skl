@@ -61,13 +61,13 @@ typedef struct {
     float *ref_c;
     double *bound;
   } ctx;
-} gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_t;
+} gemm_f8rcprc_f8rcprc_f32rcprc_t;
 
-void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_init(skl_test_t *t);
-void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_verify(skl_test_t *t);
-void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_test_report(skl_test_t *t);
-void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_benchmark_report(skl_test_t *t);
-void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_cleanup(skl_test_t *t);
+void gemm_f8rcprc_f8rcprc_f32rcprc_init(skl_test_t *t);
+void gemm_f8rcprc_f8rcprc_f32rcprc_verify(skl_test_t *t);
+void gemm_f8rcprc_f8rcprc_f32rcprc_test_report(skl_test_t *t);
+void gemm_f8rcprc_f8rcprc_f32rcprc_benchmark_report(skl_test_t *t);
+void gemm_f8rcprc_f8rcprc_f32rcprc_cleanup(skl_test_t *t);
 
 // The min value for E4M3 is 2^-6, represented by 0.0001.000.
 // The max value for E4M3 is 1.75 * 2^8, represented by 0.1111.110.
