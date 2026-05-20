@@ -124,7 +124,6 @@ static void skl_gemm_f128rcprc_f128rcprc_f128rcprc_ref(
 }
 
 void gemm_f64rcprc_f64rcprc_f64rcprc_verify(skl_test_t *t) {
-  /* Compute the reference matrix output. */
   gemm_f64rcprc_f64rcprc_f64rcprc_t *h =
       (gemm_f64rcprc_f64rcprc_f64rcprc_t *)t->harness;
 
