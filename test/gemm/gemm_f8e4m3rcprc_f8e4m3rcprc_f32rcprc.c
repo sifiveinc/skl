@@ -152,12 +152,22 @@ void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_verify(skl_test_t *t) {
   // bound.
   //
   float (*skl_cvt_f8_f32)(uint8_t);
+  void (*skl_gemm_f8rcprc_f8rcprc_f32rcprc_ref)(
+      size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
+      float alpha, const uint8_t *a_pack, size_t rsa0, size_t csa0, size_t rsa1,
+      size_t csa1, const uint8_t *b_pack, size_t rsb0, size_t csb0, size_t rsb1,
+      size_t csb1, float beta, float *c_pack, size_t rsc0, size_t csc0,
+      size_t rsc1, size_t csc1);
   switch (h->input_type) {
   case F8E4M3:
     skl_cvt_f8_f32 = &skl_cvt_f8e4m3_f32;
+    skl_gemm_f8rcprc_f8rcprc_f32rcprc_ref =
+        skl_gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_ref;
     break;
   case F8E5M2:
     skl_cvt_f8_f32 = &skl_cvt_f8e5m2_f32;
+    skl_gemm_f8rcprc_f8rcprc_f32rcprc_ref =
+        skl_gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc_ref;
     break;
   default:
     break;
@@ -182,7 +192,7 @@ void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_verify(skl_test_t *t) {
 
   // Compute the reference result using h->ctx.ref_c
   // h->ctx.ref_c contains the original C values (copied in skl_test_init)
-  skl_gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_ref(
+  skl_gemm_f8rcprc_f8rcprc_f32rcprc_ref(
       m0, n0, k0, m1, n1, k1, alpha, a_pack, rsa0, csa0, rsa1, csa1, b_pack,
       rsb0, csb0, rsb1, csb1, beta, ref_c, rsc0, csc0, rsc1, csc1);
 

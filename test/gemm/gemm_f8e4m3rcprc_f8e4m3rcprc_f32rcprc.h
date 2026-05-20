@@ -72,6 +72,15 @@ void gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc_cleanup(skl_test_t *t);
 // The min value for E4M3 is 2^-6, represented by 0.0001.000.
 // The max value for E4M3 is 1.75 * 2^8, represented by 0.1111.110.
 #define GEMM_F8E4M3RCPRC_F8E4M3RCPRC_F32RCPRC_DEFAULTS                         \
+  .input_type = F8E4M3,                                                        \
   .a_pack = {.min = 8, .max = 126, .mode = SKL_TEST_RANDOM},                   \
   .b_pack = {.min = 8, .max = 126, .mode = SKL_TEST_RANDOM},                   \
   .c_pack = {.min = 8, .max = 126, .mode = SKL_TEST_RANDOM}
+
+// The min value for E5M2 is 2^-14, represented by 0.00001.00.
+// The max value for E5M2 is 1.75 * 2^15, represented by 0.11110.11.
+#define GEMM_F8E5M2RCPRC_F8E5M2RCPRC_F32RCPRC_DEFAULTS                         \
+  .input_type = F8E5M2,                                                        \
+  .a_pack = {.min = 4, .max = 123, .mode = SKL_TEST_RANDOM},                   \
+  .b_pack = {.min = 4, .max = 123, .mode = SKL_TEST_RANDOM},                   \
+  .c_pack = {.min = 4, .max = 123, .mode = SKL_TEST_RANDOM}
