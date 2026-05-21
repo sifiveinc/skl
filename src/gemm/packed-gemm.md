@@ -1,6 +1,6 @@
 # SKL Packed GEMM kernels
 The general matrix multiplication (GEMM) kernels in SKL sometimes constrain the memory layout of the input matrices by requiring particular transpositions (as described in the [SKL GEMM README](README.md)).
-In some cases, the use of specialized instructions or integration into certain software frameworks requires more complex memory layouts, where fixed-size 2-D sub-matrices--blocks--of each matrix are packed into contiguous memory.
+In some cases, the use of specialized instructions or integration into certain software frameworks requires more complex memory layouts, where fixed-size 2D sub-matrices--blocks--of each matrix are packed into contiguous memory.
 
 This document describes a generic API for such kernels, and how it is specialized for each target.
 It also describes the packing and unpacking routines that convert matrices between row-major layout and the packed formats.
@@ -24,7 +24,8 @@ It also describes the packing and unpacking routines that convert matrices betwe
 A "packed" matrix has one or both dimensions partitioned into fixed-size blocks.
 For example, if we have a matrix `A` of size `m` x `k`, we might need to partition it into blocks of size `m0` x `k0`, where these dimensions are usually determined by the target hardware instruction.
 
-Since the original matrix dimensions might not be exact multiples of the block size, we must pad the matrix with zeros to make the dimensions match.
+Since the original matrix dimensions might not be exact multiples of the block size, we must pad the matrix so that they are.
+Typically, matrices are padded with zeroes, but other values are possible.
 The resulting packed matrix `A_pack` will consist of `m1` x `k1` blocks, where `m1 = ceil(m/m0)` and `k1 = ceil(k/k0)`, with each block having size `m0` x `k0` elements.
 (While it might be possible to construct packed formats that avoid padding, we exclude this possibility from the API for simplicity, as it is unlikely to be useful in practice.)
 
@@ -62,19 +63,19 @@ Block(2,1): [a64 a65  0   0 ] [ 0   0   0   0 ] [ 0   0   0   0 ]
 #### Stride Relationships
 
 For a matrix `A` with packed storage the following stride parameters are defined:
-- `rsa0`: row stride within a block: distance in memory between rows in the same block, in units of elements. (Example above: `rsa0 = k0 = 4`)
-- `csa0`: column stride within a block: distance in memory between columns in the same block, in units of elements. (Example above: `csa0 = 1`)
-- `rsa1`: row stride between blocks: distance in memory between the start of consecutive blocks in the same block column, in units of elements. (Example above: `rsa1 = m0 * k0 * k1 = 24`)
-- `csa1`: column stride between blocks: distance in memory between the start of consecutive blocks in the same block row, in units of elements. (Example above: `csa1 = m0 * k0 = 12`)
+- `rsa0`: row stride within a block, i.e. distance in memory between rows in the same block, in units of elements. (Example above: `rsa0 = k0 = 4`)
+- `csa0`: column stride within a block, i.e. distance in memory between columns in the same block, in units of elements. (Example above: `csa0 = 1`)
+- `rsa1`: row stride between blocks, i.e. distance in memory between the start of block (bi, bj) and the start of block (bi + 1, bj), in units of elements. (Example above: `rsa1 = m0 * k0 * k1 = 24`)
+- `csa1`: column stride between blocks, i.e. distance in memory between the start of block (bi, bj) and the start of block (bi, bj + 1), in units of elements. (Example above: `csa1 = m0 * k0 = 12`)
 
 Generally the naming scheme for these parameters follows the format `{r,c}s{buffer}{layer}`, where `buffer` is the buffer the parameter applies to and `layer` is the blocking layer the parameter describes.
 
-The memory address (in units of elements) for element at block (bi, bj), position (i, j) is:
+The memory address (in units of elements) for the element at position (i,j) in block (bi, bj) is:
 ```
 address = base + bi * rsa1 + bj * csa1 + i * rsa0 + j * csa0
 ```
 
-Thus, the standard row- and column-major layouts are simply special cases of this packed storage, where the block size is 1x1 and inter-block strides are 1.
+Thus, the standard row- and column-major layouts are simply special cases of this packed storage, where the block size is 1x1 and csa1 or rsa1 is 1, respectively.
 
 ## APIs for Packed GEMM Kernels
 
@@ -85,10 +86,10 @@ void skl_gemm_packed_<specialization>_<datatypes>_<isa>_<cpu>(
     size_t n0,              // Num. columns in a block of B and C
     size_t k0,              // Num. columns in a block of A,
                             // rows in a block of B
-    size_t m1,              // Num. row blocks in A and C
-    size_t n1,              // Num. column blocks in B and C
-    size_t k1,              // Num. column blocks in A,
-                            // row blocks in B
+    size_t m1,              // Num. block-rows in A and C
+    size_t n1,              // Num. block-columns in B and C
+    size_t k1,              // Num. block-columns in A,
+                            // block-rows in B
     <type_c> alpha,         // Scaling factor for A*B
     const <type_a>* a_pack, // Input matrix A
     size_t rsa0,            // Row stride within a block of A
@@ -157,14 +158,12 @@ The naming convention for packed GEMM APIs is similar to that of the basic GEMM 
 Specifically, a `p<m0xn0>` specifier is inserted after each matrix type to indicate that it is packed in blocks of size `m0` by `n0` (or `k0` and `n0` etc.).
 
 On either side of `p`, transposition specifiers are used as usual:
-- `f32p<...>` for a packed, row-major matrix
-- `f32p<...>c` for a packed matrix with blocks in column-major format
-- `f32cp<...>c` for a packed matrix with blocks in column-major format and columns of blocks in column-major format
+- `f32p<...>` for a packed matrix in block-row-major format whose blocks are row-major
+- `f32p<...>c` for a packed matrix in block-rowm-major format whose blocks are column-major
+- `f32cp<...>c` for a packed matrix in block-column-major format whose blocks are column-major
 - `f32rcp<...>` for a packed matrix in either block-row-major or block-column-major format, but whose blocks are themselves row-major
 
-When one dimension is not packed, its specifier dimension is set to `1`: `p4x1` for instance.
-For block-row-major layouts (no `c` or `rc` before the `p`), if the last dimension is `1`, then it is followed by `c` to emphasize that elements within the block are in column-major order (although this is only vacuously true); when the first dimension is `1`, then its only difference from a non-packed matrix is that it is padded to a multiple of the block length along the packed dimension.
-For block-column-major, an inverted but analogous logic applies.
+When one dimension is not packed, the corresponding block dimension is set to `1`: `p4x1` for instance.
 
 ## APIs for Packing & Unpacking Kernels
 Packing and unpacking must be performed by the user, and is not automatically applied by the GEMM functions for a variety of reasons:
