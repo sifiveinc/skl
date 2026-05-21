@@ -78,29 +78,28 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
         vcols = __riscv_vlsseg8e8_v_u8m1x8(in_tile, input_seg_bstride, vl);
 
         uint8_t *write_ptr = out_tile;
-        const size_t output_seg_stride = rsat;
         // store each segment continuously along m
         __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 0),
                             vl);
-        write_ptr += output_seg_stride;
+        write_ptr += rsat;
         __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 1),
                             vl);
-        write_ptr += output_seg_stride;
+        write_ptr += rsat;
         __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 2),
                             vl);
-        write_ptr += output_seg_stride;
+        write_ptr += rsat;
         __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 3),
                             vl);
-        write_ptr += output_seg_stride;
+        write_ptr += rsat;
         __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 4),
                             vl);
-        write_ptr += output_seg_stride;
+        write_ptr += rsat;
         __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 5),
                             vl);
-        write_ptr += output_seg_stride;
+        write_ptr += rsat;
         __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 6),
                             vl);
-        write_ptr += output_seg_stride;
+        write_ptr += rsat;
         __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x8_u8m1(vcols, 7),
                             vl);
 
@@ -141,10 +140,9 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
       vcols = __riscv_vlsseg2e8_v_u8m4x2(in_tile, input_seg_bstride, vl);
 
       uint8_t *write_ptr = out_tile;
-      const size_t output_seg_stride = rsat;
       // store each segment extently along m
       __riscv_vse8_v_u8m4(write_ptr, __riscv_vget_v_u8m4x2_u8m4(vcols, 0), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m4(write_ptr, __riscv_vget_v_u8m4x2_u8m4(vcols, 1), vl);
 
       in_tile += vl * rsa;
@@ -162,12 +160,11 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
       vcols = __riscv_vlsseg3e8_v_u8m2x3(in_tile, input_seg_bstride, vl);
 
       uint8_t *write_ptr = out_tile;
-      const size_t output_seg_stride = rsat;
       // store each segment extently along m
       __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x3_u8m2(vcols, 0), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x3_u8m2(vcols, 1), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x3_u8m2(vcols, 2), vl);
 
       in_tile += vl * rsa;
@@ -186,14 +183,13 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
       vcols = __riscv_vlsseg4e8_v_u8m2x4(in_tile, input_seg_bstride, vl);
 
       uint8_t *write_ptr = out_tile;
-      const size_t output_seg_stride = rsat;
       // store each segment extently along m
       __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x4_u8m2(vcols, 0), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x4_u8m2(vcols, 1), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x4_u8m2(vcols, 2), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m2(write_ptr, __riscv_vget_v_u8m2x4_u8m2(vcols, 3), vl);
 
       in_tile += vl * rsa;
@@ -212,16 +208,15 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
       vcols = __riscv_vlsseg5e8_v_u8m1x5(in_tile, input_seg_bstride, vl);
 
       uint8_t *write_ptr = out_tile;
-      const size_t output_seg_stride = rsat;
       // store each segment extently along m
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x5_u8m1(vcols, 0), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x5_u8m1(vcols, 1), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x5_u8m1(vcols, 2), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x5_u8m1(vcols, 3), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x5_u8m1(vcols, 4), vl);
 
       in_tile += vl * rsa;
@@ -240,18 +235,17 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
       vcols = __riscv_vlsseg6e8_v_u8m1x6(in_tile, input_seg_bstride, vl);
 
       uint8_t *write_ptr = out_tile;
-      const size_t output_seg_stride = rsat;
       // store each segment extently along m
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x6_u8m1(vcols, 0), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x6_u8m1(vcols, 1), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x6_u8m1(vcols, 2), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x6_u8m1(vcols, 3), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x6_u8m1(vcols, 4), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x6_u8m1(vcols, 5), vl);
 
       in_tile += vl * rsa;
@@ -270,20 +264,19 @@ skl_transpose_mvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
       vcols = __riscv_vlsseg7e8_v_u8m1x7(in_tile, input_seg_bstride, vl);
 
       uint8_t *write_ptr = out_tile;
-      const size_t output_seg_stride = rsat;
       // store each segment extently along m
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 0), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 1), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 2), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 3), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 4), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 5), vl);
-      write_ptr += output_seg_stride;
+      write_ptr += rsat;
       __riscv_vse8_v_u8m1(write_ptr, __riscv_vget_v_u8m1x7_u8m1(vcols, 6), vl);
 
       in_tile += vl * rsa;
@@ -305,10 +298,10 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
                              size_t rsat) {
 
   size_t vl = 0;
-  size_t m_multiple_8 = m / 8 * 8;
+  size_t m_align8 = m / 8 * 8;
   const ptrdiff_t output_seg_bstride = (ptrdiff_t)(rsat * sizeof(uint8_t));
 
-  if (m_multiple_8) {
+  if (m_align8) {
     // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
     vuint8m1_t vrow0 = __riscv_vundefined_u8m1();
     vuint8m1_t vrow1 = __riscv_vundefined_u8m1();
@@ -320,7 +313,7 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
     vuint8m1_t vrow7 = __riscv_vundefined_u8m1();
     // NOLINTEND(clang-analyzer-deadcode.DeadStores)
 
-    for (size_t ii = 0; ii + 7 < m_multiple_8; ii += 8) {
+    for (size_t ii = 0; ii + 7 < m_align8; ii += 8) {
       for (size_t jj = 0; jj < n; jj += vl) {
         const uint8_t *read_ptr = a + ii * rsa + jj;
         vl = __riscv_vsetvl_e8m1(n - jj);
@@ -350,8 +343,8 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
     }
   }
 
-  const uint8_t *in_tile = a + m_multiple_8 * rsa;
-  uint8_t *out_tile = at + m_multiple_8;
+  const uint8_t *in_tile = a + m_align8 * rsa;
+  uint8_t *out_tile = at + m_align8;
 
   switch (m % 8) {
   case 1: {
@@ -376,9 +369,10 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
 
     for (size_t jj = 0; jj < n; jj += vl) {
       vl = __riscv_vsetvl_e8m4(n - jj);
-
-      vrow0 = __riscv_vle8_v_u8m4(in_tile, vl);
-      vrow1 = __riscv_vle8_v_u8m4(in_tile + rsa, vl);
+      const uint8_t *read_ptr = in_tile;
+      vrow0 = __riscv_vle8_v_u8m4(read_ptr, vl);
+      read_ptr += rsa;
+      vrow1 = __riscv_vle8_v_u8m4(read_ptr, vl);
       vuint8m4x2_t vrows = __riscv_vcreate_v_u8m4x2(vrow0, vrow1);
       __riscv_vssseg2e8_v_u8m4x2(out_tile, output_seg_bstride, vrows, vl);
       in_tile += vl;
@@ -395,10 +389,12 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
 
     for (size_t jj = 0; jj < n; jj += vl) {
       vl = __riscv_vsetvl_e8m2(n - jj);
-
-      vrow0 = __riscv_vle8_v_u8m2(in_tile, vl);
-      vrow1 = __riscv_vle8_v_u8m2(in_tile + rsa, vl);
-      vrow2 = __riscv_vle8_v_u8m2(in_tile + 2 * rsa, vl);
+      const uint8_t *read_ptr = in_tile;
+      vrow0 = __riscv_vle8_v_u8m2(read_ptr, vl);
+      read_ptr += rsa;
+      vrow1 = __riscv_vle8_v_u8m2(read_ptr, vl);
+      read_ptr += rsa;
+      vrow2 = __riscv_vle8_v_u8m2(read_ptr, vl);
       vuint8m2x3_t vrows = __riscv_vcreate_v_u8m2x3(vrow0, vrow1, vrow2);
       __riscv_vssseg3e8_v_u8m2x3(out_tile, output_seg_bstride, vrows, vl);
       in_tile += vl;
@@ -416,11 +412,14 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
 
     for (size_t jj = 0; jj < n; jj += vl) {
       vl = __riscv_vsetvl_e8m2(n - jj);
-
-      vrow0 = __riscv_vle8_v_u8m2(in_tile, vl);
-      vrow1 = __riscv_vle8_v_u8m2(in_tile + rsa, vl);
-      vrow2 = __riscv_vle8_v_u8m2(in_tile + 2 * rsa, vl);
-      vrow3 = __riscv_vle8_v_u8m2(in_tile + 3 * rsa, vl);
+      const uint8_t *read_ptr = in_tile;
+      vrow0 = __riscv_vle8_v_u8m2(read_ptr, vl);
+      read_ptr += rsa;
+      vrow1 = __riscv_vle8_v_u8m2(read_ptr, vl);
+      read_ptr += rsa;
+      vrow2 = __riscv_vle8_v_u8m2(read_ptr, vl);
+      read_ptr += rsa;
+      vrow3 = __riscv_vle8_v_u8m2(read_ptr, vl);
       vuint8m2x4_t vrows = __riscv_vcreate_v_u8m2x4(vrow0, vrow1, vrow2, vrow3);
       __riscv_vssseg4e8_v_u8m2x4(out_tile, output_seg_bstride, vrows, vl);
       in_tile += vl;
@@ -439,12 +438,16 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
 
     for (size_t jj = 0; jj < n; jj += vl) {
       vl = __riscv_vsetvl_e8m1(n - jj);
-
-      vrow0 = __riscv_vle8_v_u8m1(in_tile, vl);
-      vrow1 = __riscv_vle8_v_u8m1(in_tile + rsa, vl);
-      vrow2 = __riscv_vle8_v_u8m1(in_tile + 2 * rsa, vl);
-      vrow3 = __riscv_vle8_v_u8m1(in_tile + 3 * rsa, vl);
-      vrow4 = __riscv_vle8_v_u8m1(in_tile + 4 * rsa, vl);
+      const uint8_t *read_ptr = in_tile;
+      vrow0 = __riscv_vle8_v_u8m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow1 = __riscv_vle8_v_u8m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow2 = __riscv_vle8_v_u8m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow3 = __riscv_vle8_v_u8m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow4 = __riscv_vle8_v_u8m1(read_ptr, vl);
       vuint8m1x5_t vrows =
           __riscv_vcreate_v_u8m1x5(vrow0, vrow1, vrow2, vrow3, vrow4);
       __riscv_vssseg5e8_v_u8m1x5(out_tile, output_seg_bstride, vrows, vl);
@@ -465,13 +468,18 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
 
     for (size_t jj = 0; jj < n; jj += vl) {
       vl = __riscv_vsetvl_e8m1(n - jj);
-
-      vrow0 = __riscv_vle8_v_u8m1(in_tile, vl);
-      vrow1 = __riscv_vle8_v_u8m1(in_tile + rsa, vl);
-      vrow2 = __riscv_vle8_v_u8m1(in_tile + 2 * rsa, vl);
-      vrow3 = __riscv_vle8_v_u8m1(in_tile + 3 * rsa, vl);
-      vrow4 = __riscv_vle8_v_u8m1(in_tile + 4 * rsa, vl);
-      vrow5 = __riscv_vle8_v_u8m1(in_tile + 5 * rsa, vl);
+      const uint8_t *read_ptr = in_tile;
+      vrow0 = __riscv_vle8_v_u8m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow1 = __riscv_vle8_v_u8m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow2 = __riscv_vle8_v_u8m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow3 = __riscv_vle8_v_u8m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow4 = __riscv_vle8_v_u8m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow5 = __riscv_vle8_v_u8m1(read_ptr, vl);
       vuint8m1x6_t vrows =
           __riscv_vcreate_v_u8m1x6(vrow0, vrow1, vrow2, vrow3, vrow4, vrow5);
       __riscv_vssseg6e8_v_u8m1x6(out_tile, output_seg_bstride, vrows, vl);
@@ -493,14 +501,20 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
 
     for (size_t jj = 0; jj < n; jj += vl) {
       vl = __riscv_vsetvl_e8m1(n - jj);
-
-      vrow0 = __riscv_vle8_v_u8m1(in_tile, vl);
-      vrow1 = __riscv_vle8_v_u8m1(in_tile + rsa, vl);
-      vrow2 = __riscv_vle8_v_u8m1(in_tile + 2 * rsa, vl);
-      vrow3 = __riscv_vle8_v_u8m1(in_tile + 3 * rsa, vl);
-      vrow4 = __riscv_vle8_v_u8m1(in_tile + 4 * rsa, vl);
-      vrow5 = __riscv_vle8_v_u8m1(in_tile + 5 * rsa, vl);
-      vrow6 = __riscv_vle8_v_u8m1(in_tile + 6 * rsa, vl);
+      const uint8_t *read_ptr = in_tile;
+      vrow0 = __riscv_vle8_v_u8m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow1 = __riscv_vle8_v_u8m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow2 = __riscv_vle8_v_u8m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow3 = __riscv_vle8_v_u8m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow4 = __riscv_vle8_v_u8m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow5 = __riscv_vle8_v_u8m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow6 = __riscv_vle8_v_u8m1(read_ptr, vl);
       vuint8m1x7_t vrows = __riscv_vcreate_v_u8m1x7(vrow0, vrow1, vrow2, vrow3,
                                                     vrow4, vrow5, vrow6);
       __riscv_vssseg7e8_v_u8m1x7(out_tile, output_seg_bstride, vrows, vl);
@@ -681,14 +695,22 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
     skl_transpose_e8_zve32x(m, n, a, rsa, at, rsat);
     return;
   }
+  size_t m_align8 = m / 8 * 8;
+  size_t m_ceil8 = (m + 7) / 8 * 8;
+  size_t m_mod8 = m % 8;
 
-  if (m / 8) {
-    skl_transpose_e8_zve32x(m / 8 * 8, n, a, rsa, at, rsat);
+  if (m_align8) {
+    skl_transpose_e8_zve32x(m_align8, n, a, rsa, at, rsat);
   }
-  const uint8_t *in_tile = a + m / 8 * 8 * rsa;
-  uint8_t *out_tile = at + m / 8 * 8;
-  if (m % 8) {
-    size_t m_transition = m_padded - m / 8 * 8 > 8 ? 8 : m_padded - m / 8 * 8;
+  const uint8_t *in_tile = a + m_align8 * rsa;
+  uint8_t *out_tile = at + m_align8;
+  if (m_mod8) {
+    /* m_transition: Number of rows to process in the current tile (transpose +
+     * pad). Range: [2, 8]
+     *   - At least 2: minimum 1 remaining data row + 1 padding row
+     *   - At most 8: limited by tile size
+     */
+    size_t m_transition = m_padded - m_align8 > 8 ? 8 : m_padded - m_align8;
     vuint8m8_t pad_vec =
         __riscv_vmv_v_x_u8m8(padding_value, __riscv_vsetvlmax_e8m8());
 
@@ -713,7 +735,7 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
                                    __riscv_vget_v_u8m8_u8m2(pad_vec, 2));
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m2(avl);
-        switch (m % 8) {
+        switch (m_mod8) {
         case 2:
           pad_vec_group3 = __riscv_vset_v_u8m2_u8m2x3(
               pad_vec_group3, 1, __riscv_vle8_v_u8m2(in_tile + 1 * rsa, vl));
@@ -740,7 +762,7 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
                                    __riscv_vget_v_u8m8_u8m2(pad_vec, 3));
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m2(avl);
-        switch (m % 8) {
+        switch (m_mod8) {
         case 3:
           pad_vec_group4 = __riscv_vset_v_u8m2_u8m2x4(
               pad_vec_group4, 2, __riscv_vle8_v_u8m2(in_tile + 2 * rsa, vl));
@@ -772,7 +794,7 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 4));
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
-        switch (m % 8) {
+        switch (m_mod8) {
         case 4:
           pad_vec_group5 = __riscv_vset_v_u8m1_u8m1x5(
               pad_vec_group5, 3, __riscv_vle8_v_u8m1(in_tile + 3 * rsa, vl));
@@ -809,7 +831,7 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 5));
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
-        switch (m % 8) {
+        switch (m_mod8) {
         case 5:
           pad_vec_group6 = __riscv_vset_v_u8m1_u8m1x6(
               pad_vec_group6, 4, __riscv_vle8_v_u8m1(in_tile + 4 * rsa, vl));
@@ -851,7 +873,7 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 6));
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
-        switch (m % 8) {
+        switch (m_mod8) {
         case 6:
           pad_vec_group7 = __riscv_vset_v_u8m1_u8m1x7(
               pad_vec_group7, 5, __riscv_vle8_v_u8m1(in_tile + 5 * rsa, vl));
@@ -898,7 +920,7 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 7));
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
-        switch (m % 8) {
+        switch (m_mod8) {
         case 7:
           pad_vec_group8 = __riscv_vset_v_u8m1_u8m1x8(
               pad_vec_group8, 6, __riscv_vle8_v_u8m1(in_tile + 6 * rsa, vl));
@@ -940,11 +962,11 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
     default:
       break;
     }
-  } // End if (m % 8)
-  if (m_padded > (m + 7) / 8 * 8) {
-    out_tile = at + (m + 7) / 8 * 8;
-    skl_pad_e8_zve32x(out_tile, m_padded - (m + 7) / 8 * 8, rsat, padding_value,
-                      n);
+  } // if (m_mod8)
+
+  if (m_padded > m_ceil8) {
+    out_tile = at + m_ceil8;
+    skl_pad_e8_zve32x(out_tile, m_padded - m_ceil8, rsat, padding_value, n);
   }
 }
 
