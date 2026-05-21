@@ -55,7 +55,6 @@ target_sources(${SKL_LIBRARY} PUBLIC FILE_SET HEADERS
     include
   FILES
     include/skl.h
-    include/skl-common.h
 )
 
 file(GLOB_RECURSE SKL_SRC_H LIST_DIRECTORIES FALSE CONFIGURE_DEPENDS "src/*.h")
