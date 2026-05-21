@@ -8,7 +8,8 @@
 #endif
 
 /**
- * @brief Test cases for BF16 Exponential with Xsfvfbfexp16e and Xsfvfbfa extensions.
+ * @brief Test cases for BF16 Exponential with Xsfvfbfexp16e and Xsfvfbfa
+ * extensions.
  */
 
 #include "elementwise/unary_bf16.h"
@@ -24,8 +25,8 @@ unary_bf16_t tests[] = {
     FUNCTION_BENCHMARKS(skl_logistic_5u_bf16_xsfvfbfexp16e_xsfvfbfa, -1, 1),
 #endif
 #if defined(SKL_ENABLE_TESTS)
-    FUNCTION_TESTS(skl_logistic_5u_bf16_xsfvfbfexp16e_xsfvfbfa, skl_logistic_1u_bf16_ref,
-                   MIN, MAX, 5.0f),
+    FUNCTION_TESTS(skl_logistic_5u_bf16_xsfvfbfexp16e_xsfvfbfa,
+                   skl_logistic_1u_bf16_ref, MIN, MAX, 5.0f),
 #endif
 };
 

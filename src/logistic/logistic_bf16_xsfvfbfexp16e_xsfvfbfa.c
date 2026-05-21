@@ -13,7 +13,8 @@
 #include <sifive_vector.h>
 #include <stddef.h>
 
-SKL_FUNC void skl_logistic_5u_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *out, const __bf16 *in,
+SKL_FUNC void skl_logistic_5u_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *out,
+                                                          const __bf16 *in,
                                                           size_t n) {
   size_t vl;
   for (size_t i = 0; i < n; i += vl) {

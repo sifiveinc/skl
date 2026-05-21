@@ -27,7 +27,8 @@ extern "C" {
  *
  * Results are accurate to less than 4.288 ulp.
  */
-void skl_logistic_5u_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *out, const __bf16 *in, size_t n);
+void skl_logistic_5u_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *out, const __bf16 *in,
+                                                 size_t n);
 
 #ifdef __cplusplus
 } // extern "C"
