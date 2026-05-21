@@ -15,11 +15,16 @@
 #include "skl-common.h"
 
 SKL_FUNC_PRIVATE void skl_set_e8_zve32x(uint8_t *dst, uint8_t value, size_t n) {
-  size_t vl = 0;
-  for (size_t i = 0; i < n; i += vl) {
-    vl = __riscv_vsetvl_e8m8(n - i);
-    vuint8m8_t v_value = __riscv_vmv_v_x_u8m8(value, vl);
-    __riscv_vse8_v_u8m8(dst + i, v_value, vl);
+  size_t vl = __riscv_vsetvl_e8m8(n);
+  vuint8m8_t v_value = __riscv_vmv_v_x_u8m8(value, vl);
+  __riscv_vse8_v_u8m8(dst, v_value, vl);
+  n -= vl;
+
+  while (n) {
+    dst += vl;
+    vl = __riscv_vsetvl_e8m8(n);
+    __riscv_vse8_v_u8m8(dst, v_value, vl);
+    n -= vl;
   }
 }
 
@@ -539,40 +544,23 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
   }
   if (extent <= 8) {
 
-    vuint8m1_t pad_vec0 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t pad_vec1 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t pad_vec2 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t pad_vec3 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t pad_vec4 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t pad_vec5 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t pad_vec6 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t pad_vec7 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m8_t pad_vec =
+        __riscv_vmv_v_x_u8m8(padding_value, __riscv_vsetvlmax_e8m8());
 
     switch (extent) {
     case 1: {
-      vuint8m8_t pad_vec_group1 =
-          __riscv_vcreate_v_u8m1_u8m8(pad_vec0, pad_vec1, pad_vec2, pad_vec3,
-                                      pad_vec4, pad_vec5, pad_vec6, pad_vec7);
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m8(avl);
         __riscv_vsse8_v_u8m8(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
-                             pad_vec_group1, vl);
+                             pad_vec, vl);
         dst += vl * stride;
       }
       break;
     }
     case 2: {
-      vuint8m4x2_t pad_vec_group2 = __riscv_vcreate_v_u8m4x2(
-          __riscv_vcreate_v_u8m1_u8m4(pad_vec0, pad_vec1, pad_vec2, pad_vec3),
-          __riscv_vcreate_v_u8m1_u8m4(pad_vec4, pad_vec5, pad_vec6, pad_vec7));
+      vuint8m4x2_t pad_vec_group2 =
+          __riscv_vcreate_v_u8m4x2(__riscv_vget_v_u8m8_u8m4(pad_vec, 0),
+                                   __riscv_vget_v_u8m8_u8m4(pad_vec, 1));
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m4(avl);
         __riscv_vssseg2e8_v_u8m4x2(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
@@ -582,10 +570,10 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
       break;
     }
     case 3: {
-      vuint8m2x3_t pad_vec_group3 = __riscv_vcreate_v_u8m2x3(
-          __riscv_vcreate_v_u8m1_u8m2(pad_vec0, pad_vec1),
-          __riscv_vcreate_v_u8m1_u8m2(pad_vec2, pad_vec3),
-          __riscv_vcreate_v_u8m1_u8m2(pad_vec4, pad_vec5));
+      vuint8m2x3_t pad_vec_group3 =
+          __riscv_vcreate_v_u8m2x3(__riscv_vget_v_u8m8_u8m2(pad_vec, 0),
+                                   __riscv_vget_v_u8m8_u8m2(pad_vec, 1),
+                                   __riscv_vget_v_u8m8_u8m2(pad_vec, 2));
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m2(avl);
         __riscv_vssseg3e8_v_u8m2x3(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
@@ -595,11 +583,11 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
       break;
     }
     case 4: {
-      vuint8m2x4_t pad_vec_group4 = __riscv_vcreate_v_u8m2x4(
-          __riscv_vcreate_v_u8m1_u8m2(pad_vec0, pad_vec1),
-          __riscv_vcreate_v_u8m1_u8m2(pad_vec2, pad_vec3),
-          __riscv_vcreate_v_u8m1_u8m2(pad_vec4, pad_vec5),
-          __riscv_vcreate_v_u8m1_u8m2(pad_vec6, pad_vec7));
+      vuint8m2x4_t pad_vec_group4 =
+          __riscv_vcreate_v_u8m2x4(__riscv_vget_v_u8m8_u8m2(pad_vec, 0),
+                                   __riscv_vget_v_u8m8_u8m2(pad_vec, 1),
+                                   __riscv_vget_v_u8m8_u8m2(pad_vec, 2),
+                                   __riscv_vget_v_u8m8_u8m2(pad_vec, 3));
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m2(avl);
         __riscv_vssseg4e8_v_u8m2x4(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
@@ -609,8 +597,12 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
       break;
     }
     case 5: {
-      vuint8m1x5_t pad_vec_group5 = __riscv_vcreate_v_u8m1x5(
-          pad_vec0, pad_vec1, pad_vec2, pad_vec3, pad_vec4);
+      vuint8m1x5_t pad_vec_group5 =
+          __riscv_vcreate_v_u8m1x5(__riscv_vget_v_u8m8_u8m1(pad_vec, 0),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 1),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 2),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 3),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 4));
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg5e8_v_u8m1x5(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
@@ -620,8 +612,13 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
       break;
     }
     case 6: {
-      vuint8m1x6_t pad_vec_group6 = __riscv_vcreate_v_u8m1x6(
-          pad_vec0, pad_vec1, pad_vec2, pad_vec3, pad_vec4, pad_vec5);
+      vuint8m1x6_t pad_vec_group6 =
+          __riscv_vcreate_v_u8m1x6(__riscv_vget_v_u8m8_u8m1(pad_vec, 0),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 1),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 2),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 3),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 4),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 5));
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg6e8_v_u8m1x6(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
@@ -631,8 +628,14 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
       break;
     }
     case 7: {
-      vuint8m1x7_t pad_vec_group7 = __riscv_vcreate_v_u8m1x7(
-          pad_vec0, pad_vec1, pad_vec2, pad_vec3, pad_vec4, pad_vec5, pad_vec6);
+      vuint8m1x7_t pad_vec_group7 =
+          __riscv_vcreate_v_u8m1x7(__riscv_vget_v_u8m8_u8m1(pad_vec, 0),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 1),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 2),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 3),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 4),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 5),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 6));
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg7e8_v_u8m1x7(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
@@ -643,8 +646,14 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
     }
     case 8: {
       vuint8m1x8_t pad_vec_group8 =
-          __riscv_vcreate_v_u8m1x8(pad_vec0, pad_vec1, pad_vec2, pad_vec3,
-                                   pad_vec4, pad_vec5, pad_vec6, pad_vec7);
+          __riscv_vcreate_v_u8m1x8(__riscv_vget_v_u8m8_u8m1(pad_vec, 0),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 1),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 2),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 3),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 4),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 5),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 6),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 7));
       for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg8e8_v_u8m1x8(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
@@ -680,31 +689,16 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
   uint8_t *out_tile = at + m / 8 * 8;
   if (m % 8) {
     size_t m_transition = m_padded - m / 8 * 8 > 8 ? 8 : m_padded - m / 8 * 8;
-    vuint8m1_t pad_vec0 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t pad_vec1 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t pad_vec2 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t pad_vec3 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t pad_vec4 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t pad_vec5 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t pad_vec6 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t pad_vec7 =
-        __riscv_vmv_v_x_u8m1(padding_value, __riscv_vsetvlmax_e8m1());
+    vuint8m8_t pad_vec =
+        __riscv_vmv_v_x_u8m8(padding_value, __riscv_vsetvlmax_e8m8());
 
     switch (m_transition) {
     case 2: {
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m4(avl);
-        vuint8m4x2_t pad_vec_group2 = __riscv_vcreate_v_u8m4x2(
-            __riscv_vle8_v_u8m4(in_tile, vl),
-            __riscv_vcreate_v_u8m1_u8m4(pad_vec4, pad_vec5, pad_vec6,
-                                        pad_vec7));
+        vuint8m4x2_t pad_vec_group2 =
+            __riscv_vcreate_v_u8m4x2(__riscv_vle8_v_u8m4(in_tile, vl),
+                                     __riscv_vget_v_u8m8_u8m4(pad_vec, 1));
         __riscv_vssseg2e8_v_u8m4x2(
             out_tile, (ptrdiff_t)(rsat * sizeof(uint8_t)), pad_vec_group2, vl);
         in_tile += vl;
@@ -713,10 +707,10 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
       break;
     }
     case 3: {
-      vuint8m2x3_t pad_vec_group3 = __riscv_vcreate_v_u8m2x3(
-          __riscv_vcreate_v_u8m1_u8m2(pad_vec0, pad_vec1),
-          __riscv_vcreate_v_u8m1_u8m2(pad_vec2, pad_vec3),
-          __riscv_vcreate_v_u8m1_u8m2(pad_vec4, pad_vec5));
+      vuint8m2x3_t pad_vec_group3 =
+          __riscv_vcreate_v_u8m2x3(__riscv_vget_v_u8m8_u8m2(pad_vec, 0),
+                                   __riscv_vget_v_u8m8_u8m2(pad_vec, 1),
+                                   __riscv_vget_v_u8m8_u8m2(pad_vec, 2));
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m2(avl);
         switch (m % 8) {
@@ -739,11 +733,11 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
       break;
     }
     case 4: {
-      vuint8m2x4_t pad_vec_group4 = __riscv_vcreate_v_u8m2x4(
-          __riscv_vcreate_v_u8m1_u8m2(pad_vec0, pad_vec1),
-          __riscv_vcreate_v_u8m1_u8m2(pad_vec2, pad_vec3),
-          __riscv_vcreate_v_u8m1_u8m2(pad_vec4, pad_vec5),
-          __riscv_vcreate_v_u8m1_u8m2(pad_vec6, pad_vec7));
+      vuint8m2x4_t pad_vec_group4 =
+          __riscv_vcreate_v_u8m2x4(__riscv_vget_v_u8m8_u8m2(pad_vec, 0),
+                                   __riscv_vget_v_u8m8_u8m2(pad_vec, 1),
+                                   __riscv_vget_v_u8m8_u8m2(pad_vec, 2),
+                                   __riscv_vget_v_u8m8_u8m2(pad_vec, 3));
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m2(avl);
         switch (m % 8) {
@@ -770,8 +764,12 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
       break;
     }
     case 5: {
-      vuint8m1x5_t pad_vec_group5 = __riscv_vcreate_v_u8m1x5(
-          pad_vec0, pad_vec1, pad_vec2, pad_vec3, pad_vec4);
+      vuint8m1x5_t pad_vec_group5 =
+          __riscv_vcreate_v_u8m1x5(__riscv_vget_v_u8m8_u8m1(pad_vec, 0),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 1),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 2),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 3),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 4));
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         switch (m % 8) {
@@ -802,8 +800,13 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
       break;
     }
     case 6: {
-      vuint8m1x6_t pad_vec_group6 = __riscv_vcreate_v_u8m1x6(
-          pad_vec0, pad_vec1, pad_vec2, pad_vec3, pad_vec4, pad_vec5);
+      vuint8m1x6_t pad_vec_group6 =
+          __riscv_vcreate_v_u8m1x6(__riscv_vget_v_u8m8_u8m1(pad_vec, 0),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 1),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 2),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 3),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 4),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 5));
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         switch (m % 8) {
@@ -838,8 +841,14 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
       break;
     }
     case 7: {
-      vuint8m1x7_t pad_vec_group7 = __riscv_vcreate_v_u8m1x7(
-          pad_vec0, pad_vec1, pad_vec2, pad_vec3, pad_vec4, pad_vec5, pad_vec6);
+      vuint8m1x7_t pad_vec_group7 =
+          __riscv_vcreate_v_u8m1x7(__riscv_vget_v_u8m8_u8m1(pad_vec, 0),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 1),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 2),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 3),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 4),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 5),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 6));
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         switch (m % 8) {
@@ -879,8 +888,14 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
     }
     case 8: {
       vuint8m1x8_t pad_vec_group8 =
-          __riscv_vcreate_v_u8m1x8(pad_vec0, pad_vec1, pad_vec2, pad_vec3,
-                                   pad_vec4, pad_vec5, pad_vec6, pad_vec7);
+          __riscv_vcreate_v_u8m1x8(__riscv_vget_v_u8m8_u8m1(pad_vec, 0),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 1),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 2),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 3),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 4),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 5),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 6),
+                                   __riscv_vget_v_u8m8_u8m1(pad_vec, 7));
       for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         switch (m % 8) {
