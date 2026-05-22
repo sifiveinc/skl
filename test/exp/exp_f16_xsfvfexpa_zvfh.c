@@ -30,7 +30,7 @@ unary_f16_t tests[] = {
     FUNCTION_TESTS(skl_exp_1u_f16_xsfvfexpa_zvfh, skl_exp_f16_ref, MIN, MAX,
                    1.0f),
     FUNCTION_TESTS(skl_exp_1p132ugen37P3s0_f16_xsfvfexpa_zvfh, skl_exp_f16_ref,
-                   -0x1.33p3f, MAX, 2.0f),
+                   -0x1.37p3f, MAX, 2.0f),
 #endif
 };
 
