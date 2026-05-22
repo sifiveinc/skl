@@ -546,14 +546,27 @@ skl_transpose_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
   }
 }
 
+/**
+ * @brief Fill strided segments with a constant padding value.
+ *
+ * @param dst - Starting address of the first segment.
+ * @param extent - Number of contiguous elements per segment.
+ * @param stride - Stride to the next segment. (in elements)
+ * @param padding_value - Value to use for padding.
+ * @param n_segments - Number of segments to fill.
+ *
+ * This function fills each segment with the padding value. The segments are
+ * stored contiguously in memory with a stride in elements between the
+ * start of each segment.
+ */
 SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
                                         size_t stride, uint8_t padding_value,
-                                        size_t n_segs) {
-  if (extent == 0 || n_segs == 0) {
+                                        size_t n_segments) {
+  if (extent == 0 || n_segments == 0) {
     return;
   }
   if (extent == stride) {
-    skl_set_e8_zve32x(dst, padding_value, extent * n_segs);
+    skl_set_e8_zve32x(dst, padding_value, extent * n_segments);
     return;
   }
   if (extent <= 8) {
@@ -563,7 +576,7 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
 
     switch (extent) {
     case 1: {
-      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segments; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m8(avl);
         __riscv_vsse8_v_u8m8(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                              pad_vec, vl);
@@ -575,7 +588,7 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
       vuint8m4x2_t pad_vec_group2 =
           __riscv_vcreate_v_u8m4x2(__riscv_vget_v_u8m8_u8m4(pad_vec, 0),
                                    __riscv_vget_v_u8m8_u8m4(pad_vec, 1));
-      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segments; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m4(avl);
         __riscv_vssseg2e8_v_u8m4x2(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                                    pad_vec_group2, vl);
@@ -588,7 +601,7 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
           __riscv_vcreate_v_u8m2x3(__riscv_vget_v_u8m8_u8m2(pad_vec, 0),
                                    __riscv_vget_v_u8m8_u8m2(pad_vec, 1),
                                    __riscv_vget_v_u8m8_u8m2(pad_vec, 2));
-      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segments; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m2(avl);
         __riscv_vssseg3e8_v_u8m2x3(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                                    pad_vec_group3, vl);
@@ -602,7 +615,7 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
                                    __riscv_vget_v_u8m8_u8m2(pad_vec, 1),
                                    __riscv_vget_v_u8m8_u8m2(pad_vec, 2),
                                    __riscv_vget_v_u8m8_u8m2(pad_vec, 3));
-      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segments; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m2(avl);
         __riscv_vssseg4e8_v_u8m2x4(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                                    pad_vec_group4, vl);
@@ -617,7 +630,7 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 2),
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 3),
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 4));
-      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segments; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg5e8_v_u8m1x5(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                                    pad_vec_group5, vl);
@@ -633,7 +646,7 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 3),
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 4),
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 5));
-      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segments; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg6e8_v_u8m1x6(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                                    pad_vec_group6, vl);
@@ -650,7 +663,7 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 4),
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 5),
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 6));
-      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segments; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg7e8_v_u8m1x7(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                                    pad_vec_group7, vl);
@@ -668,7 +681,7 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 5),
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 6),
                                    __riscv_vget_v_u8m8_u8m1(pad_vec, 7));
-      for (size_t vl = 0, avl = n_segs; avl > 0; avl -= vl) {
+      for (size_t vl = 0, avl = n_segments; avl > 0; avl -= vl) {
         vl = __riscv_vsetvl_e8m1(avl);
         __riscv_vssseg8e8_v_u8m1x8(dst, (ptrdiff_t)(stride * sizeof(uint8_t)),
                                    pad_vec_group8, vl);
@@ -680,13 +693,33 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
       break;
     }
   } else {
-    for (size_t i = 0; i < n_segs; ++i) {
+    for (size_t i = 0; i < n_segments; ++i) {
       skl_set_e8_zve32x(dst, padding_value, extent);
       dst += stride;
     }
   }
 }
 
+/**
+ * @brief Transpose a matrix and pad the output matrix with a constant value in
+ * the M dimension.
+ *
+ * @param m_padded - Number of columns in output matrix (Must be greater than or
+ * equal to m)
+ * @param m - Number of rows in input matrix
+ * @param n - Number of columns in input matrix and rows in output matrix.
+ * @param a - Pointer to input matrix
+ * @param rsa - Row stride of input matrix in elements.
+ * @param at - Pointer to output matrix.
+ * @param rsat - Row stride of output matrix in elements.
+ * @param padding_value - Value to use for padding.
+ *
+ * Transposes an m×n matrix and pads the transposed output in the M dimension.
+ *
+ * Transformation:
+ *   Input:  m×n matrix (m rows, n columns)
+ *   Output: n×m_padded matrix (n rows, m_padded columns), where m_padded >= m
+ */
 SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
     size_t m_padded, size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
     size_t rsa, uint8_t *SKL_RESTRICT at, size_t rsat, uint8_t padding_value) {
@@ -984,6 +1017,7 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
   size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the input matrix
   size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the input matrix
 
+  /* intra-block: column-major, inter-block: row-major */
   if ((cs0 * n0 == cs1) && rs0 == 1) {
     for (size_t ii1 = 0; ii1 < m1; ++ii1) {
       const uint8_t *src_block = src + ii1 * m0 * rs;
@@ -1000,6 +1034,7 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
     return;
   }
 
+  /* intra-block: row-major, inter-block: column-major */
   if ((rs0 * m0 == rs1) && cs0 == 1) {
     for (size_t jj1 = 0; jj1 < n1; ++jj1) {
       const uint8_t *src_block = src + jj1 * n0;
@@ -1018,12 +1053,14 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
     return;
   }
 
+  /* Column panels, column-major block ordering*/
   if (rs0 == 1 && n0 == 1 && m0 == rs1) {
     skl_transpose_padded_m_e8_zve32x(m0 * m1, m, n, src, rs, dst, cs1,
                                      padding_value);
     return;
   }
 
+  /* Row panels, row-major block ordering*/
   if (cs0 == 1 && m0 == 1 && n0 == cs1) {
     skl_copy2d_e8_zve32x(m, n, src, rs, dst, rs1);
     // pad right
