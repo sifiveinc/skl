@@ -31,8 +31,8 @@ extern "C" {
  * @note
  * Will perform best when `n >= __riscv_vsetvlmax_e16m8()`.
  */
-void skl_softmax_f16_zvfh(_Float16 *pDst, const _Float16 *pSrc,
-                          const _Float16 beta, const size_t n);
+void skl_softmax_f16_zvfh(_Float16 *pDst, const _Float16 *pSrc, _Float16 beta,
+                          size_t n);
 
 #if defined(__cplusplus)
 } // extern "C"

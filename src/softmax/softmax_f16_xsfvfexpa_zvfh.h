@@ -32,7 +32,7 @@ extern "C" {
  * instruction to compute the e^x part of softmax.
  */
 void skl_softmax_f16_xsfvfexpa_zvfh(_Float16 *pDst, const _Float16 *pSrc,
-                                    const _Float16 beta, const size_t n);
+                                    _Float16 beta, size_t n);
 #if defined(__cplusplus)
 } // extern "C"
 #endif

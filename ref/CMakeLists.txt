@@ -14,6 +14,7 @@ add_library(skl-ref
     depthwise_conv2d/depthwise_conv2d_f32_f32_f32.c
     depthwise_conv2d/depthwise_conv2d_f64_f64_f64.c
     depthwise_conv2d/depthwise_conv2d_i8_i8_i32.c
+    exp/exp_bf16.c
     exp/exp_f16.c
     exp/exp_f32.c
     gemm/gemm_bf16rc_bf16rc_f32rc.c
@@ -23,6 +24,7 @@ add_library(skl-ref
     gemm/gemm_f8e5m2rc_f8e5m2rc_f32rc.c
     gemm/gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc.c
     gemm/gemm_f16rc_f16rc_f16rc.c
+    gemm/gemm_f16rcprc_f16rcprc_f16rcprc.c
     gemm/gemm_f16rc_f16rc_f32rc.c
     gemm/gemm_f16rcprc_f16rcprc_f32rcprc.c
     gemm/gemm_f32rc_f32rc_f32rc.c

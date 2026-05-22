@@ -28,8 +28,8 @@ extern "C" {
  * skl_softmax_f32_ref(pDst, pSrc, beta, n);
  * ```
  */
-void skl_softmax_f32_zve32f(float *pDst, const float *pSrc, const float beta,
-                            const size_t n);
+void skl_softmax_f32_zve32f(float *pDst, const float *pSrc, float beta,
+                            size_t n);
 
 /**
  * @brief FP32 2D stable softmax, reducing rows.

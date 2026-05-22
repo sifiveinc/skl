@@ -260,7 +260,7 @@ skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f32_f32_f32_internal_zve32f(
   }
 }
 
-SKL_FUNC void skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f32_f32_f32_zve32f(
+SKL_FUNC void skl_depthwise_conv2d_f32hwc_f32hwim_f32hwc_zve32f(
     float *output, const float *input, const float *filter, size_t input_height,
     size_t input_width, size_t input_channel, size_t filter_height,
     size_t filter_width, size_t output_height, size_t output_width,
@@ -1200,7 +1200,7 @@ skl_depthwise_conv2d_vc_f3x3_sn_dn_mn_in_hwc_f32_f32_f32_internal_zve32f(
   }
 }
 
-SKL_FUNC void skl_depthwise_conv2d_vc_f3x3_sn_dn_mn_in_hwc_f32_f32_f32_zve32f(
+SKL_FUNC void skl_depthwise_conv2d_f3x3_f32hwc_f32hwim_f32hwc_zve32f(
     float *output, const float *input, const float *filter, size_t input_height,
     size_t input_width, size_t input_channel, size_t output_height,
     size_t output_width, size_t output_channel, size_t depth_multiplier,

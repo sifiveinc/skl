@@ -37,8 +37,5 @@ Initial release of SKL. Features include:
         * Zvfofp8min: narrowing `float32` to OFP8, widening OFP8 to `bfloat16`.
         * Zvfofp8min + Zvfbfmin: narrowing `bfloat16` to OFP8.
         * Zvfofp4min: widening OFP4 to OFP8.
-* Examples:
-    * Convolution 2D:
-        * RVV: `float32` Transform into Im2Row and GEMM
 * Test suite: tests included for every kernel which assess functional correctness and measure performance.
 * Documentation: each public function documented with a Doxygen documentation string, as well as detailed Markdown documents in most directories.

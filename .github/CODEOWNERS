@@ -5,8 +5,6 @@
 /doc/CI.md @myeh01
 /include @Aaron-Hutchinson
 
-/example/conv2d @peichialin
-
 /ref/cvt @Harlen126
 /ref/depthwise_conv2d @peichialin
 /ref/gemm @Aaron-Hutchinson @myeh01

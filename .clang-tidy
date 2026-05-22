@@ -1,37 +1,30 @@
 Checks:
   - clang-analyzer-*
   - -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
+  - -clang-analyzer-optin.performance.Padding
   - clang-diagnostic-*
   - bugprone-*
   - -bugprone-easily-swappable-parameters
-  - cert-*
-  - -cert-dcl37-c   # __riscv_* identifiers
-  - -cert-dcl51-cpp # __riscv_* identifiers
-  - -cert-msc30-c   # rand() in tests
-  - -cert-msc50-cpp # rand() in tests
-  - cppcoreguidelines-*
-  - -cppcoreguidelines-avoid-magic-numbers
-  - -cppcoreguidelines-avoid-non-const-global-variables
-  - -cppcoreguidelines-init-variables
-  - google-*
-  - hicpp-*
-  - -hicpp-no-assembler # We use inline asm
+  - -bugprone-macro-parentheses
   - llvm-*
+  - -llvm-header-guard
   - misc-*
+  - -misc-predictable-rand
   - modernize-*
   - performance-*
   - portability-*
+  - -portability-avoid-pragma-once # Supported by most modern compilers
   - readability-*
   - -readability-identifier-length
   - -readability-isolate-declaration
   - -readability-magic-numbers
   - -readability-math-missing-parentheses
+  - -readability-use-concise-preprocessor-directives
   - -*-braces-around-statements
   - -*-uppercase-literal-suffix # Allow lowercase litteral suffixes
 WarningsAsErrors: '*'
 CheckOptions:
   bugprone-reserved-identifier.AllowedIdentifiers: '__riscv_*'
-  hicpp-signed-bitwise.IgnorePositiveIntegerLiterals: true
   misc-include-cleaner.IgnoreHeaders: "skl-ref.h;skl.h"
   readability-function-cognitive-complexity.Threshold: 180
   readability-suspicious-call-argument.MinimumIdentifierNameLength: 4

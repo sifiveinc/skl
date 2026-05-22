@@ -261,7 +261,7 @@ skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f16_f16_f16_internal_zvfh(
 }
 
 SKL_FUNC
-void skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f16_f16_f16_zvfh(
+void skl_depthwise_conv2d_f16hwc_f16hwim_f16hwc_zvfh(
     _Float16 *output, const _Float16 *input, const _Float16 *filter,
     size_t input_height, size_t input_width, size_t input_channel,
     size_t filter_height, size_t filter_width, size_t output_height,
@@ -1209,7 +1209,7 @@ skl_depthwise_conv2d_vc_f3x3_sn_dn_mn_in_hwc_f16_f16_f16_internal_zvfh(
 }
 
 SKL_FUNC
-void skl_depthwise_conv2d_vc_f3x3_sn_dn_mn_in_hwc_f16_f16_f16_zvfh(
+void skl_depthwise_conv2d_f3x3_f16hwc_f16hwim_f16hwc_zvfh(
     _Float16 *output, const _Float16 *input, const _Float16 *filter,
     size_t input_height, size_t input_width, size_t input_channel,
     size_t output_height, size_t output_width, size_t output_channel,

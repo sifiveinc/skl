@@ -147,9 +147,9 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm2tn_2tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
 
   const size_t tm0 = bta ? tn : tm;
   const size_t tn0 = bta ? tm : tn;
-  const size_t tss_pattern = bta ? (size_t)(1) << kShiftPattern : 0;
+  const size_t tss_pattern = bta ? 1 << kShiftPattern : 0;
   const size_t mt0 = 0 | tss_pattern;
-  const size_t mt4 = (size_t)(4) << kShiftTile | tss_pattern;
+  const size_t mt4 = 4 << kShiftTile | tss_pattern;
 
   float *c0 = c;
   float *c1 = c0 + tsc1;
@@ -356,10 +356,10 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm3tn_3tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
 
   const size_t tm0 = bta ? tn : tm;
   const size_t tn0 = bta ? tm : tn;
-  const size_t tss_pattern = bta ? (size_t)(1) << kShiftPattern : 0;
+  const size_t tss_pattern = bta ? 1 << kShiftPattern : 0;
   const size_t mt0 = 0 | tss_pattern;
-  const size_t mt4 = (size_t)(4) << kShiftTile | tss_pattern;
-  const size_t mt8 = (size_t)(8) << kShiftTile | tss_pattern;
+  const size_t mt4 = 4 << kShiftTile | tss_pattern;
+  const size_t mt8 = 8 << kShiftTile | tss_pattern;
 
   float *c0 = c;
   float *c1 = c0 + tsc1;
@@ -606,11 +606,11 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm4tn_4tm1tn_a1b01_f16c_f16_f32_xsfmm32a16f(
 
   const size_t tm0 = bta ? tn : tm;
   const size_t tn0 = bta ? tm : tn;
-  const size_t tss_pattern = bta ? (size_t)(1) << kShiftPattern : 0;
+  const size_t tss_pattern = bta ? 1 << kShiftPattern : 0;
   const size_t mt0 = 0 | tss_pattern;
-  const size_t mt4 = (size_t)(4) << kShiftTile | tss_pattern;
-  const size_t mt8 = (size_t)(8) << kShiftTile | tss_pattern;
-  const size_t mt12 = (size_t)(12) << kShiftTile | tss_pattern;
+  const size_t mt4 = 4 << kShiftTile | tss_pattern;
+  const size_t mt8 = 8 << kShiftTile | tss_pattern;
+  const size_t mt12 = 12 << kShiftTile | tss_pattern;
 
   float *c0 = c;
   float *c1 = c0 + tsc1;
@@ -968,9 +968,9 @@ SKL_FUNC_PRIVATE void skl_gemm_2tn2tn_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
   const size_t kRowInc = 1;
 
   const size_t mt0 = 0;
-  const size_t mt4 = (size_t)(4) << kShiftTile;
-  const size_t mt8 = (size_t)(8) << kShiftTile;
-  const size_t mt12 = (size_t)(12) << kShiftTile;
+  const size_t mt4 = 4 << kShiftTile;
+  const size_t mt8 = 8 << kShiftTile;
+  const size_t mt12 = 12 << kShiftTile;
 
   float *c00 = c;
   float *c01 = c00 + csc1;
