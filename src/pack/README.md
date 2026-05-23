@@ -51,7 +51,7 @@ void skl_pack_<src_type>_<dst_type>_<isa>(
 Unpacking functions work analogously.
 
 As in the case of GEMM kernels, most packing kernels will fully specialize or constrain most of the parameters, and they are thus omitted from the API.
-Usually, `m0`, `n0`, `rs0`, and `cs0` are all fixed by the target's layout, and indicated in the kernel's name as part of the datatype specifier of the output matrix.
+Usually, `m0`, `n0`, `rs0`, and `cs0` are all fixed by the target's layout and indicated in the kernel's name as part of the datatype specifier of the output matrix.
 
 ### Naming Convention for Packing Kernels
 
@@ -74,7 +74,7 @@ Similarly, the ordering of blocks relative to each other is assumed to be block-
 
 Several examples of packed layouts are shown below, with element types omitted.
 
-### Example: p4x1c Block Layout (Block-Row-Major with Inner Transposition)
+### Example: p4x1c Block Layout (Block-Row-Major with Column-Major Blocks)
 ```
 Original row-major matrix (8x4):        Packed layout [m0=4, n0=1, m1=2, n1=4]:
 
@@ -102,7 +102,7 @@ Strides: rs0=1 (row stride within block), cs0 (unused, blocks have only 1 column
          rs1=16 (row stride between blocks), cs1=4 (column stride between blocks)
 ```
 
-### Example: cp1x4 Block Layout (Block-Column-Major/Outer Transposition)
+### Example: cp1x4 Block Layout (Block-Column-Major)
 ```
 Original row-major matrix (4x8):        Packed layout [m0=1, n0=4, m1=4, n1=2]:
 
@@ -166,7 +166,7 @@ It is for illustrative purposes only.
 All of these kernels are required for correct operation of the corresponding GEMM kernels.
 
 #### Xsfvqdotq
-- `skl_pack_e8_e8p4x1c_zve32x`: Pack the B matrix into 4xN panels (4x1 block-row-major example above) to use `sf.vqdot.vx` without reduction summation.
+- `skl_pack_e8_e8p4x1c_zve32x`: Pack the `B` matrix into 4 x `N` panels (4 x 1 block-row-major example above) to use `sf.vqdot.vx` without reduction summation.
 
 #### Xsfvqmaccqoq
 These kernels are required for use of the `sf.vqmacc.4x8x4` instruction.
