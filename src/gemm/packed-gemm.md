@@ -239,7 +239,7 @@ However, in the case of the dot product dimension, we simply set the SKL GEMM `k
 
 In theory, it should be possible to avoid exposing this packing to the GEMM kernel itself.
 If all matrices were packed into `TE` x `TE` blocks, then the kernel could be called in a loop nest over the packed blocks, applying one `sf.mm` instruction per block.
-However, to obtain peak performance it is often necessary for the kernel to use `2 * TE` x `2 * TE` register tiles, so the strides between blocks must necessarily be exposed to the implementation, motivating the provision of a packed API for this target:
+However, to obtain peak performance it is often necessary for the kernel to use `2*TE` x `2*TE` register tiles, so the strides between blocks must necessarily be exposed to the implementation, motivating the provision of a packed API for this target:
 
 ```c
 void skl_gemm_a1b01_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f(
@@ -266,16 +266,16 @@ In this case, the packing is performed by the IREE framework itself, and the SKL
 
 ### Xsfvqmaccqoq: Packed (M = 4)x(K = 8)x(N = 4) Block-Matrix Products
 
-The `sf.vqmacc.4x8x4` instruction computes a fat dot product:
+The `sf.vqmacc.4x8x4` instruction computes multiple fat dot products:
 ```
 C[j] += A * B[j], 0 <= j < VL / 32
 ```
 where `A` is a 4 x 8 `int8_t` matrix, each `B[j]` is an 8 x 4 `int8_t` matrix, and each `C[j]` is a 4 x 4 `int32_t` matrix.
 As in the `sf.vqdot.vx`, `VL` is the vector length.
 
-All of the matrices `C[j]` are collectively held in a single vector register group; `C[j]` is stored in row-major order in bytes `[j * 64, (j + 1) * 64)`.
+All of the matrices `C[j]` are collectively held in a single vector register group; `C[j]` is stored in row-major order in bytes `[j*64, (j+1)*64)`.
 `A` is stored in row-major order in a single vector register group.
-Similar to the `C[j]`, all of the matrices `B[j]` are collectively held in a single vector register group, and `B[j]` is stored in row-major order in bytes `[j * 32, (j + 1) * 32)`.
+And similarly to the `C[j]`, all of the matrices `B[j]` are in a single vector register group, with `B[j]` stored in row-major order in bytes `[j*32, (j+1)*32)`.
 
 Thus, the block dimensions must be `m0 = 4`, `n0 = 4`, and `k0 = 8`; the intra-block row strides must be `rsa0 = 8`, `rsb0 = 4`, `rsc0 = 4`; and all three intra-block column strides must be 1.
 Due to this instruction's operand layout, it is also natural to use a block-row-major layout for `B` and `C`.
@@ -363,7 +363,7 @@ void example_blocked_gemm(size_t m, size_t n, size_t k, const int8_t *a,
 
         // Multiply A and B tiles, accumulate into un-tiled C
         skl_gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
-            mt, nt, k1, 1 /* alpha */, a_tile, rsa1, csa1, b_tile, rsb1, csb1,
+            mt, nt, k1, 1 /* alpha */, a_tile, rsa1, csa1, b_tile, rsb1,
             kk_tile ? 1 : 0 /* beta */, c + ii_tile * rsc + jj_tile, rsc);
       }
     }
