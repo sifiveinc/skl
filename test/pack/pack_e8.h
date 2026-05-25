@@ -25,7 +25,7 @@ typedef struct {
   size_t rs0, cs0; // within block
   size_t rs1, cs1; // between blocks
 
-  uint8_t padding_value;
+  uint8_t pad;
   // Buffer generation settings
   SKL_TEST_BUFFER(uint8_t) src, dst;
 
@@ -38,7 +38,7 @@ typedef struct {
 
 #define PACK_E8_DEFAULTS                                                       \
   .src = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM},                      \
-  .dst = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM}, .padding_value = 255
+  .dst = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM}, .pad = 255
 
 void pack_e8_init(skl_test_t *t);
 void pack_e8_verify(skl_test_t *t);

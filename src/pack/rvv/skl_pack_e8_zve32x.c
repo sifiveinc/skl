@@ -552,7 +552,7 @@ skl_transpose_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
  * @param dst - Starting address of the first segment.
  * @param extent - Number of contiguous elements per segment.
  * @param stride - Stride to the next segment. (in elements)
- * @param padding_value - Value to use for padding.
+ * @param pad - Value to use for padding.
  * @param n_segments - Number of segments to fill.
  *
  * This function fills each segment with the padding value. The segments are
@@ -560,19 +560,18 @@ skl_transpose_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
  * start of each segment.
  */
 SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
-                                        size_t stride, uint8_t padding_value,
+                                        size_t stride, uint8_t pad,
                                         size_t n_segments) {
   if (extent == 0 || n_segments == 0) {
     return;
   }
   if (extent == stride) {
-    skl_set_e8_zve32x(dst, padding_value, extent * n_segments);
+    skl_set_e8_zve32x(dst, pad, extent * n_segments);
     return;
   }
   if (extent <= 8) {
 
-    vuint8m8_t pad_vec =
-        __riscv_vmv_v_x_u8m8(padding_value, __riscv_vsetvlmax_e8m8());
+    vuint8m8_t pad_vec = __riscv_vmv_v_x_u8m8(pad, __riscv_vsetvlmax_e8m8());
 
     switch (extent) {
     case 1: {
@@ -694,7 +693,7 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
     }
   } else {
     for (size_t i = 0; i < n_segments; ++i) {
-      skl_set_e8_zve32x(dst, padding_value, extent);
+      skl_set_e8_zve32x(dst, pad, extent);
       dst += stride;
     }
   }
@@ -712,7 +711,7 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
  * @param rsa - Row stride of input matrix in elements.
  * @param at - Pointer to output matrix.
  * @param rsat - Row stride of output matrix in elements.
- * @param padding_value - Value to use for padding.
+ * @param pad - Value to use for padding.
  *
  * Transposes an m×n matrix and pads the transposed output in the M dimension.
  *
@@ -722,7 +721,7 @@ SKL_FUNC_PRIVATE void skl_pad_e8_zve32x(uint8_t *dst, size_t extent,
  */
 SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
     size_t m_padded, size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
-    size_t rsa, uint8_t *SKL_RESTRICT at, size_t rsat, uint8_t padding_value) {
+    size_t rsa, uint8_t *SKL_RESTRICT at, size_t rsat, uint8_t pad) {
 
   if (m_padded == m) {
     skl_transpose_e8_zve32x(m, n, a, rsa, at, rsat);
@@ -744,8 +743,7 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
      *   - At most 8: limited by tile size
      */
     size_t m_transition = m_padded - m_align8 > 8 ? 8 : m_padded - m_align8;
-    vuint8m8_t pad_vec =
-        __riscv_vmv_v_x_u8m8(padding_value, __riscv_vsetvlmax_e8m8());
+    vuint8m8_t pad_vec = __riscv_vmv_v_x_u8m8(pad, __riscv_vsetvlmax_e8m8());
 
     switch (m_transition) {
     case 2: {
@@ -999,7 +997,7 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
 
   if (m_padded > m_ceil8) {
     out_tile = at + m_ceil8;
-    skl_pad_e8_zve32x(out_tile, m_padded - m_ceil8, rsat, padding_value, n);
+    skl_pad_e8_zve32x(out_tile, m_padded - m_ceil8, rsat, pad, n);
   }
 }
 
@@ -1007,7 +1005,7 @@ SKL_FUNC_PRIVATE void
 skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
                            size_t rs, size_t m0, size_t n0,
                            uint8_t *SKL_RESTRICT dst, size_t rs0, size_t cs0,
-                           size_t rs1, size_t cs1, uint8_t padding_value) {
+                           size_t rs1, size_t cs1, uint8_t pad) {
 
   // Handle division by zero
   if (m0 == 0 || n0 == 0) {
@@ -1024,11 +1022,11 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
       uint8_t *dst_block = dst + ii1 * rs1;
       size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
       skl_transpose_padded_m_e8_zve32x(m0, m_length, n, src_block, rs,
-                                       dst_block, cs0, padding_value);
+                                       dst_block, cs0, pad);
       if (n % n0) {
         // pad right
         skl_pad_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), m0, cs0,
-                          padding_value, n0 - n % n0);
+                          pad, n0 - n % n0);
       }
     }
     return;
@@ -1043,20 +1041,17 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
       skl_copy2d_e8_zve32x(m, n_length, src_block, rs, dst_block, rs0);
       if (m % m0) {
         // pad bottom
-        skl_pad_e8_zve32x(dst_block + m * rs0, n0, rs0, padding_value,
-                          m0 - m % m0);
+        skl_pad_e8_zve32x(dst_block + m * rs0, n0, rs0, pad, m0 - m % m0);
       }
       // pad right: pad (n0 - n_length) elements in each of m rows
-      skl_pad_e8_zve32x(dst_block + n_length, n0 - n_length, rs0, padding_value,
-                        m);
+      skl_pad_e8_zve32x(dst_block + n_length, n0 - n_length, rs0, pad, m);
     }
     return;
   }
 
   /* Column panels, column-major block ordering*/
   if (rs0 == 1 && n0 == 1 && m0 == rs1) {
-    skl_transpose_padded_m_e8_zve32x(m0 * m1, m, n, src, rs, dst, cs1,
-                                     padding_value);
+    skl_transpose_padded_m_e8_zve32x(m0 * m1, m, n, src, rs, dst, cs1, pad);
     return;
   }
 
@@ -1065,7 +1060,7 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
     skl_copy2d_e8_zve32x(m, n, src, rs, dst, rs1);
     // pad right
     if (n % n0) {
-      skl_pad_e8_zve32x(dst + n, n0 - n % n0, rs1, padding_value, m);
+      skl_pad_e8_zve32x(dst + n, n0 - n % n0, rs1, pad, m);
     }
     return;
   }
@@ -1079,19 +1074,19 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
         size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
         size_t n_length = n0 < n - jj1 * n0 ? n0 : n - jj1 * n0;
         skl_transpose_padded_m_e8_zve32x(m0, m_length, n_length, src_block, rs,
-                                         dst_block, cs0, padding_value);
+                                         dst_block, cs0, pad);
         // pad right
-        skl_pad_e8_zve32x(dst_block + cs0 * n_length, m0, cs0, padding_value,
+        skl_pad_e8_zve32x(dst_block + cs0 * n_length, m0, cs0, pad,
                           n0 - n_length);
       } else if (cs0 == 1) {
         size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
         size_t n_length = n0 < n - jj1 * n0 ? n0 : n - jj1 * n0;
         skl_copy2d_e8_zve32x(m_length, n_length, src_block, rs, dst_block, rs0);
         // pad right: pad (n0 - n_length) elements in each of m_length rows
-        skl_pad_e8_zve32x(dst_block + n_length, n0 - n_length, rs0,
-                          padding_value, m_length);
+        skl_pad_e8_zve32x(dst_block + n_length, n0 - n_length, rs0, pad,
+                          m_length);
         // pad bottom: pad (m0 - m_length) rows, each with n0 elements
-        skl_pad_e8_zve32x(dst_block + m_length * rs0, n0, rs0, padding_value,
+        skl_pad_e8_zve32x(dst_block + m_length * rs0, n0, rs0, pad,
                           m0 - m_length);
       } else {
         for (size_t ii0 = 0; ii0 < m0; ++ii0) {
@@ -1100,7 +1095,7 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
               dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0];
             } else {
               // Pad with zeros
-              dst_block[ii0 * rs0 + jj0 * cs0] = padding_value;
+              dst_block[ii0 * rs0 + jj0 * cs0] = pad;
             }
           }
         }
@@ -1114,15 +1109,15 @@ SKL_FUNC void skl_pack_e8rc_e8rcprc_zve32x(size_t m, size_t n,
                                            size_t rs, size_t cs, size_t m0,
                                            size_t n0, uint8_t *SKL_RESTRICT dst,
                                            size_t rs0, size_t cs0, size_t rs1,
-                                           size_t cs1, uint8_t padding_value) {
+                                           size_t cs1, uint8_t pad) {
 
   if (cs == 1) {
     skl_pack_e8_e8rcprc_zve32x(m, n, src, rs, m0, n0, dst, rs0, cs0, rs1, cs1,
-                               padding_value);
+                               pad);
   } else if (rs == 1) {
     // When input is column-major (rs==1), transpose both dimensions and strides
     skl_pack_e8_e8rcprc_zve32x(n, m, src, cs, n0, m0, dst, cs0, rs0, cs1, rs1,
-                               padding_value);
+                               pad);
   } else {
     size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the input matrix
     size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the input matrix
@@ -1136,7 +1131,7 @@ SKL_FUNC void skl_pack_e8rc_e8rcprc_zve32x(size_t m, size_t n,
               dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0 * cs];
             } else {
               // Pad with zeros
-              dst_block[ii0 * rs0 + jj0 * cs0] = padding_value;
+              dst_block[ii0 * rs0 + jj0 * cs0] = pad;
             }
           }
         }
