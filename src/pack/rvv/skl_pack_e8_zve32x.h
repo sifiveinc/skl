@@ -20,19 +20,19 @@ extern "C" {
 /**
  * @brief RVV-based 8-bit general matrix pack kernel (2D to blocked 4D layout).
  *
- * @param m - Number of rows in the input matrix
- * @param n - Number of columns in the input matrix
- * @param src - Pointer to the input matrix
- * @param rs - Row stride of the input matrix (in elements)
- * @param cs - Column stride of the input matrix (in elements)
- * @param m0 - Number of rows per block (intra-block row dimension)
- * @param n0 - Number of columns per block (intra-block column dimension)
- * @param dst - Pointer to the output blocked matrix
- * @param rs0 - Row stride within each block (intra-block row stride)
- * @param cs0 - Column stride within each block (intra-block column stride)
- * @param rs1 - Row stride between blocks (inter-block row stride)
- * @param cs1 - Column stride between blocks (inter-block column stride)
- * @param padding_value - Value to use for padding
+ * @param m - Num. rows in input matrix
+ * @param n - Num. columns in input matrix
+ * @param src - Input matrix
+ * @param rs - Row stride of input matrix
+ * @param cs - Column stride of input matrix
+ * @param m0 - Num. rows in a block of the input matrix
+ * @param n0 - Num. columns in a block of the input matrix
+ * @param dst - Output packed matrix [m1 x n1 x (m0 x n0)]
+ * @param rs0 - Row stride within a block of the output matrix
+ * @param cs0 - Column stride within a block of the output matrix
+ * @param rs1 - Row stride between blocks of the output matrix
+ * @param cs1 - Column stride between blocks of the output matrix
+ * @param pad - Value to insert for padded elements (usually 0)
  *
  * Transforms a 2D matrix into a blocked 4D layout.
  *
@@ -51,7 +51,7 @@ void skl_pack_e8rc_e8rcprc_zve32x(size_t m, size_t n,
                                   size_t cs, size_t m0, size_t n0,
                                   uint8_t *SKL_RESTRICT dst, size_t rs0,
                                   size_t cs0, size_t rs1, size_t cs1,
-                                  uint8_t padding_value);
+                                  uint8_t pad);
 
 #if defined(__cplusplus)
 } // extern "C"

@@ -7,21 +7,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
-SKL_FUNC void skl_pack_e8rc_e8rcprc_ref(
-    size_t m,             // Num. rows in input matrix
-    size_t n,             // Num. columns in input matrix
-    const uint8_t *src,   // Input matrix
-    size_t rs,            // Row stride of input matrix
-    size_t cs,            // Column stride of input matrix
-    size_t m0,            // Num. rows in a block of the input matrix
-    size_t n0,            // Num. columns in a block of the input matrix
-    uint8_t *dst,         // Output packed matrix
-    size_t rs0,           // Row stride within a block of the output matrix
-    size_t cs0,           // Column stride within a block of the output matrix
-    size_t rs1,           // Row stride between blocks of the output matrix
-    size_t cs1,           // Column stride between blocks of the output matrix
-    uint8_t padding_value // Value to use for padding
-) {
+SKL_FUNC void skl_pack_e8rc_e8rcprc_ref(size_t m, size_t n,
+                                        const uint8_t *SKL_RESTRICT src,
+                                        size_t rs, size_t cs, size_t m0,
+                                        size_t n0, uint8_t *SKL_RESTRICT dst,
+                                        size_t rs0, size_t cs0, size_t rs1,
+                                        size_t cs1, uint8_t pad) {
   size_t m1 = (m + m0 - 1) / m0; // Num. row blocks
   size_t n1 = (n + n0 - 1) / n0; // Num. column blocks
 
@@ -36,7 +27,7 @@ SKL_FUNC void skl_pack_e8rc_e8rcprc_ref(
             dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0 * cs];
           } else {
             // Pad with zeros
-            dst_block[ii0 * rs0 + jj0 * cs0] = padding_value;
+            dst_block[ii0 * rs0 + jj0 * cs0] = pad;
           }
         }
       }
