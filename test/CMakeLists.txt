@@ -172,9 +172,9 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f
+  skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f
   gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f.c
+  gemm/xsfmm/skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f.c
   "xsfmm32a16f"
   ""
 )
