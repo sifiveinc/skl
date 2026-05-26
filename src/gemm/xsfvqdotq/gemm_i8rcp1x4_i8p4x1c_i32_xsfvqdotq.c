@@ -26,7 +26,7 @@
 #endif
 
 // a_pack is 4-byte aligned and rsa1 and csa1 are multiples of 4
-SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
+SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t rsa1,
     size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c,
     size_t rsc) {
@@ -355,7 +355,7 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
 }
 
 // a_pack is 4-byte aligned and rsa1 and csa1 are multiples of 4
-SKL_FUNC_PRIVATE void skl_gemm_lt6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
+SKL_FUNC_PRIVATE void skl_gemm_lt6xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
     size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
     int32_t *c, size_t rsc) {
@@ -548,7 +548,7 @@ SKL_FUNC_PRIVATE void skl_gemm_lt6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
 }
 
 // a_pack need not be 4-byte-aligned nor csa1 a multiple of 4
-SKL_FUNC_PRIVATE void skl_gemm_1xm4_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
+SKL_FUNC_PRIVATE void skl_gemm_1xm4_unaligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t csa1,
     const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c) {
   if (n == 0) {
@@ -598,7 +598,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
 }
 
 // a_pack is 4-byte aligned and csa1 is a multiple of 4
-SKL_FUNC_PRIVATE void skl_gemm_1xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
+SKL_FUNC_PRIVATE void skl_gemm_1xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t csa1,
     const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c) {
   if (n == 0) {
@@ -695,7 +695,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
   __riscv_vse32_v_i32m4(c, vec0, n);
 }
 
-SKL_FUNC_PRIVATE void skl_gemm_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
+SKL_FUNC_PRIVATE void skl_gemm_unaligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
     size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
     int32_t *c, size_t rsc) {
@@ -714,14 +714,14 @@ SKL_FUNC_PRIVATE void skl_gemm_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
     for (size_t n_idx = 0; n_idx < n; n_idx += n0) {
       const int8_t *b_tile_ptr = b_pack + k0 * n_idx;
       const size_t n_tile = n0 <= n - n_idx ? n0 : n - n_idx;
-      skl_gemm_1xm4_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
+      skl_gemm_1xm4_unaligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
           n_tile, k, alpha, a_tile_ptr, csa1, b_tile_ptr, rsb1, beta, c_write);
       c_write += n_tile;
     }
   }
 }
 
-SKL_FUNC_PRIVATE void skl_gemm_aligned_i8rcp_i8pc_i32_xsfvqdotq(
+SKL_FUNC_PRIVATE void skl_gemm_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
     size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
     int32_t *c, size_t rsc) {
@@ -739,7 +739,7 @@ SKL_FUNC_PRIVATE void skl_gemm_aligned_i8rcp_i8pc_i32_xsfvqdotq(
       int32_t *c_write = c + n_idx;
       const int8_t *b_tile_ptr = b_pack + k0 * n_idx;
       const size_t n_tile = n0 <= n - n_idx ? n0 : n - n_idx;
-      skl_gemm_1xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
+      skl_gemm_1xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
           n_tile, k, alpha, a_pack, csa1, b_tile_ptr, rsb1, beta, c_write);
     }
   } else {
@@ -750,7 +750,7 @@ SKL_FUNC_PRIVATE void skl_gemm_aligned_i8rcp_i8pc_i32_xsfvqdotq(
       for (size_t n_idx = 0; n_idx < n; n_idx += n0) {
         const int8_t *b_tile_ptr = b_pack + k0 * n_idx;
         const size_t n_tile = n0 <= n - n_idx ? n0 : n - n_idx;
-        skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
+        skl_gemm_6xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
             n_tile, k, alpha, a_tile_ptr, rsa1, csa1, b_tile_ptr, rsb1, beta,
             c_write, rsc);
         c_write += n_tile;
@@ -764,7 +764,7 @@ SKL_FUNC_PRIVATE void skl_gemm_aligned_i8rcp_i8pc_i32_xsfvqdotq(
       for (size_t n_idx = 0; n_idx < n; n_idx += n0) {
         const int8_t *b_tile_ptr = b_pack + k0 * n_idx;
         const size_t n_tile = n0 <= n - n_idx ? n0 : n - n_idx;
-        skl_gemm_lt6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
+        skl_gemm_lt6xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
             m_left, n_tile, k, alpha, a_tile_ptr, rsa1, csa1, b_tile_ptr, rsb1,
             beta, c_write, rsc);
         c_write += n_tile;
@@ -773,7 +773,7 @@ SKL_FUNC_PRIVATE void skl_gemm_aligned_i8rcp_i8pc_i32_xsfvqdotq(
   }
 }
 
-SKL_FUNC void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(
+SKL_FUNC void skl_gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
     size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
     int32_t *c, size_t rsc) {
@@ -785,10 +785,10 @@ SKL_FUNC void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(
 
   if ((uintptr_t)a_pack % (k0 * sizeof(int8_t)) == 0 && rsa1 % k0 == 0 &&
       csa1 % k0 == 0) {
-    skl_gemm_aligned_i8rcp_i8pc_i32_xsfvqdotq(m, n, k, alpha, a_pack, rsa1,
-                                              csa1, b_pack, rsb1, beta, c, rsc);
+    skl_gemm_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
+        m, n, k, alpha, a_pack, rsa1, csa1, b_pack, rsb1, beta, c, rsc);
   } else {
-    skl_gemm_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
+    skl_gemm_unaligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
         m, n, k, alpha, a_pack, rsa1, csa1, b_pack, rsb1, beta, c, rsc);
   }
 }

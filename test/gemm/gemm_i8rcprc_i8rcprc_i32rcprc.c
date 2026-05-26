@@ -109,7 +109,7 @@ void skl_gemm_a1b01_i8ptex1c_i8cp1xte_i32rcptexte_xsfmm32a8i_wrapper(
 
 /* Include various int8 GEMM kernels depending on ISA compatibility. */
 #if defined(__riscv_xsfvqdotq)
-void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_wrapper(
+void skl_gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq_wrapper(
     size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
     int32_t alpha, const int8_t *a_pack, __attribute__((unused)) size_t rsa0,
     size_t csa0, size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb0,
@@ -134,9 +134,9 @@ void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_wrapper(
   if (status) {
     exit(status);
   }
-  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(m0 * m1, n0 * n1, k0 * k1, alpha, a_pack,
-                                    rsa1, csa1, b_pack, rsb1, beta,
-                                    c_pack /* == c */, rsc1 /* == rsc */);
+  skl_gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
+      m0 * m1, n0 * n1, k0 * k1, alpha, a_pack, rsa1, csa1, b_pack, rsb1, beta,
+      c_pack /* == c */, rsc1 /* == rsc */);
 }
 #endif
 
