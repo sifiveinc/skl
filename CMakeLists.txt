@@ -102,7 +102,7 @@ add_skl_src(src/gemm/xsfmm/gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c "xsfmm32a8
 add_skl_src(src/gemm/xsfmm/gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c "xsfmm32a8f")
 add_skl_src(src/gemm/xsfmm/gemm_a1b01_i8c_i8_i32_xsfmm32a8i.c "xsfmm32a8i")
 add_skl_src(src/gemm/xsfvqdotq/gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq.c "xsfvqdotq")
-add_skl_src(src/gemm/xsfvqdotq/pack_b_xsfvqdotq.c "zve32x")
+add_skl_src(src/pack/pack_e8_e8p4x1c_zve32x.c "zve32x")
 
 add_skl_src(src/logistic/logistic_f16_xsfvfexp16e.c "xsfvfexp16e")
 add_skl_src(src/logistic/logistic_f16_zvfh.c "zvfh")
@@ -196,7 +196,7 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   if("zve32x" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_i8_i8_i32_zve32x_x390_wrapper gemm/gemm_i8rc_i8rc_i32rc.c
       "-DM=32;-DN=32;-DK=32;-DALPHA=1;-DBETA=0")
-    skl_add_test_legacy(skl_pack_b_i8_xsfvqdotq gemm/pack_b_i8_xsfvqdotq.c "-DK=126;-DN=128")
+    skl_add_test_legacy(skl_pack_e8_e8p4x1c_zve32x gemm/pack_b_i8_xsfvqdotq.c "-DK=126;-DN=128")
   endif()
   if("zvfh" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(exp_f16 exp/exp_f16.c "-DRUN_ZVFH;-DRUN_VFEXPA;-DRUN_VFEXP")

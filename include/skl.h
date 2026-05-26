@@ -59,7 +59,7 @@
  */
 
 #if defined(__riscv_zve32x)
-#include "../src/gemm/xsfvqdotq/pack_b_xsfvqdotq.h"
+#include "../src/pack/pack_e8_e8p4x1c_zve32x.h"
 #endif
 
 /*

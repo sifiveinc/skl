@@ -9,7 +9,6 @@
 #error This source file requires compiler support for the RISC-V Zve32x extension.
 #endif
 
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -46,8 +45,8 @@ extern "C" {
  * This function is designed to work with
  * skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq().
  */
-void skl_pack_b_i8_xsfvqdotq(size_t k, size_t n, const int8_t *b, size_t rsb,
-                             int8_t *b_pack, size_t rsb1);
+void skl_pack_e8_e8p4x1c_zve32x(size_t m, size_t n, const uint8_t *src, size_t rs,
+                                uint8_t *dst, size_t rs1);
 
 #if defined(__cplusplus)
 } // extern "C"
