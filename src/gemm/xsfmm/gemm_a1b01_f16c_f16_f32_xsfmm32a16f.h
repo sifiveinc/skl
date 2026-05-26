@@ -90,7 +90,7 @@ void skl_gemm_a1b01_f16c_f16_f32_xsfmm32a16f(size_t m, size_t n, size_t k,
  * );
  * ```
  */
-void skl_gemm_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f(
+void skl_gemm_a1b01_f16ptex1c_f16cp1xte_f32rcptexte_xsfmm32a16f(
     size_t m1, size_t n1, size_t k, const _Float16 *a_pack, size_t rsa1,
     const _Float16 *b_pack, size_t csb1, float *c_pack, size_t rsc1,
     size_t csc1, bool accum);
