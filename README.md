@@ -70,11 +70,14 @@ SKL's collection of kernels can be compiled into a single static library for use
 
 For projects that support CMake version 3.23 or higher, SKL provides a basic build system consisting of a single, top-level [CMakeLists.txt](./CMakeLists.txt), which can be used to produce a static library `libskl.a` as a library dependency.
 
-The CMake build system can also be invoked manually using the following commands from the root SKL directory:
+To build SKL as a static library and install it on a system, users may run the following CMake commands from the root SKL directory:
 ```shell
 cmake -B build -DCMAKE_TOOLCHAIN_FILE="cmake/riscv.cmake"
 cmake --build build
+cmake --install build
 ```
+The optional `--prefix` flag can be used with `cmake --install` to specify a custom installation directory.
+The CMake configuration files allow downstream projects to discover SKL using `find_package(Skl)`.
 
 The toolchain file `cmake/riscv.cmake` is provided for convenience, but it defines a maximal set of RISC-V extensions and may need to be modified for a given target by disabling some items in `SKL_ARCH_EXTENSIONS`:
 ```cmake
@@ -84,17 +87,24 @@ set(SKL_ARCH_EXTENSIONS
   zba
   zbb
   xsfmmbase
+  xsfmm32a8f
   xsfmm32a8i
   xsfmm32a16f
   xsfmm32a32f
   xsfmm64t
   zfh
   zvfh
-  xsfvfexpa
+  xsfvfbfa
+  xsfvfbfexp16e
+  xsfvfexp16e
   xsfvfexp32e
+  xsfvfexpa
   zvfofp8min0p2
   zvfofp4min0p1
   xsfvqdotq
+  zvfbfmin
+  zvfbfwma
+  zihintntl
 )
 ```
 It also presupposes the existence of a Clang toolchain `riscv64-unknown-elf-clang` that is discoverable by CMake.
@@ -132,6 +142,42 @@ extern "C" {
 ```
 
 **Note**: This usage model is experimental and may require additional integration work.
+
+### Packaging and Distribution
+
+SKL supports CPack for generating binary and source distributions.
+The following commands create distribution packages:
+```shell
+cmake -B build -DCMAKE_TOOLCHAIN_FILE="cmake/riscv.cmake"
+cmake --build build
+cpack --config build/CPackConfig.cmake
+```
+This generates binary packages (tar.gz and self-extracting archive).
+Source distributions can be generated with `build/CPackSourceConfig.cmake`
+instead of `build/CPackConfig.cmake`.
+The packaging configuration can be customized by setting the `CPACK_GENERATOR` and `CPACK_SOURCE_GENERATOR` variables when configuring the build.
+Packaged binaries include the static library, public headers, CMake configuration files for easy integration, and license information.
+
+### Using a SKL installation with CMake
+
+A SKL installation contains CMake configuration files that enable downstream projects to discover the library, headers, and associated targets through CMake's standard package configuration mechanism.
+This approach avoids manual configuration of library paths and target specifications.
+
+An installed SKL library can be integrated into a CMake project by adding the following to the project's `CMakeLists.txt`:
+```cmake
+find_package(Skl REQUIRED)
+target_link_libraries(target_name PRIVATE Skl::skl)
+```
+
+CMake automatically locates the SKL library and headers, and links the specified target against `libskl.a`.
+Versioning compatibility can be checked.
+SKL follows [semantic versioning](https://semver.org) for its releases.
+
+Projects requiring consistent RISC-V ISA extension support across all dependencies can utilize the `cmake/riscv.cmake` toolchain file when configuring the build:
+```shell
+cmake -B build -DCMAKE_TOOLCHAIN_FILE="path/to/SKL/cmake/riscv.cmake"
+```
+This approach ensures that both the consuming project and SKL are compiled with compatible ISA extensions.
 
 ## Testing and Benchmarking
 
