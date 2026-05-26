@@ -266,19 +266,16 @@ In this case, the packing is performed by the IREE framework itself, and the SKL
 
 ### Xsfvqmaccqoq: Packed (M = 4)x(K = 8)x(N = 4) Block-Matrix Products
 
-The `sf.vqmacc.4x8x4` instruction computes multiple fat dot products:
+The `sf.vqmacc.4x8x4` instruction computes a fat dot product:
 ```
-C[j] += A * B[j], 0 <= j < VL / 32
+C[i:i+4, j:j+4] += A[i:i+4, k:k+8] * B[k:k+8, j:j+4]
 ```
-where `A` is a 4 x 8 `int8_t` matrix, each `B[j]` is an 8 x 4 `int8_t` matrix, and each `C[j]` is a 4 x 4 `int32_t` matrix.
-As in the `sf.vqdot.vx`, `VL` is the vector length.
+where `A` and `B` are `int8_t` matrices and `C` is an `int32_t` matrix.
+Each of the three operands is held contiguously in row-major order in its own vector register group.
+Packed GEMM kernels using this instruction would have block dimensions `m0 = 4`, `n0 = 4`, and `k0 = 8`; intra-block row strides `rsa0 = 8`, `rsb0 = 4`, `rsc0 = 4`; and all intra-block column strides equal to 1.
 
-All of the matrices `C[j]` are collectively held in a single vector register group; `C[j]` is stored in row-major order in bytes `[j*64, (j+1)*64)`.
-`A` is stored in row-major order in a single vector register group.
-And similarly to the `C[j]`, all of the matrices `B[j]` are in a single vector register group, with `B[j]` stored in row-major order in bytes `[j*32, (j+1)*32)`.
-
-Thus, the block dimensions must be `m0 = 4`, `n0 = 4`, and `k0 = 8`; the intra-block row strides must be `rsa0 = 8`, `rsb0 = 4`, `rsc0 = 4`; and all three intra-block column strides must be 1.
-Due to this instruction's operand layout, it is also natural to use a block-row-major layout for `B` and `C`.
+For a fixed `A`, `sf.vqmacc.4x8x4` can compute multiple such fat dot products at once provided that the `B` blocks are stored together contiguously in a vector register group and likewise for the `C` blocks.
+Because of this, it is natural to use a block-row-major layout for `B` and `C`.
 The specific kernel provided by SKL assumes this layout for `A` as well, so `csa1 = 32`, `csb1 = 32`, and `csc1 = 16`.
 
 The packed kernel's API is thus:
