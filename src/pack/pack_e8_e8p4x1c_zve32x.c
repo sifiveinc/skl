@@ -23,13 +23,13 @@ SKL_FUNC void skl_pack_e8_e8p4x1c_zve32x(size_t m, size_t n, const uint8_t *src,
     const uint8_t *src_read = src + m_idx * rs;
     uint8_t *dst_write = dst + (m_idx / 4) * rs1;
     for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
-      vl = __riscv_vsetvl_e8m1(avl);
-      vuint8m1_t vec0 = __riscv_vle8_v_u8m1(src_read, vl);
-      vuint8m1_t vec1 = __riscv_vle8_v_u8m1(src_read + 1 * rs, vl);
-      vuint8m1_t vec2 = __riscv_vle8_v_u8m1(src_read + 2 * rs, vl);
-      vuint8m1_t vec3 = __riscv_vle8_v_u8m1(src_read + 3 * rs, vl);
-      vuint8m1x4_t vec_group = __riscv_vcreate_v_u8m1x4(vec0, vec1, vec2, vec3);
-      __riscv_vsseg4e8_v_u8m1x4(dst_write, vec_group, vl);
+      vl = __riscv_vsetvl_e8m2(avl);
+      vuint8m2_t vec0 = __riscv_vle8_v_u8m2(src_read, vl);
+      vuint8m2_t vec1 = __riscv_vle8_v_u8m2(src_read + 1 * rs, vl);
+      vuint8m2_t vec2 = __riscv_vle8_v_u8m2(src_read + 2 * rs, vl);
+      vuint8m2_t vec3 = __riscv_vle8_v_u8m2(src_read + 3 * rs, vl);
+      vuint8m2x4_t vec_group = __riscv_vcreate_v_u8m2x4(vec0, vec1, vec2, vec3);
+      __riscv_vsseg4e8_v_u8m2x4(dst_write, vec_group, vl);
       dst_write += 4 * vl;
       src_read += vl;
     }
@@ -37,30 +37,30 @@ SKL_FUNC void skl_pack_e8_e8p4x1c_zve32x(size_t m, size_t n, const uint8_t *src,
   if (m_rem) {
     const uint8_t *src_read = src + (m_idx + m_rem - 1) * rs;
     uint8_t *dst_write = dst + (m_idx / 4) * rs1;
-    vuint8m1_t vec0 = __riscv_vmv_v_x_u8m1(pad, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t vec1 = __riscv_vmv_v_x_u8m1(pad, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t vec2 = __riscv_vmv_v_x_u8m1(pad, __riscv_vsetvlmax_e8m1());
-    vuint8m1_t vec3 = __riscv_vmv_v_x_u8m1(pad, __riscv_vsetvlmax_e8m1());
+    vuint8m2_t vec0 = __riscv_vmv_v_x_u8m2(pad, __riscv_vsetvlmax_e8m2());
+    vuint8m2_t vec1 = __riscv_vmv_v_x_u8m2(pad, __riscv_vsetvlmax_e8m2());
+    vuint8m2_t vec2 = __riscv_vmv_v_x_u8m2(pad, __riscv_vsetvlmax_e8m2());
+    vuint8m2_t vec3 = __riscv_vmv_v_x_u8m2(pad, __riscv_vsetvlmax_e8m2());
     for (size_t vl = 0, avl = n; avl > 0; avl -= vl) {
-      vl = __riscv_vsetvl_e8m1(avl);
+      vl = __riscv_vsetvl_e8m2(avl);
       const uint8_t *src_read_rev = src_read;
       switch (m_rem) {
       case 3:
-        vec2 = __riscv_vle8_v_u8m1(src_read_rev, vl);
+        vec2 = __riscv_vle8_v_u8m2(src_read_rev, vl);
         src_read_rev -= rs;
         __attribute__((fallthrough));
       case 2:
-        vec1 = __riscv_vle8_v_u8m1(src_read_rev, vl);
+        vec1 = __riscv_vle8_v_u8m2(src_read_rev, vl);
         src_read_rev -= rs;
         __attribute__((fallthrough));
       case 1:
-        vec0 = __riscv_vle8_v_u8m1(src_read_rev, vl);
+        vec0 = __riscv_vle8_v_u8m2(src_read_rev, vl);
         __attribute__((fallthrough));
       default:
         break;
       }
-      vuint8m1x4_t vec_group = __riscv_vcreate_v_u8m1x4(vec0, vec1, vec2, vec3);
-      __riscv_vsseg4e8_v_u8m1x4(dst_write, vec_group, vl);
+      vuint8m2x4_t vec_group = __riscv_vcreate_v_u8m2x4(vec0, vec1, vec2, vec3);
+      __riscv_vsseg4e8_v_u8m2x4(dst_write, vec_group, vl);
       dst_write += 4 * vl;
       src_read += vl;
     }
