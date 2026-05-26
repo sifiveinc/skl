@@ -1306,7 +1306,7 @@ SKL_FUNC void skl_gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f(
 }
 
 SKL_XSFMM_NEW
-SKL_FUNC void skl_gemm_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
+SKL_FUNC void skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f(
     size_t m1, size_t n1, size_t k, const __bf16 *a_pack, size_t rsa1,
     const __bf16 *b_pack, size_t csb1, float *c_pack, size_t rsc1, size_t csc1,
     bool accum) {

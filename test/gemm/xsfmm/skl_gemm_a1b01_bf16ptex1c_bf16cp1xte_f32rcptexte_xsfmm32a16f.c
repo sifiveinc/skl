@@ -14,8 +14,8 @@
 #endif
 
 /**
- * @brief Test cases for the skl_gemm_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f
- * kernel.
+ * @brief Test cases for the
+ * skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f kernel.
  *
  * This test uses the gemm_bf16rcprc_bf16rcprc_f32rcprc harness with the
  * following restrictions on the input parameters:
@@ -183,7 +183,7 @@ gemm_bf16rcprc_bf16rcprc_f32rcprc_t tests[] = {
 // clang-format on
 
 static skl_test_suite_t suite = {
-    .name = "skl_gemm_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f",
+    .name = "skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f",
     .num_tests = sizeof(tests) / sizeof(tests[0]),
     .test_size = sizeof(gemm_bf16rcprc_bf16rcprc_f32rcprc_t),
     .tests = tests};
@@ -212,7 +212,7 @@ static void execute(skl_test_t *t) {
   const gemm_bf16rcprc_bf16rcprc_f32rcprc_t *h =
       (gemm_bf16rcprc_bf16rcprc_f32rcprc_t *)t->harness;
 
-  skl_gemm_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
+  skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f(
       h->m1, h->n1, h->k1, h->a_pack.data, h->rsa1, h->b_pack.data, h->csb1,
       h->c_pack.data, h->rsc1, h->csc1, h->beta != 0.f);
 }
