@@ -17,36 +17,27 @@ extern "C" {
 #endif
 
 /**
- * @brief Pack matrix B for use with xsfvqdotq GEMM kernel.
+ * @brief Pack and pad an 8-bit row-major matrix into block-row-major format
+ * with 4 x 1 blocks.
  *
- * @param k - Number of rows in matrix B
- * @param n - Number of columns in matrix B
- * @param b - Pointer to input matrix B in row-major format
- * @param rsb - Stride between rows of matrix B in elements
- * @param b_pack - Packed output matrix of ((k + 3) / 4) * rsb1 bytes
- * @param rsb1 - Row stride between blocks of packed matrix B in elements.
- *
- * Packs matrix B into a format optimized for the SiFive xsfvqdotq extension.
- * The packing operation reorganizes the matrix data to enable efficient vector
- * quad widening 4D dot product operations. The function processes the matrix
- * in groups of 4 rows at a time to interleave the data in a format suitable for
- * the xsfvqdotq instructions.
- *
- * The packed format groups 4 consecutive rows together and stores them in an
- * interleaved pattern that allows the GEMM kernel to efficiently compute matrix
- * multiplications. When k is not a multiple of 4, the remaining rows are
- * zero-padded to complete the 4-row groups.
+ * @param m - Number of rows in the input matrix.
+ * @param n - Number of columns in the input matrix.
+ * @param src - Pointer to the input matrix in row-major format.
+ * @param rs - Stride between rows of the input matrix.
+ * @param dst - Pointer to the packed output matrix.
+ * @param rs1 - Row stride between blocks of the output matrix.
+ * @param pad - Padding value.
  *
  * @note
- * The output buffer b_pack must be large enough to hold the padded data.
- * The minimum size is ((k + 3) / 4) * 4 * n bytes.
+ * The output buffer must be at least ((m + 3) / 4) * 4 * n bytes.
  *
  * @note
- * This function is designed to work with
- * skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq().
+ * This kernel can be used to pack the B matrix for
+ * skl_gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq.
  */
-void skl_pack_e8_e8p4x1c_zve32x(size_t m, size_t n, const uint8_t *src, size_t rs,
-                                uint8_t *dst, size_t rs1);
+void skl_pack_e8_e8p4x1c_zve32x(size_t m, size_t n, const uint8_t *src,
+                                size_t rs, uint8_t *dst, size_t rs1,
+                                uint8_t pad);
 
 #if defined(__cplusplus)
 } // extern "C"

@@ -146,12 +146,13 @@ int main(void) {
   memcpy(ref_b_pack, b_pack, BLEN_PACKED * sizeof(int8_t));
   memcpy(test_b_pack, b_pack, BLEN_PACKED * sizeof(int8_t));
 
-  skl_pack_e8_e8p4x1c_zve32x(K, N, (uint8_t*)b, RSB, (uint8_t*)test_b_pack, (size_t)RSB1);
+  skl_pack_e8_e8p4x1c_zve32x(K, N, (uint8_t *)b, RSB, (uint8_t *)test_b_pack,
+                             (size_t)RSB1, 0);
   res += check_error();
 #endif // ENABLE_TEST
 
   SKL_BENCHMARK_RUN(skl_test_name, K * N, SKL_TEST_WARMUP, SKL_TEST_NAME, K, N,
-                    (uint8_t*)b, RSB, (uint8_t*)b_pack, (size_t)RSB1);
+                    (uint8_t *)b, RSB, (uint8_t *)b_pack, (size_t)RSB1, 0);
 
   return res;
 }
