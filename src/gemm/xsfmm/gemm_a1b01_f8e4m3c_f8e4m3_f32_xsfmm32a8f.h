@@ -94,7 +94,7 @@ void skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f(size_t m, size_t n, size_t k,
  * );
  * ```
  */
-void skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f(
+void skl_gemm_a1b01_f8e4m3ptex1c_f8e4m3cp1xte_f32rcptexte_xsfmm32a8f(
     size_t m1, size_t n1, size_t k, const uint8_t *a_pack, size_t rsa1,
     const uint8_t *b_pack, size_t csb1, float *c_pack, size_t rsc1, size_t csc1,
     bool accum);

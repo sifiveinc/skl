@@ -216,7 +216,7 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   if("xsfmm32a8f" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f_wrapper gemm/gemm_f8e4m3rc_f8e4m3rc_f32rc.c
       "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1.f;-DBETA=0.f")
-    skl_add_test_legacy(skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f_wrapper gemm/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc.c
+    skl_add_test_legacy(skl_gemm_a1b01_f8e4m3ptex1c_f8e4m3cp1xte_f32rcptexte_xsfmm32a8f_wrapper gemm/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc.c
       "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
     skl_add_test_legacy(skl_gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f_wrapper gemm/gemm_f8e5m2rc_f8e5m2rc_f32rc.c
       "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1.f;-DBETA=0.f")

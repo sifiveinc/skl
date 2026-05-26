@@ -92,7 +92,7 @@
 #include <string.h>
 
 #if defined(__riscv_xsfmm32a8f)
-void skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f_wrapper(
+void skl_gemm_a1b01_f8e4m3ptex1c_f8e4m3cp1xte_f32rcptexte_xsfmm32a8f_wrapper(
     size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
     float alpha, const uint8_t *a_pack, size_t rsa0,
     __attribute__((unused)) size_t csa0, size_t rsa1, size_t csa1,
@@ -115,9 +115,9 @@ void skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f_wrapper(
   if (status) {
     exit(status);
   }
-  skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f(m1, n1, k0 * k1, a_pack,
-                                                     rsa1, b_pack, csb1, c_pack,
-                                                     rsc1, csc1, beta != 0.f);
+  skl_gemm_a1b01_f8e4m3ptex1c_f8e4m3cp1xte_f32rcptexte_xsfmm32a8f(
+      m1, n1, k0 * k1, a_pack, rsa1, b_pack, csb1, c_pack, rsc1, csc1,
+      beta != 0.f);
 }
 #endif
 
