@@ -2414,7 +2414,7 @@ SKL_FUNC void skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i(size_t m, size_t n, size_t k,
 }
 
 SKL_XSFMM_NEW
-SKL_FUNC void skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
+SKL_FUNC void skl_gemm_a1b01_i8ptex1c_i8cp1xte_i32rcptexte_xsfmm32a8i(
     size_t m1, size_t n1, size_t k, const int8_t *a_pack, size_t rsa1,
     const int8_t *b_pack, size_t csb1, int32_t *c_pack, size_t rsc1,
     size_t csc1, bool accum) {

@@ -78,7 +78,7 @@
 
 /* Include various int8 GEMM kernels depending on ISA compatibility. */
 #if defined(__riscv_xsfmm32a8i)
-void skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i_wrapper(
+void skl_gemm_a1b01_i8ptex1c_i8cp1xte_i32rcptexte_xsfmm32a8i_wrapper(
     size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
     int32_t alpha, const int8_t *a_pack, size_t rsa0,
     __attribute__((unused)) size_t csa0, size_t rsa1, size_t csa1,
@@ -101,9 +101,9 @@ void skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i_wrapper(
   if (status) {
     exit(status);
   }
-  skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(m1, n1, k0 * k1, a_pack, rsa1,
-                                             b_pack, csb1, c_pack, rsc1, csc1,
-                                             beta != 0);
+  skl_gemm_a1b01_i8ptex1c_i8cp1xte_i32rcptexte_xsfmm32a8i(
+      m1, n1, k0 * k1, a_pack, rsa1, b_pack, csb1, c_pack, rsc1, csc1,
+      beta != 0);
 }
 #endif
 
