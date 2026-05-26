@@ -14,9 +14,9 @@ It also describes the packing and unpacking routines that convert matrices betwe
    - [Naming Convention](#naming-convention)
 3. [APIs for Packing & Unpacking Kernels](#apis-for-packing--unpacking-kernels)
 4. [Application to Specific ISAs and Frameworks](#application-to-specific-isas-and-frameworks)
-   - [Xsfvqdotq: Pack B-Matrix K-Dimension (4 x N)](#xsfvqdotq-pack-b-matrix-k-dimension-4xn)
-   - [Xsfmm + IREE Framework: Pack M- & N-Dimensions (TE x TE)](#xsfmm--iree-framework-pack-m---n-dimensions-texte)
-   - [Xsfvqmaccqoq: Packed (M=4)x(K=8)x(N=4) Block-Matrix Products](#xsfvqmaccqoq-packed-m4xk8xn4-block-matrix-products)
+   - [Xsfvqdotq: Pack B-Matrix K-Dimension (4 x N)](#xsfvqdotq-pack-b-matrix-k-dimension-4-x-n)
+   - [Xsfmm + IREE Framework: Pack M- & N-Dimensions (TE x TE)](#xsfmm--iree-framework-pack-m---n-dimensions-te-x-te)
+   - [Xsfvqmaccqoq: Packed (M = 4)x(K = 8)x(N = 4) Block-Matrix Products](#xsfvqmaccqoq-packed-m--4xk--8xn--4-block-matrix-products)
 5. [Cache Tiling with Packing](#cache-tiling-with-packing)
 
 ## Packing and Padding
