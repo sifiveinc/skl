@@ -111,7 +111,7 @@ void skl_gemm_<specialization>_<datatypes>_<isa>_<cpu>(
 
 The general form assumes all three matrices have already been packed and are stored in packed format in memory.
 Usually, all arguments ending in `0` are fixed by the target--and thus omitted from a specific kernel's API--while those ending in `1` are determined by the problem size.
-However, in some cases not every dimension will be packed, in which case the original `m`, `n`, or `k` will be passed (see the [Xsfvqdotq](#xsfvqdotq-pack-b-matrix-k-dimension-4xn) example below).
+However, in some cases not every dimension will be packed, in which case the original `m`, `n`, or `k` will be passed (see the [Xsfvqdotq](#xsfvqdotq-pack-b-matrix-k-dimension-4-x-n) example below).
 
 As in the case of basic GEMM, the various stride parameters suffice to describe arbitrary transpositions (row- and column-major) both of blocks and within them.
 
