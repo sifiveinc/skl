@@ -256,6 +256,62 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_softmax_f32_ref
+  softmax/softmax_f32.c
+  softmax/skl_softmax_f32_ref.c
+  ""
+  ""
+)
+skl_add_test(
+  skl_softmax_f32_zve32f
+  softmax/softmax_f32.c
+  softmax/skl_softmax_f32_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_softmax_f32_xsfvfexpa
+  softmax/softmax_f32.c
+  softmax/skl_softmax_f32_xsfvfexpa.c
+  "xsfvfexpa"
+  ""
+)
+skl_add_test(
+  skl_softmax_f32_xsfvfexp32e
+  softmax/softmax_f32.c
+  softmax/skl_softmax_f32_xsfvfexp32e.c
+  "xsfvfexp32e"
+  ""
+)
+skl_add_test(
+  skl_softmax_2d_f32_ref
+  softmax/softmax_f32.c
+  softmax/skl_softmax_2d_f32_ref.c
+  ""
+  ""
+)
+skl_add_test(
+  skl_softmax_2d_f32_zve32f
+  softmax/softmax_f32.c
+  softmax/skl_softmax_2d_f32_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_softmax_2d_f32_xsfvfexpa
+  softmax/softmax_f32.c
+  softmax/skl_softmax_2d_f32_xsfvfexpa.c
+  "xsfvfexpa"
+  ""
+)
+skl_add_test(
+  skl_softmax_2d_f32_xsfvfexp32e
+  softmax/softmax_f32.c
+  softmax/skl_softmax_2d_f32_xsfvfexp32e.c
+  "xsfvfexp32e"
+  ""
+)
+skl_add_test(
   skl_transpose_e16_xsfmmbase
   transpose/transpose_e16.c
   transpose/xsfmmbase/skl_transpose_e16_xsfmmbase.c
