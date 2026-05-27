@@ -151,7 +151,6 @@ add_skl_src(src/softmax/softmax_f32_zve32f.c "zve32f")
 
 add_skl_src(src/transpose/rvv/transpose_e16_zve32x.c "zve32x")
 add_skl_src(src/transpose/rvv/transpose_e32_zve32x.c "zve32x")
-add_skl_src(src/transpose/rvv/transpose_e8_zve32x.c "zve32x")
 add_skl_src(src/transpose/xsfmm/transpose_e16_xsfmmbase.c "xsfmmbase")
 add_skl_src(src/transpose/xsfmm/transpose_e32_xsfmmbase.c "xsfmmbase")
 add_skl_src(src/transpose/xsfmm/transpose_e8_xsfmmbase.c "xsfmmbase")

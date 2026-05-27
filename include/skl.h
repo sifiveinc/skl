@@ -61,7 +61,6 @@
 #if defined(__riscv_zve32x)
 #include "../src/transpose/rvv/transpose_e16_zve32x.h"
 #include "../src/transpose/rvv/transpose_e32_zve32x.h"
-#include "../src/transpose/rvv/transpose_e8_zve32x.h"
 #endif
 
 #if defined(__riscv_xsfmmbase)
