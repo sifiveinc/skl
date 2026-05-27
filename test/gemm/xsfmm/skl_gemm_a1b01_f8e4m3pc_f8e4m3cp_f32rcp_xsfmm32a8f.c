@@ -16,8 +16,8 @@
 /**
  * @brief Test cases for GEMM with Xsfmm32a8f extension.
  *
- * This test uses the gemm_f8rcprc_f8rcprc_f32rcprc harness with the
- * following restrictions on the input parameters:
+ * This test uses the gemm_f8rcprc_f8rcprc_f32rcprc harness with the following
+ * restrictions on the input parameters:
  *  - The block dimensions are m0 = TE, n0 = TE, and k0 = 1
  *  - Matrix A_pack is block-row-major with column-major blocks (rsa0 == 1, csa1
  *    == m0 * k0)
