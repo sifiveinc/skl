@@ -9,7 +9,7 @@
  *
  * This file defines all harness functions _except_ `skl_test_execute`, which is
  * defined in the test file (e.g.
- * xsfmm/skl_gemm_f8c_f8_f32_xsfmm32a8f.c).
+ * xsfmm/skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c).
  */
 
 #include "gemm_f8rcprc_f8rcprc_f32rcprc.h"
