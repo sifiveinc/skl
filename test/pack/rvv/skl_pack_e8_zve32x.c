@@ -3,9 +3,9 @@
 // See LICENSE file in the project root for full license information.
 // SPDX-License-Identifier: MIT
 
-#include "pack/rvv/skl_pack_e8_zve32x.h"
 #include "pack/pack_e8.h"
 #include "skl-test-driver.h"
+#include "skl.h"
 
 #include <stddef.h>
 #include <stdint.h>
