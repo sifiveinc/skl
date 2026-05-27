@@ -13,7 +13,7 @@
 #include "pack_e8.h"
 #include "skl-ref.h"
 #include "skl-test-driver.h"
-#include "skl.h" // NOLINT(misc-include-cleaner)
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
