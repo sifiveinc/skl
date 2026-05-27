@@ -686,9 +686,9 @@ SKL_FUNC_PRIVATE bool skl_transpose_e8_is_mvec(size_t m, size_t n) {
   return false;
 }
 
-SKL_FUNC_PRIVATE void
-skl_transpose_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
-                        size_t rsa, uint8_t *SKL_RESTRICT at, size_t rsat) {
+SKL_FUNC void skl_transpose_e8_zve32x(size_t m, size_t n,
+                                      const uint8_t *SKL_RESTRICT a, size_t rsa,
+                                      uint8_t *SKL_RESTRICT at, size_t rsat) {
   if (skl_transpose_e8_is_mvec(m, n)) {
     skl_transpose_mvec_e8_zve32x(m, n, a, rsa, at, rsat);
   } else {
