@@ -425,7 +425,7 @@ typedef enum {
       }                                                                        \
       break;                                                                   \
     case SKL_TEST_SEQ: {                                                       \
-      TYPE step = ((BUF)->max - (BUF)->min) / (BUF)->len;                      \
+      TYPE step = (BUF)->len ? ((BUF)->max - (BUF)->min) / (BUF)->len : 0;     \
       SKL_TEST_LOG((T), SKL_TEST_LOG_DEBUG,                                    \
                    "sequential values in [%f, %f] by %f\n",                    \
                    (double)(BUF)->min, (double)(BUF)->max, (double)step);      \
