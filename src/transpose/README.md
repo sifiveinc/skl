@@ -1,6 +1,10 @@
 # Transpose Kernels
 
-This directory contains optimized kernels for matrix transpose operations. Matrix transpose is a fundamental linear algebra operation that converts an M×N matrix to an N×M matrix by swapping rows and columns. These kernels provide efficient implementations for various data types and target architectures.
+> **Note:** Transpose kernel implementations can be found in the [`../pack/`](../pack/) directory, since transpose can be viewed as a special case of packing where `m0=m`, `n0=n`, `cs=1`, and `rs0=1`.
+> - **RVV implementations:** [`../pack/rvv/`](../pack/rvv/)
+> - **Xsfmm implementations:** [`../pack/xsfmm/`](../pack/xsfmm/)
+
+The `../pack/` directory contains optimized kernels for matrix transpose operations. Matrix transpose is a fundamental linear algebra operation that converts an M×N matrix to an N×M matrix by swapping rows and columns. These kernels provide efficient implementations for various data types and target architectures.
 
 Currently supports 8-bit, 16-bit, and 32-bit element transpose operations.
 
@@ -21,27 +25,6 @@ Currently supports 8-bit, 16-bit, and 32-bit element transpose operations.
 - 32-bit kernels support any 32-bit data type
 
 ## Kernel List
-
-### Scalar Implementations
-#### **`skl_transpose_e8_ref`**
-- Generic implementation for 8-bit elements
-
-#### **`skl_transpose_e16_ref`**
-- Generic implementation for 16-bit elements
-
-#### **`skl_transpose_e32_ref`**
-- Generic implementation for 32-bit elements
-
-```c
-void skl_transpose_e8_ref(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
-                             size_t rsa, uint8_t *SKL_RESTRICT at, size_t rsat);
-void skl_transpose_e16_ref(size_t m, size_t n,
-                              const uint16_t *SKL_RESTRICT a, size_t rsa,
-                              uint16_t *SKL_RESTRICT at, size_t rsat);
-void skl_transpose_e32_ref(size_t m, size_t n,
-                              const uint32_t *SKL_RESTRICT a, size_t rsa,
-                              uint32_t *SKL_RESTRICT at, size_t rsat);
-```
 
 ### RVV Implementations
 
