@@ -4,8 +4,7 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * @brief Implementation of the gemm_f8rcprc_f8rcprc_f32rcprc test
- * harness.
+ * @brief Implementation of the gemm_f8rcprc_f8rcprc_f32rcprc test harness.
  *
  * This file defines all harness functions _except_ `skl_test_execute`, which is
  * defined in the test file (e.g.
