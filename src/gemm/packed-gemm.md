@@ -7,7 +7,7 @@ It also describes the packing and unpacking routines that convert matrices betwe
 
 ## Table of Contents
 1. [Packing and Padding](#packing-and-padding)
-   - [Example: Matrix A Packing with Padding](#example-matrix-a-packing-with-padding)
+   - [Example: Matrix Packing with Padding](#example-matrix-packing-with-padding)
    - [Stride Parameters](#stride-parameters)
 2. [APIs for Packed GEMM Kernels](#apis-for-packed-gemm-kernels)
    - [Generic Packed GEMM Semantics (Reference Implementation)](#generic-packed-gemm-semantics-reference-implementation)
