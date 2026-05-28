@@ -593,3 +593,57 @@ enum {
       (T)->status.STATUS = SKL_TEST_FAIL;                                      \
     }                                                                          \
   } while (0)
+
+/**
+ * @brief Check packed matrix dimensions and strides
+ *
+ * @param t - Test context.
+ * @param m0 - Number of rows in each block of the matrix.
+ * @param n0 - Number of columns in each block of the matrix.
+ * @param m1 - Number of block-rows in the matrix.
+ * @param n1 - Number of block-columns in the matrix.
+ * @param rs0 - Row stride within each block of the matrix in elements.
+ * @param cs0 - Column stride within each block of the matrix in elements.
+ * @param rs1 - Row stride between blocks of the matrix in elements.
+ * @param cs1 - Column stride between blocks of the matrix in elements.
+ *
+ * This function performs some basic checks on the dimensions and strides of a
+ * packed matrix and updates the init_status of t.
+ */
+static inline void skl_test_check_matrix_params_rcprc(skl_test_t *t, size_t m0,
+                                                      size_t n0, size_t m1,
+                                                      size_t n1, size_t rs0,
+                                                      size_t cs0, size_t rs1,
+                                                      size_t cs1) {
+  SKL_TEST_REQUIRE(t, init_status, m0 > 0);
+  SKL_TEST_REQUIRE(t, init_status, n0 > 0);
+
+  if (m0 > 1) {
+    SKL_TEST_REQUIRE(t, init_status, rs0 > 0);
+  }
+  if (n0 > 1) {
+    SKL_TEST_REQUIRE(t, init_status, cs0 > 0);
+  }
+  if (m0 > 1 && n0 > 1) {
+    if (rs0 >= cs0) {
+      SKL_TEST_REQUIRE(t, init_status, rs0 >= (n0 - 1) * cs0 + 1);
+    } else {
+      SKL_TEST_REQUIRE(t, init_status, cs0 >= (m0 - 1) * rs0 + 1);
+    }
+  }
+
+  size_t block_min_len = (m0 - 1) * rs0 + (n0 - 1) * cs0 + 1;
+  if (m1 > 1 && n1 > 0) {
+    SKL_TEST_REQUIRE(t, init_status, rs1 >= block_min_len);
+  }
+  if (m1 > 0 && n1 > 1) {
+    SKL_TEST_REQUIRE(t, init_status, cs1 >= block_min_len);
+  }
+  if (m1 > 1 && n1 > 1) {
+    if (rs1 >= cs1) {
+      SKL_TEST_REQUIRE(t, init_status, rs1 >= (n1 - 1) * cs1 + block_min_len);
+    } else {
+      SKL_TEST_REQUIRE(t, init_status, cs1 >= (m1 - 1) * rs1 + block_min_len);
+    }
+  }
+}
