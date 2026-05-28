@@ -9,8 +9,8 @@
  * This test uses a table-driven approach where test configurations are defined
  * in the `tests` array. Each test specifies:
  *  - Input matrix dimensions m, n
- *  - Block dimensions m0, n0
  *  - Input matrix strides rs, cs
+ *  - Block dimensions m0, n0
  *  - Output block strides rs0, cs0 (within block), rs1, cs1 (between blocks)
  *  - Padding value
  */
@@ -44,14 +44,14 @@ typedef struct {
   struct {
     uint8_t *ref_dst;
   } ctx;
-} pack_e8_t;
+} pack_e8rc_e8rcprc_t;
 
-#define PACK_E8_DEFAULTS                                                       \
+#define PACK_E8RC_E8RCPRC_DEFAULTS                                             \
   .src = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM},                      \
   .dst = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM}, .pad = 255
 
-void pack_e8_init(skl_test_t *t);
-void pack_e8_verify(skl_test_t *t);
-void pack_e8_param_report(skl_test_t *t);
-void pack_e8_bench_report(skl_test_t *t);
-void pack_e8_cleanup(skl_test_t *t);
+void pack_e8rc_e8rcprc_init(skl_test_t *t);
+void pack_e8rc_e8rcprc_verify(skl_test_t *t);
+void pack_e8rc_e8rcprc_test_report(skl_test_t *t);
+void pack_e8rc_e8rcprc_benchmark_report(skl_test_t *t);
+void pack_e8rc_e8rcprc_cleanup(skl_test_t *t);

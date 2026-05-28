@@ -21,29 +21,30 @@
  */
 
 #define TEST                                                                   \
-  PACK_E8_DEFAULTS, .steps = {                                                 \
-                        .init = pack_e8_init,                                  \
-                        .warmup = NULL,                                        \
-                        .execute = execute,                                    \
-                        .verify = pack_e8_verify,                              \
-                        .report = pack_e8_param_report,                        \
-                        .cleanup = pack_e8_cleanup,                            \
+  PACK_E8RC_E8RCPRC_DEFAULTS, .steps = {                                       \
+                                  .init = pack_e8rc_e8rcprc_init,              \
+                                  .warmup = NULL,                              \
+                                  .execute = execute,                          \
+                                  .verify = pack_e8rc_e8rcprc_verify,          \
+                                  .report = pack_e8rc_e8rcprc_test_report,     \
+                                  .cleanup = pack_e8rc_e8rcprc_cleanup,        \
   }
 
 #define BENCH                                                                  \
-  PACK_E8_DEFAULTS, .steps = {                                                 \
-                        .init = pack_e8_init,                                  \
-                        .warmup = execute,                                     \
-                        .execute = execute,                                    \
-                        .verify = NULL,                                        \
-                        .report = pack_e8_bench_report,                        \
-                        .cleanup = pack_e8_cleanup,                            \
+  PACK_E8RC_E8RCPRC_DEFAULTS,                                                  \
+      .steps = {                                                               \
+          .init = pack_e8rc_e8rcprc_init,                                      \
+          .warmup = execute,                                                   \
+          .execute = execute,                                                  \
+          .verify = NULL,                                                      \
+          .report = pack_e8rc_e8rcprc_benchmark_report,                        \
+          .cleanup = pack_e8rc_e8rcprc_cleanup,                                \
   }
 
 static void execute(skl_test_t *t);
 
 // clang-format off
-pack_e8_t tests[] = {
+pack_e8rc_e8rcprc_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
   // Benchmark tests
   {BENCH, .m = 128, .n = 128, .rs = 128, .cs = 1, .m0 = 8, .n0 = 8,
@@ -162,11 +163,11 @@ pack_e8_t tests[] = {
 
 static skl_test_suite_t suite = {.name = "skl_pack_e8_zve32x",
                                  .num_tests = sizeof(tests) / sizeof(tests[0]),
-                                 .test_size = sizeof(pack_e8_t),
+                                 .test_size = sizeof(pack_e8rc_e8rcprc_t),
                                  .tests = tests};
 
 static void execute(skl_test_t *t) {
-  const pack_e8_t *h = (pack_e8_t *)t->harness;
+  const pack_e8rc_e8rcprc_t *h = (pack_e8rc_e8rcprc_t *)t->harness;
 
   skl_pack_e8rc_e8rcprc_zve32x(h->m, h->n, h->src.data, h->rs, h->cs, h->m0,
                                h->n0, h->dst.data, h->rs0, h->cs0, h->rs1,
