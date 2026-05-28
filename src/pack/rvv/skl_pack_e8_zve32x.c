@@ -50,8 +50,8 @@ SKL_FUNC_PRIVATE void skl_copy_e8_zve32x(uint8_t *SKL_RESTRICT dst,
  *
  * This function sets each element in the 2D region to the specified value.
  */
-SKL_FUNC_PRIVATE void skl_set2d_e8_zve32x(uint8_t *dst, size_t rs,
-                                          uint8_t value, size_t m, size_t n) {
+SKL_FUNC_PRIVATE void skl_set_2d_e8_zve32x(uint8_t *dst, size_t rs,
+                                           uint8_t value, size_t m, size_t n) {
   if (n == 0 || m == 0) {
     return;
   }
@@ -189,10 +189,10 @@ SKL_FUNC_PRIVATE void skl_set2d_e8_zve32x(uint8_t *dst, size_t rs,
   }
 }
 
-SKL_FUNC_PRIVATE void skl_copy2d_e8_zve32x(size_t m, size_t n,
-                                           const uint8_t *SKL_RESTRICT a,
-                                           size_t rsa, uint8_t *SKL_RESTRICT b,
-                                           size_t rsb) {
+SKL_FUNC_PRIVATE void skl_copy_2d_e8_zve32x(size_t m, size_t n,
+                                            const uint8_t *SKL_RESTRICT a,
+                                            size_t rsa, uint8_t *SKL_RESTRICT b,
+                                            size_t rsb) {
   if (rsa == n && rsb == n) {
     skl_copy_e8_zve32x(b, a, m * n);
     return;
@@ -994,7 +994,7 @@ SKL_FUNC_PRIVATE void skl_transpose_padded_m_e8_zve32x(
 
   if (m_padded > m_ceil8) {
     out_tile = at + m_ceil8;
-    skl_set2d_e8_zve32x(out_tile, rsat, pad, n, m_padded - m_ceil8);
+    skl_set_2d_e8_zve32x(out_tile, rsat, pad, n, m_padded - m_ceil8);
   }
 }
 
@@ -1022,8 +1022,8 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
                                        dst_block, cs0, pad);
       if (n % n0) {
         // pad right
-        skl_set2d_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), cs0,
-                            pad, n0 - n % n0, m0);
+        skl_set_2d_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), cs0,
+                             pad, n0 - n % n0, m0);
       }
     }
     return;
@@ -1035,13 +1035,13 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
       const uint8_t *src_block = src + jj1 * n0;
       uint8_t *dst_block = dst + jj1 * cs1;
       size_t n_length = n0 < n - jj1 * n0 ? n0 : n - jj1 * n0;
-      skl_copy2d_e8_zve32x(m, n_length, src_block, rs, dst_block, rs0);
+      skl_copy_2d_e8_zve32x(m, n_length, src_block, rs, dst_block, rs0);
       if (m % m0) {
         // pad bottom
-        skl_set2d_e8_zve32x(dst_block + m * rs0, rs0, pad, m0 - m % m0, n0);
+        skl_set_2d_e8_zve32x(dst_block + m * rs0, rs0, pad, m0 - m % m0, n0);
       }
       // pad right: pad (n0 - n_length) elements in each of m rows
-      skl_set2d_e8_zve32x(dst_block + n_length, rs0, pad, m, n0 - n_length);
+      skl_set_2d_e8_zve32x(dst_block + n_length, rs0, pad, m, n0 - n_length);
     }
     return;
   }
@@ -1054,10 +1054,10 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
 
   /* Row panels, row-major block ordering*/
   if (cs0 == 1 && m0 == 1 && n0 == cs1) {
-    skl_copy2d_e8_zve32x(m, n, src, rs, dst, rs1);
+    skl_copy_2d_e8_zve32x(m, n, src, rs, dst, rs1);
     // pad right
     if (n % n0) {
-      skl_set2d_e8_zve32x(dst + n, rs1, pad, m, n0 - n % n0);
+      skl_set_2d_e8_zve32x(dst + n, rs1, pad, m, n0 - n % n0);
     }
     return;
   }
@@ -1073,18 +1073,19 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
         skl_transpose_padded_m_e8_zve32x(m0, m_length, n_length, src_block, rs,
                                          dst_block, cs0, pad);
         // pad right
-        skl_set2d_e8_zve32x(dst_block + cs0 * n_length, cs0, pad, n0 - n_length,
-                            m0);
+        skl_set_2d_e8_zve32x(dst_block + cs0 * n_length, cs0, pad,
+                             n0 - n_length, m0);
       } else if (cs0 == 1) {
         size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
         size_t n_length = n0 < n - jj1 * n0 ? n0 : n - jj1 * n0;
-        skl_copy2d_e8_zve32x(m_length, n_length, src_block, rs, dst_block, rs0);
+        skl_copy_2d_e8_zve32x(m_length, n_length, src_block, rs, dst_block,
+                              rs0);
         // pad right: pad (n0 - n_length) elements in each of m_length rows
-        skl_set2d_e8_zve32x(dst_block + n_length, rs0, pad, m_length,
-                            n0 - n_length);
+        skl_set_2d_e8_zve32x(dst_block + n_length, rs0, pad, m_length,
+                             n0 - n_length);
         // pad bottom: pad (m0 - m_length) rows, each with n0 elements
-        skl_set2d_e8_zve32x(dst_block + m_length * rs0, rs0, pad, m0 - m_length,
-                            n0);
+        skl_set_2d_e8_zve32x(dst_block + m_length * rs0, rs0, pad,
+                             m0 - m_length, n0);
       } else {
         for (size_t ii0 = 0; ii0 < m0; ++ii0) {
           for (size_t jj0 = 0; jj0 < n0; ++jj0) {
