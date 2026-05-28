@@ -37,8 +37,8 @@ extern "C" {
  * Transforms a 2D matrix into a blocked 4D layout.
  *
  * The output layout consists of m1 × n1 blocks, where:
- *   - m1 = ceil(m / m0) = (m + m0 - 1) / m0  (number of row blocks)
- *   - n1 = ceil(n / n0) = (n + n0 - 1) / n0  (number of column blocks)
+ *   - m1 = ceil(m / m0) = (m + m0 - 1) / m0  (number of block-rows)
+ *   - n1 = ceil(n / n0) = (n + n0 - 1) / n0  (number of block-columns)
  *
  * Each block has dimensions m0 × n0. If m is not a multiple of m0 or n is not
  * a multiple of n0, the incomplete blocks are padded with the specified padding

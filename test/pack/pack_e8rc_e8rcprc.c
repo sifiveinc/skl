@@ -10,10 +10,11 @@
  * defined in the test file (e.g. rvv/skl_pack_e8_zve32x.c).
  */
 
-#include "pack_e8.h"
+#include "pack_e8rc_e8rcprc.h"
 #include "skl-ref.h"
 #include "skl-test-driver.h"
 
+#include <inttypes.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -37,10 +38,9 @@ void pack_e8_init(skl_test_t *t) {
   size_t n1 = (h->n + h->n0 - 1) / h->n0;
   // Size needs to accommodate all blocks: m1 blocks vertically, n1 blocks
   // horizontally
-  h->ctx.dst_size = (m1 > 0 ? (m1 - 1) * h->rs1 : 0) +
+  h->dst.len = (m1 > 0 ? (m1 - 1) * h->rs1 : 0) +
                     (n1 > 0 ? (n1 - 1) * h->cs1 : 0) + h->m0 * h->rs0 +
                     h->n0 * h->cs0;
-  h->dst.len = h->ctx.dst_size;
 
   // For row-major (cs=1): rs >= n * cs (each row must fit n elements)
   // For column-major (rs=1): cs >= m * rs (each column must fit m elements)
@@ -110,12 +110,12 @@ void pack_e8_param_report(skl_test_t *t) {
 #define INFO(fmt, ...) SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, fmt, __VA_ARGS__)
   size_t m1 = (h->m + h->m0 - 1) / h->m0;
   size_t n1 = (h->n + h->n0 - 1) / h->n0;
-  INFO("M: %zd, N: %zd\n", h->m, h->n);
-  INFO("M0: %zd, N0: %zd\n", h->m0, h->n0);
-  INFO("M1: %zd, N1: %zd\n", m1, n1);
-  INFO("RS: %zd, CS: %zd\n", h->rs, h->cs);
-  INFO("RS0: %zd, CS0: %zd\n", h->rs0, h->cs0);
-  INFO("RS1: %zd, CS1: %zd\n", h->rs1, h->cs1);
+  INFO("M: %zu, N: %zu\n", h->m, h->n);
+  INFO("M0: %zu, N0: %zu\n", h->m0, h->n0);
+  INFO("M1: %zu, N1: %zu\n", m1, n1);
+  INFO("RS: %zu, CS: %zu\n", h->rs, h->cs);
+  INFO("RS0: %zu, CS0: %zu\n", h->rs0, h->cs0);
+  INFO("RS1: %zu, CS1: %zu\n", h->rs1, h->cs1);
   if (h->rs == 1) {
     if (h->rs0 == 1) {
       INFO("%s", "=> COPY case!\n");
@@ -132,6 +132,8 @@ void pack_e8_param_report(skl_test_t *t) {
     } else {
       INFO("%s", "=> GENERAL case!\n");
     }
+  } else {
+    INFO("%s", "=> GENERAL case!\n");
   }
 #undef INFO
 }
@@ -142,8 +144,8 @@ void pack_e8_bench_report(skl_test_t *t) {
   pack_e8_t *h = (pack_e8_t *)t->harness;
 #define INFO(fmt, ...) SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, fmt, __VA_ARGS__)
   INFO("Warmup: %s\n", h->steps.warmup ? "yes" : "no");
-  INFO("Cycles: %zd\n", t->counters.cycles);
-  INFO("Instructions: %zd\n", t->counters.instret);
+  INFO("Cycles: " "%" PRIu64 "\n", t->counters.cycles);
+  INFO("Instructions: " "%" PRIu64 "\n", t->counters.instret);
 #undef INFO
 }
 
