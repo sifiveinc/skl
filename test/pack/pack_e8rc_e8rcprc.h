@@ -3,8 +3,19 @@
 // See LICENSE file in the project root for full license information.
 // SPDX-License-Identifier: MIT
 
-#ifndef SKL_TEST_PACK_PACK_E8_H_
-#define SKL_TEST_PACK_PACK_E8_H_
+/**
+ * @brief Test and benchmark for Pack
+ *
+ * This test uses a table-driven approach where test configurations are defined
+ * in the `tests` array. Each test specifies:
+ *  - Input matrix dimensions m, n
+ *  - Block dimensions m0, n0
+ *  - Input matrix strides rs, cs
+ *  - Output block strides rs0, cs0 (within block), rs1, cs1 (between blocks)
+ *  - Padding value
+ */
+
+#pragma once
 
 #include "skl-test-driver.h"
 #include <stddef.h>
@@ -17,10 +28,10 @@ typedef struct {
 
   // Input matrix dimensions
   size_t m, n;
-  // Block dimensions
-  size_t m0, n0;
   // Input matrix strides
   size_t rs, cs;
+  // Block dimensions
+  size_t m0, n0;
   // Output block strides
   size_t rs0, cs0; // within block
   size_t rs1, cs1; // between blocks
@@ -32,7 +43,6 @@ typedef struct {
   // Derived parameters & buffers (private to the test harness)
   struct {
     uint8_t *ref_dst;
-    size_t dst_size;
   } ctx;
 } pack_e8_t;
 
@@ -45,5 +55,3 @@ void pack_e8_verify(skl_test_t *t);
 void pack_e8_param_report(skl_test_t *t);
 void pack_e8_bench_report(skl_test_t *t);
 void pack_e8_cleanup(skl_test_t *t);
-
-#endif // SKL_TEST_PACK_PACK_E8_H_
