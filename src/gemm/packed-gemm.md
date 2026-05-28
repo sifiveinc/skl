@@ -22,90 +22,88 @@ It also describes the packing and unpacking routines that convert matrices betwe
 ## Packing and Padding
 
 A _packed_ matrix has one or both dimensions partitioned into fixed-size blocks.
-For example, if we have a matrix `A` of size `m` x `k`, we might need to partition it into blocks of size `m0` x `k0`, where these dimensions are usually determined by the target hardware instruction.
+For example, if we have a matrix of size `m` x `n`, we might need to partition it into blocks of size `m0` x `n0`, where these dimensions are usually determined by the target hardware instruction.
 
 Since the original matrix dimensions might not be exact multiples of the block size, we must pad the matrix so that they are.
 Typically, matrices are padded with zeroes, but other values are possible.
-The resulting packed matrix `A_pack` will consist of `m1` x `k1` blocks, where `m1 = ceil(m/m0)` and `k1 = ceil(k/k0)`, with each block having size `m0` x `k0` elements.
+The resulting packed matrix will consist of `m1` x `n1` blocks, where `m1 = ceil(m/m0)` and `n1 = ceil(n/n0)`, with each block having size `m0` x `n0` elements.
 While it might be possible to construct packed formats that avoid padding, we exclude this possibility from the API for simplicity, as it is unlikely to be useful in practice.
 
-### Example: Matrix A Packing with Padding
+### Example: Matrix Packing with Padding
 
-Consider a 7 x 6 matrix `A` with block size `m0 = 3`, `k0 = 4` (admittedly an unlikely layout, but useful for illustration):
+Consider a 7 x 6 matrix with block size `m0 = 3`, `n0 = 4` (admittedly an unlikely layout, but useful for illustration):
 
 ```
-Original Matrix A (7 x 6):               Conceptual Blocking:
+Original Matrix (7 x 6):               Conceptual Blocking:
 ┌─────────────────────────────────┐    ┌───────────┬───────────┐
-│ a00 a01 a02 a03 a04 a05  0   0  │    │ Block     │ Block     │
-│ a10 a11 a12 a13 a14 a15  0   0  │    │ (0,0)     │ (0,1)     │
-│ a20 a21 a22 a23 a24 a25  0   0  │    │ 3×4       │ 3×2+pad   │
+│ c00 c01 c02 c03 c04 c05  0   0  │    │ Block     │ Block     │
+│ c10 c11 c12 c13 c14 c15  0   0  │    │ (0,0)     │ (0,1)     │
+│ c20 c21 c22 c23 c24 c25  0   0  │    │ 3×4       │ 3×2+pad   │
 │                                 |    ├───────────┼───────────┤
-│ a30 a31 a32 a33 a34 a35  0   0  │    │ Block     │ Block     │
-│ a40 a41 a42 a43 a44 a45  0   0  │    │ (1,0)     │ (1,1)     │
-│ a50 a51 a52 a53 a54 a55  0   0  │    │ 3×4       │ 3×2+pad   │
+│ c30 c31 c32 c33 c34 c35  0   0  │    │ Block     │ Block     │
+│ c40 c41 c42 c43 c44 c45  0   0  │    │ (1,0)     │ (1,1)     │
+│ c50 c51 c52 c53 c54 c55  0   0  │    │ 3×4       │ 3×2+pad   │
 │                                 |    ├───────────┼───────────┤
-│ a60 a61 a62 a63 a64 a65  0   0  │    │ Block     │ Block     │
+│ c60 c61 c62 c63 c64 c65  0   0  │    │ Block     │ Block     │
 │  0   0   0   0   0   0   0   0  │    │ (2,0)     │ (2,1)     │
 │  0   0   0   0   0   0   0   0  │    │1+pad×4    │1+pad×2+pad│
 └─────────────────────────────────┘    └───────────┴───────────┘
         (padded to 9 x 8)                m1 = 3, k1 = 2 blocks
 
 Packed Layout in Memory (row-major blocks):
-Block(0,0): [a00 a01 a02 a03] [a10 a11 a12 a13] [a20 a21 a22 a23]
-Block(0,1): [a04 a05  0   0 ] [a14 a15  0   0 ] [a24 a25  0   0 ]
-Block(1,0): [a30 a31 a32 a33] [a40 a41 a42 a43] [a50 a51 a52 a53]
-Block(1,1): [a34 a35  0   0 ] [a44 a45  0   0 ] [a54 a55  0   0 ]
-Block(2,0): [a60 a61 a62 a63] [ 0   0   0   0 ] [ 0   0   0   0 ]
-Block(2,1): [a64 a65  0   0 ] [ 0   0   0   0 ] [ 0   0   0   0 ]
+Block(0,0): [c00 c01 c02 c03] [c10 c11 c12 c13] [c20 c21 c22 c23]
+Block(0,1): [c04 c05  0   0 ] [c14 c15  0   0 ] [c24 c25  0   0 ]
+Block(1,0): [c30 c31 c32 c33] [c40 c41 c42 c43] [c50 c51 c52 c53]
+Block(1,1): [c34 c35  0   0 ] [c44 c45  0   0 ] [c54 c55  0   0 ]
+Block(2,0): [c60 c61 c62 c63] [ 0   0   0   0 ] [ 0   0   0   0 ]
+Block(2,1): [c64 c65  0   0 ] [ 0   0   0   0 ] [ 0   0   0   0 ]
 ```
 
 #### Stride Parameters
 
-For a matrix `A` with packed storage, the following stride parameters are defined:
-- `rsa0`: row stride within a block, i.e. distance in memory from element `(i, j)` to `(i + 1, j)` in the same block, in units of elements. Example above: `rsa0 = k0 = 4`.
-- `csa0`: column stride within a block, i.e. distance in memory from element `(i, j)` to `(i, j + 1)` in the same block, in units of elements. Example above: `csa0 = 1`.
-- `rsa1`: row stride between blocks, i.e. distance in memory from the start of block `(bi, bj)` to the start of block `(bi + 1, bj)`, in units of elements. Example above: `rsa1 = m0 * k0 * k1 = 24`.
-- `csa1`: column stride between blocks, i.e. distance in memory from the start of block `(bi, bj)` to the start of block `(bi, bj + 1)`, in units of elements. Example above: `csa1 = m0 * k0 = 12`.
+For a matrix `C` with packed storage, the following stride parameters are defined:
+- `rsc0`: row stride within a block, i.e. distance in memory from element `(i, j)` to `(i + 1, j)` in the same block, in units of elements. Example above: `rsc0 = n0 = 4`.
+- `csc0`: column stride within a block, i.e. distance in memory from element `(i, j)` to `(i, j + 1)` in the same block, in units of elements. Example above: `csc0 = 1`.
+- `rsc1`: row stride between blocks, i.e. distance in memory from the start of block `(bi, bj)` to the start of block `(bi + 1, bj)`, in units of elements. Example above: `rsc1 = m0 * n0 * n1 = 24`.
+- `csc1`: column stride between blocks, i.e. distance in memory from the start of block `(bi, bj)` to the start of block `(bi, bj + 1)`, in units of elements. Example above: `csc1 = m0 * n0 = 12`.
 
 Generally the naming scheme for these parameters follows the format `{r,c}s{buffer}{layer}`, where `buffer` is the buffer the parameter applies to and `layer` is the blocking layer the parameter describes.
 
 The memory address (in units of elements) for the element at position `(i, j)` in block `(bi, bj)` is:
 ```
-address = base + bi * rsa1 + bj * csa1 + i * rsa0 + j * csa0
+address = base + bi * rsc1 + bj * csc1 + i * rsc0 + j * csc0
 ```
 
-Thus, the standard row- and column-major layouts are simply special cases of this packed storage, where the block size is 1 x 1 and `csa1` or `rsa1` is 1, respectively.
+Thus, the standard row- and column-major layouts are simply special cases of this packed storage, where the block size is 1 x 1 and `csc1` or `rsc1` is 1, respectively.
 
 ## APIs for Packed GEMM Kernels
 
 The general form of the packed GEMM API is:
 ```c
 void skl_gemm_<specialization>_<datatypes>_<isa>_<cpu>(
-    size_t m0,              // Num. rows in a block of A_pack and C_pack
-    size_t n0,              // Num. columns in a block of B_pack and C_pack
-    size_t k0,              // Num. columns in a block of A_pack,
-                            // rows in a block of B_pack
-    size_t m1,              // Num. block-rows in A_pack and C_pack
-    size_t n1,              // Num. block-columns in B_pack and C_pack
-    size_t k1,              // Num. block-columns in A_pack,
-                            // block-rows in B_pack
-    <type_c> alpha,         // Scaling factor for A_pack * B_pack
-    const <type_a>* a_pack, // Input matrix A_pack
-    size_t rsa0,            // Row stride within a block of A_pack
-    size_t csa0,            // Column stride within a block of A_pack
-    size_t rsa1,            // Row stride between blocks of A_pack
-    size_t csa1,            // Column stride between blocks of A_pack
-    const <type_b>* b_pack, // Input matrix B_pack
-    size_t rsb0,            // Row stride within a block of B_pack
-    size_t csb0,            // Column stride within a block of B_pack
-    size_t rsb1,            // Row stride between blocks of B_pack
-    size_t csb1,            // Column stride between blocks of B_pack
-    <type_c> beta,          // Scaling factor for C_pack
-    <type_c>* c_pack,       // Output matrix C_pack
-    size_t rsc0,            // Row stride within a block of C_pack
-    size_t csc0,            // Column stride within a block of C_pack
-    size_t rsc1,            // Row stride between blocks of C_pack
-    size_t csc1             // Column stride between blocks of C_pack
+    size_t m0,         // Num. rows in a block of A and C
+    size_t n0,         // Num. columns in a block of B and C
+    size_t k0,         // Num. columns in a block of A, rows in a block of B
+    size_t m1,         // Num. block-rows in A and C
+    size_t n1,         // Num. block-columns in B and C
+    size_t k1,         // Num. block-columns in A, block-rows in B
+    <type_c> alpha,    // Scaling factor for A * B
+    const <type_a>* a, // Packed input matrix A
+    size_t rsa0,       // Row stride within a block of A
+    size_t csa0,       // Column stride within a block of A
+    size_t rsa1,       // Row stride between blocks of A
+    size_t csa1,       // Column stride between blocks of A
+    const <type_b>* b, // Packed input matrix B
+    size_t rsb0,       // Row stride within a block of B
+    size_t csb0,       // Column stride within a block of B
+    size_t rsb1,       // Row stride between blocks of B
+    size_t csb1,       // Column stride between blocks of B
+    <type_c> beta,     // Scaling factor for C
+    <type_c>* c,       // Packed output matrix C
+    size_t rsc0,       // Row stride within a block of C
+    size_t csc0,       // Column stride within a block of C
+    size_t rsc1,       // Row stride between blocks of C
+    size_t csc1        // Column stride between blocks of C
 );
 ```
 
@@ -125,8 +123,8 @@ for (size_t ii1 = 0; ii1 < m1; ++ii1) {
     for (size_t idx = 0; idx < m0 * n0; ++idx)
       acc[idx] = 0;
     for (size_t kk1 = 0; kk1 < k1; ++kk1) {
-      const <type_a>* ap_block = a_pack + ii1 * rsa1 + kk1 * csa1;
-      const <type_b>* bp_block = b_pack + kk1 * rsb1 + jj1 * csb1;
+      const <type_a>* ap_block = a + ii1 * rsa1 + kk1 * csa1;
+      const <type_b>* bp_block = b + kk1 * rsb1 + jj1 * csb1;
       // Compute block product (loops usually map to 1 instruction)
       for (size_t ii0 = 0; ii0 < m0; ++ii0) {
         for (size_t jj0 = 0; jj0 < n0; ++jj0) {
@@ -139,7 +137,7 @@ for (size_t ii1 = 0; ii1 < m1; ++ii1) {
       }
     }
     // Update C matrix block (sometimes by specialized stores)
-    <type_c>* c_block = c_pack + ii1 * rsc1 + jj1 * csc1;
+    <type_c>* c_block = c + ii1 * rsc1 + jj1 * csc1;
     for (size_t ii0 = 0; ii0 < m0; ++ii0) {
       for (size_t jj0 = 0; jj0 < n0; ++jj0) {
         size_t c_idx = ii0 * rsc0 + jj0 * csc0;
@@ -196,26 +194,26 @@ As a special case, if `K` is already a multiple of 4, then `A` can be used witho
 The packed kernel could be depicted as implemented by the following wrapper for the general packed GEMM API:
 ```c
 void skl_gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
-  size_t m,             // Num. rows in A_pack and C
-  size_t n,             // Num. columns in B_pack and C
-  size_t k1,            // Num. block-columns in A_pack, block-rows in B_pack
-  int32_t alpha,        // Scaling factor for A_pack * B_pack
-  const int8_t* a_pack, // Packed matrix A_pack [m x k1 x (1 x 4)].
-  size_t rsa1,          // Row stride between blocks of A_pack
-  size_t csa1,          // Column stride between blocks of A_pack
-  const int8_t* b_pack, // Packed matrix B_pack [k1 x n x (4 x 1)]
-  size_t rsb1,          // Row stride between blocks of B_pack
-  int32_t beta,         // Scaling factor for C
-  int32_t* c,           // Output matrix C [m x n]
-  size_t rsc,           // Row stride of C
+  size_t m,        // Num. rows in A and C
+  size_t n,        // Num. columns in B and C
+  size_t k1,       // Num. block-columns in A, block-rows in B
+  int32_t alpha,   // Scaling factor for A * B
+  const int8_t* a, // Packed input matrix A [m x k1 x (1 x 4)].
+  size_t rsa1,     // Row stride between blocks of A
+  size_t csa1,     // Column stride between blocks of A
+  const int8_t* b, // Packed input matrix B [k1 x n x (4 x 1)]
+  size_t rsb1,     // Row stride between blocks of B
+  int32_t beta,    // Scaling factor for C
+  int32_t* c,      // Output matrix C [m x n]
+  size_t rsc,      // Row stride of C
 ) {
   skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
-    1, 1, 4, m, n, k1,        // m0, n0, k0, m1, n1, k1
-    alpha,                    // alpha
-    a_pack, 0, 1, rsa1, csa1, // a_pack, rsa0, csa0, rsa1, csa1
-    b_pack, 1, 0, rsb1, 4,    // b_pack, rsb0, csb0, rsb1, csb1
-    beta,                     // beta
-    c, 0, 0, rsc, 1           // c_pack, rsc0, csc0, rsc1, csc1
+    1, 1, 4, m, n, k1,   // m0, n0, k0, m1, n1, k1
+    alpha,               // alpha
+    a, 0, 1, rsa1, csa1, // a, rsa0, csa0, rsa1, csa1
+    b, 1, 0, rsb1, 4,    // b, rsb0, csb0, rsb1, csb1
+    beta,                // beta
+    c, 0, 0, rsc, 1      // c, rsc0, csc0, rsc1, csc1
   );
 }
 ```
@@ -243,17 +241,17 @@ However, to obtain peak performance it is often necessary for the kernel to use 
 
 ```c
 void skl_gemm_a1b01_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f(
-  size_t m1,            // Num. block-rows in A_pack and C_pack
-  size_t n1,            // Num. block-columns in B_pack and C_pack
-  size_t k,             // Num. columns in A_pack, rows in B_pack
-  const float* a_pack,  // Input matrix A_pack [m1 x k x (TE x 1)]
-  size_t rsa1,          // Row stride between panels of A_pack
-  const float* b_pack,  // Input matrix B_pack [k x n1 x (1 x TE)]
-  size_t csb1,          // Column stride between panels of B_pack
-  float* c_pack,        // Output matrix C_pack [m1 x n1 x (TE x TE)]
-  size_t rsc1,          // Row stride between blocks of C_pack
-  size_t csc1,          // Column stride between blocks of C_pack
-  bool accum            // Whether to accumulate into C_pack
+  size_t m1,       // Num. block-rows in A and C
+  size_t n1,       // Num. block-columns in B and C
+  size_t k,        // Num. columns in A, rows in B
+  const float* a,  // Packed input matrix A [m1 x k x (TE x 1)]
+  size_t rsa1,     // Row stride between panels of A
+  const float* b,  // Packed input matrix B [k x n1 x (1 x TE)]
+  size_t csb1,     // Column stride between panels of B
+  float* c,        // Packed output matrix C [m1 x n1 x (TE x TE)]
+  size_t rsc1,     // Row stride between blocks of C
+  size_t csc1,     // Column stride between blocks of C
+  bool accum       // Whether to accumulate into C
 );
 ```
 
@@ -281,16 +279,16 @@ The specific kernel provided by SKL assumes this layout for `A` as well, so `csa
 The packed kernel's API is thus:
 ```c
 void skl_gemm_a1b01_i8p4x8_i8p8x4_i32p4x4_xsfvqmaccqoq(
-  size_t m1,            // Num. block-rows in A_pack and C_pack
-  size_t n1,            // Num. block-columns in B_pack and C_pack
-  size_t k1,            // Num. block-columns in A_pack, block-rows in B_pack
-  const int8_t* a_pack, // Packed matrix A_pack [m1 x k1 x (4 x 8)]
-  size_t rsa1,          // Stride between block-rows of packed A_pack
-  const int8_t* b_pack, // Packed matrix B_pack [k1 x n1 x (8 x 4)]
-  size_t rsb1,          // Stride between block-rows of packed B_pack
-  int32_t* c_pack,      // Packed matrix C_pack [m1 x n1 x (4 x 4)]
-  size_t rsc1,          // Stride between block-rows of packed C_pack
-  bool accum            // Whether to accumulate into C_pack
+  size_t m1,       // Num. block-rows in A and C
+  size_t n1,       // Num. block-columns in B and C
+  size_t k1,       // Num. block-columns in A, block-rows in B
+  const int8_t* a, // Packed input matrix A [m1 x k1 x (4 x 8)]
+  size_t rsa1,     // Stride between block-rows of packed A
+  const int8_t* b, // Packed input matrix B [k1 x n1 x (8 x 4)]
+  size_t rsb1,     // Stride between block-rows of packed B
+  int32_t* c,      // Packed output matrix C [m1 x n1 x (4 x 4)]
+  size_t rsc1,     // Stride between block-rows of packed C
+  bool accum       // Whether to accumulate into C
 );
 ```
 
