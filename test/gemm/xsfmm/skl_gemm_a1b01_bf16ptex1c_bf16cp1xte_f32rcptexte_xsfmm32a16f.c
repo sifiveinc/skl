@@ -14,8 +14,7 @@
 #endif
 
 /**
- * @brief Test cases for the
- * skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f kernel.
+ * @brief Test cases for GEMM with Xsfmm32a16f extension.
  *
  * This test uses the gemm_bf16rcprc_bf16rcprc_f32rcprc harness with the
  * following restrictions on the input parameters:
