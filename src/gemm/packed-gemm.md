@@ -283,11 +283,11 @@ void skl_gemm_a1b01_i8p4x8_i8p8x4_i32p4x4_xsfvqmaccqoq(
   size_t n1,       // Num. block-columns in B and C
   size_t k1,       // Num. block-columns in A, block-rows in B
   const int8_t* a, // Packed input matrix A [m1 x k1 x (4 x 8)]
-  size_t rsa1,     // Stride between block-rows of packed A
+  size_t rsa1,     // Row stride between blocks of A
   const int8_t* b, // Packed input matrix B [k1 x n1 x (8 x 4)]
-  size_t rsb1,     // Stride between block-rows of packed B
+  size_t rsb1,     // Row stride between blocks of B
   int32_t* c,      // Packed output matrix C [m1 x n1 x (4 x 4)]
-  size_t rsc1,     // Stride between block-rows of packed C
+  size_t rsc1,     // Row stride between blocks of C
   bool accum       // Whether to accumulate into C
 );
 ```
