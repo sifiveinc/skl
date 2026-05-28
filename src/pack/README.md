@@ -69,7 +69,7 @@ Similarly, the ordering of blocks relative to each other is assumed to be block-
 
 > **Note**: As in other kernel families, the ISA suffix indicates the minimum requirement to execute the packing kernel itself (normally `zve32x`), but its primary intended use may be for a particular matrix extension. This is indicated in the documentation for each kernel (packing and GEMM).
 >
-> The `skl_pack_e8_e8ptex1c_xsfmmbase` function is an exception, as it uses the matrix engine to accelerate transposition within blocks.
+> The `skl_pack_e8_e8petex1c_xsfmmbase` function is an exception, as it uses the matrix engine to accelerate transposition within blocks.
 
 ## Packing Layout Examples
 
@@ -177,18 +177,18 @@ Because of the small block size, significant specialization is required to achie
 ### Optional Packing Kernels
 None of these are strictly required for correct operation of the corresponding GEMM kernels, but they may be useful for performance or compatibility reasons.
 (For Xsfmm, it is never required to pack any matrix; only [transposition](../transpose/README.md) is required if the `A` matrix is in row-major format, or `B` is in column-major format.)
-- `skl_pack_e8_e8ptex1c_xsfmmbase`: Transpose (`TE` x `K`) panels using the matrix engine. Used on a row-major `A` matrix or column-major `B` matrix.
+- `skl_pack_e8_e8petex1c_xsfmmbase`: Transpose (`ETE` x `K`) panels using the matrix engine. Used on a row-major `A` matrix or column-major `B` matrix.
 
 ### Packing Kernels That Do Not Exist
 These names refer to kernels that users might expect to exist, but do not, because they can be implemented with an appropriate block size in the generic RVV packing kernel at reasonable performance.
 In general, so long as the block size is large enough in at least one dimension (as is the case in paneling), a generic packing kernel with a large enough vector length can achieve reasonable performance.
 
 - ~~`skl_pack_e8_e8p4x1c_zve32x`~~: Pack (4 x `N`) column-major row panels.
-- ~~`skl_pack_e8_e8cp1xte_zve32x`~~: Pack (`K` x `TE`) panels. Used on a column-major `A` matrix or row-major `B` matrix.
-- ~~`skl_pack_e32_e32rcptexte_zve32x`~~: Pack (`TE` x `TE`) blocks without transposition. Used on a `C` matrix.
+- ~~`skl_pack_e8_e8cp1xete_zve32x`~~: Pack (`K` x `ETE`) panels. Used on a column-major `A` matrix or row-major `B` matrix.
+- ~~`skl_pack_e32_e32rcpetexete_zve32x`~~: Pack (`ETE` x `ETE`) blocks without transposition. Used on a `C` matrix.
 - ~~`skl_pack_e8_e8cp1xvlm8_zve32x`~~: Pack (`K` x `VLMAX*8`) column panels.
 
-In addition to being unnecessary for correct execution, these can all be implemented by supplying the machine-dependent dimension (`TE` or `VLMAX`) to the generic packing kernel.
+In addition to being unnecessary for correct execution, these can all be implemented by supplying the machine-dependent dimension (`ETE` or `VLMAX`) to the generic packing kernel.
 
 ## Generic RVV Packing Kernel [**Future Work**]
 
