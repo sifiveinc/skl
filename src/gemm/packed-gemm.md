@@ -48,7 +48,7 @@ Original Matrix (7 x 6):               Conceptual Blocking:
 │  0   0   0   0   0   0   0   0  │    │ (2,0)     │ (2,1)     │
 │  0   0   0   0   0   0   0   0  │    │1+pad×4    │1+pad×2+pad│
 └─────────────────────────────────┘    └───────────┴───────────┘
-        (padded to 9 x 8)                m1 = 3, k1 = 2 blocks
+        (padded to 9 x 8)                m1 = 3, n1 = 2 blocks
 
 Packed Layout in Memory (row-major blocks):
 Block(0,0): [c00 c01 c02 c03] [c10 c11 c12 c13] [c20 c21 c22 c23]
