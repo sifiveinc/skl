@@ -15,7 +15,7 @@ It also describes the packing and unpacking routines that convert matrices betwe
 3. [APIs for Packing & Unpacking Kernels](#apis-for-packing--unpacking-kernels)
 4. [Application to Specific ISAs and Frameworks](#application-to-specific-isas-and-frameworks)
    - [Xsfvqdotq: Pack B-Matrix K-Dimension (4 x N)](#xsfvqdotq-pack-b-matrix-k-dimension-4-x-n)
-   - [Xsfmm + IREE Framework: Pack M- & N-Dimensions (ETE x ETE)](#xsfmm--iree-framework-pack-m---n-dimensions-ete-x-ete)
+   - [Xsfmm + IREE Framework: Pack M- & N-Dimensions (TE x TE)](#xsfmm--iree-framework-pack-m---n-dimensions-te-x-te)
    - [Xsfvqmaccqoq: Packed (M = 4)x(K = 8)x(N = 4) Block-Matrix Products](#xsfvqmaccqoq-packed-m--4xk--8xn--4-block-matrix-products)
 5. [Cache Tiling with Packing](#cache-tiling-with-packing)
 
@@ -218,37 +218,37 @@ void skl_gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
 }
 ```
 
-### Xsfmm + IREE Framework: Pack M- & N-Dimensions (ETE x ETE)
+### Xsfmm + IREE Framework: Pack M- & N-Dimensions (TE x TE)
 
 The SiFive matrix engine (Xsfmm) provides a transposed fat outer-product instruction `sf.mm` to compute:
 ```
 C[i:i+TM, j:j+TN] += A[k:k+TK, i:i+TM]^T * B[k:k+TK, j:j+TN]
 ```
-The types of the matrices may vary, but the output matrix is held in matrix register tiles of size `ETE` x `ETE`, while each of the `TK` rows of each input operand is held in vector register groups of size `ETE`.
-The accumulator dimensions `TM` and `TN` are set by the application, and must be <= `ETE`, the machine tile size.
+The types of the matrices may vary, but the output matrix is held in matrix register tiles of size `TE` x `TE`, while each of the `TK` rows of each input operand is held in vector register groups of size `TE`.
+The accumulator dimensions `TM` and `TN` are set by the application, and must be <= `TE`, the machine tile size.
 The dot product length `TK` is either 1, 2, or 4 depending on the datatype and the application `K` dimension.
 
 __To use the Xsfmm instructions, the `A` matrix must be transposed, but it is not otherwise necessary to pack any matrix into blocks.__
-However, integration with the IREE framework imposes additional requirements that motivate a `ETE` x `ETE` packed layout for this target.
+However, integration with the IREE framework imposes additional requirements that motivate a `TE` x `TE` packed layout for this target.
 
 Since the `A` matrix must be transposed, it is sensible to integrate SKL kernels via the 4D matrix matrix-transpose [MMT4D interface](https://iree.dev/community/blog/2021-10-13-matrix-multiplication-with-mmt4d/) of [the `linalg` dialect](https://iree.dev/community/blog/2021-10-13-matrix-multiplication-with-mmt4d/) (**warning**: the `M` vs `M0` notation in MMT4D is different from the above, and `M` is equivalent to `m1` here).
 The 4D layout of MMT4D requires all three matrices be packed into `M0` x `N0`, `M0` x `K0`, or `K0` x `N0` blocks.
 However, in the case of the dot product dimension, we simply set the SKL GEMM `k0 = 1` and `k1` to MMT4D's `K * K0`, meaning that a single call to the GEMM kernel processes a full _panel_ of the `A`/`B` matrices, covering the full `K` dimension as if it were a single block.
 
 In theory, it should be possible to avoid exposing this packing to the GEMM kernel itself.
-If all matrices were packed into `ETE` x `ETE` blocks, then the kernel could be called in a loop nest over the packed blocks, applying one `sf.mm` instruction per block.
-However, to obtain peak performance it is often necessary for the kernel to use `2*ETE` x `2*ETE` register tiles, so the strides between blocks must necessarily be exposed to the implementation, motivating the provision of a packed API for this target:
+If all matrices were packed into `TE` x `TE` blocks, then the kernel could be called in a loop nest over the packed blocks, applying one `sf.mm` instruction per block.
+However, to obtain peak performance it is often necessary for the kernel to use `2*TE` x `2*TE` register tiles, so the strides between blocks must necessarily be exposed to the implementation, motivating the provision of a packed API for this target:
 
 ```c
-void skl_gemm_a1b01_f32petex1c_f32cp1xete_f32rcpetexete_xsfmm32a32f(
+void skl_gemm_a1b01_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f(
   size_t m1,       // Num. block-rows in A and C
   size_t n1,       // Num. block-columns in B and C
   size_t k,        // Num. columns in A, rows in B
-  const float* a,  // Packed input matrix A [m1 x k x (ETE x 1)]
+  const float* a,  // Packed input matrix A [m1 x k x (TE x 1)]
   size_t rsa1,     // Row stride between panels of A
-  const float* b,  // Packed input matrix B [k x n1 x (1 x ETE)]
+  const float* b,  // Packed input matrix B [k x n1 x (1 x TE)]
   size_t csb1,     // Column stride between panels of B
-  float* c,        // Packed output matrix C [m1 x n1 x (ETE x ETE)]
+  float* c,        // Packed output matrix C [m1 x n1 x (TE x TE)]
   size_t rsc1,     // Row stride between blocks of C
   size_t csc1,     // Column stride between blocks of C
   bool accum       // Whether to accumulate into C
@@ -256,9 +256,9 @@ void skl_gemm_a1b01_f32petex1c_f32cp1xete_f32rcpetexete_xsfmm32a32f(
 ```
 
 The matrix specifiers should be interpreted as:
-- `A`: `f32petex1c` `ETE` x 1 column vectors of `A` packed in block-row-major order
-- `B`: `f32cp1xete` 1 x `ETE` row vectors of `B` packed in block-column-major order
-- `C`: `f32rcpetexete` `ETE` x `ETE` blocks of `C` packed in either block-row- or block-column-major order, depending on `rsc1` and `csc1`
+- `A`: `f32ptex1c` `TE` x 1 column vectors of `A` packed in block-row-major order
+- `B`: `f32cp1xte` 1 x `TE` row vectors of `B` packed in block-column-major order
+- `C`: `f32rcptexte` `TE` x `TE` blocks of `C` packed in either block-row- or block-column-major order, depending on `rsc1` and `csc1`
 
 In this case, the packing is performed by the IREE framework itself, and the SKL kernel is called directly with the packed matrices; because of the arbitrary inter-block strides of `C`, it is up to the framework how the individual blocks are arranged with respect to one another.
 
