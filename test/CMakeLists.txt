@@ -137,6 +137,27 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_exp_f16_zvfh
+  elementwise/unary_f16.c
+  exp/exp_f16_zvfh.c
+  "zvfh"
+  ""
+)
+skl_add_test(
+  skl_exp_f16_xsfvfexp16e
+  elementwise/unary_f16.c
+  exp/exp_f16_xsfvfexp16e.c
+  "xsfvfexp16e"
+  ""
+)
+skl_add_test(
+  skl_exp_f16_xsfvfexpa_zvfh
+  elementwise/unary_f16.c
+  exp/exp_f16_xsfvfexpa_zvfh.c
+  "xsfvfexpa;zvfh"
+  ""
+)
+skl_add_test(
   skl_exp_f32_xsfvfexp32e
   elementwise/unary_f32.c
   exp/exp_f32_xsfvfexp32e.c
@@ -155,6 +176,34 @@ skl_add_test(
   elementwise/unary_f32.c
   exp/exp_f32_zve32f.c
   "zve32f"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f
+  gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c
+  "xsfmm32a8f"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f
+  gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f.c
+  "xsfmm32a8f"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f
+  gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c
+  "xsfmm32a8f"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f
+  gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f.c
+  "xsfmm32a8f"
   ""
 )
 skl_add_test(
@@ -267,6 +316,62 @@ skl_add_test(
   elementwise/unary_bf16.c
   logistic/logistic_bf16_zve32f.c
   "zve32f"
+  ""
+)
+skl_add_test(
+  skl_softmax_f32_ref
+  softmax/softmax_f32.c
+  softmax/skl_softmax_f32_ref.c
+  ""
+  ""
+)
+skl_add_test(
+  skl_softmax_f32_zve32f
+  softmax/softmax_f32.c
+  softmax/skl_softmax_f32_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_softmax_f32_xsfvfexpa
+  softmax/softmax_f32.c
+  softmax/skl_softmax_f32_xsfvfexpa.c
+  "xsfvfexpa"
+  ""
+)
+skl_add_test(
+  skl_softmax_f32_xsfvfexp32e
+  softmax/softmax_f32.c
+  softmax/skl_softmax_f32_xsfvfexp32e.c
+  "xsfvfexp32e"
+  ""
+)
+skl_add_test(
+  skl_softmax_2d_f32_ref
+  softmax/softmax_f32.c
+  softmax/skl_softmax_2d_f32_ref.c
+  ""
+  ""
+)
+skl_add_test(
+  skl_softmax_2d_f32_zve32f
+  softmax/softmax_f32.c
+  softmax/skl_softmax_2d_f32_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_softmax_2d_f32_xsfvfexpa
+  softmax/softmax_f32.c
+  softmax/skl_softmax_2d_f32_xsfvfexpa.c
+  "xsfvfexpa"
+  ""
+)
+skl_add_test(
+  skl_softmax_2d_f32_xsfvfexp32e
+  softmax/softmax_f32.c
+  softmax/skl_softmax_2d_f32_xsfvfexp32e.c
+  "xsfvfexp32e"
   ""
 )
 skl_add_test(

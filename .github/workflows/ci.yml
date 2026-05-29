@@ -16,7 +16,7 @@ jobs:
       labels: ubuntu-22.04-x64-2
 
     env:
-      SKL_TAG: v0.0.0
+      SKL_TAG: v3.0.0
       TOOLCHAIN_TAG: 2025.08.28
 
     permissions:

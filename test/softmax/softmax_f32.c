@@ -1,49 +1,61 @@
-// Copyright (c) 2025-2026 SiFive, Inc. All rights reserved.
+// Copyright (c) 2026 SiFive, Inc. All rights reserved.
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 // SPDX-License-Identifier: MIT
 
-#if !defined(ENABLE_TEST) && !defined(ENABLE_BENCHMARK)
-#error Must define at least one of ENABLE_TEST and ENABLE_BENCHMARK.
-#endif
-
-#if !defined(NUM_ELEMS)
-#define NUM_ELEMS 2048 // Input length
-#endif
-
-#if !defined(BETA)
-#define BETA 1.0 // Exponential scaling factor
-#endif
-
-#include "skl-ref.h"
-#include "skl-test.h"
-#include "skl.h"
-#include <inttypes.h>
-#if defined(ENABLE_TEST)
+#include "softmax/softmax_f32.h"
+#include "skl-test-driver.h"
 #include <math.h>
 #include <stdlib.h>
-#endif
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
 
-#if defined(RUN_ALL)
-#define RUN_SCALAR 1
-#define RUN_ZVE32F 1
-#define RUN_VFEXPA 1
-#define RUN_VFEXP 1
-#endif
+void softmax_f32_init(skl_test_t *t) {
+  softmax_f32_t *h = (softmax_f32_t *)t->harness;
+  size_t slen = 0;
 
-enum { ALIGN = 4096 };
-__attribute__((aligned(ALIGN))) float input[NUM_ELEMS];
-__attribute__((aligned(ALIGN))) float output[NUM_ELEMS];
-__attribute__((aligned(ALIGN))) float ref_output[NUM_ELEMS];
-__attribute__((aligned(ALIGN))) double workspace[NUM_ELEMS];
+  // Set default row strides, if necessary
+  if (h->rsa == 0)
+    h->rsa = h->n;
+  if (h->rss == 0)
+    h->rss = h->rsa;
+  if (h->m == 0 || h->n == 0) {
+    h->a.len = 0;
+  } else {
+    h->a.len = (h->m - 1) * h->rsa + h->n;
+    slen = (h->m - 1) * h->rss + h->n;
+  }
 
-#if defined(ENABLE_TEST)
-/** Scalar softmax using FP64 intermediates for high accuracy */
-static void reference_softmax_f32(float *out, const float *in, float beta,
-                                  double *workspace, size_t n) {
+  // Allocate and initialize input buffer
+  SKL_TEST_BUF_CREATE(t, float, &h->a);
+  // Allocate output buffer, avoiding malloc(0)
+  h->ctx.s = slen ? malloc(slen * sizeof(float)) : NULL;
+
+  if (h->steps.verify) {
+    // Allocate reference buffer
+    h->ctx.S = h->n ? malloc(h->n * sizeof(double)) : NULL;
+  }
+}
+
+typedef void (*skl_softmax_f32_t)(float *, const float *, const float,
+                                  const size_t);
+
+void softmax_f32_execute(skl_test_t *t) {
+  const softmax_f32_t *h = (softmax_f32_t *)t->harness;
+  skl_softmax_f32_t fn = (skl_softmax_f32_t)(h->func);
+  fn(h->ctx.s, h->a.data, h->beta, h->n);
+}
+
+typedef void (*skl_softmax_2d_f32_t)(float *, size_t, const float *, size_t,
+                                     const float, size_t, size_t);
+
+void softmax_2d_f32_execute(skl_test_t *t) {
+  const softmax_f32_t *h = (softmax_f32_t *)t->harness;
+  skl_softmax_2d_f32_t fn = (skl_softmax_2d_f32_t)(h->func);
+  fn(h->ctx.s, h->rss, h->a.data, h->rsa, h->beta, h->m, h->n);
+}
+
+/** Reference softmax producing FP64 results for high accuracy */
+static void softmax_f32_f64(double *out, const float *in, float beta,
+                            size_t n) {
   if (n < 1)
     return;
 
@@ -54,54 +66,99 @@ static void reference_softmax_f32(float *out, const float *in, float beta,
 
   double sum = 0;
   for (size_t i = 0; i < n; i++) {
-    workspace[i] = exp(beta * ((double)in[i] - max));
-    sum += workspace[i];
+    out[i] = exp(beta * ((double)in[i] - max));
+    sum += out[i];
   }
 
   for (size_t i = 0; i < n; i++) {
-    out[i] = (float)(workspace[i] / sum);
+    out[i] /= sum;
   }
 }
-#endif // defined(ENABLE_TEST)
 
-int main(void) {
-  int ret = 0; // return value
-  printf("Measuring %d-element softmax:\n\n", NUM_ELEMS);
-  skl_test_init_f32(input, NUM_ELEMS, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32);
+void softmax_f32_verify(skl_test_t *t) {
+  softmax_f32_t *h = (softmax_f32_t *)t->harness;
+  const size_t M = h->m, N = h->n;
+  const float min = h->a.min, max = h->a.max;
+  const float beta = h->beta;
+  size_t errs = 0;
 
-#if defined(ENABLE_TEST)
-  memset(ref_output, 0, NUM_ELEMS * sizeof(*ref_output));
-  reference_softmax_f32(ref_output, input, BETA, workspace, NUM_ELEMS);
-#define CHECK_RESULT(FUNCTION, NAME)                                           \
-  ret += skl_check_error_ulp_f32(NAME, output, ref_output, 64, NUM_ELEMS);
-#else
-#define CHECK_RESULT(FUNCTION, NAME)
-#endif
+  // Expected error is error of an N-element summation, i.e. `N u`,
+  // plus error introduced by stabilization and beta-scaling.  The
+  // latter subtraction and multiplication would alone introduce just
+  // `3 u` error, but this is inflated to `3β(min-max)` when passed
+  // through the exponential.
+  double u = 0x1p-24; // "unit round-off"
+  double tol = (3 * fmax(beta * fabsf(max - min), 1) + (double)N) * u;
+  tol = tol / (1 + tol); // relative to reference
 
-#define RUN(FUNCTION, NAME)                                                    \
-  memset(output, 0, NUM_ELEMS * sizeof(*output));                              \
-  SKL_BENCHMARK_RUN(NAME, NUM_ELEMS, SKL_TEST_WARMUP, FUNCTION, output, input, \
-                    BETA, NUM_ELEMS);                                          \
-  CHECK_RESULT(FUNCTION, NAME);
+  for (size_t m = 0; m < M; m++) {
+    // Calculate reference result
+    softmax_f32_f64(h->ctx.S, h->a.data + m * h->rsa, beta, N);
 
-  // Run subset of functions depending on ISA compatibility
-#if defined(RUN_SCALAR)
-  RUN(skl_softmax_f32_ref, "reference");
-#endif
-#if defined(__riscv_zve32f) && defined(RUN_ZVE32F)
-  RUN(skl_softmax_f32_zve32f, "zve32f");
-#endif
-#if defined(__riscv_xsfvfexpa) && defined(RUN_VFEXPA)
-  RUN(skl_softmax_f32_xsfvfexpa, "xsfvfexpa");
-#endif
-#if defined(__riscv_xsfvfexp32e) && defined(RUN_VFEXP)
-  RUN(skl_softmax_f32_xsfvfexp32e, "xsfvfexp32e");
-#endif
+    for (size_t n = 0; n < N; n++) {
+      float inp = h->a.data[m * h->rsa + n];
+      float val = h->ctx.s[m * h->rss + n];
+      double ref = h->ctx.S[n];
+      double err = 0;
 
-#if !(defined(RUN_SCALAR) || defined(RUN_ZVE32F) || defined(RUN_VFEXPA) ||     \
-      defined(RUN_VFEXP))
-#error No tests or benchmarks enabled!
-#endif
+      if (isnan(val) != isnan(ref)) {
+        SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
+                     "[%4zd,%4zd : %-16.6a]: %16.6a != ref %a (NaN mismatch)\n",
+                     m, n, inp, val, ref);
+        h->ctx.max_err = INFINITY;
+        errs++;
+      } else if (isnan(ref)) {
+        continue; // both are NaN, no error
+      } else if (ref > 0x1p-126) {
+        err = fabs(val - ref); // absolute error
+        err /= ref;            // relative error, ref always unsigned
+        if (err > tol) {
+          SKL_TEST_LOG(
+              t, SKL_TEST_LOG_ERROR,
+              "[%4zd,%4zd : %-16.6a]: %16.6a !~ ref %a (%.2a rel err > %.2a)\n",
+              m, n, inp, val, ref, err, tol);
+          errs++;
+        }
+        h->ctx.max_err = (float)fmax(h->ctx.max_err, err);
+      } // else don't bother.  Many Softmax flush tiny results to
+        // zero, and relative error is problematic in the tiny realm.
+      if (errs >= 10)
+        break;
+    }
+    if (errs >= 10)
+      break;
+  }
+  t->status.verify_status =
+      (h->ctx.max_err <= tol) ? SKL_TEST_PASS : SKL_TEST_FAIL;
+}
 
-  return ret > 0;
+void softmax_f32_report(skl_test_t *t) {
+  softmax_f32_t *h = (softmax_f32_t *)t->harness;
+
+#define INFO(fmt, ...) SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, fmt, __VA_ARGS__)
+
+  INFO("Function: %s\n", h->name);
+  INFO("M: %zd, N: %zd\n", h->m, h->n);
+  if (h->rss != h->n || h->rsa != h->n)
+    INFO("RSS: %zd, RSA: %zd\n", h->rss, h->rsa);
+  INFO("Beta: %g\n", h->beta);
+  if (h->steps.verify != NULL) {
+    INFO("Domain: [%g ; %g]\n", h->a.min, h->a.max);
+    INFO("Max rel: %.3a\n", h->ctx.max_err);
+  } else {
+    INFO("Cycles: %zd\n", t->counters.cycles);
+    INFO("Instructions: %zd\n", t->counters.instret);
+    INFO("Elements/Cycle: %f\n", (float)(h->m * h->n) / t->counters.cycles);
+  }
+#undef INFO
+}
+
+void softmax_f32_cleanup(skl_test_t *t) {
+  softmax_f32_t *h = (softmax_f32_t *)t->harness;
+
+  // Free buffers
+  SKL_TEST_BUF_FREE(t, &h->a);
+  free(h->ctx.s);
+  if (h->steps.verify)
+    free(h->ctx.S);
 }

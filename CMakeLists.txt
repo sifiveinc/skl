@@ -204,29 +204,15 @@ if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
     skl_add_test_legacy(skl_pack_b_i8_xsfvqdotq gemm/pack_b_i8_xsfvqdotq.c "-DK=126;-DN=128")
   endif()
   if("zvfh" IN_LIST RISCV_EXTENSIONS)
-    skl_add_test_legacy(exp_f16 exp/exp_f16.c "-DRUN_ZVFH;-DRUN_VFEXPA;-DRUN_VFEXP")
     skl_add_test_legacy(logistic_f16_zvfh logistic/logistic_f16.c "-DRUN_ALL")
     skl_add_test_legacy(silu_f16_zvfh silu/silu_f16.c "-DRUN_ALL")
   endif()
   skl_add_test_legacy(softmax_f16 softmax/softmax_f16.c "-DRUN_ALL;-DBETA=0.5")
   skl_add_test_legacy(softmax_bf16 softmax/softmax_bf16.c "-DRUN_ALL;-DBETA=0.5")
-  skl_add_test_legacy(softmax_f32 softmax/softmax_f32.c "-DRUN_ALL;-DBETA=0.5")
-  skl_add_test_legacy(softmax_2d_f32 softmax/softmax_2d_f32.c
-    "-DRUN_ALL;-DM=64;-DN=128;-DBETA=0.5")
   if("zve32f" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(logistic_f32_zve32f logistic/logistic_f32.c "-DRUN_ALL")
     skl_add_test_legacy(gelu_f32 gelu/gelu_f32.c "")
     skl_add_test_legacy(silu_f32_zve32f silu/silu_f32.c "-DRUN_ALL")
-  endif()
-  if("xsfmm32a8f" IN_LIST RISCV_EXTENSIONS)
-    skl_add_test_legacy(skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f_wrapper gemm/gemm_f8e4m3rc_f8e4m3rc_f32rc.c
-      "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1.f;-DBETA=0.f")
-    skl_add_test_legacy(skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f_wrapper gemm/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc.c
-      "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
-    skl_add_test_legacy(skl_gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f_wrapper gemm/gemm_f8e5m2rc_f8e5m2rc_f32rc.c
-      "-DRSA=1;-DCSA=128;-DM=128;-DN=128;-DK=32;-DALPHA=1.f;-DBETA=0.f")
-    skl_add_test_legacy(skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f_wrapper gemm/gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc.c
-      "-DM0=${XSFMM_TE};-DN0=${XSFMM_TE};-DK0=1;-DM1=2;-DN1=2;-DK1=32;-DRSA0=1;-DCSA0=0;-DRSB0=0;-DCSB0=1;-DRSB1=(K0 * N0);-DCSB1=(K0 * N0 * K1);-DALPHA=1.f;-DBETA=0.f")
   endif()
   if("xsfmm32a8i" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i_wrapper gemm/gemm_i8rc_i8rc_i32rc.c
