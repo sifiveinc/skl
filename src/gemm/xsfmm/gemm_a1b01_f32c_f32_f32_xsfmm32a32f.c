@@ -7,10 +7,266 @@
 #error This file requires the Xsfmm32a32f extension
 #endif
 
+#include <riscv_vector.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include "skl-common.h"
+
+typedef void (*fused_f32_f32_t)(size_t m, size_t n, size_t tss, float *c,
+                                size_t rsc0, size_t csc0, size_t rsc1,
+                                size_t csc1, size_t row1, size_t col1,
+                                void *params);
+
+SKL_XSFMM_OUT
+SKL_FUNC_PRIVATE
+void skl_tile_zero_mt0_e32_xsfmmbase(size_t m, size_t n) {
+  __asm__ volatile("sf.vsettnt x0, %[n], e32, w1\n"
+                   "sf.vsettm x0, %[m]\n"
+                   "sf.vtzero.t mt0\n"
+                   :
+                   : [m] "r"(m), [n] "r"(n)
+                   : "vtype", "vl");
+}
+
+SKL_XSFMM_OUT
+SKL_FUNC_PRIVATE
+void skl_tile_zero_mt4_e32_xsfmmbase(size_t m, size_t n) {
+  __asm__ volatile("sf.vsettnt x0, %[n], e32, w1\n"
+                   "sf.vsettm x0, %[m]\n"
+                   "sf.vtzero.t mt4\n"
+                   :
+                   : [m] "r"(m), [n] "r"(n)
+                   : "vtype", "vl");
+}
+
+SKL_XSFMM_OUT
+SKL_FUNC_PRIVATE
+void skl_tile_zero_mt8_e32_xsfmmbase(size_t m, size_t n) {
+  __asm__ volatile("sf.vsettnt x0, %[n], e32, w1\n"
+                   "sf.vsettm x0, %[m]\n"
+                   "sf.vtzero.t mt8\n"
+                   :
+                   : [m] "r"(m), [n] "r"(n)
+                   : "vtype", "vl");
+}
+
+SKL_XSFMM_OUT
+SKL_FUNC_PRIVATE
+void skl_tile_zero_mt12_e32_xsfmmbase(size_t m, size_t n) {
+  __asm__ volatile("sf.vsettnt x0, %[n], e32, w1\n"
+                   "sf.vsettm x0, %[m]\n"
+                   "sf.vtzero.t mt12\n"
+                   :
+                   : [m] "r"(m), [n] "r"(n)
+                   : "vtype", "vl");
+}
+
+SKL_XSFMM_OUT
+SKL_FUNC_PRIVATE
+void skl_tile_zero_e32_xsfmmbase(size_t m, size_t n, size_t tss, size_t rstss,
+                                 size_t cstss) {
+  if (m == 0 || n == 0) {
+    return;
+  }
+
+  void (*tile_zero_functions[])(size_t, size_t) = {
+      skl_tile_zero_mt0_e32_xsfmmbase,
+      skl_tile_zero_mt4_e32_xsfmmbase,
+      skl_tile_zero_mt8_e32_xsfmmbase,
+      skl_tile_zero_mt12_e32_xsfmmbase,
+  };
+
+  size_t ete = 0;
+  __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
+  size_t m1 = (m + ete - 1) / ete;
+  size_t n1 = (n + ete - 1) / ete;
+  size_t m_avl = m;
+  for (size_t i1 = 0; i1 < m1; ++i1) {
+    size_t tm = m_avl >= ete ? ete : m_avl;
+    size_t n_avl = n;
+    for (size_t j1 = 0; j1 < n1; ++j1) {
+      size_t tn = n_avl >= ete ? ete : n_avl;
+      tile_zero_functions[tss + i1 * rstss + j1 * cstss](tm, tn);
+      n_avl -= tn;
+    }
+    m_avl -= tm;
+  }
+}
+
+SKL_XSFMM_OUT
+SKL_FUNC_PRIVATE
+void skl_tile_load_e32rcp_xsfmmbase(size_t m, size_t n, uint32_t *c,
+                                    size_t rsc0, size_t rsc1, size_t csc1,
+                                    size_t tss, size_t rstss, size_t cstss) {
+  if (m == 0 || n == 0) {
+    return;
+  }
+
+  size_t ete = 0;
+  __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
+
+  const size_t kShiftTile = 27;
+  const size_t kRowInc = 1;
+  rstss <<= kShiftTile;
+  cstss <<= kShiftTile;
+
+  size_t m1 = (m + ete - 1) / ete;
+  size_t n1 = (n + ete - 1) / ete;
+  size_t m_avl = m;
+  for (size_t i1 = 0; i1 < m1; ++i1) {
+    size_t tm = m_avl >= ete ? ete : m_avl;
+    size_t n_avl = n;
+    for (size_t j1 = 0; j1 < n1; ++j1) {
+      size_t tn = n_avl >= ete ? ete : n_avl;
+      size_t tss_block = tss + i1 * rstss + j1 * cstss;
+      uint32_t *c_block = c + i1 * rsc1 + j1 * csc1;
+      size_t i0 = 0;
+      __asm__ volatile(
+          "sf.vsettnt x0, %[tn], e32, w1\n"
+
+          "0:\n"
+          "addi %[i0], %[i0], 1\n"
+          "sf.vlte32 %[tss_block], (%[c_block])\n"
+          "add %[tss_block], %[tss_block], %[kRowInc]\n"
+          "add %[c_block], %[c_block], %[sc]\n"
+          "bltu %[i0], %[tm], 0b\n"
+          :
+          [tss_block] "+&r"(tss_block), [c_block] "+&r"(c_block), [i0] "+&r"(i0)
+          : [kRowInc] "rI"(kRowInc), [sc] "r"(rsc0 * sizeof(float)),
+            [tm] "r"(tm), [tn] "r"(tn)
+          : "vtype", "vl", "memory");
+      n_avl -= tn;
+    }
+    m_avl -= tm;
+  }
+}
+
+SKL_XSFMM_IN
+SKL_FUNC_PRIVATE
+void skl_tile_store_f32rcp_xsfmmbase(size_t tm, size_t tn, size_t tss, float *c,
+                                     size_t rsc0, size_t csc0, size_t rsc1,
+                                     size_t csc1, size_t row1, size_t col1,
+                                     void *params) {
+  (void)params;
+
+  if (tm == 0 || tn == 0) {
+    return;
+  }
+
+  const size_t kRowInc = 1;
+
+  float *c_block = c + row1 * rsc1 + col1 * csc1;
+
+  if (csc0 == 1) {
+    size_t i0 = 0;
+    __asm__ volatile(
+        "sf.vsettnt x0, %[tn], e32, w1\n"
+
+        "0:\n"
+        "addi %[i0], %[i0], 1\n"
+        "sf.vste32 %[tss], (%[c_block])\n"
+        "add %[tss], %[tss], %[kRowInc]\n"
+        "add %[c_block], %[c_block], %[sc]\n"
+        "bltu %[i0], %[tm], 0b\n"
+        : [tss] "+&r"(tss), [c_block] "+&r"(c_block), [i0] "+&r"(i0)
+        : [kRowInc] "rI"(kRowInc), [sc] "r"(rsc0 * sizeof(float)), [tm] "r"(tm),
+          [tn] "r"(tn)
+        : "vtype", "vl", "memory");
+  } else {
+    vuint32m8_t vec = __riscv_vundefined_u32m8();
+    size_t i0 = 0;
+    __asm__ volatile(
+        "sf.vsettnt x0, %[tn], e32, w1\n"
+
+        "0:\n"
+        "addi %[i0], %[i0], 1\n"
+        "sf.vtmv.v.t %[vec], %[tss]\n"
+        "add %[tss], %[tss], %[kRowInc]\n"
+        "vsse32.v %[vec], (%[c_block]), %[csc0]\n"
+        "add %[c_block], %[c_block], %[rsc0]\n"
+        "bltu %[i0], %[tm], 0b\n"
+        : [vec] "=&vr"(vec), [tss] "+&r"(tss), [c_block] "+&r"(c_block),
+          [i0] "+&r"(i0)
+        : [kRowInc] "rI"(kRowInc), [rsc0] "r"(rsc0 * sizeof(float)),
+          [csc0] "r"(csc0 * sizeof(float)), [tm] "r"(tm), [tn] "r"(tn)
+        : "vtype", "vl", "memory");
+  }
+}
+
+SKL_XSFMM_IN
+SKL_FUNC_PRIVATE
+void skl_gemm_fused_apply_f32rcprc_xsfmm32a32f(
+    size_t m, size_t n, size_t tss, size_t rstss, size_t cstss, float *c,
+    size_t rsc0, size_t csc0, size_t rsc1, size_t csc1, size_t row1,
+    size_t col1, fused_f32_f32_t kernel, void *params) {
+  if (m == 0 || n == 0) {
+    return;
+  }
+
+  size_t ete = 0;
+  __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
+
+  const size_t kShiftTile = 27;
+  rstss <<= kShiftTile;
+  cstss <<= kShiftTile;
+
+  size_t m1 = (m + ete - 1) / ete;
+  size_t n1 = (n + ete - 1) / ete;
+  size_t m_avl = m;
+  for (size_t i1 = 0; i1 < m1; ++i1) {
+    size_t tm = m_avl >= ete ? ete : m_avl;
+    size_t n_avl = n;
+    for (size_t j1 = 0; j1 < n1; ++j1) {
+      size_t tn = n_avl >= ete ? ete : n_avl;
+      (*kernel)(tm, tn, tss + i1 * rstss + j1 * cstss, c, rsc0, csc0, rsc1,
+                csc1, row1 + i1, col1 + j1, params);
+      n_avl -= tn;
+    }
+    m_avl -= tm;
+  }
+}
+
+/* Process a tm x tn tile of c. tm and tn must be <= TE. */
+SKL_XSFMM_INOUT
+SKL_FUNC_PRIVATE void
+skl_gemm_1x1_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
+                                      const float *a, size_t csa,
+                                      const float *b, size_t rsb) {
+  if (m == 0 || n == 0) {
+    return;
+  }
+
+  const float *a0 = a;
+  const float *b0 = b;
+  __asm__ volatile("beqz %[k], 1f\n"
+
+                   "sf.vsettnt x0, %[n], e32, w1\n"
+                   "sf.vsettm x0, %[m]\n"
+                   "sf.vsettk x0, %[k]\n"
+
+                   "0:\n"
+                   "addi %[k], %[k], -1\n"
+                   "sf.vsettn x0, %[m]\n"
+                   "vle32.v v0, (%[a0])\n"
+                   "add %[a0], %[a0], %[sa]\n"
+
+                   "sf.vsettn x0, %[n]\n"
+                   "vle32.v v8, (%[b0])\n"
+                   "add %[b0], %[b0], %[sb]\n"
+
+                   "sf.mm.f.f mt0, v0, v8\n"
+                   "bnez %[k], 0b\n"
+
+                   "1:\n"
+                   : [a0] "+&r"(a0), [b0] "+&r"(b0), [k] "+&r"(k)
+                   : [sa] "r"(csa * sizeof(float)),
+                     [sb] "r"(rsb * sizeof(float)), [m] "r"(m), [n] "r"(n)
+                   : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9",
+                     "v10", "v11", "v12", "v13", "v14", "v15", "vtype", "vl",
+                     "memory");
+}
 
 /* Process a tm x tn tile of c. tm and tn must be <= TE. */
 SKL_XSFMM_NEW
@@ -21,82 +277,18 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
     return;
   }
 
-  const size_t kRowInc = 1;
-
   const size_t mt0 = 0;
-  float *c00 = c;
+  if (accum) {
+    skl_tile_load_e32rcp_xsfmmbase(tm, tn, (uint32_t *)c, rsc, 0, 0, mt0, 0, 0);
+  } else {
+    skl_tile_zero_e32_xsfmmbase(tm, tn, mt0, 0, 0);
+  }
 
-  /* Load or zero-initialize tile. */
-  size_t mt0_load = mt0;
-  float *c00_load = c00;
-  size_t i = 0;
-  __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
-                   "sf.vsettm x0, %[tm]\n"
+  skl_gemm_1x1_f32c_f32_f32_xsfmm32a32f(tm, tn, k, a, csa, b, rsb);
 
-                   "bnez %[accum], 0f\n"
-                   "sf.vtzero.t mt0\n"
-                   "j 1f\n"
-                   "0:\n"
-                   "addi %[i], %[i], 1\n"
-                   "sf.vlte32 %[mt0], (%[c00])\n"
-                   "add %[mt0], %[mt0], %[kRowInc]\n"
-                   "add %[c00], %[c00], %[sc]\n"
-                   "bltu %[i], %[tm], 0b\n"
-                   "1:\n"
-                   : [mt0] "+&r"(mt0_load), [c00] "+&r"(c00_load), [i] "+&r"(i)
-                   : [accum] "r"(accum), [kRowInc] "rI"(kRowInc),
-                     [sc] "r"(rsc * sizeof(float)), [tm] "r"(tm), [tn] "r"(tn)
-                   : "vtype", "vl", "memory");
-
-  /* Accumulate matrix product into tile. */
-  const float *a0 = a;
-  const float *b0 = b;
-  __asm__ volatile("beqz %[k], 1f\n"
-
-                   "sf.vsettnt x0, %[tn], e32, w1\n"
-                   "sf.vsettm x0, %[tm]\n"
-                   "sf.vsettk x0, %[k]\n"
-
-                   "0:\n"
-                   "addi %[k], %[k], -1\n"
-                   "sf.vsettn x0, %[tm]\n"
-                   "vle32.v v0, (%[a0])\n"
-                   "add %[a0], %[a0], %[sa]\n"
-
-                   "sf.vsettn x0, %[tn]\n"
-                   "vle32.v v8, (%[b0])\n"
-                   "add %[b0], %[b0], %[sb]\n"
-
-                   "sf.mm.f.f mt0, v0, v8\n"
-                   "bnez %[k], 0b\n"
-
-                   "1:\n"
-                   : [a0] "+&r"(a0), [b0] "+&r"(b0), [k] "+&r"(k)
-                   : [sa] "r"(csa * sizeof(float)),
-                     [sb] "r"(rsb * sizeof(float)), [tm] "r"(tm), [tn] "r"(tn)
-                   : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9",
-                     "v10", "v11", "v12", "v13", "v14", "v15", "vtype", "vl",
-                     "memory");
-
-  /* Store tile to memory. */
-  size_t mt0_store = mt0;
-  float *c00_store = c00;
-  i = 0;
-  __asm__ volatile(
-      "sf.vsettnt x0, %[tn], e32, w1\n"
-
-      "0:\n"
-      "addi %[i], %[i], 1\n"
-      "sf.vste32 %[mt0], (%[c00])\n"
-      "add %[mt0], %[mt0], %[kRowInc]\n"
-      "add %[c00], %[c00], %[sc]\n"
-      "bltu %[i], %[tm], 0b\n"
-
-      "sf.vtdiscard"
-      : [mt0] "+&r"(mt0_store), [c00] "+&r"(c00_store), [i] "+&r"(i)
-      : [kRowInc] "rI"(kRowInc), [sc] "r"(rsc * sizeof(float)), [tm] "r"(tm),
-        [tn] "r"(tn)
-      : "vtype", "vl", "memory");
+  fused_f32_f32_t kernel = skl_tile_store_f32rcp_xsfmmbase;
+  skl_gemm_fused_apply_f32rcprc_xsfmm32a32f(tm, tn, mt0, 0, 0, c, rsc, 1, 0, 0,
+                                            0, 0, kernel, NULL);
 }
 
 /* C consists of two tm x tn row major tiles C0 and C1. Each tile's row stride
