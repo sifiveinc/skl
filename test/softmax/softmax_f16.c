@@ -64,7 +64,7 @@ void softmax_f16_verify(skl_test_t *t) {
   // Expected error is error of an N-element summation, i.e. `N u`,
   // plus error introduced by stabilization and beta-scaling.  The
   // latter subtraction and multiplication would alone introduce just
-  // `3 u` error, but this is inflated to `3β(min-max)` when passed
+  // `3 u` error, but this is inflated to `3β(max-min)` when passed
   // through the exponential.
   double u = 0x1p-11; // "unit round-off"
   double tol = (3 * fmax(beta * fabsf(max - min), 1) + (double)N) * u;
