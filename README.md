@@ -171,7 +171,7 @@ Tests parameters can be easily reconfigured within such test suites, and new tes
 ### Benchmark Mode (`-DSKL_ENABLE_BENCHMARKS=TRUE`)
 
 Each test suite may also define one or more representative benchmarks with problem parameters depicting an ideal performance regime for each kernel variant.
-However, SKL cannot supply the requisite simulation environment for benchmarking, and users are responsible for integrating SKL's benchmarking code into their own simulation or execution environment.
+However, SKL cannot supply a simulation environment for benchmarking, and users are responsible for integrating SKL's benchmarking code into their own simulation or execution environment.
 
 Performance benchmarks can be enabled by defining the `SKL_ENABLE_BENCHMARKS` variable during configuration (which can be defined alongside `SKL_ENABLE_TESTS` if desired):
 ```shell
