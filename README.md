@@ -161,8 +161,7 @@ To build SKL for testing on QEMU, ensure to define the `SKL_ENABLE_TESTS` variab
 ```shell
 cmake -B build -DCMAKE_TOOLCHAIN_FILE="cmake/riscv.cmake" -DSKL_ENABLE_TESTS=TRUE
 cmake --build build
-cd build/
-ctest
+ctest --test-dir build
 ```
 
 Test programs are defined via a testing suite, such as [test/gemm/rvv/skl_gemm_f32_f32_f32_zve32f_x390.c](./test/gemm/rvv/skl_gemm_f32_f32_f32_zve32f_x390.c), that specify the testing parameters to use during execution.
@@ -177,8 +176,7 @@ Performance benchmarks can be enabled by defining the `SKL_ENABLE_BENCHMARKS` va
 ```shell
 cmake -B build -DCMAKE_TOOLCHAIN_FILE="cmake/riscv.cmake" -DSKL_ENABLE_BENCHMARKS=TRUE
 cmake --build build
-cd build/
-ctest
+ctest --test-dir build
 ```
 
 ## Documentation
