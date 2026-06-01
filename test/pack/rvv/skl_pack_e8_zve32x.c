@@ -17,7 +17,7 @@
 /**
  * @brief Test cases for pack with Zve32x extension.
  *
- * This test uses the pack_e8 harness.
+ * This test uses the pack_e8rc_e8rcprc harness.
  */
 
 #define TEST                                                                   \

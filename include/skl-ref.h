@@ -88,6 +88,6 @@
  * Pack Kernels
  */
 
-#include "../ref/pack/pack_e8rc_e8prcbrc.h"
+#include "../ref/pack/pack_e8rc_e8rcprc.h"
 
 // IWYU pragma: end_exports
