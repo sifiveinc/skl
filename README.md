@@ -150,7 +150,7 @@ but benchmarks should be restricted to execution on actual hardware or cycle-acc
 
 ### Test Mode (`-DSKL_ENABLE_TESTS=TRUE`)
 
-The test mode of a SKL kernel tester demonstrates proper usage of each variant by constructing appropriate inputs, computing a reference result using the reference routine, and comparing the result of the vector routine to the reference.
+The test mode of a SKL kernel tester typically demonstrates proper usage of each variant by constructing appropriate inputs, computing a reference result, and comparing the result of the vector routine to the reference.
 It is not intended to be an exhaustive validation suite, but rather a simple illustration of how the kernel can be used.
 
 Test mode is designed for cross compilation on a host machine that is equipped with [QEMU](https://www.qemu.org/) specfically.
