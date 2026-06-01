@@ -265,6 +265,7 @@
  */
 #if defined(__riscv_zve32x)
 #include "../src/pack/rvv/skl_pack_e16_zve32x.h"
+#include "../src/pack/rvv/skl_pack_e32_zve32x.h"
 #include "../src/pack/rvv/skl_pack_e8_zve32x.h"
 #endif
 

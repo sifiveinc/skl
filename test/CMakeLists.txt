@@ -354,6 +354,13 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_pack_e32_zve32x
+  pack/pack_e32rc_e32rcprc.c
+  pack/rvv/skl_pack_e32_zve32x.c
+  "zve32x"
+  ""
+)
+skl_add_test(
   skl_pack_e8_zve32x
   pack/pack_e8rc_e8rcprc.c
   pack/rvv/skl_pack_e8_zve32x.c

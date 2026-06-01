@@ -37,6 +37,7 @@ add_library(skl-ref
     logistic/logistic_f16.c
     logistic/logistic_f32.c
     pack/pack_e16rc_e16rcprc.c
+    pack/pack_e32rc_e32rcprc.c
     pack/pack_e8rc_e8rcprc.c
     silu/silu_f16.c
     silu/silu_f32.c
