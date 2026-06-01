@@ -139,7 +139,7 @@ SKL provides a set of test programs for each family of kernels that can be used 
 These can be located within the `test/` directory.
 Each kernel family (defined by a reference routine) has a corresponding test program that can exercise all of its variants, as supported by a given compilation target.
 Test programs are composed of three components:
-a global test _driver_, a testing harness specific to a limited set of kernels, and a test suite file defining an array of tests to be ran;
+a global test _driver_, a testing harness specific to a limited set of kernels, and a test suite file defining an array of tests to be run;
 see the [test README](test/README.md) for a more detailed explanation of the testing framework.
 Each suite generally contains tests falling into two categories: correctness tests and performance benchmarks.
 These categories can be globally enabled via preprocessor definitions, as described below.
