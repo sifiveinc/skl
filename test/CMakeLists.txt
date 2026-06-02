@@ -179,6 +179,34 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_gemm_i8_i8_i32_zve32x_x390
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/rvv/skl_gemm_i8_i8_i32_zve32x_x390.c
+  "zve32x"
+  ""
+)
+skl_add_test(
+  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/xsfvqdotq/skl_gemm_i8rcp_i8pc_i32_xsfvqdotq.c
+  "xsfvqdotq"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i.c
+  "xsfmm32a8i"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i.c
+  "xsfmm32a8i"
+  ""
+)
+skl_add_test(
   skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f
   gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
   gemm/xsfmm/skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c
