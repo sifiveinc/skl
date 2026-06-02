@@ -36,7 +36,7 @@ void pack_e8rc_e8rcprc_init(skl_test_t *t) {
   size_t rs1 = h->rs1;
   size_t cs1 = h->cs1;
 
-  skl_test_check_matrix_params_rcprc(t, m, n, 1, 1, rs, cs, 1, 1);
+  skl_test_check_matrix_params_rcprc(t, 1, 1, m, n, 1, 1, rs, cs);
   skl_test_check_matrix_params_rcprc(t, m0, n0, m1, n1, rs0, cs0, rs1, cs1);
 
   if (t->status.init_status != SKL_TEST_PASS) {
