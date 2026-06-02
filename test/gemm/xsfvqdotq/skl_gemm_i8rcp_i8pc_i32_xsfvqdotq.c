@@ -18,6 +18,7 @@
  * This test uses the gemm_i8rcprc_i8rcprc_i32rcprc harness with the following
  * restrictions on the input parameters:
  *  - The block dimensions are m0 = 1, n0 = 1, and k0 = 4
+ *  - Matrix A_pack has row-major blocks (csa0 = 1)
  *  - Matrix B_pack is block-row major with column-major blocks (rsb0 = 1, csb1
  *    = k0 * n0)
  *  - Matrix C is row-major (csc1 = 1)
@@ -118,6 +119,8 @@ static void init(skl_test_t *t) {
   SKL_TEST_REQUIRE(t, init_status, h->m0 == 1);
   SKL_TEST_REQUIRE(t, init_status, h->n0 == 1);
   SKL_TEST_REQUIRE(t, init_status, h->k0 == 4);
+  SKL_TEST_REQUIRE(t, init_status, h->csa0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, h->rsb0 == 1);
   SKL_TEST_REQUIRE(t, init_status, h->csb1 == h->k0 * h->n0);
   SKL_TEST_REQUIRE(t, init_status, h->csc1 == 1);
 
