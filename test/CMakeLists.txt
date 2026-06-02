@@ -423,3 +423,17 @@ skl_add_test(
   "zve32x"
   ""
 )
+skl_add_test(
+  skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i.c
+  "xsfmm32a8i"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i.c
+  "xsfmm32a8i"
+  ""
+)
