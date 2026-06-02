@@ -298,6 +298,53 @@ void skl_test_driver_log(skl_test_t *t, FILE *stream, const char *fmt, ...);
  */
 skl_test_status_t skl_test_driver_status(skl_test_t *t);
 
+//----- Logging macros -----
+
+/**
+ * @brief Logging verbosity levels.
+ */
+enum {
+  SKL_TEST_LOG_ERROR = 0, /**< Error messages only */
+  SKL_TEST_LOG_INFO,      /**< Error and info messages */
+  SKL_TEST_LOG_DEBUG,     /**< All messages */
+};
+
+/**
+ * @brief Conditionally log a message.
+ *
+ * @param T - Test context pointer
+ * @param LEVEL - Minimum log level required for this message
+ * @param ... - Printf-style format string and arguments
+ *
+ * Logs a message only if T->log_level >= LEVEL.
+ * Higher log levels provide more verbose output.
+ */
+#define SKL_TEST_LOG(T, LEVEL, ...)                                            \
+  if ((T)->log_level >= (LEVEL)) {                                             \
+    FILE *stream = (LEVEL) == SKL_TEST_LOG_ERROR ? stderr : stdout;            \
+    skl_test_driver_log((T), stream, __VA_ARGS__);                             \
+  }
+
+/**
+ * @brief Assert a condition and set error status.
+ *
+ * @param T - Test context pointer.
+ * @param STATUS - The member of skl_test_step_status_t to set upon failure.
+ * @param COND - Condition to check.
+ *
+ * If COND is false, logs an error message with the test name, condition,
+ * file, and line number, then sets T->status to SKL_TEST_FAIL. Does not
+ * return early, allowing multiple requirements to be checked.
+ */
+#define SKL_TEST_REQUIRE(T, STATUS, COND)                                      \
+  do {                                                                         \
+    if (!(COND)) {                                                             \
+      skl_test_driver_log((T), stderr, "%s: %s\n", (T)->suite_name, #COND);    \
+      skl_test_driver_log((T), stderr, "    %s:%d\n", __FILE__, __LINE__);     \
+      (T)->status.STATUS = SKL_TEST_FAIL;                                      \
+    }                                                                          \
+  } while (0)
+
 //----- Utility macros for use in tests -----
 
 /**
@@ -546,53 +593,6 @@ static inline float skl_error_ulp_bf16(const __bf16 *res, const __bf16 *ref,
   }
   return max;
 }
-
-//----- Logging macros -----
-
-/**
- * @brief Logging verbosity levels.
- */
-enum {
-  SKL_TEST_LOG_ERROR = 0, /**< Error messages only */
-  SKL_TEST_LOG_INFO,      /**< Error and info messages */
-  SKL_TEST_LOG_DEBUG,     /**< All messages */
-};
-
-/**
- * @brief Conditionally log a message.
- *
- * @param T - Test context pointer
- * @param LEVEL - Minimum log level required for this message
- * @param ... - Printf-style format string and arguments
- *
- * Logs a message only if T->log_level >= LEVEL.
- * Higher log levels provide more verbose output.
- */
-#define SKL_TEST_LOG(T, LEVEL, ...)                                            \
-  if ((T)->log_level >= (LEVEL)) {                                             \
-    FILE *stream = (LEVEL) == SKL_TEST_LOG_ERROR ? stderr : stdout;            \
-    skl_test_driver_log((T), stream, __VA_ARGS__);                             \
-  }
-
-/**
- * @brief Assert a condition and set error status.
- *
- * @param T - Test context pointer.
- * @param STATUS - The member of skl_test_step_status_t to set upon failure.
- * @param COND - Condition to check.
- *
- * If COND is false, logs an error message with the test name, condition,
- * file, and line number, then sets T->status to SKL_TEST_FAIL. Does not
- * return early, allowing multiple requirements to be checked.
- */
-#define SKL_TEST_REQUIRE(T, STATUS, COND)                                      \
-  do {                                                                         \
-    if (!(COND)) {                                                             \
-      skl_test_driver_log((T), stderr, "%s: %s\n", (T)->suite_name, #COND);    \
-      skl_test_driver_log((T), stderr, "    %s:%d\n", __FILE__, __LINE__);     \
-      (T)->status.STATUS = SKL_TEST_FAIL;                                      \
-    }                                                                          \
-  } while (0)
 
 /**
  * @brief Check packed matrix dimensions and strides
