@@ -953,26 +953,46 @@ SKL_FUNC_PRIVATE void skl_gemm_dispatch_a1b01_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
   __asm__ volatile("sf.vtdiscard");
 }
 
-SKL_XSFMM_NEW
-SKL_FUNC void skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(
+SKL_XSFMM_OUT
+SKL_FUNC_PRIVATE void skl_gemm_fused_f32c_f32_f32_xsfmm32a32f(
     size_t m, size_t n, size_t k, const float *a, size_t csa, const float *b,
-    size_t rsb, float *c, size_t rsc, bool accum) {
+    size_t rsb, float *c, size_t rsc, bool accum, fused_f32_f32_t kernel,
+    void *params) {
   size_t ete = 0; // Effective tile edge length (always TE for TEW = 32).
   __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
 
   skl_gemm_dispatch_a1b01_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
-      m, n, k, a, ete, csa, b, rsb, ete, c, rsc, ete * rsc, ete, accum,
-      skl_tile_store_f32rcp_xsfmmbase, NULL);
+      m, n, k, a, ete, csa, b, rsb, ete, c, rsc, ete * rsc, ete, accum, kernel,
+      params);
+}
+
+SKL_XSFMM_OUT
+SKL_FUNC_PRIVATE void skl_gemm_fused_f32pc_f32cp_f32rcp_xsfmm32a32f(
+    size_t m1, size_t n1, size_t k, const float *a, size_t rsa1, const float *b,
+    size_t csb1, float *c, size_t rsc1, size_t csc1, bool accum,
+    fused_f32_f32_t kernel, void *params) {
+  size_t ete = 0; // Effective tile edge length (always TE for TEW = 32).
+  __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
+
+  skl_gemm_dispatch_a1b01_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
+      m1 * ete, n1 * ete, k, a, rsa1, ete, b, ete, csb1, c, ete, rsc1, csc1,
+      accum, kernel, params);
+}
+
+SKL_XSFMM_NEW
+SKL_FUNC void skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(
+    size_t m, size_t n, size_t k, const float *a, size_t csa, const float *b,
+    size_t rsb, float *c, size_t rsc, bool accum) {
+  skl_gemm_fused_f32c_f32_f32_xsfmm32a32f(
+      m, n, k, a, csa, b, rsb, c, rsc, accum, skl_tile_store_f32rcp_xsfmmbase,
+      NULL);
 }
 
 SKL_XSFMM_NEW
 SKL_FUNC void skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
     size_t m1, size_t n1, size_t k, const float *a, size_t rsa1, const float *b,
     size_t csb1, float *c, size_t rsc1, size_t csc1, bool accum) {
-  size_t ete = 0; // Effective tile edge length (always TE for TEW = 32).
-  __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
-
-  skl_gemm_dispatch_a1b01_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
-      m1 * ete, n1 * ete, k, a, rsa1, ete, b, ete, csb1, c, ete, rsc1, csc1,
-      accum, skl_tile_store_f32rcp_xsfmmbase, NULL);
+  skl_gemm_fused_f32pc_f32cp_f32rcp_xsfmm32a32f(
+      m1, n1, k, a, rsa1, b, csb1, c, rsc1, csc1, accum,
+      skl_tile_store_f32rcp_xsfmmbase, NULL);
 }
