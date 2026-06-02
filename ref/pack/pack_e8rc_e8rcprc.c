@@ -13,8 +13,8 @@ SKL_FUNC void skl_pack_e8rc_e8rcprc_ref(size_t m, size_t n,
                                         size_t n0, uint8_t *SKL_RESTRICT dst,
                                         size_t rs0, size_t cs0, size_t rs1,
                                         size_t cs1, uint8_t pad) {
-  size_t m1 = (m + m0 - 1) / m0; // number of block-rows
-  size_t n1 = (n + n0 - 1) / n0; // number of block-columns
+  size_t m1 = (m + m0 - 1) / m0; // Num. block-rows in output matrix
+  size_t n1 = (n + n0 - 1) / n0; // Num. block-columns in output matrix
 
   for (size_t ii1 = 0; ii1 < m1; ++ii1) {
     for (size_t jj1 = 0; jj1 < n1; ++jj1) {

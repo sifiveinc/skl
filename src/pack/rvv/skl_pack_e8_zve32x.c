@@ -1009,8 +1009,8 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
     return;
   }
 
-  size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the input matrix
-  size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the input matrix
+  size_t m1 = (m + m0 - 1) / m0; // Num. block-rows in output matrix
+  size_t n1 = (n + n0 - 1) / n0; // Num. block-columns in output matrix
 
   /* intra-block: column-major, inter-block: row-major */
   if ((cs0 * n0 == cs1) && rs0 == 1) {
@@ -1117,8 +1117,8 @@ SKL_FUNC void skl_pack_e8rc_e8rcprc_zve32x(size_t m, size_t n,
     skl_pack_e8_e8rcprc_zve32x(n, m, src, cs, n0, m0, dst, cs0, rs0, cs1, rs1,
                                pad);
   } else {
-    size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the input matrix
-    size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the input matrix
+    size_t m1 = (m + m0 - 1) / m0; // Num. block-rows in output matrix
+    size_t n1 = (n + n0 - 1) / n0; // Num. block-columns in output matrix
     for (size_t ii1 = 0; ii1 < m1; ++ii1) {
       for (size_t jj1 = 0; jj1 < n1; ++jj1) {
         const uint8_t *src_block = src + ii1 * m0 * rs + jj1 * n0 * cs;

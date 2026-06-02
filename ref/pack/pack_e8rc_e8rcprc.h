@@ -20,15 +20,15 @@ extern "C" {
  * @param m - Num. rows in input matrix
  * @param n - Num. columns in input matrix
  * @param src - Input matrix
- * @param rs - Row stride of input matrix
- * @param cs - Column stride of input matrix
- * @param m0 - Num. rows in a block of the input matrix
- * @param n0 - Num. columns in a block of the input matrix
- * @param dst - Output packed matrix [m1 x n1 x (m0 x n0)]
- * @param rs0 - Row stride within a block of the output matrix
- * @param cs0 - Column stride within a block of the output matrix
- * @param rs1 - Row stride between blocks of the output matrix
- * @param cs1 - Column stride between blocks of the output matrix
+ * @param rs - Stride between rows of input matrix
+ * @param cs - Stride between columns of input matrix
+ * @param m0 - Num. rows in a block of output matrix
+ * @param n0 - Num. columns in a block of output matrix
+ * @param dst - Packed output matrix [ceil(m/m0) x ceil(n/n0) x (m0 x n0)]
+ * @param rs0 - Row stride within a block of output matrix
+ * @param cs0 - Column stride within a block of output matrix
+ * @param rs1 - Row stride between blocks of output matrix
+ * @param cs1 - Column stride between blocks of output matrix
  * @param pad - Value to insert for padded elements (usually 0)
  *
  * Transforms a 2D matrix into a blocked 4D layout.
