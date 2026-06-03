@@ -8,7 +8,7 @@
 Script to check for SiFive copyright and MIT license headers in source files.
 This script verifies that each relevant file contains the following header:
 
-    Copyright (c) {year_str} SiFive, Inc. All rights reserved.
+    Copyright (c) (YYYY-)YYYY SiFive, Inc. All rights reserved.
     Licensed under the MIT License.
     See LICENSE file in the project root for full license information.
     SPDX-License-Identifier: MIT
@@ -83,30 +83,22 @@ def get_comment_style(filepath: Path) -> str:
     return ''
 
 
-def get_copyright_year(filepath: Path) -> str:
+def get_year_modified(filepath: Path) -> str:
     current_year = datetime.now().strftime('%Y')
-    date_created = subprocess.check_output(['git', 'log', '--pretty=format:%cI', '--follow', filepath]).decode('utf-8').rsplit('\n', 1)[-1]
     date_modified = subprocess.check_output(['git', 'log', '-1', '--pretty=format:%cI', filepath]).decode('utf-8')
-    year_created = date_created.split('-')[0] or current_year
     year_modified = date_modified.split('-')[0] or current_year
-
-    if year_created != year_modified:
-        year_str = f"{year_created}-{year_modified}"
-    else:
-        year_str = f"{year_modified}"
-
-    return year_str
+    return year_modified
 
 
 def generate_license_pattern(filepath: Path) -> str:
     """Generate the appropriate license header pattern for a file."""
     comment_prefix = get_comment_style(filepath)
-    year_str = get_copyright_year(filepath)
+    year_modified = get_year_modified(filepath)
     header_lines = [
-        f"{comment_prefix} Copyright (c) {year_str} SiFive, Inc. All rights reserved.\n",
-        f"{comment_prefix} Licensed under the MIT License.\n",
-        f"{comment_prefix} See LICENSE file in the project root for full license information.\n",
-        f"{comment_prefix} SPDX-License-Identifier: MIT\n",
+        rf"{comment_prefix} Copyright \(c\) ((\d{{4}})-)?{year_modified} SiFive, Inc\. All rights reserved\.\n",
+        rf"{comment_prefix} Licensed under the MIT License\.\n",
+        rf"{comment_prefix} See LICENSE file in the project root for full license information\.\n",
+        rf"{comment_prefix} SPDX-License-Identifier: MIT\n",
         ""
     ]
     return ''.join(header_lines)
@@ -132,11 +124,17 @@ def check_file_header(filepath: Path) -> List[str]:
             header_text = ''.join(header_lines)
 
             license_pattern = generate_license_pattern(filepath)
-            if not license_pattern in header_text:
+            match = re.search(license_pattern, header_text)
+            if not match:
                 issues.append("Missing or incorrect header. Should be:\n" + license_pattern)
+            else:
+                start_year = match.groups()[1]
+                year_modified = get_year_modified(filepath)
+                if start_year and (int(start_year) < 2025 or int(start_year) >= int(year_modified)):
+                    issues.append(f"Invalid start year. Should be >= 2025 and < {year_modified}.")
 
     except Exception as e:
-        issues.append(f"Error reading file: {e}")
+        issues.append(f"Error: {e}")
 
     return issues
 
