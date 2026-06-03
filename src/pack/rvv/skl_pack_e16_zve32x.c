@@ -1256,7 +1256,6 @@ SKL_FUNC_PRIVATE void skl_pack_e16_e16rcprc_zve32x(
             if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
               dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0];
             } else {
-              // Pad with zeros
               dst_block[ii0 * rs0 + jj0 * cs0] = pad;
             }
           }
@@ -1290,7 +1289,6 @@ SKL_FUNC void skl_pack_e16rc_e16rcprc_zve32x(
             if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
               dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0 * cs];
             } else {
-              // Pad with zeros
               dst_block[ii0 * rs0 + jj0 * cs0] = pad;
             }
           }
