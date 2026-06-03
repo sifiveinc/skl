@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2025-2026 SiFive, Inc. All rights reserved.
+# Copyright (c) 2026 SiFive, Inc. All rights reserved.
 # Licensed under the MIT License.
 # See LICENSE file in the project root for full license information.
 # SPDX-License-Identifier: MIT
@@ -60,15 +60,15 @@ SPDX_IDENTIFIER = [
 # File extensions to check and their comment styles
 FILE_TYPES = {
     # C/C++ style comments
-    '.c': ('//', '//'),
-    '.h': ('//', '//'),
-    '.cpp': ('//', '//'),
-    '.hpp': ('//', '//'),
+    '.c': '//',
+    '.h': '//',
+    '.cpp': '//',
+    '.hpp': '//',
     # Python style comments
-    '.py': ('#', '#'),
+    '.py': '#',
     # CMake style comments
-    '.cmake': ('#', '#'),
-    'CMakeLists.txt': ('#', '#'),
+    '.cmake': '#',
+    'CMakeLists.txt': '#',
 }
 
 # Directories to exclude
@@ -80,9 +80,11 @@ EXCLUDE_DIRS = {
     '.pytest_cache',
 }
 
-# Files to exclude (relative paths from repo root)
-EXCLUDE_FILES = {
+# Exclude files matching these patterns
+EXCLUDE_PATTERNS = [
+    r'.*\.md$',  # Exclude all markdown files
     '.clang-tidy',
+    '.clang-format',
     '.gitignore',
     'LICENSE.txt',
     'CHANGELOG.md',
@@ -90,12 +92,6 @@ EXCLUDE_FILES = {
     'CONTRIBUTING.md',
     'CONTRIBUTORS.md',
     '.github/CODEOWNERS',
-}
-
-# Exclude files matching these patterns
-EXCLUDE_PATTERNS = [
-    r'.*README\.md$',
-    r'.*\.md$',  # Exclude all markdown files
 ]
 
 def should_check_file(filepath: Path, repo_root: Path) -> bool:
@@ -105,10 +101,6 @@ def should_check_file(filepath: Path, repo_root: Path) -> bool:
     for part in rel_path.parts:
         if part in EXCLUDE_DIRS:
             return False
-
-    # Check if in excluded files
-    if str(rel_path) in EXCLUDE_FILES:
-        return False
 
     # Check against exclude patterns
     rel_path_str = str(rel_path)
@@ -127,10 +119,10 @@ def get_comment_style(filepath: Path) -> Tuple[str, str]:
     """Get the comment style for a file."""
     if filepath.name == 'CMakeLists.txt':
         return FILE_TYPES['CMakeLists.txt']
-    return FILE_TYPES.get(filepath.suffix, (None, None))
+    return FILE_TYPES.get(filepath.suffix)
 
 
-def generate_header(filepath: Path, year: str = "2025") -> str:
+def generate_header(filepath: Path) -> str:
     """
     Generate the appropriate copyright header for a file.
 
@@ -141,23 +133,40 @@ def generate_header(filepath: Path, year: str = "2025") -> str:
     Returns:
         String containing the copyright header
     """
-    comment_prefix, _ = get_comment_style(filepath)
+    comment_prefix = get_comment_style(filepath)
 
     if comment_prefix is None:
         return ""
 
+    year_created = subprocess.check_output(['git', 'log', '--pretty=format:%cI', '--follow', filepath]).split(b'\n')[-1].split(b'-')[0].decode('utf-8')
+    year_modified = subprocess.check_output(['git', 'log', '-1', '--pretty=format:%cI', filepath]).split(b'-')[0].decode('utf-8')
+    if year_created != year_modified:
+        year_str = rf"{year_created}-{year_modified}"
+    else:
+        year_str = rf"{year_modified}"
     header_lines = [
-        f"{comment_prefix} Copyright (c) {year} SiFive, Inc. All rights reserved.",
+    #     rf"Copyright\s+\(c\)\s+202[56](-2026)?\s+\SiFive,\s+Inc\.\s+All\s+rights\s+reserved\.",
+        f"{comment_prefix} Copyright (c) {year_str} SiFive, Inc. All rights reserved.",
         f"{comment_prefix} Licensed under the MIT License.",
         f"{comment_prefix} See LICENSE file in the project root for full license information.",
         f"{comment_prefix} SPDX-License-Identifier: MIT",
         ""
     ]
+    
+    # copyright_license_lines = COPYRIGHT_PATTERNS + LICENSE_REFERENCE + SPDX_IDENTIFIER
+
+    # header_lines = [
+    #     f"{comment_prefix} Copyright (c) {year} SiFive, Inc. All rights reserved.",
+    #     f"{comment_prefix} Licensed under the MIT License.",
+    #     f"{comment_prefix} See LICENSE file in the project root for full license information.",
+    #     f"{comment_prefix} SPDX-License-Identifier: MIT",
+    #     ""
+    # ]
 
     return '\n'.join(header_lines)
 
 
-def fix_file_header(filepath: Path, year: str = "2025") -> bool:
+def fix_file_header(filepath: Path) -> bool:
     """
     Add the copyright header to a file that's missing it.
 
@@ -169,12 +178,14 @@ def fix_file_header(filepath: Path, year: str = "2025") -> bool:
         True if file was modified, False otherwise
     """
     try:
-        with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+        with open(filepath, 'r', encoding='utf-8') as f:
             original_content = f.read()
 
-        header = generate_header(filepath, year)
+        header = generate_header(filepath)
         if not header:
             return False
+
+        print(header)
 
         # Check if file starts with shebang
         new_content = ""
@@ -188,8 +199,11 @@ def fix_file_header(filepath: Path, year: str = "2025") -> bool:
             new_content = header + '\n' + original_content
 
         # Write the modified content
+        with open(filepath, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
         with open(filepath, 'w', encoding='utf-8') as f:
-            f.write(new_content)
+            lines = header + ''.join(lines[4:])
+            f.write(lines)
 
         return True
 
@@ -225,11 +239,12 @@ def check_file_header(filepath: Path) -> Tuple[bool, List[str]]:
             else:
                 year_str = rf"{year_modified}"
             COPYRIGHT_PATTERNS = [
-                rf"Copyright\s+\(c\)\s+202[56](-2026)?\s+\SiFive,\s+Inc\.\s+All\s+rights\s+reserved\.",
+            #     rf"Copyright\s+\(c\)\s+202[56](-2026)?\s+\SiFive,\s+Inc\.\s+All\s+rights\s+reserved\.",
+                rf"Copyright\s+\(c\)\s+{year_str}?\s+\SiFive,\s+Inc\.\s+All\s+rights\s+reserved\.",
             ]
             
             copyright_license_lines = COPYRIGHT_PATTERNS + LICENSE_REFERENCE + SPDX_IDENTIFIER
-            comment_char, _ = get_comment_style(filepath)
+            comment_char = get_comment_style(filepath)
             lines = []
             for line in copyright_license_lines:
                 line = comment_char + r"\s+" + line
@@ -302,18 +317,12 @@ def main():
 
             files_checked += 1
 
-            # Track file types
-            if filepath.name == 'CMakeLists.txt':
-                ext = 'CMakeLists.txt'
-            else:
-                ext = filepath.suffix if filepath.suffix else filepath.name
-
             has_valid_header, issues = check_file_header(filepath)
 
             if not has_valid_header:
                 if args.fix:
                     # Try to fix the file
-                    if fix_file_header(filepath, args.year):
+                    if fix_file_header(filepath):
                         files_fixed.append(rel_path)
                         # Re-check to verify the fix worked
                         has_valid_header, issues = check_file_header(filepath)
@@ -351,18 +360,12 @@ def main():
                 files_checked += 1
                 rel_path = filepath.relative_to(repo_root)
 
-                # Track file types (special case for CMakeLists.txt)
-                if filepath.name == 'CMakeLists.txt':
-                    ext = 'CMakeLists.txt'
-                else:
-                    ext = filepath.suffix if filepath.suffix else filepath.name
-
                 has_valid_header, issues = check_file_header(filepath)
 
                 if not has_valid_header:
                     if args.fix:
                         # Try to fix the file
-                        if fix_file_header(filepath, args.year):
+                        if fix_file_header(filepath):
                             files_fixed.append(rel_path)
                             # Re-check to verify the fix worked
                             has_valid_header, issues = check_file_header(filepath)
