@@ -268,4 +268,11 @@
 #include "../src/gelu/gelu_f32_zve32f.h"
 #endif
 
+/*
+ * Pack Kernels
+ */
+#if defined(__riscv_zve32x)
+#include "../src/pack/rvv/skl_pack_e8_zve32x.h"
+#endif
+
 // IWYU pragma: end_exports

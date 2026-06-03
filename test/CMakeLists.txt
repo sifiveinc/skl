@@ -347,6 +347,13 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_pack_e8_zve32x
+  pack/pack_e8rc_e8rcprc.c
+  pack/rvv/skl_pack_e8_zve32x.c
+  "zve32x"
+  ""
+)
+skl_add_test(
   skl_softmax_f32_ref
   softmax/softmax_f32.c
   softmax/skl_softmax_f32_ref.c
