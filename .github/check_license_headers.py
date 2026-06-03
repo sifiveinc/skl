@@ -28,10 +28,11 @@ Exit codes:
     1 - One or more files are missing headers
 """
 
-import sys
-import re
 import argparse
+import re
 import subprocess
+import sys
+from datetime import datetime
 from pathlib import Path
 from typing import List, Tuple
 
@@ -83,10 +84,11 @@ def get_comment_style(filepath: Path) -> str:
 
 
 def get_copyright_year(filepath: Path) -> str:
+    current_year = datetime.now().strftime('%Y')
     date_created = subprocess.check_output(['git', 'log', '--pretty=format:%cI', '--follow', filepath]).decode('utf-8').rsplit('\n', 1)[-1]
     date_modified = subprocess.check_output(['git', 'log', '-1', '--pretty=format:%cI', filepath]).decode('utf-8')
-    year_created = date_created.split('-')[0]
-    year_modified = date_modified.split('-')[0]
+    year_created = date_created.split('-')[0] or current_year
+    year_modified = date_modified.split('-')[0] or current_year
 
     if year_created != year_modified:
         year_str = f"{year_created}-{year_modified}"
