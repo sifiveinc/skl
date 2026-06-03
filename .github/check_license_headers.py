@@ -57,8 +57,9 @@ EXCLUDE_PATTERNS = [
     r'.*\.md$',
     '.clang-tidy',
     '.clang-format',
+    r'.*CODEOWNERS$',
     r'.*Doxyfile$',
-    '.github/',
+    '.github/workflows/',
     '.gitignore',
     'LICENSE.txt',
 ]
@@ -155,7 +156,7 @@ def main():
     )
     args = parser.parse_args()
 
-    repo_root = Path(__file__).parent.resolve()
+    repo_root = Path(__file__).resolve().parent.parent
 
     files_skipped = 0
     files_ok = []
