@@ -27,6 +27,53 @@ static inline size_t skl_get_ete_xsfmmbase(void) {
 }
 #endif
 
+typedef struct {
+  size_t m0, n0, k0;
+  size_t m1, n1, k1;
+  size_t rsa0, csa0, rsa1, csa1;
+  size_t rsb0, csb0, rsb1, csb1;
+  size_t rsc0, csc0, rsc1, csc1;
+} packed_gemm_params_t;
+
+#define GEMM_PARAMS_R_R_R(M1, N1, K1)                                          \
+  .params = {.m1 = M1,                                                         \
+             .n1 = N1,                                                         \
+             .k1 = K1,                                                         \
+             .m0 = 1,                                                          \
+             .n0 = 1,                                                          \
+             .k0 = 1,                                                          \
+             .rsa0 = 1,                                                        \
+             .csa0 = 1,                                                        \
+             .rsb0 = 1,                                                        \
+             .csb0 = 1,                                                        \
+             .rsc0 = 1,                                                        \
+             .csc0 = 1,                                                        \
+             .rsa1 = K1,                                                       \
+             .csa1 = 1,                                                        \
+             .rsb1 = N1,                                                       \
+             .csb1 = 1,                                                        \
+             .rsc1 = N1,                                                       \
+             .csc1 = 1}
+
+static inline void
+skl_test_assert_gemm_dims_r_r_r(skl_test_t *t, packed_gemm_params_t params) {
+  SKL_TEST_REQUIRE(t, init_status, params.m0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, params.n0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, params.k0 == 1);
+
+  SKL_TEST_REQUIRE(t, init_status, params.rsa0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, params.csa0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, params.csa1 == 1);
+
+  SKL_TEST_REQUIRE(t, init_status, params.rsb0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, params.csb0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, params.csb1 == 1);
+
+  SKL_TEST_REQUIRE(t, init_status, params.rsc0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, params.csc0 == 1);
+  SKL_TEST_REQUIRE(t, init_status, params.csc1 == 1);
+}
+
 /**
  * @brief Check packed matrix dimensions and strides
  *
@@ -246,23 +293,23 @@ static inline void skl_test_check_matrix_clobbered_rcprc(
  * @param rsc1 - Row stride between blocks of C_pack in elements.
  * @param csc1 - Column stride between blocks of C_pack in elements.
  */
-static inline void gemm_rcprc_rcprc_rcprc_report_matrix_params(
-    skl_test_t *t, size_t m0, size_t n0, size_t k0, size_t m1, size_t n1,
-    size_t k1, size_t rsa0, size_t csa0, size_t rsa1, size_t csa1, size_t rsb0,
-    size_t csb0, size_t rsb1, size_t csb1, size_t rsc0, size_t csc0,
-    size_t rsc1, size_t csc1) {
+static inline void
+gemm_rcprc_rcprc_rcprc_report_matrix_params(skl_test_t *t,
+                                            packed_gemm_params_t params) {
 
-  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "M0: %zu, N0: %zu, K0: %zu\n", m0, n0, k0);
-  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "M1: %zu, N1: %zu, K1: %zu\n", m1, n1, k1);
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "M0: %zu, N0: %zu, K0: %zu\n", params.m0,
+               params.n0, params.k0);
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "M1: %zu, N1: %zu, K1: %zu\n", params.m1,
+               params.n1, params.k1);
   SKL_TEST_LOG(t, SKL_TEST_LOG_INFO,
-               "RSA0: %zu, CSA0: %zu, RSA1: %zu, CSA1: %zu\n", rsa0, csa0, rsa1,
-               csa1);
+               "RSA0: %zu, CSA0: %zu, RSA1: %zu, CSA1: %zu\n", params.rsa0,
+               params.csa0, params.rsa1, params.csa1);
   SKL_TEST_LOG(t, SKL_TEST_LOG_INFO,
-               "RSB0: %zu, CSB0: %zu, RSB1: %zu, CSB1: %zu\n", rsb0, csb0, rsb1,
-               csb1);
+               "RSB0: %zu, CSB0: %zu, RSB1: %zu, CSB1: %zu\n", params.rsb0,
+               params.csb0, params.rsb1, params.csb1);
   SKL_TEST_LOG(t, SKL_TEST_LOG_INFO,
-               "RSC0: %zu, CSC0: %zu, RSC1: %zu, CSC1: %zu\n", rsc0, csc0, rsc1,
-               csc1);
+               "RSC0: %zu, CSC0: %zu, RSC1: %zu, CSC1: %zu\n", params.rsc0,
+               params.csc0, params.rsc1, params.csc1);
 }
 
 /**

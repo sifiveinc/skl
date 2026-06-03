@@ -27,25 +27,26 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_init(skl_test_t *t) {
   gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
-  size_t m0 = h->m0;
-  size_t n0 = h->n0;
-  size_t k0 = h->k0;
-  size_t m1 = h->m1;
-  size_t n1 = h->n1;
-  size_t k1 = h->k1;
-  size_t rsa0 = h->rsa0;
-  size_t csa0 = h->csa0;
-  size_t rsa1 = h->rsa1;
-  size_t csa1 = h->csa1;
-  size_t rsb0 = h->rsb0;
-  size_t csb0 = h->csb0;
-  size_t rsb1 = h->rsb1;
-  size_t csb1 = h->csb1;
-  size_t rsc0 = h->rsc0;
-  size_t csc0 = h->csc0;
-  size_t rsc1 = h->rsc1;
-  size_t csc1 = h->csc1;
+  size_t m0 = h->params.m0;
+  size_t n0 = h->params.n0;
+  size_t k0 = h->params.k0;
+  size_t m1 = h->params.m1;
+  size_t n1 = h->params.n1;
+  size_t k1 = h->params.k1;
+  size_t rsa0 = h->params.rsa0;
+  size_t csa0 = h->params.csa0;
+  size_t rsa1 = h->params.rsa1;
+  size_t csa1 = h->params.csa1;
+  size_t rsb0 = h->params.rsb0;
+  size_t csb0 = h->params.csb0;
+  size_t rsb1 = h->params.rsb1;
+  size_t csb1 = h->params.csb1;
+  size_t rsc0 = h->params.rsc0;
+  size_t csc0 = h->params.csc0;
+  size_t rsc1 = h->params.rsc1;
+  size_t csc1 = h->params.csc1;
 
+  h->assert_dims_f(t, h->params);
   skl_test_check_matrix_params_rcprc(t, m0, k0, m1, k1, rsa0, csa0, rsa1, csa1);
   skl_test_check_matrix_params_rcprc(t, k0, n0, k1, n1, rsb0, csb0, rsb1, csb1);
   skl_test_check_matrix_params_rcprc(t, m0, n0, m1, n1, rsc0, csc0, rsc1, csc1);
@@ -101,24 +102,24 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_verify(skl_test_t *t) {
   gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
-  size_t m0 = h->m0;
-  size_t n0 = h->n0;
-  size_t k0 = h->k0;
-  size_t m1 = h->m1;
-  size_t n1 = h->n1;
-  size_t k1 = h->k1;
-  size_t rsa0 = h->rsa0;
-  size_t csa0 = h->csa0;
-  size_t rsa1 = h->rsa1;
-  size_t csa1 = h->csa1;
-  size_t rsb0 = h->rsb0;
-  size_t csb0 = h->csb0;
-  size_t rsb1 = h->rsb1;
-  size_t csb1 = h->csb1;
-  size_t rsc0 = h->rsc0;
-  size_t csc0 = h->csc0;
-  size_t rsc1 = h->rsc1;
-  size_t csc1 = h->csc1;
+  size_t m0 = h->params.m0;
+  size_t n0 = h->params.n0;
+  size_t k0 = h->params.k0;
+  size_t m1 = h->params.m1;
+  size_t n1 = h->params.n1;
+  size_t k1 = h->params.k1;
+  size_t rsa0 = h->params.rsa0;
+  size_t csa0 = h->params.csa0;
+  size_t rsa1 = h->params.rsa1;
+  size_t csa1 = h->params.csa1;
+  size_t rsb0 = h->params.rsb0;
+  size_t csb0 = h->params.csb0;
+  size_t rsb1 = h->params.rsb1;
+  size_t csb1 = h->params.csb1;
+  size_t rsc0 = h->params.rsc0;
+  size_t csc0 = h->params.csc0;
+  size_t rsc1 = h->params.rsc1;
+  size_t csc1 = h->params.csc1;
   float alpha = h->alpha;
   float beta = h->beta;
   float *a_pack = h->a_pack.data;
@@ -205,10 +206,7 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_test_report(skl_test_t *t) {
   gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
-  gemm_rcprc_rcprc_rcprc_report_matrix_params(
-      t, h->m0, h->n0, h->k0, h->m1, h->n1, h->k1, h->rsa0, h->csa0, h->rsa1,
-      h->csa1, h->rsb0, h->csb0, h->rsb1, h->csb1, h->rsc0, h->csc0, h->rsc1,
-      h->csc1);
+  gemm_rcprc_rcprc_rcprc_report_matrix_params(t, h->params);
   SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Alpha: %f, Beta: %f\n", h->alpha,
                h->beta);
 }
@@ -219,7 +217,8 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_benchmark_report(skl_test_t *t) {
 
   gemm_f32rcprc_f32rcprc_f32rcprc_test_report(t);
 
-  size_t maccs = h->m1 * h->n1 * h->k1 * h->m0 * h->n0 * h->k0;
+  size_t maccs = h->params.m1 * h->params.n1 * h->params.k1 * h->params.m0 *
+                 h->params.n0 * h->params.k0;
   gemm_rcprc_rcprc_rcprc_report_perf(t, h->steps.warmup, maccs);
 }
 

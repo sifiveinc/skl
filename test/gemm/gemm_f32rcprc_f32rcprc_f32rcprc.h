@@ -28,6 +28,7 @@
 #pragma once
 
 #include "skl-test-driver.h"
+#include "skl_test_gemm.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -38,16 +39,14 @@ typedef struct {
   skl_test_steps_t steps;
 
   // Configurable parameters (arguments to GEMM function)
-  size_t m0, n0, k0;
-  size_t m1, n1, k1;
+  packed_gemm_params_t params;
   float alpha;
-  size_t rsa0, csa0, rsa1, csa1;
-  size_t rsb0, csb0, rsb1, csb1;
   float beta;
-  size_t rsc0, csc0, rsc1, csc1;
 
   // Buffer generation settings for A_pack, B_pack, C_pack
   SKL_TEST_BUFFER(float) a_pack, b_pack, c_pack;
+
+  void (*assert_dims_f)(skl_test_t *, packed_gemm_params_t);
 
   // Derived parameters & buffers (private to the test harness)
   struct {
