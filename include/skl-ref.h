@@ -97,5 +97,6 @@
 #include "ref/pack/pack_e16rc_e16rcprc.h"
 #include "ref/pack/pack_e32rc_e32rcprc.h"
 #include "ref/pack/pack_e8rc_e8rcprc.h"
+#include "ref/pack/unpack_e8rcprc_e8rc.h"
 
 // IWYU pragma: end_exports

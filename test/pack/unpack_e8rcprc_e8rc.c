@@ -4,13 +4,13 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * @brief Implementation of the pack_e8rc_e8rcprc test harness.
+ * @brief Implementation of the unpack_e8rcprc_e8rc test harness.
  *
  * This file defines all harness functions _except_ `execute`, which is
- * defined in the test file (e.g. rvv/skl_pack_e8rc_e8rcprc_zve32x.c.c).
+ * defined in the test file (e.g. rvv/skl_unpack_e8rcprc_e8rc_zve32x.c).
  */
 
-#include "pack_e8rc_e8rcprc.h"
+#include "unpack_e8rcprc_e8rc.h"
 #include "skl-ref.h"
 #include "skl-test-driver.h"
 #include "skl_test_pack.h"
@@ -20,8 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-void pack_e8rc_e8rcprc_init(skl_test_t *t) {
-  pack_e8rc_e8rcprc_t *h = (pack_e8rc_e8rcprc_t *)t->harness;
+void unpack_e8rcprc_e8rc_init(skl_test_t *t) {
+  unpack_e8rcprc_e8rc_t *h = (unpack_e8rcprc_e8rc_t *)t->harness;
 
   size_t m = h->m;
   size_t n = h->n;
@@ -36,8 +36,8 @@ void pack_e8rc_e8rcprc_init(skl_test_t *t) {
   size_t rs1 = h->rs1;
   size_t cs1 = h->cs1;
 
-  skl_test_check_matrix_params_rcprc(t, 1, 1, m, n, 1, 1, rs, cs);
   skl_test_check_matrix_params_rcprc(t, m0, n0, m1, n1, rs0, cs0, rs1, cs1);
+  skl_test_check_matrix_params_rcprc(t, 1, 1, m, n, 1, 1, rs, cs);
 
   if (t->status.init_status != SKL_TEST_PASS) {
     return;
@@ -46,14 +46,14 @@ void pack_e8rc_e8rcprc_init(skl_test_t *t) {
   if (m == 0 || n == 0) {
     h->src.len = 0;
   } else {
-    h->src.len = (m - 1) * rs + (n - 1) * cs + 1;
+    h->src.len =
+        (m1 - 1) * rs1 + (n1 - 1) * cs1 + (m0 - 1) * rs0 + (n0 - 1) * cs0 + 1;
   }
 
   if (m1 == 0 || n1 == 0) {
     h->dst.len = 0;
   } else {
-    h->dst.len =
-        (m1 - 1) * rs1 + (n1 - 1) * cs1 + (m0 - 1) * rs0 + (n0 - 1) * cs0 + 1;
+    h->dst.len = (m - 1) * rs + (n - 1) * cs + 1;
   }
 
   SKL_TEST_BUF_CREATE(t, uint8_t, &h->src);
@@ -65,16 +65,15 @@ void pack_e8rc_e8rcprc_init(skl_test_t *t) {
     memcpy(h->ctx.ref_dst, h->dst.data, h->dst.len * sizeof(uint8_t));
   }
 }
-
-void pack_e8rc_e8rcprc_verify(skl_test_t *t) {
-  pack_e8rc_e8rcprc_t *h = (pack_e8rc_e8rcprc_t *)t->harness;
+void unpack_e8rcprc_e8rc_verify(skl_test_t *t) {
+  unpack_e8rcprc_e8rc_t *h = (unpack_e8rcprc_e8rc_t *)t->harness;
 
   const uint8_t *dst = h->dst.data;
   uint8_t *ref_dst = h->ctx.ref_dst;
 
   // Compute reference value
-  skl_pack_e8rc_e8rcprc_ref(h->m, h->n, h->src.data, h->rs, h->cs, h->m0, h->n0,
-                            ref_dst, h->rs0, h->cs0, h->rs1, h->cs1, h->pad);
+  skl_unpack_e8rcprc_e8rc_ref(h->m0, h->n0, h->src.data, h->rs0, h->cs0, h->rs1,
+                              h->cs1, h->m, h->n, ref_dst, h->rs, h->cs);
 
   // Verify result
   for (size_t i = 0; i < h->dst.len; ++i) {
@@ -87,23 +86,23 @@ void pack_e8rc_e8rcprc_verify(skl_test_t *t) {
   }
 }
 
-void pack_e8rc_e8rcprc_test_report(skl_test_t *t) {
-  pack_e8rc_e8rcprc_t *h = (pack_e8rc_e8rcprc_t *)t->harness;
+void unpack_e8rcprc_e8rc_test_report(skl_test_t *t) {
+  unpack_e8rcprc_e8rc_t *h = (unpack_e8rcprc_e8rc_t *)t->harness;
   pack_rc_rcprc_report_param(t, h->m, h->n, h->rs, h->cs, h->m0, h->n0, h->rs0,
                              h->cs0, h->rs1, h->cs1);
 }
 
-void pack_e8rc_e8rcprc_benchmark_report(skl_test_t *t) {
-  pack_e8rc_e8rcprc_t *h = (pack_e8rc_e8rcprc_t *)t->harness;
-  pack_e8rc_e8rcprc_test_report(t);
-  size_t m1 = (h->m + h->m0 - 1) / h->m0;
-  size_t n1 = (h->n + h->n0 - 1) / h->n0;
-  size_t output_elements = m1 * n1 * h->m0 * h->n0;
+void unpack_e8rcprc_e8rc_benchmark_report(skl_test_t *t) {
+
+  unpack_e8rcprc_e8rc_t *h = (unpack_e8rcprc_e8rc_t *)t->harness;
+  unpack_e8rcprc_e8rc_test_report(t);
+  size_t output_elements = h->m * h->n;
+
   pack_rc_rcprc_report_perf(t, h->steps.warmup, output_elements);
 }
 
-void pack_e8rc_e8rcprc_cleanup(skl_test_t *t) {
-  pack_e8rc_e8rcprc_t *h = (pack_e8rc_e8rcprc_t *)t->harness;
+void unpack_e8rcprc_e8rc_cleanup(skl_test_t *t) {
+  unpack_e8rcprc_e8rc_t *h = (unpack_e8rcprc_e8rc_t *)t->harness;
 
   SKL_TEST_BUF_FREE(t, &h->src);
   SKL_TEST_BUF_FREE(t, &h->dst);
