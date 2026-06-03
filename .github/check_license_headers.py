@@ -115,7 +115,7 @@ def check_file_header(filepath: Path) -> List[str]:
     Check if a file has the required copyright and license header.
 
     Returns:
-        Tuple of (has_valid_header, list_of_issues)
+        List of issues
     """
     issues = []
 
