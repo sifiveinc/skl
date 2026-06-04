@@ -34,7 +34,7 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import List, Tuple
+from typing import List
 
 # Comment styles for different file types
 # The script defaults to '' for types not listed here
