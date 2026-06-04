@@ -32,6 +32,7 @@ import argparse
 import re
 import subprocess
 import sys
+from codecs import decode
 from datetime import datetime
 from pathlib import Path
 from typing import List
@@ -90,18 +91,34 @@ def get_year_modified(filepath: Path) -> str:
     return year_modified
 
 
-def generate_license_pattern(filepath: Path) -> str:
-    """Generate the appropriate license header pattern for a file."""
+def generate_license(filepath: Path, generate_pattern: bool = False) -> str:
+    """
+    Generate the appropriate license header for a file.
+
+    If generate_pattern is True, returns a regex for the license header.
+    Otherwise, returns the license header itself.
+    """
     comment_prefix = get_comment_style(filepath)
     year_modified = get_year_modified(filepath)
+    if generate_pattern:
+        esc = "\\"
+        start_year = r"((\d{4})-)?"
+    else:
+        esc = ""
+        start_year = "(YYYY-)"
+
     header_lines = [
-        rf"{comment_prefix} Copyright \(c\) ((\d{{4}})-)?{year_modified} SiFive, Inc\. All rights reserved\.\n",
-        rf"{comment_prefix} Licensed under the MIT License\.\n",
-        rf"{comment_prefix} See LICENSE file in the project root for full license information\.\n",
+        rf"{comment_prefix} Copyright {esc}(c{esc}) {start_year}{year_modified} SiFive, Inc{esc}. All rights reserved{esc}.\n",
+        rf"{comment_prefix} Licensed under the MIT License{esc}.\n",
+        rf"{comment_prefix} See LICENSE file in the project root for full license information{esc}.\n",
         rf"{comment_prefix} SPDX-License-Identifier: MIT\n",
-        ""
     ]
-    return ''.join(header_lines)
+    header = "".join(header_lines)
+
+    if not generate_pattern:
+        header = decode(header, 'unicode-escape')
+
+    return header
 
 
 def check_file_header(filepath: Path) -> List[str]:
@@ -123,10 +140,10 @@ def check_file_header(filepath: Path) -> List[str]:
                 header_lines.append(line)
             header_text = ''.join(header_lines)
 
-            license_pattern = generate_license_pattern(filepath)
+            license_pattern = generate_license(filepath, True)
             match = re.search(license_pattern, header_text)
             if not match:
-                issues.append("Missing or incorrect header. Should be:\n" + license_pattern)
+                issues.append("Missing or incorrect header. Should be:\n" + generate_license(filepath))
             else:
                 start_year = match.groups()[1]
                 year_modified = get_year_modified(filepath)
