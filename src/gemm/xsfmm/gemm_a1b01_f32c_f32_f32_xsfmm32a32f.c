@@ -14,12 +14,12 @@
 
 #include "skl-common.h"
 
-typedef void (*fused_f32_f32_t)(size_t m, size_t n, size_t tss, float *c,
+typedef void (*fused_f32_f32_t)(size_t tm, size_t tn, size_t tss, float *c,
                                 size_t rsc0, size_t csc0, size_t rsc1,
                                 size_t csc1, size_t row1, size_t col1,
                                 void *params);
 
-// params type for the alpha/beta scaling kernel
+/* params type for the alpha/beta scaling kernel */
 typedef struct {
   float alpha;
   float beta;
@@ -27,63 +27,68 @@ typedef struct {
 
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
-void skl_tile_zero_mt0_e32_xsfmmbase(size_t m, size_t n) {
-  __asm__ volatile("sf.vsettnt x0, %[n], e32, w1\n"
-                   "sf.vsettm x0, %[m]\n"
+void skl_tile_zero_mt0_f32_f32_xsfmmbase(size_t tm, size_t tn) {
+  __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
+                   "sf.vsettm x0, %[tm]\n"
                    "sf.vtzero.t mt0\n"
                    :
-                   : [m] "r"(m), [n] "r"(n)
+                   : [tm] "r"(tm), [tn] "r"(tn)
                    : "vtype", "vl");
 }
 
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
-void skl_tile_zero_mt4_e32_xsfmmbase(size_t m, size_t n) {
-  __asm__ volatile("sf.vsettnt x0, %[n], e32, w1\n"
-                   "sf.vsettm x0, %[m]\n"
+void skl_tile_zero_mt4_f32_f32_xsfmmbase(size_t tm, size_t tn) {
+  __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
+                   "sf.vsettm x0, %[tm]\n"
                    "sf.vtzero.t mt4\n"
                    :
-                   : [m] "r"(m), [n] "r"(n)
+                   : [tm] "r"(tm), [tn] "r"(tn)
                    : "vtype", "vl");
 }
 
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
-void skl_tile_zero_mt8_e32_xsfmmbase(size_t m, size_t n) {
-  __asm__ volatile("sf.vsettnt x0, %[n], e32, w1\n"
-                   "sf.vsettm x0, %[m]\n"
+void skl_tile_zero_mt8_f32_f32_xsfmmbase(size_t tm, size_t tn) {
+  __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
+                   "sf.vsettm x0, %[tm]\n"
                    "sf.vtzero.t mt8\n"
                    :
-                   : [m] "r"(m), [n] "r"(n)
+                   : [tm] "r"(tm), [tn] "r"(tn)
                    : "vtype", "vl");
 }
 
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
-void skl_tile_zero_mt12_e32_xsfmmbase(size_t m, size_t n) {
-  __asm__ volatile("sf.vsettnt x0, %[n], e32, w1\n"
-                   "sf.vsettm x0, %[m]\n"
+void skl_tile_zero_mt12_f32_f32_xsfmmbase(size_t tm, size_t tn) {
+  __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
+                   "sf.vsettm x0, %[tm]\n"
                    "sf.vtzero.t mt12\n"
                    :
-                   : [m] "r"(m), [n] "r"(n)
+                   : [tm] "r"(tm), [tn] "r"(tn)
                    : "vtype", "vl");
 }
 
+/* Zero-out the leading m x n portion of the tile configuration determined by
+ * tss and {r,c}stss. Only the tile specifier of tss is used; the pattern and
+ * index fields are ignored. */
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
-void skl_tile_zero_e32_xsfmmbase(size_t m, size_t n, size_t tss, size_t rstss,
-                                 size_t cstss) {
+void skl_tile_zero_f32_f32_xsfmmbase(size_t m, size_t n, size_t tss,
+                                     size_t rstss, size_t cstss) {
   if (m == 0 || n == 0) {
     return;
   }
 
   void (*tile_zero_functions[])(size_t, size_t) = {
-      skl_tile_zero_mt0_e32_xsfmmbase,
-      skl_tile_zero_mt4_e32_xsfmmbase,
-      skl_tile_zero_mt8_e32_xsfmmbase,
-      skl_tile_zero_mt12_e32_xsfmmbase,
+      skl_tile_zero_mt0_f32_f32_xsfmmbase,
+      skl_tile_zero_mt4_f32_f32_xsfmmbase,
+      skl_tile_zero_mt8_f32_f32_xsfmmbase,
+      skl_tile_zero_mt12_f32_f32_xsfmmbase,
   };
 
+  const size_t kShiftTile = 27;
+  size_t tzf0 = (tss >> kShiftTile) / 4;
   size_t rstzf = rstss / 4;
   size_t cstzf = cstss / 4;
 
@@ -97,18 +102,22 @@ void skl_tile_zero_e32_xsfmmbase(size_t m, size_t n, size_t tss, size_t rstss,
     size_t n_avl = n;
     for (size_t j1 = 0; j1 < n1; ++j1) {
       size_t tn = n_avl >= ete ? ete : n_avl;
-      tile_zero_functions[tss + i1 * rstzf + j1 * cstzf](tm, tn);
+      tile_zero_functions[tzf0 + i1 * rstzf + j1 * cstzf](tm, tn);
       n_avl -= tn;
     }
     m_avl -= tm;
   }
 }
 
+/* Load the leading m x n portion of C into the tile configuration determined by
+ * tss and {r,c}stss.
+ */
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
-void skl_tile_load_e32rcp_xsfmmbase(size_t m, size_t n, uint32_t *c,
-                                    size_t rsc0, size_t rsc1, size_t csc1,
-                                    size_t tss, size_t rstss, size_t cstss) {
+void skl_tile_load_f32rcp_f32_xsfmmbase(size_t m, size_t n, const float *c,
+                                        size_t rsc0, size_t rsc1, size_t csc1,
+                                        size_t tss, size_t rstss,
+                                        size_t cstss) {
   if (m == 0 || n == 0) {
     return;
   }
@@ -130,7 +139,7 @@ void skl_tile_load_e32rcp_xsfmmbase(size_t m, size_t n, uint32_t *c,
     for (size_t j1 = 0; j1 < n1; ++j1) {
       size_t tn = n_avl >= ete ? ete : n_avl;
       size_t tss_block = tss + i1 * rstss + j1 * cstss;
-      uint32_t *c_block = c + i1 * rsc1 + j1 * csc1;
+      const float *c_block = c + i1 * rsc1 + j1 * csc1;
       size_t i0 = 0;
       __asm__ volatile(
           "sf.vsettnt x0, %[tn], e32, w1\n"
@@ -152,9 +161,12 @@ void skl_tile_load_e32rcp_xsfmmbase(size_t m, size_t n, uint32_t *c,
   }
 }
 
+/* Apply the fused kernel to the leading m x n portion of the tile configuration
+ * determined by tss and {r,c}stss and store to C.
+ */
 SKL_XSFMM_IN
 SKL_FUNC_PRIVATE
-void skl_gemm_fused_apply_f32rcprc_xsfmm32a32f(
+void skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
     size_t m, size_t n, size_t tss, size_t rstss, size_t cstss, float *c,
     size_t rsc0, size_t csc0, size_t rsc1, size_t csc1, size_t row1,
     size_t col1, fused_f32_f32_t kernel, void *params) {
@@ -1008,17 +1020,16 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm1tn_a1b01_f32c_f32_f32_xsfmm32a32f(
 
   const size_t mt0 = 0;
   if (accum) {
-    skl_tile_load_e32rcp_xsfmmbase(m, n,
-                                   (uint32_t *)c + row1 * rsc1 + col1 * csc1,
-                                   rsc0, rsc1, csc1, mt0, 0, 0);
+    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
+                                       rsc0, rsc1, csc1, mt0, 0, 0);
   } else {
-    skl_tile_zero_e32_xsfmmbase(m, n, mt0, 0, 0);
+    skl_tile_zero_f32_f32_xsfmmbase(m, n, mt0, 0, 0);
   }
 
   skl_gemm_1x1_f32c_f32_f32_xsfmm32a32f(m, n, k, a, csa, b, rsb);
 
-  skl_gemm_fused_apply_f32rcprc_xsfmm32a32f(m, n, mt0, 0, 0, c, rsc0, 1, rsc1,
-                                            csc1, row1, col1, kernel, params);
+  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
+      m, n, mt0, 0, 0, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
 }
 
 /* Process 2 (= 1 x 2) contiguous tm x tn tiles of c.
@@ -1036,17 +1047,16 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm2tn_a1b01_f32c_f32cp_f32rcp_xsfmm32a32f(
 
   const size_t mt0 = 0;
   if (accum) {
-    skl_tile_load_e32rcp_xsfmmbase(m, n,
-                                   (uint32_t *)c + row1 * rsc1 + col1 * csc1,
-                                   rsc0, rsc1, csc1, mt0, 0, 4);
+    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
+                                       rsc0, rsc1, csc1, mt0, 0, 4);
   } else {
-    skl_tile_zero_e32_xsfmmbase(m, n, mt0, 0, 4);
+    skl_tile_zero_f32_f32_xsfmmbase(m, n, mt0, 0, 4);
   }
 
   skl_gemm_1x2_f32c_f32_f32_xsfmm32a32f(m, n, k, a, csa, b, rsb1, csb1);
 
-  skl_gemm_fused_apply_f32rcprc_xsfmm32a32f(m, n, mt0, 0, 4, c, rsc0, 1, rsc1,
-                                            csc1, row1, col1, kernel, params);
+  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
+      m, n, mt0, 0, 4, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
 }
 
 /* Process 2 (= 2 x 1) contiguous tm x tn tiles of c.
@@ -1066,19 +1076,18 @@ SKL_FUNC_PRIVATE void skl_gemm_2tm1tn_a1b01_f32pc_f32_f32rcp_xsfmm32a32f(
   const size_t mt0 = 0;
   const size_t mt0c = mt0 | 1 << kShiftPattern;
   if (accum) {
-    skl_tile_load_e32rcp_xsfmmbase(m, n,
-                                   (uint32_t *)c + row1 * rsc1 + col1 * csc1,
-                                   rsc0, rsc1, csc1, mt0c, 4, 0);
+    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
+                                       rsc0, rsc1, csc1, mt0c, 4, 0);
   } else {
-    skl_tile_zero_e32_xsfmmbase(n, m, mt0, 0, 4);
+    skl_tile_zero_f32_f32_xsfmmbase(n, m, mt0, 0, 4);
   }
 
   // NOLINTBEGIN(readability-suspicious-call-argument)
   skl_gemm_1x2_f32c_f32_f32_xsfmm32a32f(n, m, k, b, rsb, a, csa1, rsa1);
   // NOLINTEND(readability-suspicious-call-argument)
 
-  skl_gemm_fused_apply_f32rcprc_xsfmm32a32f(m, n, mt0c, 4, 0, c, rsc0, 1, rsc1,
-                                            csc1, row1, col1, kernel, params);
+  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
+      m, n, mt0c, 4, 0, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
 }
 
 /* Process 3 (= 1 x 3) contiguous tm x tn tiles of c.
@@ -1096,24 +1105,24 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm3tn_a1b01_f32c_f32cp_f32rcp_xsfmm32a32f(
 
   const size_t mt0 = 0;
   if (accum) {
-    skl_tile_load_e32rcp_xsfmmbase(m, n,
-                                   (uint32_t *)c + row1 * rsc1 + col1 * csc1,
-                                   rsc0, rsc1, csc1, mt0, 0, 4);
+    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
+                                       rsc0, rsc1, csc1, mt0, 0, 4);
   } else {
-    skl_tile_zero_e32_xsfmmbase(m, n, mt0, 0, 4);
+    skl_tile_zero_f32_f32_xsfmmbase(m, n, mt0, 0, 4);
   }
 
   skl_gemm_1x3_f32c_f32_f32_xsfmm32a32f(m, n, k, a, csa, b, rsb1, csb1);
 
-  skl_gemm_fused_apply_f32rcprc_xsfmm32a32f(m, n, mt0, 0, 4, c, rsc0, 1, rsc1,
-                                            csc1, row1, col1, kernel, params);
+  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
+      m, n, mt0, 0, 4, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
 }
 
 /* Process 3 (= 3 x 1) contiguous tm x tn tiles of c.
  * tm and tn must be <= TE.
  */
 SKL_XSFMM_NEW
-SKL_FUNC_PRIVATE void skl_gemm_3tm1tn_a1b01_f32pc_f32_f32rcp_xsfmm32a32f(
+__attribute__((unused)) SKL_FUNC_PRIVATE void
+skl_gemm_3tm1tn_a1b01_f32pc_f32_f32rcp_xsfmm32a32f(
     size_t m, size_t n, size_t k, const float *a, size_t rsa1, size_t csa1,
     const float *b, size_t rsb, float *c, size_t rsc0, size_t rsc1, size_t csc1,
     size_t row1, size_t col1, bool accum, fused_f32_f32_t kernel,
@@ -1126,19 +1135,18 @@ SKL_FUNC_PRIVATE void skl_gemm_3tm1tn_a1b01_f32pc_f32_f32rcp_xsfmm32a32f(
   const size_t mt0 = 0;
   const size_t mt0c = mt0 | 1 << kShiftPattern;
   if (accum) {
-    skl_tile_load_e32rcp_xsfmmbase(m, n,
-                                   (uint32_t *)c + row1 * rsc1 + col1 * csc1,
-                                   rsc0, rsc1, csc1, mt0c, 4, 0);
+    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
+                                       rsc0, rsc1, csc1, mt0c, 4, 0);
   } else {
-    skl_tile_zero_e32_xsfmmbase(n, m, mt0, 0, 4);
+    skl_tile_zero_f32_f32_xsfmmbase(n, m, mt0, 0, 4);
   }
 
   // NOLINTBEGIN(readability-suspicious-call-argument)
   skl_gemm_1x3_f32c_f32_f32_xsfmm32a32f(n, m, k, b, rsb, a, csa1, rsa1);
   // NOLINTEND(readability-suspicious-call-argument)
 
-  skl_gemm_fused_apply_f32rcprc_xsfmm32a32f(m, n, mt0c, 4, 0, c, rsc0, 1, rsc1,
-                                            csc1, row1, col1, kernel, params);
+  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
+      m, n, mt0c, 4, 0, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
 }
 
 /* Process 4 (= 1 x 4) contiguous tm x tn tiles of c.
@@ -1156,17 +1164,16 @@ SKL_FUNC_PRIVATE void skl_gemm_1tm4tn_a1b01_f32c_f32cp_f32rcp_xsfmm32a32f(
 
   const size_t mt0 = 0;
   if (accum) {
-    skl_tile_load_e32rcp_xsfmmbase(m, n,
-                                   (uint32_t *)c + row1 * rsc1 + col1 * csc1,
-                                   rsc0, rsc1, csc1, mt0, 0, 4);
+    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
+                                       rsc0, rsc1, csc1, mt0, 0, 4);
   } else {
-    skl_tile_zero_e32_xsfmmbase(m, n, mt0, 0, 4);
+    skl_tile_zero_f32_f32_xsfmmbase(m, n, mt0, 0, 4);
   }
 
   skl_gemm_1x4_f32c_f32_f32_xsfmm32a32f(m, n, k, a, csa, b, rsb1, csb1);
 
-  skl_gemm_fused_apply_f32rcprc_xsfmm32a32f(m, n, mt0, 0, 4, c, rsc0, 1, rsc1,
-                                            csc1, row1, col1, kernel, params);
+  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
+      m, n, mt0, 0, 4, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
 }
 
 /* Process 4 (= 4 x 1) contiguous tm x tn tiles of c.
@@ -1186,19 +1193,18 @@ SKL_FUNC_PRIVATE void skl_gemm_4tm1tn_a1b01_f32pc_f32_f32rcp_xsfmm32a32f(
   const size_t mt0 = 0;
   const size_t mt0c = mt0 | 1 << kShiftPattern;
   if (accum) {
-    skl_tile_load_e32rcp_xsfmmbase(m, n,
-                                   (uint32_t *)c + row1 * rsc1 + col1 * csc1,
-                                   rsc0, rsc1, csc1, mt0c, 4, 0);
+    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
+                                       rsc0, rsc1, csc1, mt0c, 4, 0);
   } else {
-    skl_tile_zero_e32_xsfmmbase(n, m, mt0, 0, 4);
+    skl_tile_zero_f32_f32_xsfmmbase(n, m, mt0, 0, 4);
   }
 
   // NOLINTBEGIN(readability-suspicious-call-argument)
   skl_gemm_1x4_f32c_f32_f32_xsfmm32a32f(n, m, k, b, rsb, a, csa1, rsa1);
   // NOLINTEND(readability-suspicious-call-argument)
 
-  skl_gemm_fused_apply_f32rcprc_xsfmm32a32f(m, n, mt0c, 4, 0, c, rsc0, 1, rsc1,
-                                            csc1, row1, col1, kernel, params);
+  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
+      m, n, mt0c, 4, 0, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
 }
 
 SKL_XSFMM_NEW
@@ -1213,18 +1219,17 @@ SKL_FUNC_PRIVATE void skl_gemm_2tm2tn_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f(
 
   const size_t mt0 = 0;
   if (accum) {
-    skl_tile_load_e32rcp_xsfmmbase(m, n,
-                                   (uint32_t *)c + row1 * rsc1 + col1 * csc1,
-                                   rsc0, rsc1, csc1, mt0, 8, 4);
+    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
+                                       rsc0, rsc1, csc1, mt0, 8, 4);
   } else {
-    skl_tile_zero_e32_xsfmmbase(m, n, mt0, 8, 4);
+    skl_tile_zero_f32_f32_xsfmmbase(m, n, mt0, 8, 4);
   }
 
   skl_gemm_2x2_f32rcp_f32rcp_f32_xsfmm32a32f(m, n, k, a, rsa1, csa1, b, rsb1,
                                              csb1);
 
-  skl_gemm_fused_apply_f32rcprc_xsfmm32a32f(m, n, mt0, 8, 4, c, rsc0, 1, rsc1,
-                                            csc1, row1, col1, kernel, params);
+  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
+      m, n, mt0, 8, 4, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
 }
 
 SKL_XSFMM_NEW
@@ -1279,7 +1284,7 @@ SKL_FUNC_PRIVATE void skl_gemm_dispatch_a1b01_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
       n_avl -= n_vl;
     }
     if (j1 < n1) {
-      skl_gemm_4tm1tn_a1b01_f32pc_f32_f32rcp_xsfmm32a32f(
+      skl_gemm_2tm1tn_a1b01_f32pc_f32_f32rcp_xsfmm32a32f(
           m_vl, n_avl, k, a + i1 * rsa1, rsa1, csa1, b + j1 * csb1, rsb1, c,
           rsc0, rsc1, csc1, i1, j1, accum, kernel, params);
     }
