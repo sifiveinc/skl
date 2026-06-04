@@ -3,271 +3,182 @@
 // See LICENSE file in the project root for full license information.
 // SPDX-License-Identifier: MIT
 
-/* Test and benchmark for packed GEMM: C = alpha * A * B + beta * C.
+/**
+ * @brief Implementation of the gemm_i8rcprc_i8rcprc_i32rcprc test
+ * harness.
  *
- * A is packed M1 x K1 with row stride RSA1 and column stride CSA1.
- * Blocks of A are M0 x K0 with row stride RSA0 and column stride CSA0.
- * B is packed K1 x N1 with row stride RSB1 and column stride CSB1.
- * Blocks of B are K0 x N0 with row stride RSB0 and column stride CSB0.
- * C is packed M1 x N1 with row stride RSC1 and column stride CSC1.
- * Blocks of C are M0 x N0 with row stride RSC0 and column stride CSC0.
- *
- * Users must provide the values of the following as compiler flags using -D:
- *  - All dimensions M0, N0, K0, M1, N1, and K1;
- *  - Both RSA0 and CSA0; or neither (implying RSA0 = K0, CSA0 = 1)
- *  - Both RSA1 and CSA1; or neither (implying RSA1 = M0 * K0 * K1,
- *    CSA1 = M0 * K0)
- *  - Both RSB0 and CSB0; or neither (implying RSB0 = N0, CSB0 = 1)
- *  - Both RSB1 and CSB1; or neither (implying RSB1 = K0 * N0 * N1,
- *    CSB1 = K0 * N0)
- *  - Both RSC0 and CSC0; or neither (implying RSC0 = N0, CSC0 = 1)
- *  - Both RSC1 and CSC1; or neither (implying RSC1 = M0 * N0 * N1,
- *    CSC1 = M0 * N0)
- *  - Both ALPHA and BETA, as integer literals.
+ * This file defines all harness functions _except_ `skl_test_execute`, which is
+ * defined in the test file (e.g. xsfmm/skl_gemm_i8c_i8_i32_xsfmm32a8f.c).
  */
 
-#if !(defined(ENABLE_TEST) || defined(ENABLE_BENCHMARK))
-#error Must define at least one of ENABLE_TEST and ENABLE_BENCHMARK
-#endif
-
-#ifndef M0
-#error Must define M0
-#endif
-
-#ifndef N0
-#error Must define N0
-#endif
-
-#ifndef K0
-#error Must define K0
-#endif
-
-#ifndef M1
-#error Must define M1
-#endif
-
-#ifndef N1
-#error Must define N1
-#endif
-
-#ifndef K1
-#error Must define K1
-#endif
-
-#ifndef ALPHA
-#error Must define ALPHA
-#endif
-
-#ifndef BETA
-#error Must define BETA
-#endif
-
-#ifndef SKL_TEST_PERF_REPORT
-#define SKL_TEST_PERF_REPORT report_perf_mpc
-#endif
-
+#include "gemm_i8rcprc_i8rcprc_i32rcprc.h"
 #include "skl-ref.h"
-#include "skl-test.h"
-#include "skl.h"
-#include <inttypes.h>
+#include "skl-test-driver.h"
+#include "skl_test_gemm.h"
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-/* Include various int8 GEMM kernels depending on ISA compatibility. */
-#if defined(__riscv_xsfmm32a8i)
-void skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i_wrapper(
-    size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
-    int32_t alpha, const int8_t *a_pack, size_t rsa0,
-    __attribute__((unused)) size_t csa0, size_t rsa1, size_t csa1,
-    const int8_t *b_pack, __attribute__((unused)) size_t rsb0, size_t csb0,
-    size_t rsb1, size_t csb1, int32_t beta, int32_t *c_pack, size_t rsc0,
-    size_t csc0, size_t rsc1, size_t csc1) {
-  int status = 0;
-  size_t te = skl_get_te_xsfmmbase();
-  SKL_TEST_REQUIRE(status, m0 == te);
-  SKL_TEST_REQUIRE(status, n0 == te);
-  SKL_TEST_REQUIRE(status, k0 == 1);
-  SKL_TEST_REQUIRE(status, rsa0 == 1);
-  SKL_TEST_REQUIRE(status, csa1 == m0 * k0);
-  SKL_TEST_REQUIRE(status, csb0 == 1);
-  SKL_TEST_REQUIRE(status, rsb1 == k0 * n0);
-  SKL_TEST_REQUIRE(status, rsc0 == n0);
-  SKL_TEST_REQUIRE(status, csc0 == 1);
-  SKL_TEST_REQUIRE(status, alpha == 1);
-  SKL_TEST_REQUIRE(status, beta == 0 || beta == 1);
-  if (status) {
-    exit(status);
-  }
-  skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(m1, n1, k0 * k1, a_pack, rsa1,
-                                             b_pack, csb1, c_pack, rsc1, csc1,
-                                             beta != 0);
-}
-#endif
+// NOLINTBEGIN(readability-function-cognitive-complexity)
+void gemm_i8rcprc_i8rcprc_i32rcprc_init(skl_test_t *t) {
+  gemm_i8rcprc_i8rcprc_i32rcprc_t *h =
+      (gemm_i8rcprc_i8rcprc_i32rcprc_t *)t->harness;
 
-/* Include various int8 GEMM kernels depending on ISA compatibility. */
-#if defined(__riscv_xsfvqdotq)
-void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq_wrapper(
-    size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
-    int32_t alpha, const int8_t *a_pack, __attribute__((unused)) size_t rsa0,
-    size_t csa0, size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb0,
-    __attribute__((unused)) size_t csb0, size_t rsb1, size_t csb1, int32_t beta,
-    int32_t *c_pack, __attribute__((unused)) size_t rsc0,
-    __attribute__((unused)) size_t csc0, size_t rsc1, size_t csc1) {
-  int status = 0;
-  SKL_TEST_REQUIRE(status, m0 == 1);
-  SKL_TEST_REQUIRE(status, n0 == 1);
-  SKL_TEST_REQUIRE(status, k0 == 4);
-  SKL_TEST_REQUIRE(status, csa0 == 1);
-  if (rsa1 >= csa1) {
-    SKL_TEST_REQUIRE(status, rsa1 >= k1 * csa1);
+  size_t m0 = h->m0;
+  size_t n0 = h->n0;
+  size_t k0 = h->k0;
+  size_t m1 = h->m1;
+  size_t n1 = h->n1;
+  size_t k1 = h->k1;
+  size_t rsa0 = h->rsa0;
+  size_t csa0 = h->csa0;
+  size_t rsa1 = h->rsa1;
+  size_t csa1 = h->csa1;
+  size_t rsb0 = h->rsb0;
+  size_t csb0 = h->csb0;
+  size_t rsb1 = h->rsb1;
+  size_t csb1 = h->csb1;
+  size_t rsc0 = h->rsc0;
+  size_t csc0 = h->csc0;
+  size_t rsc1 = h->rsc1;
+  size_t csc1 = h->csc1;
+
+  skl_test_check_matrix_params_rcprc(t, m0, k0, m1, k1, rsa0, csa0, rsa1, csa1);
+  skl_test_check_matrix_params_rcprc(t, k0, n0, k1, n1, rsb0, csb0, rsb1, csb1);
+  skl_test_check_matrix_params_rcprc(t, m0, n0, m1, n1, rsc0, csc0, rsc1, csc1);
+
+  if (t->status.init_status != SKL_TEST_PASS) {
+    return;
+  }
+
+  if (m1 == 0 || k1 == 0) {
+    h->a_pack.len = 0;
   } else {
-    SKL_TEST_REQUIRE(status, csa1 >= m1 * rsa1);
+    h->a_pack.len = (m1 - 1) * rsa1 + (k1 - 1) * csa1 + (m0 - 1) * rsa0 +
+                    (k0 - 1) * csa0 + 1;
   }
-  SKL_TEST_REQUIRE(status, rsb0 == 1);
-  SKL_TEST_REQUIRE(status, rsb1 >= n1 * csb1);
-  SKL_TEST_REQUIRE(status, csb1 == k0 * n0);
-  SKL_TEST_REQUIRE(status, rsc1 >= n1 * csc1);
-  SKL_TEST_REQUIRE(status, csc1 == m0 * n0);
-  if (status) {
-    exit(status);
+
+  if (k1 == 0 || n1 == 0) {
+    h->b_pack.len = 0;
+  } else {
+    h->b_pack.len = (k1 - 1) * rsb1 + (n1 - 1) * csb1 + (k0 - 1) * rsb0 +
+                    (n0 - 1) * csb0 + 1;
   }
-  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(m0 * m1, n0 * n1, k0 * k1, alpha, a_pack,
-                                    rsa1, csa1, b_pack, rsb1, beta,
-                                    c_pack /* == c */, rsc1 /* == rsc */);
+
+  if (m1 == 0 || n1 == 0) {
+    h->c_pack.len = 0;
+  } else {
+    h->c_pack.len = (m1 - 1) * rsc1 + (n1 - 1) * csc1 + (m0 - 1) * rsc0 +
+                    (n0 - 1) * csc0 + 1;
+  }
+
+  // Allocate buffers
+  SKL_TEST_BUF_CREATE(t, int8_t, &h->a_pack);
+  SKL_TEST_BUF_CREATE(t, int8_t, &h->b_pack);
+  SKL_TEST_BUF_CREATE(t, int32_t, &h->c_pack);
+  if (h->steps.verify) {
+    h->ctx.ref_c =
+        h->c_pack.len ? malloc(h->c_pack.len * sizeof(*(h->ctx.ref_c))) : NULL;
+    if (h->c_pack.len) {
+      memcpy(h->ctx.ref_c, h->c_pack.data,
+             h->c_pack.len * sizeof(*(h->c_pack.data)));
+    }
+  }
 }
-#endif
+// NOLINTEND(readability-function-cognitive-complexity)
 
-/* The macros below set the matrix strides. */
-#if !defined(RSA0) && !defined(CSA0)
-#define RSA0 K0 // Default to row major
-#define CSA0 1
-#elif !defined(RSA0) || !defined(CSA0)
-#error Must define both RSA0 and CSA0, or neither
-#endif
-#if !defined(RSA1) && !defined(CSA1)
-#define RSA1 (M0 * K0 * K1) // Default to row major
-#define CSA1 (M0 * K0)
-#elif !defined(RSA1) || !defined(CSA1)
-#error Must define both RSA1 and CSA1, or neither
-#endif
-#if !defined(RSB0) && !defined(CSB0)
-#define RSB0 N0 // Default to row major
-#define CSB0 1
-#elif !defined(RSB0) || !defined(CSB0)
-#error Must define both RSB0 and CSB0, or neither
-#endif
-#if !defined(RSB1) && !defined(CSB1)
-#define RSB1 (K0 * N0 * N1) // Default to row major
-#define CSB1 (K0 * N0)
-#elif !defined(RSB1) || !defined(CSB1)
-#error Must define both RSB1 and CSB1, or neither
-#endif
-#if !defined(RSC0) && !defined(CSC0)
-#define RSC0 N0 // Default to row major
-#define CSC0 1
-#elif !defined(RSC0) || !defined(CSC0)
-#error Must define both RSC0 and CSC0, or neither
-#endif
-#if !defined(RSC1) && !defined(CSC1)
-#define RSC1 (M0 * N0 * N1) // Default to row major
-#define CSC1 (M0 * N0)
-#elif !defined(RSC1) || !defined(CSC1)
-#error Must define both RSC1 and CSC1, or neither
-#endif
+void gemm_i8rcprc_i8rcprc_i32rcprc_verify(skl_test_t *t) {
+  gemm_i8rcprc_i8rcprc_i32rcprc_t *h =
+      (gemm_i8rcprc_i8rcprc_i32rcprc_t *)t->harness;
 
-/* Input, output, reference, and error bound arrays */
-enum {
-  ALIGN = 4096,
-  // NOLINTBEGIN(misc-redundant-expression)
-  CLEN = ((M1 - 1) * RSC1 + (N1 - 1) * CSC1 + (M0 - 1) * RSC0 +
-          (N0 - 1) * CSC0 + 1),
-  ALEN = ((M1 - 1) * RSA1 + (K1 - 1) * CSA1 + (M0 - 1) * RSA0 +
-          (K0 - 1) * CSA0 + 1),
-  BLEN = ((K1 - 1) * RSB1 + (N1 - 1) * CSB1 + (K0 - 1) * RSB0 +
-          (N0 - 1) * CSB0 + 1),
-  // NOLINTEND(misc-redundant-expression)
-};
-_Alignas(ALIGN) int8_t a[ALEN];
-_Alignas(ALIGN) int8_t b[BLEN];
-_Alignas(ALIGN) int32_t c[CLEN];
-#if defined(ENABLE_TEST)
-int32_t ref_c[CLEN], test_c[CLEN];
-#endif // ENABLE_TEST
+  size_t m0 = h->m0;
+  size_t n0 = h->n0;
+  size_t k0 = h->k0;
+  size_t m1 = h->m1;
+  size_t n1 = h->n1;
+  size_t k1 = h->k1;
+  size_t rsa0 = h->rsa0;
+  size_t csa0 = h->csa0;
+  size_t rsa1 = h->rsa1;
+  size_t csa1 = h->csa1;
+  size_t rsb0 = h->rsb0;
+  size_t csb0 = h->csb0;
+  size_t rsb1 = h->rsb1;
+  size_t csb1 = h->csb1;
+  size_t rsc0 = h->rsc0;
+  size_t csc0 = h->csc0;
+  size_t rsc1 = h->rsc1;
+  size_t csc1 = h->csc1;
+  int32_t alpha = h->alpha;
+  int32_t beta = h->beta;
+  int8_t *a_pack = h->a_pack.data;
+  int8_t *b_pack = h->b_pack.data;
+  int32_t *c_pack = h->c_pack.data;
+  size_t c_pack_len = h->c_pack.len;
+  int32_t *ref_c = h->ctx.ref_c;
 
-#if defined(ENABLE_TEST)
-/* Check result after executing test and reference functions.
- *
- * Compares the test_c and ref_c matrices based on a bound derived from
- * problem parameters. Returns nonzero in case of an error, and prints
- * first incorrect output matrix element. */
-int check_error(void) {
-  /* Compute the reference matrix output. */
+  // Compute the reference result using h->ctx.ref_c
+  // h->ctx.ref_c contains the original C values (copied in skl_test_init)
   skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
-      M0, N0, K0, M1, N1, K1, ALPHA, a, (size_t)RSA0, (size_t)CSA0,
-      (size_t)RSA1, (size_t)CSA1, b, (size_t)RSB0, (size_t)CSB0, (size_t)RSB1,
-      (size_t)CSB1, BETA, ref_c, (size_t)RSC0, (size_t)CSC0, (size_t)RSC1,
-      (size_t)CSC1);
+      m0, n0, k0, m1, n1, k1, alpha, a_pack, rsa0, csa0, rsa1, csa1, b_pack,
+      rsb0, csb0, rsb1, csb1, beta, ref_c, rsc0, csc0, rsc1, csc1);
 
   /* Compare the reference and test outputs. */
-  for (size_t i1 = 0; i1 < M1; ++i1) {
-    for (size_t j1 = 0; j1 < N1; ++j1) {
-      for (size_t i0 = 0; i0 < M0; ++i0) {
-        for (size_t j0 = 0; j0 < N0; ++j0) {
-          size_t idx = i1 * (size_t)RSC1 + j1 * (size_t)CSC1 +
-                       i0 * (size_t)RSC0 + j0 * (size_t)CSC0;
-          if (test_c[idx] != ref_c[idx]) {
-            printf("result [%zu, %zu, %zu, %zu] (%d) != reference (%d)\n", i0,
-                   j0, i1, j1, test_c[idx], ref_c[idx]);
-            return 1;
+  for (size_t i1 = 0; i1 < m1; ++i1) {
+    for (size_t j1 = 0; j1 < n1; ++j1) {
+      for (size_t i0 = 0; i0 < m0; ++i0) {
+        for (size_t j0 = 0; j0 < n0; ++j0) {
+          size_t idx = i1 * rsc1 + j1 * csc1 + i0 * rsc0 + j0 * csc0;
+          if (c_pack[idx] != ref_c[idx]) {
+            SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
+                         "result [%zu, %zu, %zu, %zu] (%d) != reference (%d)\n",
+                         i1, j1, i0, j0, c_pack[idx], ref_c[idx]);
+            t->status.verify_status = SKL_TEST_FAIL;
+            return;
           }
         }
       }
     }
   }
 
-  return 0;
+  /* Check for clobbered elements. */
+  skl_test_check_matrix_clobbered_rcprc(t, sizeof(*c_pack), c_pack_len, m0, n0,
+                                        m1, n1, c_pack, ref_c, rsc0, csc0, rsc1,
+                                        csc1);
 }
-#endif // ENABLE_TEST
 
-int main(void) {
-  int res = EXIT_SUCCESS;
+void gemm_i8rcprc_i8rcprc_i32rcprc_test_report(skl_test_t *t) {
+  gemm_i8rcprc_i8rcprc_i32rcprc_t *h =
+      (gemm_i8rcprc_i8rcprc_i32rcprc_t *)t->harness;
 
-  printf("%s:\n", skl_test_name);
-  printf("M0 = %u, N0 = %u, K0 = %u\n", M0, N0, K0);
-  printf("M1 = %u, N1 = %u, K1 = %u\n", M1, N1, K1);
-  printf("ALPHA = %d, BETA = %d\n", ALPHA, BETA);
-  printf("RSA0 = %u, CSA0 = %u, RSA1 = %u, CSA1 = %u\n", RSA0, CSA0, RSA1,
-         CSA1);
-  printf("RSB0 = %u, CSB0 = %u, RSB1 = %u, CSB1 = %u\n", RSB0, CSB0, RSB1,
-         CSB1);
-  printf("RSC0 = %u, CSC0 = %u, RSC1 = %u, CSC1 = %u\n", RSC0, CSC0, RSC1,
-         CSC1);
+  gemm_rcprc_rcprc_rcprc_report_matrix_params(
+      t, h->m0, h->n0, h->k0, h->m1, h->n1, h->k1, h->rsa0, h->csa0, h->rsa1,
+      h->csa1, h->rsb0, h->csb0, h->rsb1, h->csb1, h->rsc0, h->csc0, h->rsc1,
+      h->csc1);
+  SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, "Alpha: %d, Beta: %d\n", h->alpha,
+               h->beta);
+}
 
-  /* Populate the matrices. */
-  skl_test_init_i8(a, ALEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
-  skl_test_init_i8(b, BLEN, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
-  skl_test_init_i32(c, CLEN, SKL_TEST_MIN_I32, SKL_TEST_MAX_I32);
+void gemm_i8rcprc_i8rcprc_i32rcprc_benchmark_report(skl_test_t *t) {
+  gemm_i8rcprc_i8rcprc_i32rcprc_t *h =
+      (gemm_i8rcprc_i8rcprc_i32rcprc_t *)t->harness;
 
-#if defined(ENABLE_TEST)
-  /* Make copies of C to write the reference and test outputs to. */
-  memcpy(ref_c, c, CLEN * sizeof(int32_t));
-  memcpy(test_c, c, CLEN * sizeof(int32_t));
-  SKL_TEST_NAME(M0, N0, K0, M1, N1, K1, ALPHA, a, (size_t)RSA0, (size_t)CSA0,
-                (size_t)RSA1, (size_t)CSA1, b, (size_t)RSB0, (size_t)CSB0,
-                (size_t)RSB1, (size_t)CSB1, BETA, test_c, (size_t)RSC0,
-                (size_t)CSC0, (size_t)RSC1, (size_t)CSC1);
-  res += check_error();
-#endif // ENABLE_TEST
+  gemm_i8rcprc_i8rcprc_i32rcprc_test_report(t);
 
-  SKL_BENCHMARK_RUN(skl_test_name, M0 * N0 * K0 * M1 * N1 * K1, SKL_TEST_WARMUP,
-                    SKL_TEST_NAME, M0, N0, K0, M1, N1, K1, ALPHA, a,
-                    (size_t)RSA0, (size_t)CSA0, (size_t)RSA1, (size_t)CSA1, b,
-                    (size_t)RSB0, (size_t)CSB0, (size_t)RSB1, (size_t)CSB1,
-                    BETA, c, (size_t)RSC0, (size_t)CSC0, (size_t)RSC1,
-                    (size_t)CSC1);
+  size_t maccs = h->m1 * h->n1 * h->k1 * h->m0 * h->n0 * h->k0;
+  gemm_rcprc_rcprc_rcprc_report_perf(t, h->steps.warmup, maccs);
+}
 
-  return res;
+void gemm_i8rcprc_i8rcprc_i32rcprc_cleanup(skl_test_t *t) {
+  gemm_i8rcprc_i8rcprc_i32rcprc_t *h =
+      (gemm_i8rcprc_i8rcprc_i32rcprc_t *)t->harness;
+
+  // Free buffers
+  SKL_TEST_BUF_FREE(t, &h->a_pack);
+  SKL_TEST_BUF_FREE(t, &h->b_pack);
+  SKL_TEST_BUF_FREE(t, &h->c_pack);
+  if (h->steps.verify) {
+    free(h->ctx.ref_c);
+  }
 }

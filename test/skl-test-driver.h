@@ -298,6 +298,53 @@ void skl_test_driver_log(skl_test_t *t, FILE *stream, const char *fmt, ...);
  */
 skl_test_status_t skl_test_driver_status(skl_test_t *t);
 
+//----- Logging macros -----
+
+/**
+ * @brief Logging verbosity levels.
+ */
+enum {
+  SKL_TEST_LOG_ERROR = 0, /**< Error messages only */
+  SKL_TEST_LOG_INFO,      /**< Error and info messages */
+  SKL_TEST_LOG_DEBUG,     /**< All messages */
+};
+
+/**
+ * @brief Conditionally log a message.
+ *
+ * @param T - Test context pointer
+ * @param LEVEL - Minimum log level required for this message
+ * @param ... - Printf-style format string and arguments
+ *
+ * Logs a message only if T->log_level >= LEVEL.
+ * Higher log levels provide more verbose output.
+ */
+#define SKL_TEST_LOG(T, LEVEL, ...)                                            \
+  if ((T)->log_level >= (LEVEL)) {                                             \
+    FILE *stream = (LEVEL) == SKL_TEST_LOG_ERROR ? stderr : stdout;            \
+    skl_test_driver_log((T), stream, __VA_ARGS__);                             \
+  }
+
+/**
+ * @brief Assert a condition and set error status.
+ *
+ * @param T - Test context pointer.
+ * @param STATUS - The member of skl_test_step_status_t to set upon failure.
+ * @param COND - Condition to check.
+ *
+ * If COND is false, logs an error message with the test name, condition,
+ * file, and line number, then sets T->status to SKL_TEST_FAIL. Does not
+ * return early, allowing multiple requirements to be checked.
+ */
+#define SKL_TEST_REQUIRE(T, STATUS, COND)                                      \
+  do {                                                                         \
+    if (!(COND)) {                                                             \
+      skl_test_driver_log((T), stderr, "%s: %s\n", (T)->suite_name, #COND);    \
+      skl_test_driver_log((T), stderr, "    %s:%d\n", __FILE__, __LINE__);     \
+      (T)->status.STATUS = SKL_TEST_FAIL;                                      \
+    }                                                                          \
+  } while (0)
+
 //----- Utility macros for use in tests -----
 
 /**
@@ -547,49 +594,56 @@ static inline float skl_error_ulp_bf16(const __bf16 *res, const __bf16 *ref,
   return max;
 }
 
-//----- Logging macros -----
-
 /**
- * @brief Logging verbosity levels.
+ * @brief Check packed matrix dimensions and strides
+ *
+ * @param t - Test context.
+ * @param m0 - Number of rows in each block of the matrix.
+ * @param n0 - Number of columns in each block of the matrix.
+ * @param m1 - Number of block-rows in the matrix.
+ * @param n1 - Number of block-columns in the matrix.
+ * @param rs0 - Row stride within each block of the matrix in elements.
+ * @param cs0 - Column stride within each block of the matrix in elements.
+ * @param rs1 - Row stride between blocks of the matrix in elements.
+ * @param cs1 - Column stride between blocks of the matrix in elements.
+ *
+ * This function performs some basic checks on the dimensions and strides of a
+ * packed matrix and updates the init_status of t.
  */
-enum {
-  SKL_TEST_LOG_ERROR = 0, /**< Error messages only */
-  SKL_TEST_LOG_INFO,      /**< Error and info messages */
-  SKL_TEST_LOG_DEBUG,     /**< All messages */
-};
+static inline void skl_test_check_matrix_params_rcprc(skl_test_t *t, size_t m0,
+                                                      size_t n0, size_t m1,
+                                                      size_t n1, size_t rs0,
+                                                      size_t cs0, size_t rs1,
+                                                      size_t cs1) {
+  SKL_TEST_REQUIRE(t, init_status, m0 > 0);
+  SKL_TEST_REQUIRE(t, init_status, n0 > 0);
 
-/**
- * @brief Conditionally log a message.
- *
- * @param T - Test context pointer
- * @param LEVEL - Minimum log level required for this message
- * @param ... - Printf-style format string and arguments
- *
- * Logs a message only if T->log_level >= LEVEL.
- * Higher log levels provide more verbose output.
- */
-#define SKL_TEST_LOG(T, LEVEL, ...)                                            \
-  if ((T)->log_level >= (LEVEL)) {                                             \
-    FILE *stream = (LEVEL) == SKL_TEST_LOG_ERROR ? stderr : stdout;            \
-    skl_test_driver_log((T), stream, __VA_ARGS__);                             \
+  if (m0 > 1) {
+    SKL_TEST_REQUIRE(t, init_status, rs0 > 0);
+  }
+  if (n0 > 1) {
+    SKL_TEST_REQUIRE(t, init_status, cs0 > 0);
+  }
+  if (m0 > 1 && n0 > 1) {
+    if (rs0 >= cs0) {
+      SKL_TEST_REQUIRE(t, init_status, rs0 >= (n0 - 1) * cs0 + 1);
+    } else {
+      SKL_TEST_REQUIRE(t, init_status, cs0 >= (m0 - 1) * rs0 + 1);
+    }
   }
 
-/**
- * @brief Assert a condition and set error status.
- *
- * @param T - Test context pointer.
- * @param STATUS - The member of skl_test_step_status_t to set upon failure.
- * @param COND - Condition to check.
- *
- * If COND is false, logs an error message with the test name, condition,
- * file, and line number, then sets T->status to SKL_TEST_FAIL. Does not
- * return early, allowing multiple requirements to be checked.
- */
-#define SKL_TEST_REQUIRE(T, STATUS, COND)                                      \
-  do {                                                                         \
-    if (!(COND)) {                                                             \
-      skl_test_driver_log((T), stderr, "%s: %s\n", (T)->suite_name, #COND);    \
-      skl_test_driver_log((T), stderr, "    %s:%d\n", __FILE__, __LINE__);     \
-      (T)->status.STATUS = SKL_TEST_FAIL;                                      \
-    }                                                                          \
-  } while (0)
+  size_t block_min_len = (m0 - 1) * rs0 + (n0 - 1) * cs0 + 1;
+  if (m1 > 1 && n1 > 0) {
+    SKL_TEST_REQUIRE(t, init_status, rs1 >= block_min_len);
+  }
+  if (m1 > 0 && n1 > 1) {
+    SKL_TEST_REQUIRE(t, init_status, cs1 >= block_min_len);
+  }
+  if (m1 > 1 && n1 > 1) {
+    if (rs1 >= cs1) {
+      SKL_TEST_REQUIRE(t, init_status, rs1 >= (n1 - 1) * cs1 + block_min_len);
+    } else {
+      SKL_TEST_REQUIRE(t, init_status, cs1 >= (m1 - 1) * rs1 + block_min_len);
+    }
+  }
+}

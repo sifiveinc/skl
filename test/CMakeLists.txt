@@ -116,10 +116,10 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_exp_bf16_xsfvfexp16e
+  skl_exp_bf16_xsfvfbfexp16e
   elementwise/unary_bf16.c
-  exp/exp_bf16_xsfvfexp16e.c
-  "xsfvfexp16e"
+  exp/exp_bf16_xsfvfbfexp16e.c
+  "xsfvfbfexp16e"
   ""
 )
 skl_add_test(
@@ -176,6 +176,34 @@ skl_add_test(
   elementwise/unary_f32.c
   exp/exp_f32_zve32f.c
   "zve32f"
+  ""
+)
+skl_add_test(
+  skl_gemm_i8_i8_i32_zve32x_x390
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/rvv/skl_gemm_i8_i8_i32_zve32x_x390.c
+  "zve32x"
+  ""
+)
+skl_add_test(
+  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/xsfvqdotq/skl_gemm_i8rcp_i8pc_i32_xsfvqdotq.c
+  "xsfvqdotq"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i.c
+  "xsfmm32a8i"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i.c
+  "xsfmm32a8i"
   ""
 )
 skl_add_test(
@@ -281,6 +309,48 @@ skl_add_test(
   gemm/gemm_f64rcprc_f64rcprc_f64rcprc.c
   gemm/rvv/skl_gemm_f64_f64_f64_zve64d_x390.c
   "zve64d"
+  ""
+)
+skl_add_test(
+  skl_logistic_bf16_xsfvfbfa
+  elementwise/unary_bf16.c
+  logistic/logistic_bf16_xsfvfbfa.c
+  "xsfvfbfa"
+  ""
+)
+skl_add_test(
+  skl_logistic_bf16_xsfvfbfexp16e_xsfvfbfa
+  elementwise/unary_bf16.c
+  logistic/logistic_bf16_xsfvfbfexp16e_xsfvfbfa.c
+  "xsfvfbfexp16e;xsfvfbfa"
+  ""
+)
+skl_add_test(
+  skl_logistic_bf16_xsfvfexp32e
+  elementwise/unary_bf16.c
+  logistic/logistic_bf16_xsfvfexp32e.c
+  "xsfvfexp32e"
+  ""
+)
+skl_add_test(
+  skl_logistic_bf16_xsfvfexpa
+  elementwise/unary_bf16.c
+  logistic/logistic_bf16_xsfvfexpa.c
+  "xsfvfexpa"
+  ""
+)
+skl_add_test(
+  skl_logistic_bf16_zve32f
+  elementwise/unary_bf16.c
+  logistic/logistic_bf16_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_pack_e8_zve32x
+  pack/pack_e8rc_e8rcprc.c
+  pack/rvv/skl_pack_e8_zve32x.c
+  "zve32x"
   ""
 )
 skl_add_test(

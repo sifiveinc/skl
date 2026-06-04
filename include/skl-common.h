@@ -94,23 +94,6 @@
 #endif
 
 /**
- * @brief An instruction scheduling barrier.
- *
- * This function acts as a barrier to instruction scheduling, by pretending to
- * have arbitrary side-effects. This is a necessary hack in some cases to
- * override pessimal scheduling decisions by the compiler when writing RVV
- * intrinsics.
- *
- * @note This is very much a hack, and should be used with caution. It is not
- *       guaranteed to prevent reordering of instructions in all cases, and
- *       in particular only works when the instructions in question access
- *       memory.
- */
-SKL_FUNC_UTIL void skl_instruction_schedule_barrier(void) {
-  __asm__ volatile("" ::: "memory");
-}
-
-/**
  * @brief SKL memcpy
  *
  * This version of memcpy is provided so that kernels requiring it can avoid a
