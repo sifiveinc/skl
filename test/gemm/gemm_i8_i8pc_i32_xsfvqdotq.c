@@ -164,7 +164,8 @@ int main(void) {
   skl_test_init_i8(b_pack, BLEN_PACKED, SKL_TEST_MIN_I8, SKL_TEST_MAX_I8);
   skl_test_init_i32(c, CLEN, SKL_TEST_MIN_I32, SKL_TEST_MAX_I32);
 
-  skl_pack_b_i8_xsfvqdotq(K, N, b, (size_t)RSB, b_pack, (size_t)RSB1);
+  skl_pack_e8rc_e8rcprc_zve32x(K, N, (uint8_t *)b, (size_t)RSB, 1, 4, 1,
+                               (uint8_t *)b_pack, 1, 0, (size_t)RSB1, 4, 0);
 
 #if defined(ENABLE_TEST)
   /* Make copies of C to write the reference and test outputs to. */

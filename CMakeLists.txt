@@ -102,7 +102,6 @@ add_skl_src(src/gemm/xsfmm/gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c "xsfmm32a8
 add_skl_src(src/gemm/xsfmm/gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c "xsfmm32a8f")
 add_skl_src(src/gemm/xsfmm/gemm_a1b01_i8c_i8_i32_xsfmm32a8i.c "xsfmm32a8i")
 add_skl_src(src/gemm/xsfvqdotq/gemm_i8rcp_i8pc_i32_xsfvqdotq.c "xsfvqdotq")
-add_skl_src(src/gemm/xsfvqdotq/pack_b_xsfvqdotq.c "zve32x")
 
 add_skl_src(src/logistic/logistic_bf16_xsfvfbfa.c "xsfvfbfa")
 add_skl_src(src/logistic/logistic_bf16_xsfvfbfexp16e_xsfvfbfa.c "xsfvfbfexp16e;xsfvfbfa")
@@ -200,9 +199,6 @@ endfunction()
 if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   enable_testing()
 
-  if("zve32x" IN_LIST RISCV_EXTENSIONS)
-    skl_add_test_legacy(skl_pack_b_i8_xsfvqdotq gemm/pack_b_i8_xsfvqdotq.c "-DK=126;-DN=128")
-  endif()
   if("zvfh" IN_LIST RISCV_EXTENSIONS)
     skl_add_test_legacy(logistic_f16_zvfh logistic/logistic_f16.c "-DRUN_ALL")
     skl_add_test_legacy(silu_f16_zvfh silu/silu_f16.c "-DRUN_ALL")
