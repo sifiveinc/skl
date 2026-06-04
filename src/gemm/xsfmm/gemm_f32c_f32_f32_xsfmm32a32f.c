@@ -8,9 +8,7 @@
 #endif
 
 #include <riscv_vector.h>
-#include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
 
 #include "skl-common.h"
 
