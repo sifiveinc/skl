@@ -230,7 +230,7 @@ gemm_f8rcprc_f8rcprc_f32rcprc_t tests[] = {
 // clang-format on
 
 static skl_test_suite_t suite = {
-    .name = "skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f",
+    .name = "skl_gemm_a1b01_f8e4m3ptex1c_f8e4m3cp1xte_f32rcptexte_xsfmm32a8f",
     .num_tests = sizeof(tests) / sizeof(tests[0]),
     .test_size = sizeof(gemm_f8rcprc_f8rcprc_f32rcprc_t),
     .tests = tests};
@@ -262,7 +262,7 @@ static void execute(skl_test_t *t) {
   // Call the kernel with the appropriate parameters
   // The kernel signature is: (m1, n1, k, a_pack, rsa1, b_pack, csb1, c_pack,
   // rsc1, csc1, accum) where accum = (beta != 0)
-  skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f(
+  skl_gemm_a1b01_f8e4m3ptex1c_f8e4m3cp1xte_f32rcptexte_xsfmm32a8f(
       h->m1, h->n1, h->k1 * h->k0, h->a_pack.data, h->rsa1, h->b_pack.data,
       h->csb1, h->c_pack.data, h->rsc1, h->csc1, h->beta != 0.f);
 }

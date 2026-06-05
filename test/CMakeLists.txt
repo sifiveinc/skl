@@ -214,9 +214,9 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f
+  skl_gemm_a1b01_f8e4m3ptex1c_f8e4m3cp1xte_f32rcptexte_xsfmm32a8f
   gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f.c
+  gemm/xsfmm/skl_gemm_a1b01_f8e4m3ptex1c_f8e4m3cp1xte_f32rcptexte_xsfmm32a8f.c
   "xsfmm32a8f"
   ""
 )
