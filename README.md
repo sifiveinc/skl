@@ -172,12 +172,7 @@ Tests parameters can be easily reconfigured within such test suites, and new tes
 Each test suite may also define one or more representative benchmarks with problem parameters depicting an ideal performance regime for each kernel variant.
 However, SKL cannot supply a simulation environment for benchmarking, and users are responsible for integrating SKL's benchmarking code into their own simulation or execution environment.
 
-Performance benchmarks can be enabled by defining the `SKL_ENABLE_BENCHMARKS` variable during configuration (which can be defined alongside `SKL_ENABLE_TESTS` if desired):
-```shell
-cmake -B build -DCMAKE_TOOLCHAIN_FILE="cmake/riscv.cmake" -DSKL_ENABLE_BENCHMARKS=TRUE
-cmake --build build
-ctest --test-dir build
-```
+Performance benchmarks can be enabled by supplying `-DSKL_ENABLE_BENCHMARKS=TRUE` during CMake configuration (which can be defined alongside `SKL_ENABLE_TESTS` if desired).
 
 ## Documentation
 
