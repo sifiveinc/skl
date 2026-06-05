@@ -102,7 +102,6 @@ These are separate kernels, and not automatically applied by the GEMM functions 
 - If one input is available offline, or reused across multiple GEMMs, it should not be packed multiple times
 - Some applications may provide data in the necessary format already, and should not be forced to repack it
 
-As a general rule, the packing functions are named after the target and ISA they are designed for (e.g., `skl_pack_b_i8_xsfvqdotq`).
 To the extent possible, their layouts depend only on ISA parameters, not on register tiling decisions or machine-specific parameters such as VLEN or cache sizes.
 
 ## File Organization

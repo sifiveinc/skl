@@ -55,14 +55,6 @@
 #endif
 
 /*
- * Matrix packing Kernels
- */
-
-#if defined(__riscv_zve32x)
-#include "../src/gemm/xsfvqdotq/pack_b_xsfvqdotq.h"
-#endif
-
-/*
  * Transpose Kernels
  */
 
