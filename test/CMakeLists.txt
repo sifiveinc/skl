@@ -36,6 +36,8 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
     test-${TEST_NAME}
     PRIVATE ${SKL_COMPILE_OPTIONS} ${SKL_TEST_COMPILE_OPTIONS} ${OPTS}
   )
+
+  target_compile_definitions(test-${TEST_NAME} PRIVATE "-DSKL_TEST_MAIN=main")
   target_include_directories(test-${TEST_NAME} PRIVATE . ../src)
 
   if(SKL_ENABLE_TESTS)

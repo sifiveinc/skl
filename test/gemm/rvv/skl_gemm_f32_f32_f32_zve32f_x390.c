@@ -43,11 +43,11 @@
           .cleanup = gemm_f32rcprc_f32rcprc_f32rcprc_cleanup,                  \
   }
 
-static void init(skl_test_t *t);
-static void execute(skl_test_t *t);
+void init(skl_test_t *t);
+void execute(skl_test_t *t);
 
 // clang-format off
-gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
+static gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
     // Benchmark tests
     {BENCH, .m1 =  64, .n1 = 128, .k1 = 128, .alpha = 1.f},
@@ -89,7 +89,7 @@ static skl_test_suite_t suite = {.name = "skl_gemm_f32_f32_f32_zve32f_x390",
                                      sizeof(gemm_f32rcprc_f32rcprc_f32rcprc_t),
                                  .tests = tests};
 
-static void init(skl_test_t *t) {
+void init(skl_test_t *t) {
   const gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
@@ -103,16 +103,15 @@ static void init(skl_test_t *t) {
   gemm_f32rcprc_f32rcprc_f32rcprc_init(t);
 }
 
-static void execute(skl_test_t *t) {
+void execute(skl_test_t *t) {
   const gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
-
   skl_gemm_f32_f32_f32_zve32f_x390(h->m1, h->n1, h->k1, h->alpha,
                                    h->a_pack.data, h->rsa1, h->b_pack.data,
                                    h->rsb1, h->beta, h->c_pack.data, h->rsc1);
 }
 
-int main(void) {
+int SKL_TEST_MAIN(void) {
   // Set default strides: all matrices are row-major
   for (size_t i = 0; i < suite.num_tests; ++i) {
     tests[i].m0 = 1;
