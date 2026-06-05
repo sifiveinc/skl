@@ -633,34 +633,6 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
   __riscv_vse32_v_i32m4(c, vec0, n);
 }
 
-SKL_FUNC_PRIVATE void skl_gemm_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
-    size_t m, size_t n, size_t k1, int32_t alpha, const int8_t *a_pack,
-    size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
-    int32_t *c, size_t rsc) {
-  if (m == 0 || n == 0) {
-    return;
-  }
-
-  const size_t m0 = 1;
-  const size_t k0 = 4;
-
-  size_t m_idx = 0;
-  for (; m_idx + m0 - 1 < m; m_idx += m0) {
-    int32_t *c_write = c + m_idx * rsc;
-    const int8_t *a_tile_ptr = a_pack + m_idx * rsa1;
-    const int8_t *b_tile_ptr = b_pack;
-    size_t n_avl = n;
-    while (n_avl) {
-      size_t vl = __riscv_vsetvl_e32m4(n_avl);
-      skl_gemm_1xm4_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
-          vl, k1, alpha, a_tile_ptr, csa1, b_tile_ptr, rsb1, beta, c_write);
-      b_tile_ptr += k0 * vl;
-      c_write += vl;
-      n_avl -= vl;
-    }
-  }
-}
-
 SKL_FUNC_PRIVATE void skl_gemm_aligned_i8rcp_i8pc_i32_xsfvqdotq(
     size_t m, size_t n, size_t k1, int32_t alpha, const int8_t *a_pack,
     size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
@@ -738,7 +710,20 @@ SKL_FUNC void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(
     skl_gemm_aligned_i8rcp_i8pc_i32_xsfvqdotq(m, n, k1, alpha, a_pack, rsa1,
                                               csa1, b_pack, rsb1, beta, c, rsc);
   } else {
-    skl_gemm_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
-        m, n, k1, alpha, a_pack, rsa1, csa1, b_pack, rsb1, beta, c, rsc);
+    size_t m_idx = 0;
+    for (; m_idx < m; ++m_idx) {
+      int32_t *c_write = c + m_idx * rsc;
+      const int8_t *a_tile_ptr = a_pack + m_idx * rsa1;
+      const int8_t *b_tile_ptr = b_pack;
+      size_t n_avl = n;
+      while (n_avl) {
+        size_t vl = __riscv_vsetvl_e32m4(n_avl);
+        skl_gemm_1xm4_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
+            vl, k1, alpha, a_tile_ptr, csa1, b_tile_ptr, rsb1, beta, c_write);
+        b_tile_ptr += k0 * vl;
+        c_write += vl;
+        n_avl -= vl;
+      }
+    }
   }
 }
