@@ -157,7 +157,7 @@ Test mode is designed for cross compilation on a host machine that is equipped w
 SKL's minimal CMake build system can be used to cross-compile the tests using the included toolchain file `cmake/riscv.cmake`, and then execute them in QEMU with the appropriate `-cpu` option to enable the necessary ISA extensions.
 (Users of other emulators will need to write their own build and run scripts.)
 
-To build SKL for testing on QEMU, ensure to define the `SKL_ENABLE_TESTS` variable during CMake configuration:
+To build SKL for testing on QEMU, define the `SKL_ENABLE_TESTS` variable during CMake configuration:
 ```shell
 cmake -B build -DCMAKE_TOOLCHAIN_FILE="cmake/riscv.cmake" -DSKL_ENABLE_TESTS=TRUE
 cmake --build build
