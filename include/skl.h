@@ -22,6 +22,7 @@
 
 #if defined(__riscv_zvfbfwma)
 #include "../src/gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma.h"
+#include "../src/gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma_x390.h"
 #endif
 
 #if defined(__riscv_zve32f)
