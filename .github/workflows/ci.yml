@@ -28,6 +28,7 @@ jobs:
         fetch-depth: 0
 
     - name: Check license headers
+      if: ${{ github.event_name == 'pull_request' }}
       run: |
         HEAD_SHA=${{ github.event.pull_request.head.sha }}
         BASE_SHA=${{ github.event.pull_request.base.sha }}
