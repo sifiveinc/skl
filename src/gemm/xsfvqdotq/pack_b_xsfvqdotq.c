@@ -8,9 +8,7 @@
 #endif
 
 #include <riscv_vector.h>
-#if __STDC_VERSION__ < 202311L
 #include <stdbool.h>
-#endif
 #include <stddef.h>
 #include <stdint.h>
 

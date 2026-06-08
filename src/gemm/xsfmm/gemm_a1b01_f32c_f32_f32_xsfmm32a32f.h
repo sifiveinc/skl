@@ -9,9 +9,7 @@
 #error This file requires the Xsfmm32a32f extension
 #endif
 
-#if __STDC_VERSION__ < 202311L
 #include <stdbool.h>
-#endif
 #include <stddef.h>
 
 #if defined(__cplusplus)

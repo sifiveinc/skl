@@ -9,9 +9,7 @@
 #error This source file requires compiler support for the RISC-V Zve32x extension.
 #endif
 
-#if __STDC_VERSION__ < 202311L
 #include <stdbool.h>
-#endif
 #include <stddef.h>
 #include <stdint.h>
 

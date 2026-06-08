@@ -35,9 +35,7 @@
 #include <float.h>
 #include <math.h>
 #include <stdarg.h>
-#if __STDC_VERSION__ < 202311L
 #include <stdbool.h>
-#endif
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
