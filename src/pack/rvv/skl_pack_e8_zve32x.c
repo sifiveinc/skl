@@ -571,7 +571,11 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
       read_ptr += rsa;
       vrow3 = __riscv_vle8_v_u8m2(read_ptr, vl);
       vuint8m2x4_t vrows = __riscv_vcreate_v_u8m2x4(vrow0, vrow1, vrow2, vrow3);
-      __riscv_vssseg4e8_v_u8m2x4(out_tile, output_seg_bstride, vrows, vl);
+      if (rsat == 4) {
+        __riscv_vsseg4e8_v_u8m2x4(out_tile, vrows, vl);
+      } else {
+        __riscv_vssseg4e8_v_u8m2x4(out_tile, output_seg_bstride, vrows, vl);
+      }
       in_tile += vl;
       out_tile += vl * rsat;
     }
@@ -1012,72 +1016,117 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
   size_t m1 = (m + m0 - 1) / m0; // Num. block-rows in output matrix
   size_t n1 = (n + n0 - 1) / n0; // Num. block-columns in output matrix
 
+  /* Column panels */
+  if (rs0 == 1 && n0 == 1) {
+    if (m0 == rs1) {
+      /* column-major block ordering */
+      skl_transpose_padded_m_e8_zve32x(m0 * m1, m, n, src, rs, dst, cs1, pad);
+    } else {
+      /* row-major block ordering */
+      const uint8_t *src_block = src;
+      uint8_t *dst_block = dst;
+      for (size_t ii1 = 0; ii1 < m1 - 1; ++ii1) {
+        skl_transpose_e8_zve32x(m0, n, src_block, rs, dst_block, cs1);
+        src_block += m0 * rs;
+        dst_block += rs1;
+      }
+      size_t m_tail = m - m0 * (m1 - 1);
+      skl_transpose_padded_m_e8_zve32x(m0, m_tail, n, src_block, rs, dst_block,
+                                       cs1, pad);
+    }
+    return;
+  }
+
   /* intra-block: column-major, inter-block: row-major */
   if ((cs0 * n0 == cs1) && rs0 == 1) {
-    for (size_t ii1 = 0; ii1 < m1; ++ii1) {
-      const uint8_t *src_block = src + ii1 * m0 * rs;
-      uint8_t *dst_block = dst + ii1 * rs1;
-      size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
-      skl_transpose_padded_m_e8_zve32x(m0, m_length, n, src_block, rs,
-                                       dst_block, cs0, pad);
+    const uint8_t *src_block = src;
+    uint8_t *dst_block = dst;
+    for (size_t ii1 = 0; ii1 < m1 - 1; ++ii1) {
+      skl_transpose_e8_zve32x(m0, n, src_block, rs, dst_block, cs0);
       if (n % n0) {
         // pad right
         skl_set_2d_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), cs0,
                              pad, n0 - n % n0, m0);
       }
+      src_block += m0 * rs;
+      dst_block += rs1;
+    }
+    size_t m_tail = m - m0 * (m1 - 1);
+    skl_transpose_padded_m_e8_zve32x(m0, m_tail, n, src_block, rs, dst_block,
+                                     cs0, pad);
+    if (n % n0) {
+      // pad right
+      skl_set_2d_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), cs0,
+                           pad, n0 - n % n0, m0);
+    }
+    return;
+  }
+
+  /* Row panels */
+  if (cs0 == 1 && m0 == 1) {
+    if (n0 == cs1) {
+      /* row-major block ordering */
+      skl_copy_2d_e8_zve32x(m, n, src, rs, dst, rs1);
+      // pad right
+      if (n % n0) {
+        skl_set_2d_e8_zve32x(dst + n, rs1, pad, m, n0 - n % n0);
+      }
+
+    } else {
+      /* column-major block ordering */
+      const uint8_t *src_block = src;
+      uint8_t *dst_block = dst;
+
+      for (size_t jj1 = 0; jj1 < n1 - 1; ++jj1) {
+        skl_copy_2d_e8_zve32x(m, n0, src_block, rs, dst_block, rs1);
+        src_block += n0;
+        dst_block += cs1;
+      }
+      size_t n_tail = n - n0 * (n1 - 1);
+      skl_copy_2d_e8_zve32x(m, n_tail, src_block, rs, dst_block, rs1);
+      // pad right: pad (n0 - n_tail) elements in each of m rows
+      skl_set_2d_e8_zve32x(dst_block + n_tail, rs1, pad, m, n0 - n_tail);
     }
     return;
   }
 
   /* intra-block: row-major, inter-block: column-major */
   if ((rs0 * m0 == rs1) && cs0 == 1) {
-    for (size_t jj1 = 0; jj1 < n1; ++jj1) {
-      const uint8_t *src_block = src + jj1 * n0;
-      uint8_t *dst_block = dst + jj1 * cs1;
-      size_t n_length = n0 < n - jj1 * n0 ? n0 : n - jj1 * n0;
-      skl_copy_2d_e8_zve32x(m, n_length, src_block, rs, dst_block, rs0);
+    const uint8_t *src_block = src;
+    uint8_t *dst_block = dst;
+    for (size_t jj1 = 0; jj1 < n1 - 1; ++jj1) {
+      skl_copy_2d_e8_zve32x(m, n0, src_block, rs, dst_block, rs0);
       if (m % m0) {
         // pad bottom
         skl_set_2d_e8_zve32x(dst_block + m * rs0, rs0, pad, m0 - m % m0, n0);
       }
-      // pad right: pad (n0 - n_length) elements in each of m rows
-      skl_set_2d_e8_zve32x(dst_block + n_length, rs0, pad, m, n0 - n_length);
+      src_block += n0;
+      dst_block += cs1;
     }
-    return;
-  }
-
-  /* Column panels, column-major block ordering*/
-  if (rs0 == 1 && n0 == 1 && m0 == rs1) {
-    skl_transpose_padded_m_e8_zve32x(m0 * m1, m, n, src, rs, dst, cs1, pad);
-    return;
-  }
-
-  /* Row panels, row-major block ordering*/
-  if (cs0 == 1 && m0 == 1 && n0 == cs1) {
-    skl_copy_2d_e8_zve32x(m, n, src, rs, dst, rs1);
-    // pad right
-    if (n % n0) {
-      skl_set_2d_e8_zve32x(dst + n, rs1, pad, m, n0 - n % n0);
+    size_t n_tail = n - n0 * (n1 - 1);
+    skl_copy_2d_e8_zve32x(m, n_tail, src_block, rs, dst_block, rs0);
+    if (m % m0) {
+      // pad bottom
+      skl_set_2d_e8_zve32x(dst_block + m * rs0, rs0, pad, m0 - m % m0, n0);
     }
+    // pad right: pad (n0 - n_tail) elements in each of m rows
+    skl_set_2d_e8_zve32x(dst_block + n_tail, rs0, pad, m, n0 - n_tail);
     return;
   }
 
   for (size_t ii1 = 0; ii1 < m1; ++ii1) {
+    size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
     for (size_t jj1 = 0; jj1 < n1; ++jj1) {
       const uint8_t *src_block = src + ii1 * m0 * rs + jj1 * n0;
       uint8_t *dst_block = dst + ii1 * rs1 + jj1 * cs1;
-
+      size_t n_length = n0 < n - jj1 * n0 ? n0 : n - jj1 * n0;
       if (rs0 == 1) {
-        size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
-        size_t n_length = n0 < n - jj1 * n0 ? n0 : n - jj1 * n0;
         skl_transpose_padded_m_e8_zve32x(m0, m_length, n_length, src_block, rs,
                                          dst_block, cs0, pad);
         // pad right
         skl_set_2d_e8_zve32x(dst_block + cs0 * n_length, cs0, pad,
                              n0 - n_length, m0);
       } else if (cs0 == 1) {
-        size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
-        size_t n_length = n0 < n - jj1 * n0 ? n0 : n - jj1 * n0;
         skl_copy_2d_e8_zve32x(m_length, n_length, src_block, rs, dst_block,
                               rs0);
         // pad right: pad (n0 - n_length) elements in each of m_length rows
