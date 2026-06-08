@@ -40,7 +40,6 @@ add_library(${SKL_LIBRARY} STATIC)
 set_target_properties(${SKL_LIBRARY}
     PROPERTIES
     C_STANDARD 23
-    C_EXTENSIONS ON
     C_STANDARD_REQUIRED ON
 )
 # But do require at least C99.
