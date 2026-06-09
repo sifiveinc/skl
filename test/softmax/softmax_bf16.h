@@ -29,11 +29,11 @@ typedef struct {
   } ctx;
 } softmax_bf16_t;
 
-void softmax_bf16_init(skl_test_t *);
-void softmax_bf16_execute(skl_test_t *);
-void softmax_bf16_verify(skl_test_t *);
-void softmax_bf16_report(skl_test_t *);
-void softmax_bf16_cleanup(skl_test_t *);
+void softmax_bf16_init(skl_test_t *t);
+void softmax_bf16_execute(skl_test_t *t);
+void softmax_bf16_verify(skl_test_t *t);
+void softmax_bf16_report(skl_test_t *t);
+void softmax_bf16_cleanup(skl_test_t *t);
 
 #define BASIC_STEPS                                                            \
   .steps = {                                                                   \
