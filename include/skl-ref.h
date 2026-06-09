@@ -49,6 +49,7 @@
  * Logistic Function Kernels
  */
 
+#include "../ref/logistic/logistic_bf16.h"
 #include "../ref/logistic/logistic_f16.h"
 #include "../ref/logistic/logistic_f32.h"
 
@@ -82,5 +83,11 @@
 #include "../ref/softmax/softmax_bf16.h"
 #include "../ref/softmax/softmax_f16.h"
 #include "../ref/softmax/softmax_f32.h"
+
+/*
+ * Pack Kernels
+ */
+
+#include "../ref/pack/pack_e8rc_e8rcprc.h"
 
 // IWYU pragma: end_exports

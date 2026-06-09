@@ -116,10 +116,10 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_exp_bf16_xsfvfexp16e
+  skl_exp_bf16_xsfvfbfexp16e
   elementwise/unary_bf16.c
-  exp/exp_bf16_xsfvfexp16e.c
-  "xsfvfexp16e"
+  exp/exp_bf16_xsfvfbfexp16e.c
+  "xsfvfbfexp16e"
   ""
 )
 skl_add_test(
@@ -134,6 +134,27 @@ skl_add_test(
   elementwise/unary_bf16.c
   exp/exp_bf16_zvfbfmin.c
   "zvfbfmin"
+  ""
+)
+skl_add_test(
+  skl_exp_f16_zvfh
+  elementwise/unary_f16.c
+  exp/exp_f16_zvfh.c
+  "zvfh"
+  ""
+)
+skl_add_test(
+  skl_exp_f16_xsfvfexp16e
+  elementwise/unary_f16.c
+  exp/exp_f16_xsfvfexp16e.c
+  "xsfvfexp16e"
+  ""
+)
+skl_add_test(
+  skl_exp_f16_xsfvfexpa_zvfh
+  elementwise/unary_f16.c
+  exp/exp_f16_xsfvfexpa_zvfh.c
+  "xsfvfexpa;zvfh"
   ""
 )
 skl_add_test(
@@ -155,6 +176,62 @@ skl_add_test(
   elementwise/unary_f32.c
   exp/exp_f32_zve32f.c
   "zve32f"
+  ""
+)
+skl_add_test(
+  skl_gemm_i8_i8_i32_zve32x_x390
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/rvv/skl_gemm_i8_i8_i32_zve32x_x390.c
+  "zve32x"
+  ""
+)
+skl_add_test(
+  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/xsfvqdotq/skl_gemm_i8rcp_i8pc_i32_xsfvqdotq.c
+  "xsfvqdotq"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i.c
+  "xsfmm32a8i"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i.c
+  "xsfmm32a8i"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f
+  gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c
+  "xsfmm32a8f"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f
+  gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f.c
+  "xsfmm32a8f"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f
+  gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c
+  "xsfmm32a8f"
+  ""
+)
+skl_add_test(
+  skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f
+  gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
+  gemm/xsfmm/skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f.c
+  "xsfmm32a8f"
   ""
 )
 skl_add_test(
@@ -232,6 +309,195 @@ skl_add_test(
   gemm/gemm_f64rcprc_f64rcprc_f64rcprc.c
   gemm/rvv/skl_gemm_f64_f64_f64_zve64d_x390.c
   "zve64d"
+  ""
+)
+skl_add_test(
+  skl_logistic_bf16_xsfvfbfa
+  elementwise/unary_bf16.c
+  logistic/logistic_bf16_xsfvfbfa.c
+  "xsfvfbfa"
+  ""
+)
+skl_add_test(
+  skl_logistic_bf16_xsfvfbfexp16e_xsfvfbfa
+  elementwise/unary_bf16.c
+  logistic/logistic_bf16_xsfvfbfexp16e_xsfvfbfa.c
+  "xsfvfbfexp16e;xsfvfbfa"
+  ""
+)
+skl_add_test(
+  skl_logistic_bf16_xsfvfexp32e
+  elementwise/unary_bf16.c
+  logistic/logistic_bf16_xsfvfexp32e.c
+  "xsfvfexp32e"
+  ""
+)
+skl_add_test(
+  skl_logistic_bf16_xsfvfexpa
+  elementwise/unary_bf16.c
+  logistic/logistic_bf16_xsfvfexpa.c
+  "xsfvfexpa"
+  ""
+)
+skl_add_test(
+  skl_logistic_bf16_zve32f
+  elementwise/unary_bf16.c
+  logistic/logistic_bf16_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_pack_e8_zve32x
+  pack/pack_e8rc_e8rcprc.c
+  pack/rvv/skl_pack_e8_zve32x.c
+  "zve32x"
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_ref
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_ref.c
+  ""
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_xsfvfbfa
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_xsfvfbfa.c
+  "xsfvfbfa"
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_xsfvfbfexp16e_xsfvfbfa
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_xsfvfbfexp16e_xsfvfbfa.c
+  "xsfvfbfexp16e;xsfvfbfa"
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_xsfvfbfexp16e_zvfbfmin
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_xsfvfbfexp16e_zvfbfmin.c
+  "xsfvfbfexp16e;zvfbfmin"
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_xsfvfexp32e_zvfbfmin
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_xsfvfexp32e_zvfbfmin.c
+  "xsfvfexp32e;zvfbfmin"
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_xsfvfexpa_xsfvfbfa
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_xsfvfexpa_xsfvfbfa.c
+  "xsfvfexpa;xsfvfbfa"
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_xsfvfexpa_zvfbfmin
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_xsfvfexpa_zvfbfmin.c
+  "xsfvfexpa;zvfbfmin"
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_zve32f
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_softmax_bf16_zvfbfmin
+  softmax/softmax_bf16.c
+  softmax/skl_softmax_bf16_zvfbfmin.c
+  "zvfbfmin"
+  ""
+)
+skl_add_test(
+  skl_softmax_f16_ref
+  softmax/softmax_f16.c
+  softmax/skl_softmax_f16_ref.c
+  ""
+  ""
+)
+skl_add_test(
+  skl_softmax_f16_zvfh
+  softmax/softmax_f16.c
+  softmax/skl_softmax_f16_zvfh.c
+  "zvfh"
+  ""
+)
+skl_add_test(
+  skl_softmax_f16_xsfvfexpa_zvfh
+  softmax/softmax_f16.c
+  softmax/skl_softmax_f16_xsfvfexpa_zvfh.c
+  "xsfvfexpa;zvfh"
+  ""
+)
+skl_add_test(
+  skl_softmax_f16_xsfvfexp16e
+  softmax/softmax_f16.c
+  softmax/skl_softmax_f16_xsfvfexp16e.c
+  "xsfvfexp16e"
+  ""
+)
+skl_add_test(
+  skl_softmax_f32_ref
+  softmax/softmax_f32.c
+  softmax/skl_softmax_f32_ref.c
+  ""
+  ""
+)
+skl_add_test(
+  skl_softmax_f32_zve32f
+  softmax/softmax_f32.c
+  softmax/skl_softmax_f32_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_softmax_f32_xsfvfexpa
+  softmax/softmax_f32.c
+  softmax/skl_softmax_f32_xsfvfexpa.c
+  "xsfvfexpa"
+  ""
+)
+skl_add_test(
+  skl_softmax_f32_xsfvfexp32e
+  softmax/softmax_f32.c
+  softmax/skl_softmax_f32_xsfvfexp32e.c
+  "xsfvfexp32e"
+  ""
+)
+skl_add_test(
+  skl_softmax_2d_f32_ref
+  softmax/softmax_f32.c
+  softmax/skl_softmax_2d_f32_ref.c
+  ""
+  ""
+)
+skl_add_test(
+  skl_softmax_2d_f32_zve32f
+  softmax/softmax_f32.c
+  softmax/skl_softmax_2d_f32_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_softmax_2d_f32_xsfvfexpa
+  softmax/softmax_f32.c
+  softmax/skl_softmax_2d_f32_xsfvfexpa.c
+  "xsfvfexpa"
+  ""
+)
+skl_add_test(
+  skl_softmax_2d_f32_xsfvfexp32e
+  softmax/softmax_f32.c
+  softmax/skl_softmax_2d_f32_xsfvfexp32e.c
+  "xsfvfexp32e"
   ""
 )
 skl_add_test(

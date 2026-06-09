@@ -143,48 +143,41 @@ extern "C" {
 SKL provides a set of test programs for each family of kernels that can be used to test their operation and performance.
 These can be located within the `test/` directory.
 Each kernel family (defined by a reference routine) has a corresponding test program that can exercise all of its variants, as supported by a given compilation target.
-Each one supports two modes: _test mode_ and _benchmark mode_.
-The choice of mode, along with kernel-specific parameters and enabled ISA variants, is configured via preprocessor definitions as described below.
+Test programs are composed of three components:
+a global test _driver_, a testing harness specific to a limited set of kernels, and a test suite file defining an array of tests to be run;
+see the [test README](test/README.md) for a more detailed explanation of the testing framework.
+Each suite generally contains tests falling into two categories: correctness tests and performance benchmarks.
+These categories can be globally enabled via preprocessor definitions, as described below.
 
 Unlike the kernels themselves, the test programs may have multiple dependencies within SKL, and make use of standard library I/O features such as `printf` and `rand`.
-Tests are suitable for execution in emulators such as QEMU for demonstration purposes, but the use of benchmark mode should be restricted to actual hardware or cycle-accurate simulators.
+Correctness tests are suitable for execution in emulators such as QEMU for demonstration purposes,
+but benchmarks should be restricted to execution on actual hardware or cycle-accurate simulators.
 
-### Test Mode (`-DSKL_BUILD_TESTS=TRUE`)
+### Test Mode (`-DSKL_ENABLE_TESTS=TRUE`)
 
-The test mode of a SKL kernel tester demonstrates proper usage of each variant by constructing appropriate inputs, computing a reference result using the reference routine, and comparing the result of the vector routine to the reference.
+The test mode of a SKL kernel tester typically demonstrates proper usage of each variant by constructing appropriate inputs, computing a reference result, and comparing the result of the vector routine to the reference.
 It is not intended to be an exhaustive validation suite, but rather a simple illustration of how the kernel can be used.
 
 Test mode is designed for cross compilation on a host machine that is equipped with [QEMU](https://www.qemu.org/) specfically.
 SKL's minimal CMake build system can be used to cross-compile the tests using the included toolchain file `cmake/riscv.cmake`, and then execute them in QEMU with the appropriate `-cpu` option to enable the necessary ISA extensions.
 (Users of other emulators will need to write their own build and run scripts.)
 
-To build SKL for testing on QEMU, use the following CMake options:
+To build SKL for testing on QEMU, define the `SKL_ENABLE_TESTS` variable during CMake configuration:
 ```shell
-cmake -B build -DCMAKE_TOOLCHAIN_FILE="cmake/riscv.cmake" -DSKL_BUILD_TESTS=TRUE
+cmake -B build -DCMAKE_TOOLCHAIN_FILE="cmake/riscv.cmake" -DSKL_ENABLE_TESTS=TRUE
 cmake --build build
-cd build/
-ctest
+ctest --test-dir build
 ```
 
-Test programs such as that for the single-precision exponential function define a set of configurable parameters that can be adjusted at compile time via preprocessor definitions.
-The test harness defines defaults for these parameters at the top of the file:
-```c
-#if !defined(NUM_ELEMS)
-#define NUM_ELEMS 1024 // Default input length
-#endif
-```
-These can be overridden in the `CMakeLists.txt` file by adding them to options string for the test executable:
-```cmake
-if (RISCV_ZVE32F) # Defined by cmake/get-riscv-extensions.cmake
-    skl_add_test(exp_f32_rvv exp/exp_f32.c "-DRUN_RVV;-DRUN_VFEXPA;-DRUN_VFEXP;-DNUM_ELEMS=2048")
-endif()
-```
+Test programs are defined via a testing suite, such as [test/gemm/rvv/skl_gemm_f32_f32_f32_zve32f_x390.c](./test/gemm/rvv/skl_gemm_f32_f32_f32_zve32f_x390.c), that specify the testing parameters to use during execution.
+Tests parameters can be easily reconfigured within such test suites, and new tests can be easily added to the suite by extending the test array appropriately.
 
-### Benchmark Mode (`-DSKL_BUILD_BENCHMARKS=TRUE`)
+### Benchmark Mode (`-DSKL_ENABLE_BENCHMARKS=TRUE`)
 
-Each tester also defines a representative benchmark with problem parameters depicting an ideal performance regime for each kernel variant.
-However, SKL cannot supply the requisite simulation environment for benchmarking, and users are responsible for integrating SKL's benchmarking code into their own simulation or execution environment.
+Each test suite may also define one or more representative benchmarks with problem parameters depicting an ideal performance regime for each kernel variant.
+However, SKL cannot supply a simulation environment for benchmarking, and users are responsible for integrating SKL's benchmarking code into their own simulation or execution environment.
 
+Performance benchmarks can be enabled by supplying `-DSKL_ENABLE_BENCHMARKS=TRUE` during CMake configuration (which can be defined alongside `SKL_ENABLE_TESTS` if desired).
 
 ## Documentation
 
