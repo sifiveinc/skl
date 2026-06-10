@@ -169,7 +169,7 @@ void skl_tile_load_f32rcp_f32_xsfmmbase(size_t m, size_t n, const float *c,
  */
 SKL_XSFMM_IN
 SKL_FUNC_PRIVATE
-void skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
+void skl_gemm_apply_fused_f32_f32rcprc_xsfmm32a32f(
     size_t m, size_t n, size_t tss, size_t rstss, size_t cstss, float *c,
     size_t rsc0, size_t csc0, size_t rsc1, size_t csc1, size_t row1,
     size_t col1, fused_f32_f32_t kernel, void *params) {
@@ -1065,7 +1065,7 @@ SKL_FUNC_PRIVATE void skl_gemm_apply_tiling_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
     inner_loop(m, n, k, a, rsa1, csa1, b, rsb1, csb1);
   }
 
-  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(m, n, trans ? mt0c : mt0, rstss,
+  skl_gemm_apply_fused_f32_f32rcprc_xsfmm32a32f(m, n, trans ? mt0c : mt0, rstss,
                                                 cstss, c, rsc0, 1, rsc1, csc1,
                                                 row1, col1, kernel, params);
 
