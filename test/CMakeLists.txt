@@ -424,6 +424,13 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_rmsnorm_f32_zve32f
+  rmsnorm/rmsnorm_f32.c
+  rmsnorm/rmsnorm_f32_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
   skl_silu_f16_xsfvfexp16e
   elementwise/unary_f16.c
   silu/silu_f16_xsfvfexp16e.c

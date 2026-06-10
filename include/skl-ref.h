@@ -67,6 +67,13 @@
 #include "ref/silu/silu_f32.h"
 
 /*
+ * RMSNorm Kernels
+ */
+
+#include "../ref/rmsnorm/rmsnorm_f16.h"
+#include "../ref/rmsnorm/rmsnorm_f32.h"
+
+/*
  * Conversion Functions
  */
 #include "ref/cvt/cvt_ofp4.h"
