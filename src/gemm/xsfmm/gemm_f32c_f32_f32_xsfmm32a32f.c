@@ -17,6 +17,11 @@ typedef void (*fused_f32_f32_t)(size_t tm, size_t tn, size_t tss, float *c,
                                 size_t csc1, size_t row1, size_t col1,
                                 void *params);
 
+typedef void (*inner_loop_f32rcpc_f32rcp_f32_t)(size_t m, size_t n, size_t k,
+                                                const float *a, size_t rsa1,
+                                                size_t csa1, const float *b,
+                                                size_t rsb1, size_t csb1);
+
 /* params type for the alpha/beta scaling kernel */
 typedef struct {
   float alpha;
@@ -593,10 +598,10 @@ void skl_gemm_alpha_beta_scaling_f32_f32rcprc_xsfmmbase(
 
 /* Compute an m x n x k matrix product A * B. m and n must be <= ETE. */
 SKL_XSFMM_INOUT
-SKL_FUNC_PRIVATE void
-skl_gemm_inner_loop_1x1_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
-                                                 const float *a, size_t csa,
-                                                 const float *b, size_t rsb) {
+SKL_FUNC_PRIVATE void skl_gemm_inner_loop_1x1_f32rcpc_f32rcp_f32_xsfmm32a32f(
+    size_t m, size_t n, size_t k, const float *a,
+    __attribute__((unused)) size_t rsa1, size_t csa1, const float *b,
+    size_t rsb1, __attribute__((unused)) size_t csb1) {
   if (m == 0 || n == 0) {
     return;
   }
@@ -624,8 +629,8 @@ skl_gemm_inner_loop_1x1_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
 
                    "1:\n"
                    : [a0] "+&r"(a0), [b0] "+&r"(b0), [k] "+&r"(k)
-                   : [sa] "r"(csa * sizeof(float)),
-                     [sb] "r"(rsb * sizeof(float)), [m] "r"(m), [n] "r"(n)
+                   : [sa] "r"(csa1 * sizeof(float)),
+                     [sb] "r"(rsb1 * sizeof(float)), [m] "r"(m), [n] "r"(n)
                    : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9",
                      "v10", "v11", "v12", "v13", "v14", "v15", "vtype", "vl",
                      "memory");
@@ -633,8 +638,9 @@ skl_gemm_inner_loop_1x1_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
 
 /* m <= ETE, n <= 2 * ETE. */
 SKL_XSFMM_INOUT
-SKL_FUNC_PRIVATE void skl_gemm_inner_loop_1x2_f32c_f32rcp_f32_xsfmm32a32f(
-    size_t m, size_t n, size_t k, const float *a, size_t csa, const float *b,
+SKL_FUNC_PRIVATE void skl_gemm_inner_loop_1x2_f32rcpc_f32rcp_f32_xsfmm32a32f(
+    size_t m, size_t n, size_t k, const float *a,
+    __attribute__((unused)) size_t rsa1, size_t csa1, const float *b,
     size_t rsb1, size_t csb1) {
   if (m == 0 || n == 0) {
     return;
@@ -698,7 +704,7 @@ SKL_FUNC_PRIVATE void skl_gemm_inner_loop_1x2_f32c_f32rcp_f32_xsfmm32a32f(
 
       "2:\n"
       : [a0] "+&r"(a0), [b0] "+&r"(b0), [b1] "+&r"(b1), [k] "+&r"(k)
-      : [sa] "r"(csa * sizeof(float)), [sb] "r"(rsb1 * sizeof(float)),
+      : [sa] "r"(csa1 * sizeof(float)), [sb] "r"(rsb1 * sizeof(float)),
         [m] "r"(m), [tn0] "r"(tn0), [tn1] "r"(tn1), [i2] "r"(2)
       : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
         "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20",
@@ -707,8 +713,9 @@ SKL_FUNC_PRIVATE void skl_gemm_inner_loop_1x2_f32c_f32rcp_f32_xsfmm32a32f(
 
 /* m <= ETE, n <= 3 * ETE. */
 SKL_XSFMM_INOUT
-SKL_FUNC_PRIVATE void skl_gemm_inner_loop_1x3_f32c_f32rcp_f32_xsfmm32a32f(
-    size_t m, size_t n, size_t k, const float *a, size_t csa, const float *b,
+SKL_FUNC_PRIVATE void skl_gemm_inner_loop_1x3_f32rcpc_f32rcp_f32_xsfmm32a32f(
+    size_t m, size_t n, size_t k, const float *a,
+    __attribute__((unused)) size_t rsa1, size_t csa1, const float *b,
     size_t rsb1, size_t csb1) {
   if (m == 0 || n == 0) {
     return;
@@ -790,7 +797,7 @@ SKL_FUNC_PRIVATE void skl_gemm_inner_loop_1x3_f32c_f32rcp_f32_xsfmm32a32f(
       "2:\n"
       : [a0] "+&r"(a0), [b0] "+&r"(b0), [b1] "+&r"(b1), [b2] "+&r"(b2),
         [k] "+&r"(k)
-      : [sa] "r"(csa * sizeof(float)), [sb] "r"(rsb1 * sizeof(float)),
+      : [sa] "r"(csa1 * sizeof(float)), [sb] "r"(rsb1 * sizeof(float)),
         [m] "r"(m), [tn0] "r"(tn0), [tn1] "r"(tn1), [tn2] "r"(tn2), [i2] "r"(2)
       : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
         "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20",
@@ -800,8 +807,9 @@ SKL_FUNC_PRIVATE void skl_gemm_inner_loop_1x3_f32c_f32rcp_f32_xsfmm32a32f(
 
 /* m <= ETE, n <= 4 * ETE. */
 SKL_XSFMM_INOUT
-SKL_FUNC_PRIVATE void skl_gemm_inner_loop_1x4_f32c_f32rcp_f32_xsfmm32a32f(
-    size_t m, size_t n, size_t k, const float *a, size_t csa, const float *b,
+SKL_FUNC_PRIVATE void skl_gemm_inner_loop_1x4_f32rcpc_f32rcp_f32_xsfmm32a32f(
+    size_t m, size_t n, size_t k, const float *a,
+    __attribute__((unused)) size_t rsa1, size_t csa1, const float *b,
     size_t rsb1, size_t csb1) {
   if (m == 0 || n == 0) {
     return;
@@ -898,7 +906,7 @@ SKL_FUNC_PRIVATE void skl_gemm_inner_loop_1x4_f32c_f32rcp_f32_xsfmm32a32f(
                    "2:\n"
                    : [a0] "+&r"(a0), [b0] "+&r"(b0), [b1] "+&r"(b1),
                      [b2] "+&r"(b2), [b3] "+&r"(b3), [k] "+&r"(k)
-                   : [sa] "r"(csa * sizeof(float)),
+                   : [sa] "r"(csa1 * sizeof(float)),
                      [sb] "r"(rsb1 * sizeof(float)), [m] "r"(m), [tn0] "r"(tn0),
                      [tn1] "r"(tn1), [tn2] "r"(tn2), [tn3] "r"(tn3), [i2] "r"(2)
                    : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9",
@@ -909,7 +917,7 @@ SKL_FUNC_PRIVATE void skl_gemm_inner_loop_1x4_f32c_f32rcp_f32_xsfmm32a32f(
 
 /* m <= 2 * ETE, n <= 2 * ETE. */
 SKL_XSFMM_INOUT
-SKL_FUNC_PRIVATE void skl_gemm_inner_loop_2x2_f32rcp_f32rcp_f32_xsfmm32a32f(
+SKL_FUNC_PRIVATE void skl_gemm_inner_loop_2x2_f32rcpc_f32rcp_f32_xsfmm32a32f(
     size_t m, size_t n, size_t k, const float *a, size_t rsa1, size_t csa1,
     const float *b, size_t rsb1, size_t csb1) {
   if (m == 0 || n == 0) {
@@ -1006,241 +1014,71 @@ SKL_FUNC_PRIVATE void skl_gemm_inner_loop_2x2_f32rcp_f32rcp_f32_xsfmm32a32f(
                      "memory");
 }
 
-/* Compute an m x n x k matrix product A * B (accum == false) or C + A * B
- * (accum == true) and apply the fused kernel. m and n must be <= ETE. */
-SKL_XSFMM_NEW
-SKL_FUNC_PRIVATE void skl_gemm_1x1_f32c_f32_f32rcp_xsfmm32a32f(
-    size_t m, size_t n, size_t k, const float *a, size_t csa, const float *b,
-    size_t rsb, float *c, size_t rsc0, size_t rsc1, size_t csc1, size_t row1,
+SKL_FUNC_PRIVATE void skl_gemm_apply_tiling_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
+    inner_loop_f32rcpc_f32rcp_f32_t inner_loop, size_t m, size_t n, size_t k,
+    const float *a, size_t rsa1, size_t csa1, const float *b, size_t rsb1,
+    size_t csb1, float *c, size_t rsc0, size_t rsc1, size_t csc1, size_t row1,
     size_t col1, bool accum, fused_f32_f32_t kernel, void *params) {
   if (m == 0 || n == 0) {
     return;
   }
 
-  const size_t mt0 = 0;
-  if (accum) {
-    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
-                                       rsc0, rsc1, csc1, mt0, 0, 0);
-  } else {
-    skl_tile_zero_f32_f32_xsfmmbase(m, n, mt0, 0, 0);
-  }
-
-  skl_gemm_inner_loop_1x1_f32c_f32_f32_xsfmm32a32f(m, n, k, a, csa, b, rsb);
-
-  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
-      m, n, mt0, 0, 0, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
-
-  __asm__ volatile("sf.vtdiscard");
-}
-
-/* m <= ETE, n <= 2 * ETE. */
-SKL_XSFMM_NEW
-SKL_FUNC_PRIVATE void skl_gemm_1x2_f32c_f32rcp_f32rcp_xsfmm32a32f(
-    size_t m, size_t n, size_t k, const float *a, size_t csa, const float *b,
-    size_t rsb1, size_t csb1, float *c, size_t rsc0, size_t rsc1, size_t csc1,
-    size_t row1, size_t col1, bool accum, fused_f32_f32_t kernel,
-    void *params) {
-  if (m == 0 || n == 0) {
-    return;
-  }
-
-  const size_t mt0 = 0;
-  if (accum) {
-    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
-                                       rsc0, rsc1, csc1, mt0, 0, 4);
-  } else {
-    skl_tile_zero_f32_f32_xsfmmbase(m, n, mt0, 0, 4);
-  }
-
-  skl_gemm_inner_loop_1x2_f32c_f32rcp_f32_xsfmm32a32f(m, n, k, a, csa, b, rsb1,
-                                                      csb1);
-
-  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
-      m, n, mt0, 0, 4, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
-
-  __asm__ volatile("sf.vtdiscard");
-}
-
-/* m <= 2 * ETE, n <= ETE. */
-SKL_XSFMM_NEW
-SKL_FUNC_PRIVATE void skl_gemm_2x1_f32rcp_f32_f32rcp_xsfmm32a32f(
-    size_t m, size_t n, size_t k, const float *a, size_t rsa1, size_t csa1,
-    const float *b, size_t rsb, float *c, size_t rsc0, size_t rsc1, size_t csc1,
-    size_t row1, size_t col1, bool accum, fused_f32_f32_t kernel,
-    void *params) {
-  if (m == 0 || n == 0) {
-    return;
-  }
-
   const size_t kShiftPattern = 24;
   const size_t mt0 = 0;
-  const size_t mt0c = mt0 | 1 << kShiftPattern;
-  if (accum) {
-    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
-                                       rsc0, rsc1, csc1, mt0c, 4, 0);
-  } else {
-    skl_tile_zero_f32_f32_xsfmmbase(n, m, mt0, 0, 4);
+  const size_t mt0c = 0 | 1 << kShiftPattern;
+
+  size_t ete = 0; // Effective tile edge length (always TE for TEW = 32).
+  __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
+
+  size_t m1 = (m + ete - 1) / ete;
+  size_t n1 = (n + ete - 1) / ete;
+
+  size_t rstss = 0;
+  size_t cstss = 0;
+  bool trans = m1 > n1;
+  if (m1 == 1) {
+    cstss = 4;
+  } else if (n1 == 1) {
+    rstss = 4;
+  } else { // 2 x 2
+    rstss = 8;
+    cstss = 4;
   }
 
-  // NOLINTBEGIN(readability-suspicious-call-argument)
-  skl_gemm_inner_loop_1x2_f32c_f32rcp_f32_xsfmm32a32f(n, m, k, b, rsb, a, csa1,
-                                                      rsa1);
-  // NOLINTEND(readability-suspicious-call-argument)
+  if (accum) {
+    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
+                                       rsc0, rsc1, csc1, trans ? mt0c : mt0,
+                                       rstss, cstss);
+  } else {
+    if (trans) {
+      // NOLINTBEGIN(readability-suspicious-call-argument)
+      skl_tile_zero_f32_f32_xsfmmbase(n, m, mt0, cstss, rstss);
+      // NOLINTEND(readability-suspicious-call-argument)
+    } else {
+      skl_tile_zero_f32_f32_xsfmmbase(m, n, mt0, rstss, cstss);
+    }
+  }
 
-  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
-      m, n, mt0c, 4, 0, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
+  if (trans) {
+    inner_loop(n, m, k, b, csb1, rsb1, a, csa1, rsa1);
+  } else {
+    inner_loop(m, n, k, a, rsa1, csa1, b, rsb1, csb1);
+  }
+
+  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(m, n, trans ? mt0c : mt0, rstss,
+                                                cstss, c, rsc0, 1, rsc1, csc1,
+                                                row1, col1, kernel, params);
 
   __asm__ volatile("sf.vtdiscard");
 }
 
-/* m <= ETE, n <= 3 * ETE. */
-SKL_XSFMM_NEW
-SKL_FUNC_PRIVATE void skl_gemm_1x3_f32c_f32rcp_f32rcp_xsfmm32a32f(
-    size_t m, size_t n, size_t k, const float *a, size_t csa, const float *b,
-    size_t rsb1, size_t csb1, float *c, size_t rsc0, size_t rsc1, size_t csc1,
-    size_t row1, size_t col1, bool accum, fused_f32_f32_t kernel,
-    void *params) {
-  if (m == 0 || n == 0) {
-    return;
-  }
-
-  const size_t mt0 = 0;
-  if (accum) {
-    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
-                                       rsc0, rsc1, csc1, mt0, 0, 4);
-  } else {
-    skl_tile_zero_f32_f32_xsfmmbase(m, n, mt0, 0, 4);
-  }
-
-  skl_gemm_inner_loop_1x3_f32c_f32rcp_f32_xsfmm32a32f(m, n, k, a, csa, b, rsb1,
-                                                      csb1);
-
-  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
-      m, n, mt0, 0, 4, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
-
-  __asm__ volatile("sf.vtdiscard");
-}
-
-/* m <= 3 * ETE, n <= ETE. */
-SKL_XSFMM_NEW
-__attribute__((unused)) SKL_FUNC_PRIVATE void
-skl_gemm_3x1_f32rcp_f32_f32rcp_xsfmm32a32f(
-    size_t m, size_t n, size_t k, const float *a, size_t rsa1, size_t csa1,
-    const float *b, size_t rsb, float *c, size_t rsc0, size_t rsc1, size_t csc1,
-    size_t row1, size_t col1, bool accum, fused_f32_f32_t kernel,
-    void *params) {
-  if (m == 0 || n == 0) {
-    return;
-  }
-
-  const size_t kShiftPattern = 24;
-  const size_t mt0 = 0;
-  const size_t mt0c = mt0 | 1 << kShiftPattern;
-  if (accum) {
-    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
-                                       rsc0, rsc1, csc1, mt0c, 4, 0);
-  } else {
-    skl_tile_zero_f32_f32_xsfmmbase(n, m, mt0, 0, 4);
-  }
-
-  // NOLINTBEGIN(readability-suspicious-call-argument)
-  skl_gemm_inner_loop_1x3_f32c_f32rcp_f32_xsfmm32a32f(n, m, k, b, rsb, a, csa1,
-                                                      rsa1);
-  // NOLINTEND(readability-suspicious-call-argument)
-
-  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
-      m, n, mt0c, 4, 0, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
-
-  __asm__ volatile("sf.vtdiscard");
-}
-
-/* m <= ETE, n <= 4 * ETE. */
-SKL_XSFMM_NEW
-SKL_FUNC_PRIVATE void skl_gemm_1x4_f32c_f32rcp_f32rcp_xsfmm32a32f(
-    size_t m, size_t n, size_t k, const float *a, size_t csa, const float *b,
-    size_t rsb1, size_t csb1, float *c, size_t rsc0, size_t rsc1, size_t csc1,
-    size_t row1, size_t col1, bool accum, fused_f32_f32_t kernel,
-    void *params) {
-  if (m == 0 || n == 0) {
-    return;
-  }
-
-  const size_t mt0 = 0;
-  if (accum) {
-    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
-                                       rsc0, rsc1, csc1, mt0, 0, 4);
-  } else {
-    skl_tile_zero_f32_f32_xsfmmbase(m, n, mt0, 0, 4);
-  }
-
-  skl_gemm_inner_loop_1x4_f32c_f32rcp_f32_xsfmm32a32f(m, n, k, a, csa, b, rsb1,
-                                                      csb1);
-
-  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
-      m, n, mt0, 0, 4, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
-
-  __asm__ volatile("sf.vtdiscard");
-}
-
-/* m <= 4 * ETE, n <= ETE. */
-SKL_XSFMM_NEW
-SKL_FUNC_PRIVATE void skl_gemm_4x1_f32rcp_f32_f32rcp_xsfmm32a32f(
-    size_t m, size_t n, size_t k, const float *a, size_t rsa1, size_t csa1,
-    const float *b, size_t rsb, float *c, size_t rsc0, size_t rsc1, size_t csc1,
-    size_t row1, size_t col1, bool accum, fused_f32_f32_t kernel,
-    void *params) {
-  if (m == 0 || n == 0) {
-    return;
-  }
-
-  const size_t kShiftPattern = 24;
-  const size_t mt0 = 0;
-  const size_t mt0c = mt0 | 1 << kShiftPattern;
-  if (accum) {
-    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
-                                       rsc0, rsc1, csc1, mt0c, 4, 0);
-  } else {
-    skl_tile_zero_f32_f32_xsfmmbase(n, m, mt0, 0, 4);
-  }
-
-  // NOLINTBEGIN(readability-suspicious-call-argument)
-  skl_gemm_inner_loop_1x4_f32c_f32rcp_f32_xsfmm32a32f(n, m, k, b, rsb, a, csa1,
-                                                      rsa1);
-  // NOLINTEND(readability-suspicious-call-argument)
-
-  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
-      m, n, mt0c, 4, 0, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
-
-  __asm__ volatile("sf.vtdiscard");
-}
-
-/* m <= 2 * ETE, n <= 2 * ETE. */
-SKL_XSFMM_NEW
-SKL_FUNC_PRIVATE void skl_gemm_2x2_f32rcp_f32rcp_f32rcp_xsfmm32a32f(
-    size_t m, size_t n, size_t k, const float *a, size_t rsa1, size_t csa1,
-    const float *b, size_t rsb1, size_t csb1, float *c, size_t rsc0,
-    size_t rsc1, size_t csc1, size_t row1, size_t col1, bool accum,
-    fused_f32_f32_t kernel, void *params) {
-  if (m == 0 || n == 0) {
-    return;
-  }
-
-  const size_t mt0 = 0;
-  if (accum) {
-    skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
-                                       rsc0, rsc1, csc1, mt0, 8, 4);
-  } else {
-    skl_tile_zero_f32_f32_xsfmmbase(m, n, mt0, 8, 4);
-  }
-
-  skl_gemm_inner_loop_2x2_f32rcp_f32rcp_f32_xsfmm32a32f(m, n, k, a, rsa1, csa1,
-                                                        b, rsb1, csb1);
-
-  skl_gemm_fused_apply_f32_f32rcprc_xsfmm32a32f(
-      m, n, mt0, 8, 4, c, rsc0, 1, rsc1, csc1, row1, col1, kernel, params);
-
-  __asm__ volatile("sf.vtdiscard");
-}
+#define SKL_GEMM_TILE(M1XN1, M, N, ROW1, COL1)                                 \
+  do {                                                                         \
+    skl_gemm_apply_tiling_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(                   \
+        skl_gemm_inner_loop_##M1XN1##_f32rcpc_f32rcp_f32_xsfmm32a32f, M, N, k, \
+        a + (ROW1) * rsa1, rsa1, csa1, b + (COL1) * csb1, rsb1, csb1, c, rsc0, \
+        rsc1, csc1, ROW1, COL1, accum, kernel, params);                        \
+  } while (0)
 
 SKL_FUNC_PRIVATE void skl_gemm_dispatch_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
     size_t m, size_t n, size_t k, const float *a, size_t rsa1, size_t csa1,
@@ -1264,19 +1102,12 @@ SKL_FUNC_PRIVATE void skl_gemm_dispatch_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
     size_t j1 = 0;
     for (; j1 + 1 < n1; j1 += 2) {
       size_t n_vl = n_avl >= 2 * ete ? 2 * ete : n_avl;
-      skl_gemm_2x2_f32rcp_f32rcp_f32rcp_xsfmm32a32f(
-          2 * ete, n_vl, k, a + i1 * rsa1, rsa1, csa1, b + j1 * csb1, rsb1,
-          csb1, c, rsc0, rsc1, csc1, i1, j1, accum, kernel, params);
-      skl_gemm_2x2_f32rcp_f32rcp_f32rcp_xsfmm32a32f(
-          m_vl - 2 * ete, n_vl, k, a + (i1 + 2) * rsa1, rsa1, csa1,
-          b + j1 * csb1, rsb1, csb1, c, rsc0, rsc1, csc1, i1 + 2, j1, accum,
-          kernel, params);
+      SKL_GEMM_TILE(2x2, 2 * ete, n_vl, i1, j1);
+      SKL_GEMM_TILE(2x2, m_vl - 2 * ete, n_vl, i1 + 2, j1);
       n_avl -= n_vl;
     }
     if (j1 < n1) {
-      skl_gemm_4x1_f32rcp_f32_f32rcp_xsfmm32a32f(
-          m_vl, n_avl, k, a + i1 * rsa1, rsa1, csa1, b + j1 * csb1, rsb1, c,
-          rsc0, rsc1, csc1, i1, j1, accum, kernel, params);
+      SKL_GEMM_TILE(1x4, m_vl, n_avl, i1, j1);
     }
     m_avl -= m_vl;
   }
@@ -1287,15 +1118,11 @@ SKL_FUNC_PRIVATE void skl_gemm_dispatch_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
     size_t j1 = 0;
     for (; j1 + 1 < n1; j1 += 2) {
       size_t n_vl = n_avl >= 2 * ete ? 2 * ete : n_avl;
-      skl_gemm_2x2_f32rcp_f32rcp_f32rcp_xsfmm32a32f(
-          m_vl, n_vl, k, a + i1 * rsa1, rsa1, csa1, b + j1 * csb1, rsb1, csb1,
-          c, rsc0, rsc1, csc1, i1, j1, accum, kernel, params);
+      SKL_GEMM_TILE(2x2, m_vl, n_vl, i1, j1);
       n_avl -= n_vl;
     }
     if (j1 < n1) {
-      skl_gemm_2x1_f32rcp_f32_f32rcp_xsfmm32a32f(
-          m_vl, n_avl, k, a + i1 * rsa1, rsa1, csa1, b + j1 * csb1, rsb1, c,
-          rsc0, rsc1, csc1, i1, j1, accum, kernel, params);
+      SKL_GEMM_TILE(1x2, m_vl, n_avl, i1, j1);
     }
     m_avl -= m_vl;
   }
@@ -1305,32 +1132,25 @@ SKL_FUNC_PRIVATE void skl_gemm_dispatch_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
     size_t j1 = 0;
     for (; j1 + 3 < n1; j1 += 4) {
       size_t n_vl = n_avl >= 4 * ete ? 4 * ete : n_avl;
-      skl_gemm_1x4_f32c_f32rcp_f32rcp_xsfmm32a32f(
-          m_avl, n_vl, k, a + i1 * rsa1, csa1, b + j1 * csb1, rsb1, csb1, c,
-          rsc0, rsc1, csc1, i1, j1, accum, kernel, params);
+      SKL_GEMM_TILE(1x4, m_avl, n_vl, i1, j1);
       n_avl -= n_vl;
     }
     switch (n1 - j1) {
     case 3:
-      skl_gemm_1x3_f32c_f32rcp_f32rcp_xsfmm32a32f(
-          m_avl, n_avl, k, a + i1 * rsa1, csa1, b + j1 * csb1, rsb1, csb1, c,
-          rsc0, rsc1, csc1, i1, j1, accum, kernel, params);
+      SKL_GEMM_TILE(1x3, m_avl, n_avl, i1, j1);
       break;
     case 2:
-      skl_gemm_1x2_f32c_f32rcp_f32rcp_xsfmm32a32f(
-          m_avl, n_avl, k, a + i1 * rsa1, csa1, b + j1 * csb1, rsb1, csb1, c,
-          rsc0, rsc1, csc1, i1, j1, accum, kernel, params);
+      SKL_GEMM_TILE(1x2, m_avl, n_avl, i1, j1);
       break;
     case 1:
-      skl_gemm_1x1_f32c_f32_f32rcp_xsfmm32a32f(
-          m_avl, n_avl, k, a + i1 * rsa1, csa1, b + j1 * csb1, rsb1, c, rsc0,
-          rsc1, csc1, i1, j1, accum, kernel, params);
+      SKL_GEMM_TILE(1x1, m_avl, n_avl, i1, j1);
       break;
     default:
       break;
     }
   }
 }
+#undef SKL_GEMM_TILE
 
 SKL_FUNC_PRIVATE void skl_gemm_fused_f32c_f32_f32_xsfmm32a32f(
     size_t m, size_t n, size_t k, const float *a, size_t csa, const float *b,
