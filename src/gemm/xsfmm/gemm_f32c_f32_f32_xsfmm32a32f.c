@@ -15,12 +15,12 @@
 typedef void (*fused_f32_f32_t)(size_t tm, size_t tn, size_t tss, float *c,
                                 size_t rsc0, size_t csc0, size_t rsc1,
                                 size_t csc1, size_t row1, size_t col1,
-                                void *params);
+                                void *params) SKL_XSFMM_IN;
 
 typedef void (*inner_loop_f32rcpc_f32rcp_f32_t)(size_t m, size_t n, size_t k,
                                                 const float *a, size_t rsa1,
                                                 size_t csa1, const float *b,
-                                                size_t rsb1, size_t csb1);
+                                                size_t rsb1, size_t csb1) SKL_XSFMM_INOUT;
 
 /* params type for the alpha/beta scaling kernel */
 typedef struct {
