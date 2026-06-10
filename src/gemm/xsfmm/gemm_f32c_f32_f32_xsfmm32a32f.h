@@ -60,36 +60,35 @@ void skl_gemm_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
                                        float *c, size_t rsc);
 
 /**
- * @brief Xsfmm float32 A * B packed matrix-matrix multiplication.
+ * @brief Xsfmm packed float32 GEMM.
  *
  * @param m1 - Number of block-rows in A and C.
  * @param n1 - Number of block-columns in B and C.
  * @param k - Number of columns in A and rows in B.
  * @param alpha - Scaling factor for A * B.
- * @param a_pack - Pointer to matrix A.
+ * @param a - Pointer to packed matrix A.
  * @param rsa1 - Row stride between blocks of A in elements.
  * @param csa1 - Column stride between blocks of A in elements.
- * @param b_pack - Pointer to matrix B.
+ * @param b - Pointer to packed matrix B.
  * @param rsb1 - Row stride between blocks of B in elements.
  * @param csb1 - Column stride between blocks of B in elements.
  * @param beta - Scaling factor for C.
- * @param c_pack - Pointer to matrix C.
+ * @param c - Pointer to packed matrix C.
  * @param rsc0 - Row stride within a block of C in elements.
  * @param rsc1 - Row stride between blocks of C in elements.
  * @param csc1 - Column stride between blocks of C in elements.
  *
- * Computes `C = alpha * A * B + beta * C` for packed float32 matrices A, B, and
- * C.
+ * Computes `C = alpha * A * B + beta * C`.
  *
  * Equivalent to calling:
  * ```
  * skl_gemm_f32rcprc_f32rcprc_f32rcprc_ref(
- *     ETE, ETE, 1, m1, n1, k,     // m0, n0, k0, m1, n1, k1
- *     alpha,                      // alpha
- *     a_pack, 1, 0, rsa1, csa1,   // a_pack, rsa0, csa0, rsa1, csa1
- *     b_pack, 0, 1, rsb1, csb1,   // b_pack, rsb0, csb0, rsb1, csb1
- *     beta,                       // beta
- *     c_pack, rsc0, 1, rsc1, csc1 // c_pack, rsc0, csc0, rsc1, csc1
+ *     ETE, ETE, 1, m1, n1, k, // m0, n0, k0, m1, n1, k1
+ *     alpha,                  // alpha
+ *     a, 1, 0, rsa1, csa1,    // a, rsa0, csa0, rsa1, csa1
+ *     b, 0, 1, rsb1, csb1,    // b, rsb0, csb0, rsb1, csb1
+ *     beta,                   // beta
+ *     c, rsc0, 1, rsc1, csc1  // c, rsc0, csc0, rsc1, csc1
  * );
  * ```
  */
