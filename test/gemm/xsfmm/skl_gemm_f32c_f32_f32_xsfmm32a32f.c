@@ -21,10 +21,8 @@
  *  - Matrix A is column-major (rsa1 == 1)
  *  - Matrix B is row-major (csb1 == 1)
  *  - Matrix C is row-major (csc1 == 1)
- *  - Alpha must be 1.0
- *  - Beta must be 0.0 or 1.0
  *
- * The kernel computes C = A * B (beta = 0) or C += A * B (beta = 1).
+ * The kernel computes C = alpha * A * B + beta * C.
  */
 
 #define TEST                                                                   \
@@ -86,11 +84,11 @@ gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
     {TEST, .m1 = 129, .n1 = 63,  .k1 = 1, .alpha = 1.f},
     {TEST, .m1 = 65,  .n1 = 129, .k1 = 2, .alpha = 1.f},
     {TEST, .m1 = 64,  .n1 = 128, .k1 = 5, .alpha = 1.f},
-    /* Beta=1 tests (accumulate into existing C) */
-    {TEST, .m1 = 65,  .n1 = 65,  .k1 = 0,  .alpha = 1.f, .beta = 1.f},
-    {TEST, .m1 = 65,  .n1 = 65,  .k1 = 1,  .alpha = 1.f, .beta = 1.f},
-    {TEST, .m1 = 65,  .n1 = 65,  .k1 = 33, .alpha = 1.f, .beta = 1.f},
-    {TEST, .m1 = 128, .n1 = 128, .k1 = 33, .alpha = 1.f, .beta = 1.f},
+    /* General Alpha and Beta tests */
+    {TEST, .m1 = 65,  .n1 = 65,  .k1 = 0,  .alpha = 2.f, .beta = 3.f},
+    {TEST, .m1 = 65,  .n1 = 65,  .k1 = 1,  .alpha = 2.f, .beta = 3.f},
+    {TEST, .m1 = 65,  .n1 = 65,  .k1 = 33, .alpha = 2.f, .beta = 3.f},
+    {TEST, .m1 = 128, .n1 = 128, .k1 = 33, .alpha = 2.f, .beta = 3.f},
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on
@@ -111,8 +109,6 @@ static void init(skl_test_t *t) {
   SKL_TEST_REQUIRE(t, init_status, h->rsa1 == 1); // Note: column-major
   SKL_TEST_REQUIRE(t, init_status, h->csb1 == 1);
   SKL_TEST_REQUIRE(t, init_status, h->csc1 == 1);
-  SKL_TEST_REQUIRE(t, init_status, h->alpha == 1.f);
-  SKL_TEST_REQUIRE(t, init_status, h->beta == 0.f || h->beta == 1.f);
 
   gemm_f32rcprc_f32rcprc_f32rcprc_init(t);
 }
