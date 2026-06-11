@@ -53,10 +53,10 @@ extern "C" {
  * row-major order, and then call this function with A^T, using its row stride
  * as `csa`.
  **/
-void skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
-                                             const float *a, size_t csa,
-                                             const float *b, size_t rsb,
-                                             float *c, size_t rsc, bool accum);
+void skl_gemm_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
+                                       float alpha, const float *a, size_t csa,
+                                       const float *b, size_t rsb, float beta,
+                                       float *c, size_t rsc);
 
 /**
  * @brief Xsfmm float32 A * B packed matrix-matrix multiplication.
@@ -88,10 +88,10 @@ void skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
  * );
  * ```
  */
-void skl_gemm_a1b01_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f(
-    size_t m1, size_t n1, size_t k, const float *a_pack, size_t rsa1,
-    const float *b_pack, size_t csb1, float *c_pack, size_t rsc1, size_t csc1,
-    bool accum);
+void skl_gemm_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f(
+    size_t m1, size_t n1, size_t k, float alpha, const float *a, size_t rsa1,
+    const float *b, size_t csb1, float beta, float *c, size_t rsc1,
+    size_t csc1);
 
 #if defined(__cplusplus)
 } // extern "C"
