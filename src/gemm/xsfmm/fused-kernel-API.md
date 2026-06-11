@@ -139,6 +139,35 @@ void skl_gemm_matrix_max_f32_f32rcp_xsfmmbase(
 }
 ```
 
+### Fused Kernel Application Function
+The following fused kernel application function is provided to easily apply a fused kernel to multiple tiles and blocks:
+```
+void skl_gemm_apply_fused_f32_f32rcprc_xsfmm32a32f(
+    size_t m, size_t n, size_t tss, size_t rstss, size_t cstss, float *c,
+    size_t rsc0, size_t csc0, size_t rsc1, size_t csc1, size_t row1,
+    size_t col1, fused_f32_f32_t kernel, void *params);
+```
+`tss`, `rstss`, and `cstss` determine the tile layout.
+The tile specifier of `tss` indicates the upper leftmost tile.
+`rstss` and `cstss` are the row and column strides for the tile index.
+Examples:
+```
+tss = 0, cstss = 4
+mt0 mt4 mt8 mt12
+
+tss = 0, rstss = 8, cstss = 4
+mt0 mt4
+mt8 mt12
+
+tss = 3, rstss = 1, cstss = 3
+mt3 mt6 ...
+mt4 mt7 ...
+mt5 mt8 ...
+```
+This function applies the kernel to the leading `m` x `n` portion of the tile layout and the corresponding part of `C`.
+
+
+
 ## Tile State Initialization
 Before accumulating any matrix products into the tile state, the tile state must be initialized either by zeroing it out or loading a matrix in from memory.
 
@@ -189,6 +218,31 @@ Original Matrix (7 x 6):
 │                │                │
 └─────────────────────────────────┘
 ```
+
+## Applying a Tiling to `C`
+Now that we have described tile state initialization, inner loop functions, and fused kernels, we can put them all together to process parts of `C`.
+We will first initialize the tile state with zeros or by loading from `C`, then accumulate `A * B` into the tile state, and finally apply a fused kernel to the tile state.
+Suppose we wish to process an `m` x `n` portion of `C` using one of the available tilings.
+starting at row1, col1
+This requires that `m` and `n` be small enough.
+When `m1 <= n1`, it is relatively straightforward.
+To initialize the tile state, we call...
+Then apply the appropriate inner loop function...
+And finally apply the fused kernel
+
+### Tilings with `m1 > n1`
+Processing these tilings is slightly more complicated because they involve transposing the `C` block so that one of the inner loop can be applied.
+```
+tile_load(m, n, c, rsc0, rsc1, csc1, mt0c, rstss, cstss)
+tile_zero(n, m, mt0)
+```
+apply inner loop function with a and b swapped
+```
+fused_kernel()
+```
+
+## `C` with column-major blocks
+
 
 
 
