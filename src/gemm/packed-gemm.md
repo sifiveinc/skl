@@ -237,21 +237,22 @@ However, in the case of the dot product dimension, we simply set the SKL GEMM `k
 
 In theory, it should be possible to avoid exposing this packing to the GEMM kernel itself.
 If all matrices were packed into `TE` x `TE` blocks, then the kernel could be called in a loop nest over the packed blocks, applying one `sf.mm` instruction per block.
-However, to obtain peak performance it is often necessary for the kernel to use `2*TE` x `2*TE` register tiles, so the strides between blocks must necessarily be exposed to the implementation, motivating the provision of a packed API for this target:
+However, to obtain peak performance it is often necessary for the kernel to use a 2 x 2 register tiling, so the strides between blocks must necessarily be exposed to the implementation, motivating the provision of a packed API for this target:
 
 ```c
-void skl_gemm_a1b01_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f(
+void skl_gemm_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f(
   size_t m1,       // Num. block-rows in A and C
   size_t n1,       // Num. block-columns in B and C
   size_t k,        // Num. columns in A, rows in B
+  float alpha,     // Scaling factor for A * B
   const float* a,  // Packed input matrix A [m1 x k x (TE x 1)]
   size_t rsa1,     // Row stride between panels of A
   const float* b,  // Packed input matrix B [k x n1 x (1 x TE)]
   size_t csb1,     // Column stride between panels of B
+  float beta,      // Scaling factor for C
   float* c,        // Packed output matrix C [m1 x n1 x (TE x TE)]
   size_t rsc1,     // Row stride between blocks of C
-  size_t csc1,     // Column stride between blocks of C
-  bool accum       // Whether to accumulate into C
+  size_t csc1      // Column stride between blocks of C
 );
 ```
 

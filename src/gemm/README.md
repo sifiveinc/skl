@@ -50,7 +50,7 @@ For such applications, users can either extract the relevant inner loop nests an
 Some targets constrain certain of these parameters to specific values.
 For example, matrix engine (Xsfmm) kernels currently require `alpha=1` and `beta=0`, and transpose the A matrix.
 Others require specific memory layouts, such as packing or transposition.
-These constraints are indicated in the function name, as described below (e.g. `skl_gemm_a1b01_f32c_f32_f32_xsfmm`).
+These constraints are indicated in the function name, as described below (e.g. `skl_gemm_f32c_f32_f32_xsfmm32a32f`).
 
 __When a kernel's specialization fixes a parameter to a specific value, that parameter is omitted from the API.__
 Since most kernels, aside from reference functions, support only row-major matrices, they do not have both `rsa` and `csa` parameters, for example.
@@ -87,8 +87,8 @@ Public SKL GEMM functions are dispatch functions that choose between one or more
 - `skl_gemm_f32rc_f32rc_f32rc_ref(m, n, k, alpha, a, rsa, csa, b, rsb, csb, beta, c, rsc, csc)`
 - `skl_gemm_f32_f32_f32_zve32f_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc)`
 - `skl_gemm_i8_i8_i32_zve32x_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc)`
-- `skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(m, n, k, a, csa, b, rsb, c, rsc, accum)`
-- `skl_gemm_a1b01_f32pc_f32p_f32p_xsfmm32a32f(...)`  (See the [Packed GEMM API](packed-gemm.md) document for details)
+- `skl_gemm_f32c_f32_f32_xsfmm32a32f(m, n, k, alpha, a, csa, b, rsb, beta, c, rsc)`
+- `skl_gemm_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f(...)`  (See the [Packed GEMM API](packed-gemm.md) document for details)
 - `skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(...)` (See above.)
 
 ### Memory Layout and Packing
@@ -142,7 +142,7 @@ For many ISAs, such as RVV, internal specialized kernels are likely but not guar
 Generally, the names of these internal functions indicate the type of specialization (in addition to any required by the target already) in terms of register tile dimensions:
 - `skl_gemm_4x1m4x1_f32_f32_f32_zve32f_x390` for a 4x1 register tile (4 rows, 1 LMUL-4 column)
 - `skl_gemm_2x1m2x1_f32_f32_f32_zve32f_x390` for a 2x1 register tile (2 rows, 1 LMUL-4 column)
-- `skl_gemm_a1b01_2tm2tn_f32c_f32_f32_xsfmm32a32f` for a 2TEx2TE register tile (`2*TE` rows, `2*TE` columns)
+- `skl_gemm_2x2_f32rcp_f32rcp_f32rcp_xsfmm32a32f` for a 2x2 Xsfmm register tile
 
 ### Cache Blocking and Outer-Loop Nest Optimizations
 
