@@ -25,7 +25,7 @@ extern "C" {
  *
  * @param m - Number of block-rows in A_pack and rows in C.
  * @param n - Number of block-columns in B_pack and columns in C.
- * @param k - Inner product length in elements.
+ * @param k1 - Number of columns in A_pack and rows in B_pack as block matrices.
  * @param alpha - Scalar multiplier for A_pack * B_pack product.
  * @param a_pack - Pointer to packed matrix A_pack (m0 = 1, k0 = 4, csa0 = 1).
  * @param rsa1 - Row stride between blocks of A_pack in elements.
@@ -40,10 +40,10 @@ extern "C" {
  * Computes `C = alpha * A_pack * B_pack + beta * C` for packed int8 matrices
  * A_pack and B_pack and int32 output matrix C.
  *
- * When k % 4 == 0, equivalent to calling:
+ * Equivalent to:
  * ```
  * skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
- *     1, 1, 4, m, n, k / 4,     // m0, n0, k0, m1, n1, k1
+ *     1, 1, 4, m, n, k1,        // m0, n0, k0, m1, n1, k1
  *     alpha,                    // alpha
  *     a_pack, 0, 1, rsa1, csa1, // a_pack, rsa0, csa0, rsa1, csa1
  *     b_pack, 1, 0, rsb1, 4,    // b_pack, rsb0, csb0, rsb1, csb1
