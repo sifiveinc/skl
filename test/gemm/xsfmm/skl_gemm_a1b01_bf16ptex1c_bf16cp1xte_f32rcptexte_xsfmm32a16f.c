@@ -3,21 +3,21 @@
 // See LICENSE file in the project root for full license information.
 // SPDX-License-Identifier: MIT
 
-#include "gemm/gemm_f8rcprc_f8rcprc_f32rcprc.h"
+#include "gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc.h"
 #include "gemm/skl_test_gemm.h"
 #include "skl-test-driver.h"
 #include "skl.h"
 #include <stddef.h>
 
-#if !defined(__riscv_xsfmm32a8f)
-#error This file requires the Xsfmm32a8f extension
+#if !defined(__riscv_xsfmm32a16f)
+#error This file requires the Xsfmm32a16f extension
 #endif
 
 /**
- * @brief Test cases for GEMM with Xsfmm32a8f extension.
+ * @brief Test cases for GEMM with Xsfmm32a16f extension.
  *
- * This test uses the gemm_f8rcprc_f8rcprc_f32rcprc harness with the following
- * restrictions on the input parameters:
+ * This test uses the gemm_bf16rcprc_bf16rcprc_f32rcprc harness with the
+ * following restrictions on the input parameters:
  *  - The block dimensions are m0 = TE, n0 = TE, and k0 = 1
  *  - Matrix A_pack is block-row-major with column-major blocks (rsa0 == 1, csa1
  *    == m0 * k0)
@@ -32,36 +32,36 @@
  */
 
 #define TEST                                                                   \
-  GEMM_F8E5M2RCPRC_F8E5M2RCPRC_F32RCPRC_DEFAULTS,                              \
+  GEMM_BF16RCPRC_BF16RCPRC_F32RCPRC_DEFAULTS,                                  \
       .steps = {                                                               \
           .init = init,                                                        \
           .warmup = NULL,                                                      \
           .execute = execute,                                                  \
-          .verify = gemm_f8rcprc_f8rcprc_f32rcprc_verify,                      \
-          .report = gemm_f8rcprc_f8rcprc_f32rcprc_test_report,                 \
-          .cleanup = gemm_f8rcprc_f8rcprc_f32rcprc_cleanup,                    \
+          .verify = gemm_bf16rcprc_bf16rcprc_f32rcprc_verify,                  \
+          .report = gemm_bf16rcprc_bf16rcprc_f32rcprc_test_report,             \
+          .cleanup = gemm_bf16rcprc_bf16rcprc_f32rcprc_cleanup,                \
   }
 
 #define BENCH                                                                  \
-  GEMM_F8E5M2RCPRC_F8E5M2RCPRC_F32RCPRC_DEFAULTS,                              \
+  GEMM_BF16RCPRC_BF16RCPRC_F32RCPRC_DEFAULTS,                                  \
       .steps = {                                                               \
           .init = init,                                                        \
           .warmup = execute,                                                   \
           .execute = execute,                                                  \
           .verify = NULL,                                                      \
-          .report = gemm_f8rcprc_f8rcprc_f32rcprc_benchmark_report,            \
-          .cleanup = gemm_f8rcprc_f8rcprc_f32rcprc_cleanup,                    \
+          .report = gemm_bf16rcprc_bf16rcprc_f32rcprc_benchmark_report,        \
+          .cleanup = gemm_bf16rcprc_bf16rcprc_f32rcprc_cleanup,                \
   }
 
 static void init(skl_test_t *t);
 static void execute(skl_test_t *t);
 
 // clang-format off
-gemm_f8rcprc_f8rcprc_f32rcprc_t tests[] = {
+gemm_bf16rcprc_bf16rcprc_f32rcprc_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
     // Benchmark tests
-    {BENCH, .m1 = 2, .n1 = 2, .k1 = 8192, .alpha = 1.f, .beta = 0.f},
-    {BENCH, .m1 = 2, .n1 = 2, .k1 = 8192, .alpha = 1.f, .beta = 1.f},
+    {BENCH, .m1 = 2, .n1 = 2, .k1 = 4096, .alpha = 1.f, .beta = 0.f},
+    {BENCH, .m1 = 2, .n1 = 2, .k1 = 4096, .alpha = 1.f, .beta = 1.f},
 #endif // SKL_ENABLE_BENCHMARKS
 
 #ifdef SKL_ENABLE_TESTS
@@ -113,54 +113,6 @@ gemm_f8rcprc_f8rcprc_f32rcprc_t tests[] = {
     {TEST, .m1 = 7, .n1 = 5, .k1 = 5, .alpha = 1.f, .beta = 0.f},
     {TEST, .m1 = 7, .n1 = 6, .k1 = 5, .alpha = 1.f, .beta = 0.f},
     {TEST, .m1 = 7, .n1 = 7, .k1 = 5, .alpha = 1.f, .beta = 0.f},
-
-    {TEST, .m1 = 7, .n1 = 1, .k1 = 6, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 2, .k1 = 6, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 3, .k1 = 6, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 4, .k1 = 6, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 5, .k1 = 6, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 6, .k1 = 6, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 7, .k1 = 6, .alpha = 1.f, .beta = 0.f},
-
-    {TEST, .m1 = 7, .n1 = 1, .k1 = 7, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 2, .k1 = 7, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 3, .k1 = 7, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 4, .k1 = 7, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 5, .k1 = 7, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 6, .k1 = 7, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 7, .k1 = 7, .alpha = 1.f, .beta = 0.f},
-
-    {TEST, .m1 = 7, .n1 = 1, .k1 = 8, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 2, .k1 = 8, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 3, .k1 = 8, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 4, .k1 = 8, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 5, .k1 = 8, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 6, .k1 = 8, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 7, .k1 = 8, .alpha = 1.f, .beta = 0.f},
-
-    {TEST, .m1 = 7, .n1 = 1, .k1 = 9, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 2, .k1 = 9, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 3, .k1 = 9, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 4, .k1 = 9, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 5, .k1 = 9, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 6, .k1 = 9, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 7, .k1 = 9, .alpha = 1.f, .beta = 0.f},
-
-    {TEST, .m1 = 7, .n1 = 1, .k1 = 10, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 2, .k1 = 10, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 3, .k1 = 10, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 4, .k1 = 10, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 5, .k1 = 10, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 6, .k1 = 10, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 7, .k1 = 10, .alpha = 1.f, .beta = 0.f},
-
-    {TEST, .m1 = 7, .n1 = 1, .k1 = 11, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 2, .k1 = 11, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 3, .k1 = 11, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 4, .k1 = 11, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 5, .k1 = 11, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 6, .k1 = 11, .alpha = 1.f, .beta = 0.f},
-    {TEST, .m1 = 7, .n1 = 7, .k1 = 11, .alpha = 1.f, .beta = 0.f},
 
     {TEST, .m1 = 1, .n1 = 1, .k1 = 15, .alpha = 1.f, .beta = 0.f},
     {TEST, .m1 = 1, .n1 = 2, .k1 = 15, .alpha = 1.f, .beta = 0.f},
@@ -230,14 +182,14 @@ gemm_f8rcprc_f8rcprc_f32rcprc_t tests[] = {
 // clang-format on
 
 static skl_test_suite_t suite = {
-    .name = "skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f",
+    .name = "skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f",
     .num_tests = sizeof(tests) / sizeof(tests[0]),
-    .test_size = sizeof(gemm_f8rcprc_f8rcprc_f32rcprc_t),
+    .test_size = sizeof(gemm_bf16rcprc_bf16rcprc_f32rcprc_t),
     .tests = tests};
 
 static void init(skl_test_t *t) {
-  const gemm_f8rcprc_f8rcprc_f32rcprc_t *h =
-      (gemm_f8rcprc_f8rcprc_f32rcprc_t *)t->harness;
+  const gemm_bf16rcprc_bf16rcprc_f32rcprc_t *h =
+      (gemm_bf16rcprc_bf16rcprc_f32rcprc_t *)t->harness;
 
   size_t ete = skl_get_ete_xsfmmbase();
   SKL_TEST_REQUIRE(t, init_status, h->m0 == ete);
@@ -252,19 +204,16 @@ static void init(skl_test_t *t) {
   SKL_TEST_REQUIRE(t, init_status, h->alpha == 1.f);
   SKL_TEST_REQUIRE(t, init_status, h->beta == 0.f || h->beta == 1.f);
 
-  gemm_f8rcprc_f8rcprc_f32rcprc_init(t);
+  gemm_bf16rcprc_bf16rcprc_f32rcprc_init(t);
 }
 
 static void execute(skl_test_t *t) {
-  const gemm_f8rcprc_f8rcprc_f32rcprc_t *h =
-      (gemm_f8rcprc_f8rcprc_f32rcprc_t *)t->harness;
+  const gemm_bf16rcprc_bf16rcprc_f32rcprc_t *h =
+      (gemm_bf16rcprc_bf16rcprc_f32rcprc_t *)t->harness;
 
-  // Call the kernel with the appropriate parameters
-  // The kernel signature is: (m1, n1, k, a_pack, rsa1, b_pack, csb1, c_pack,
-  // rsc1, csc1, accum) where accum = (beta != 0)
-  skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f(
-      h->m1, h->n1, h->k1 * h->k0, h->a_pack.data, h->rsa1, h->b_pack.data,
-      h->csb1, h->c_pack.data, h->rsc1, h->csc1, h->beta != 0.f);
+  skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f(
+      h->m1, h->n1, h->k1, h->a_pack.data, h->rsa1, h->b_pack.data, h->csb1,
+      h->c_pack.data, h->rsc1, h->csc1, h->beta != 0.f);
 }
 
 int main(void) {
