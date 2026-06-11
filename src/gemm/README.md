@@ -89,7 +89,7 @@ Public SKL GEMM functions are dispatch functions that choose between one or more
 - `skl_gemm_i8_i8_i32_zve32x_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc)`
 - `skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f(m, n, k, a, csa, b, rsb, c, rsc, accum)`
 - `skl_gemm_a1b01_f32pc_f32p_f32p_xsfmm32a32f(...)`  (See the [Packed GEMM API](packed-gemm.md) document for details)
-- `skl_gemm_a1b01_i8_i8pc_i32_xsfvqdotq(...)` (See above.)
+- `skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(...)` (See above.)
 
 ### Memory Layout and Packing
 
