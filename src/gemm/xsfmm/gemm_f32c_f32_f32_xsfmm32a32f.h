@@ -90,10 +90,10 @@ void skl_gemm_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
  * );
  * ```
  */
-void skl_gemm_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f(
+void skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexte_xsfmm32a32f(
     size_t m1, size_t n1, size_t k, float alpha, const float *a, size_t rsa1,
-    const float *b, size_t csb1, float beta, float *c, size_t rsc1,
-    size_t csc1);
+    size_t csa1, const float *b, size_t rsb1, size_t csb1, float beta, float *c,
+    size_t rsc0, size_t rsc1, size_t csc1);
 
 #if defined(__cplusplus)
 } // extern "C"

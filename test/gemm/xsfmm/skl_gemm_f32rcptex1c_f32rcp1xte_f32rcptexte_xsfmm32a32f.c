@@ -158,7 +158,7 @@ gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
 // clang-format on
 
 static skl_test_suite_t suite = {
-    .name = "skl_gemm_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f",
+    .name = "skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexte_xsfmm32a32f",
     .num_tests = sizeof(tests) / sizeof(tests[0]),
     .test_size = sizeof(gemm_f32rcprc_f32rcprc_f32rcprc_t),
     .tests = tests};
@@ -188,11 +188,12 @@ static void execute(skl_test_t *t) {
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
   // Call the kernel with the appropriate parameters
-  // The kernel signature is: (m1, n1, k, a_pack, rsa1, b_pack, csb1, c_pack,
-  // rsc1, csc1, accum) where accum = (beta != 0)
-  skl_gemm_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f(
-      h->m1, h->n1, h->k1 * h->k0, h->alpha, h->a_pack.data, h->rsa1,
-      h->b_pack.data, h->csb1, h->beta, h->c_pack.data, h->rsc1, h->csc1);
+  // The kernel signature is: (m1, n1, k, alpha, a_pack, rsa1, csa1, b_pack,
+  // rsb1, csb1, beta, c_pack, rsc0, rsc1, csc1)
+  skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexte_xsfmm32a32f(
+      h->m1, h->n1, h->k1 * h->k0, h->alpha, h->a_pack.data, h->rsa1, h->csa1,
+      h->b_pack.data, h->rsb1, h->csb1, h->beta, h->c_pack.data, h->rsc0,
+      h->rsc1, h->csc1);
 }
 
 int main(void) {

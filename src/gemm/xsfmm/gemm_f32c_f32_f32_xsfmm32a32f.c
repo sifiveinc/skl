@@ -1080,7 +1080,7 @@ SKL_FUNC_PRIVATE void skl_gemm_apply_tiling_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
         rsc1, csc1, ROW1, COL1, accum, kernel, params);                        \
   } while (0)
 
-SKL_FUNC_PRIVATE void skl_gemm_dispatch_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
+SKL_FUNC_PRIVATE void skl_gemm_fused_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
     size_t m, size_t n, size_t k, const float *a, size_t rsa1, size_t csa1,
     const float *b, size_t rsb1, size_t csb1, float *c, size_t rsc0,
     size_t rsc1, size_t csc1, bool accum, fused_f32_f32_t kernel,
@@ -1152,47 +1152,31 @@ SKL_FUNC_PRIVATE void skl_gemm_dispatch_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
 }
 #undef SKL_GEMM_TILE
 
-SKL_FUNC_PRIVATE void skl_gemm_fused_f32c_f32_f32_xsfmm32a32f(
-    size_t m, size_t n, size_t k, const float *a, size_t csa, const float *b,
-    size_t rsb, float *c, size_t rsc, bool accum, fused_f32_f32_t kernel,
-    void *params) {
-  size_t ete = 0; // Effective tile edge length (always TE for TEW = 32).
-  __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
-
-  skl_gemm_dispatch_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
-      m, n, k, a, ete, csa, b, rsb, ete, c, rsc, ete * rsc, ete, accum, kernel,
-      params);
-}
-
-SKL_FUNC_PRIVATE void skl_gemm_fused_f32pc_f32cp_f32rcp_xsfmm32a32f(
-    size_t m1, size_t n1, size_t k, const float *a, size_t rsa1, const float *b,
-    size_t csb1, float *c, size_t rsc1, size_t csc1, bool accum,
-    fused_f32_f32_t kernel, void *params) {
-  size_t ete = 0; // Effective tile edge length (always TE for TEW = 32).
-  __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
-
-  skl_gemm_dispatch_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
-      m1 * ete, n1 * ete, k, a, rsa1, ete, b, ete, csb1, c, ete, rsc1, csc1,
-      accum, kernel, params);
-}
-
 SKL_FUNC void skl_gemm_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
                                                 float alpha, const float *a,
                                                 size_t csa, const float *b,
                                                 size_t rsb, float beta,
                                                 float *c, size_t rsc) {
   alpha_beta_scaling_f32_f32_t params = {.alpha = alpha, .beta = beta};
-  skl_gemm_fused_f32c_f32_f32_xsfmm32a32f(
-      m, n, k, a, csa, b, rsb, c, rsc, false,
+
+  size_t ete = 0; // Effective tile edge length (always TE for TEW = 32).
+  __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
+
+  skl_gemm_fused_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
+      m, n, k, a, ete, csa, b, rsb, ete, c, rsc, ete * rsc, ete, false,
       skl_gemm_alpha_beta_scaling_f32_f32rcprc_xsfmmbase, &params);
 }
 
-SKL_FUNC void skl_gemm_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f(
+SKL_FUNC void skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexte_xsfmm32a32f(
     size_t m1, size_t n1, size_t k, float alpha, const float *a, size_t rsa1,
-    const float *b, size_t csb1, float beta, float *c, size_t rsc1,
-    size_t csc1) {
+    size_t csa1, const float *b, size_t rsb1, size_t csb1, float beta, float *c,
+    size_t rsc0, size_t rsc1, size_t csc1) {
   alpha_beta_scaling_f32_f32_t params = {.alpha = alpha, .beta = beta};
-  skl_gemm_fused_f32pc_f32cp_f32rcp_xsfmm32a32f(
-      m1, n1, k, a, rsa1, b, csb1, c, rsc1, csc1, false,
-      skl_gemm_alpha_beta_scaling_f32_f32rcprc_xsfmmbase, &params);
+
+  size_t ete = 0; // Effective tile edge length (always TE for TEW = 32).
+  __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
+
+  skl_gemm_fused_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
+      m1 * ete, n1 * ete, k, a, rsa1, csa1, b, rsb1, csb1, c, rsc0, rsc1, csc1,
+      false, skl_gemm_alpha_beta_scaling_f32_f32rcprc_xsfmmbase, &params);
 }
