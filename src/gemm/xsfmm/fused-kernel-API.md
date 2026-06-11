@@ -9,7 +9,8 @@ Assumes reader is familiar with packed GEMM API.
 The number of available tiles in the Xsfmm tile state determines the possible tilings of the `C` matrix.
 When `TEW` = 32, there are four available tiles (`mt0`, `mt4`, `mt8`, and `mt12`), which can support 1 x 1, 1 x 2, 1 x 3, 1 x 4, 2 x 1, 3 x 1, 4 x 1, and 2 x 2 tilings of `C`.
 When `TEW = 8`, there are 16 tiles (`mt0` to `mt15`), which can support tilings of shape `m1` x `n1`, where `m1 * n1 <= 16`.
-SKL provides an inner loop function for `m1` x `n1` tilings with `m1 <= n1`.
+SKL provides an inner loop function for each `m1` x `n1` tilings with `m1 <= n1`.
+These inner loop functions accumulate a matrix product `A * B` into the current tile state.
 If `m1 > n1`, the `n1` x `m1` inner loop function can be used if combined with transposition.
 More details are given in later sections.
 
@@ -22,6 +23,7 @@ SKL_FUNC_PRIVATE void inner_loop_m1xn1_f32rcpc_f32rcp_f32_xsfmm32a32f(
     const float *b, size_t rsb1, size_t csb1);
 ```
 The product `A * B` remains in the tile state so that the fused kernel can operate on it directly.
+This API handles partial tiles if `m` or `n` is not a multiple of `ETE`.
 The inner loop functions obey the following tile allocation scheme: if `m1 == n1`, tiles are arranged by index in increasing order in row-major order; otherwise, if `m1 < n1`, tiles are arranged by index in increasing order in column-major order.
 Below are some examples of the tile allocation scheme:
 `TEW` = 32
@@ -112,7 +114,7 @@ void skl_gemm_add_bias_f32_f32rcp_xsfmmbase(
 }
 ```
 Note that if `tss` specifies a column, then the bias is added to each row of the transpose of the tile and the result is stored to `C.
-In other words, the bias is added to the columns of the tile.
+In other words, the bias is added to the *columns* of the tile.
 
 #### Computing a global maximum
 To compute the maximum value of the matrix product, the following kernel can be used tile-by-tile to update the current maximum:
@@ -138,6 +140,55 @@ void skl_gemm_matrix_max_f32_f32rcp_xsfmmbase(
 ```
 
 ## Tile State Initialization
+Before accumulating any matrix products into the tile state, the tile state must be initialized either by zeroing it out or loading a matrix in from memory.
+
+SKL provides the following (private) function for zeroing out a portion of the tile state:
+```
+SKL_XSFMM_OUT
+SKL_FUNC_PRIVATE
+void skl_tile_zero_f32_f32_xsfmmbase(size_t m, size_t n, size_t tss,
+                                     size_t rstss, size_t cstss);
+```
+`tss`, `rstss`, and `cstss` determine the tile layout.
+The tile specifier of `tss` indicates the upper leftmost tile.
+`rstss` and `cstss` are the row and column strides for the tile index.
+Note that the pattern and index of `tss` are ignored.
+This function zeroes out the leading `m` x `n` portion of this tile layout.
+Examples:
+```
+tss = 0, rstss = 8, cstss = 4
+mt0 mt4
+mt8 mt12
+```
+
+```
+SKL_XSFMM_OUT
+SKL_FUNC_PRIVATE
+void skl_tile_load_f32rcp_f32_xsfmmbase(size_t m, size_t n, const float *c,
+                                        size_t rsc0, size_t rsc1, size_t csc1,
+                                        size_t tss, size_t rstss,
+                                        size_t cstss)
+```
+This function loads the leading `m` x `n` portion of `C` block-by-block into the tile layout determined by `tss`, `rstss`, and `cstss`.
+More specifically, row `i0` of the block at `c + i1 * rsc1 + j1 * csc1` is loaded into the row or column specified by `tss + i1 * rstss + j1 * cstss + i0`.
+Note that if `tss` has a column pattern, then the `C` block is transposed when it is loaded into the tile state.
+Examples:
+```
+Original Matrix (7 x 6):            
+┌─────────────────────────────────┐
+│                │                │ 
+│                │                │    
+│                │                │
+│                │                │
+│                │                │ 
+│─────────────────────────────────│
+│                │                │
+│                │                │
+│                │                │
+│                │                │
+│                │                │
+└─────────────────────────────────┘
+```
 
 
 
