@@ -48,7 +48,7 @@ typedef struct {
 
 #define PACK_E32RC_E32RCPRC_DEFAULTS                                           \
   .src = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM},                      \
-  .dst = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM}, .pad = 255
+  .dst = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM}, .pad = 0xDEADBEEF
 
 void pack_e32rc_e32rcprc_init(skl_test_t *t);
 void pack_e32rc_e32rcprc_verify(skl_test_t *t);

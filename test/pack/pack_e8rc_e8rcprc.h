@@ -48,7 +48,7 @@ typedef struct {
 
 #define PACK_E8RC_E8RCPRC_DEFAULTS                                             \
   .src = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM},                      \
-  .dst = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM}, .pad = 255
+  .dst = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM}, .pad = 0xFF
 
 void pack_e8rc_e8rcprc_init(skl_test_t *t);
 void pack_e8rc_e8rcprc_verify(skl_test_t *t);
