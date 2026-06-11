@@ -23,10 +23,10 @@ extern "C" {
 /**
  * @brief Xsfvqdotq int8 GEMM with int32 accumulator.
  *
- * @param m - Number of block-rows in A_pack and rows in C.
- * @param n - Number of block-columns in B_pack and columns in C.
- * @param k1 - Number of columns in A_pack and rows in B_pack as block matrices.
- * @param alpha - Scalar multiplier for A_pack * B_pack product.
+ * @param m - Number of rows in A_pack and C.
+ * @param n - Number of columns in B_pack and C.
+ * @param k1 - Number of block-columns in A_pack, block-rows in B_pack.
+ * @param alpha - Scalar multiplier for A_pack * B_pack.
  * @param a_pack - Pointer to packed matrix A_pack (m0 = 1, k0 = 4, csa0 = 1).
  * @param rsa1 - Row stride between blocks of A_pack in elements.
  * @param csa1 - Column stride between blocks of A_pack in elements.
@@ -54,19 +54,23 @@ extern "C" {
  *
  * This kernel uses the SiFive Xsfvqdotq extension for vector quad widening 4D
  * dot product operations to achieve high performance on 8-bit integer data.
- * When A_pack is 4-byte aligned and rsa1 and csa1 are multiples of 4, the
- * kernel automatically dispatches to optimized internal implementations:
+ * When A_pack satisfies certain alignment requirements (it is 4-byte aligned
+ * and rsa1 and csa1 are multiples of 4), the kernel automatically dispatches to
+ * optimized internal implementations:
  * - For m=1: uses an internal GEMV kernel
  * - For m>1: uses tiled GEMM kernels
  *
  * @note
- * The kernel dispatches to an aligned version when A_pack satisfies all of the
- * following alignment requirements: A_pack is 4-byte aligned and rsa1 and csa1
- * are multiples of 4. Otherwise, it falls back to a 1xm4 unaligned version. The
- * aligned version has been optimized for performance, while the unaligned
- * version is unlikely to get good performance since it must handle misaligned
- * loads from A_pack. Therefore, it is highly recommended that users first copy
- * A_pack into a buffer meeting the above alignment requirements.
+ * If A_pack does not meet the alignment requirements stated above, the kernel
+ * falls back to an unaligned 1xm4 implementation. This implementation is
+ * unlikely to get good performance since it must handle misaligned loads from
+ * A_pack.
+ *
+ * @note
+ * The simplest way to pack a row-major A matrix into an A_pack that meets the
+ * alignment requirements is to copy it into a 4-byte-aligned buffer, but insert
+ * padding between the rows so that the row stride is a multiple of 4. Then the
+ * kernel can be called by setting rsa1 to the row stride and csa1 = 4.
  */
 void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(size_t m, size_t n, size_t k1,
                                        int32_t alpha, const int8_t *a_pack,
