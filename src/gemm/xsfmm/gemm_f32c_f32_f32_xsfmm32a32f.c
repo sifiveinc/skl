@@ -20,7 +20,8 @@ typedef void (*fused_f32_f32_t)(size_t tm, size_t tn, size_t tss, float *c,
 typedef void (*inner_loop_f32rcpc_f32rcp_f32_t)(size_t m, size_t n, size_t k,
                                                 const float *a, size_t rsa1,
                                                 size_t csa1, const float *b,
-                                                size_t rsb1, size_t csb1) SKL_XSFMM_INOUT;
+                                                size_t rsb1,
+                                                size_t csb1) SKL_XSFMM_INOUT;
 
 /* params type for the alpha/beta scaling kernel */
 typedef struct {
@@ -72,9 +73,10 @@ void skl_tile_zero_mt12_f32_f32_xsfmmbase(size_t tm, size_t tn) {
                    : "vtype", "vl");
 }
 
-/* Zero-out the leading m x n portion of the tile configuration determined by
- * tss and {r,c}stss. Only the tile specifier of tss is used; the pattern and
- * index fields are ignored. */
+/* Zero-out the leading m x n portion of the tile state.
+ *  - tss: tile subset specifier for first tile (pattern, index ignored)
+ *  - rstss, cstss: tile index strides
+ */
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
 void skl_tile_zero_f32_f32_xsfmmbase(size_t m, size_t n, size_t tss,
@@ -112,9 +114,7 @@ void skl_tile_zero_f32_f32_xsfmmbase(size_t m, size_t n, size_t tss,
   }
 }
 
-/* Load the leading m x n portion of C into the tile configuration determined by
- * tss and {r,c}stss.
- */
+/* Load the leading m x n portion of packed matrix C into the tile state. */
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
 void skl_tile_load_f32rcp_f32_xsfmmbase(size_t m, size_t n, const float *c,
@@ -164,8 +164,8 @@ void skl_tile_load_f32rcp_f32_xsfmmbase(size_t m, size_t n, const float *c,
   }
 }
 
-/* Apply the fused kernel to the leading m x n portion of the tile configuration
- * determined by tss and {r,c}stss and store to C.
+/* Apply a fused kernel to the leading m x n portion of the tile state and
+ * packed matrix C.
  */
 SKL_XSFMM_IN
 SKL_FUNC_PRIVATE
@@ -200,9 +200,11 @@ void skl_gemm_apply_fused_f32_f32rcprc_xsfmm32a32f(
   }
 }
 
-/* Computes C := alpha * tile + beta * C, where tile is the tm x tn tile
- * specified by tss. tm and tn must be <= ETE. This is a general implementation
- * that will work on all Xsfmm machines.
+/* Computes C := alpha * tile + beta * C, where:
+ *  - tile is the tm x tn tile specified by tss.
+ *  - tm and tn must be <= ETE.
+ *
+ * This is a general implementation that will work on all Xsfmm machines.
  */
 SKL_XSFMM_IN
 SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m8_f32_f32rc_xsfmmbase(
@@ -258,10 +260,15 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m8_f32_f32rc_xsfmmbase(
   }
 }
 
-/* Computes C := alpha * tile + beta * C, where tile is the tm x tn tile
- * specified by tss. tm and tn must be <= ETE. This is an optimized
- * implementation when tile rows fit into m2 register groups and csc0 == 1.
- * In this case, the availability of 16 register groups allows unrolling the
+/* Computes C := alpha * tile + beta * C, where:
+ *  - tile is the tm x tn tile specified by tss
+ *  - tm and tn must be <= ETE
+ *  - csc0 == 1
+ *  - tile rows fit into LMUL = 2 vector register groups
+ *
+ * The last condition must be checked by the caller.
+ *
+ * In this kernel, the availability of 16 register groups allows unrolling the
  * scaling loop by a factor of 8 and software pipelining the tile row transfers
  * to overlap their latency with the scaling computation.
  */
@@ -570,8 +577,11 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m2_f32_f32_xsfmmbase(
   }
 }
 
-/* Computes C := alpha * tile + beta * C, where tile is the tm x tn tile
- * specified by tss. tm and tn must be <= TE.
+/* Computes C := alpha * tile + beta * C, where:
+ *  - tile is the tm x tn tile specified by tss
+ *  - tm and tn must be <= TE
+ *
+ * This kernel dispatches to the optimized m2 version when possible.
  */
 SKL_XSFMM_IN
 SKL_FUNC_PRIVATE
@@ -596,7 +606,9 @@ void skl_gemm_alpha_beta_scaling_f32_f32rcprc_xsfmmbase(
   }
 }
 
-/* Compute an m x n x k matrix product A * B. m and n must be <= ETE. */
+/* Computes an m x n x k matrix product A * B for packed A and B.
+ * m and n must be <= ETE.
+ */
 SKL_XSFMM_INOUT
 SKL_FUNC_PRIVATE void skl_gemm_inner_loop_1x1_f32rcpc_f32rcp_f32_xsfmm32a32f(
     size_t m, size_t n, size_t k, const float *a,
@@ -1014,6 +1026,20 @@ SKL_FUNC_PRIVATE void skl_gemm_inner_loop_2x2_f32rcpc_f32rcp_f32_xsfmm32a32f(
                      "memory");
 }
 
+/* Computes A * B (accum == false) or C + A * B (accum == true) and applies a
+ * fused kernel.
+ *  - inner_loop: inner loop function used to compute A * B
+ *  - m, n, k: matrix dimensions. m and n must be small enough for inner_loop.
+ *  - a, rsa1, csa1: packed matrix A and its strides
+ *  - b, rsb1, csb1: packed matrix B and its strides
+ *  - c. rsc0, rsc1, csc1: packed matrix C and its strides
+ *  - row1, col1: block-row and -column indices for first block of C
+ *  - kernel: pointer to fused kernel
+ *  - params: pointer to params struct for fused kernel
+ *
+ * This function will compute partial blocks of C if m or n is not multiple of
+ * ETE. If m1 > n1, then the n1 x m1 inner loop function should be called.
+ */
 SKL_FUNC_PRIVATE void skl_gemm_apply_tiling_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
     inner_loop_f32rcpc_f32rcp_f32_t inner_loop, size_t m, size_t n, size_t k,
     const float *a, size_t rsa1, size_t csa1, const float *b, size_t rsb1,
@@ -1080,6 +1106,9 @@ SKL_FUNC_PRIVATE void skl_gemm_apply_tiling_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
         rsc1, csc1, ROW1, COL1, accum, kernel, params);                        \
   } while (0)
 
+/* Computes A * B (accum == false) or C + A * B (accum == true) and applies a
+ * fused kernel.
+ */
 SKL_FUNC_PRIVATE void skl_gemm_fused_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
     size_t m, size_t n, size_t k, const float *a, size_t rsa1, size_t csa1,
     const float *b, size_t rsb1, size_t csb1, float *c, size_t rsc0,
@@ -1152,6 +1181,7 @@ SKL_FUNC_PRIVATE void skl_gemm_fused_f32rcpc_f32rcp_f32rcp_xsfmm32a32f(
 }
 #undef SKL_GEMM_TILE
 
+/* Computes C = alpha * A * B + beta * C when A is column-major. */
 SKL_FUNC void skl_gemm_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
                                                 float alpha, const float *a,
                                                 size_t csa, const float *b,
@@ -1167,6 +1197,7 @@ SKL_FUNC void skl_gemm_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
       skl_gemm_alpha_beta_scaling_f32_f32rcprc_xsfmmbase, &params);
 }
 
+/* Computes C = alpha * A * B + beta * C for packed matrices A, B, and C. */
 SKL_FUNC void skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexte_xsfmm32a32f(
     size_t m1, size_t n1, size_t k, float alpha, const float *a, size_t rsa1,
     size_t csa1, const float *b, size_t rsb1, size_t csb1, float beta, float *c,
