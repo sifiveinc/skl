@@ -1,10 +1,18 @@
 # Transpose Kernels
 
-> **Note:** Transpose kernel implementations can be found in the [`../pack/`](../pack/) directory, since transpose can be viewed as a special case of packing where `m0=m`, `n0=n`, `cs=1`, and `rs0=1`.
+> **Note:** Transpose kernel implementations can be found in the [`../pack/`](../pack/) directory, since transpose can be viewed as a special case of packing with a single block:
+> ```c
+> skl_pack_e8rc_e8rcprc_zve32x(m, n, a /*src*/, rsa /*rs*/, 1 /*cs*/, m /*m0*/,
+>                              n /*n0*/, at /*dst*/, 1 /*rs0*/, rsat /*cs0*/,
+>                              0 /*rs1, don't care*/, 0 /*cs1, don't care*/,
+>                              0 /*pad, don't care*/);
+> ```
 > - **RVV implementations:** [`../pack/rvv/`](../pack/rvv/)
 > - **Xsfmm implementations:** [`../pack/xsfmm/`](../pack/xsfmm/)
 
-The `../pack/` directory contains optimized kernels for matrix transpose operations. Matrix transpose is a fundamental linear algebra operation that converts an M×N matrix to an N×M matrix by swapping rows and columns. These kernels provide efficient implementations for various data types and target architectures.
+The `../pack/` directory contains optimized kernels for matrix transpose operations.
+Matrix transpose is a fundamental linear algebra operation that converts an M×N matrix to an N×M matrix by swapping rows and columns.
+These kernels provide efficient implementations for various data types and target architectures.
 
 Currently supports 8-bit, 16-bit, and 32-bit element transpose operations.
 
