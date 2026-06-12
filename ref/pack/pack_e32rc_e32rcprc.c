@@ -26,7 +26,6 @@ SKL_FUNC void skl_pack_e32rc_e32rcprc_ref(size_t m, size_t n,
           if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
             dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0 * cs];
           } else {
-            // Pad with zeros
             dst_block[ii0 * rs0 + jj0 * cs0] = pad;
           }
         }

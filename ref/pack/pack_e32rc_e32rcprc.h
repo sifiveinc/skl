@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Reference implementation for packing an 32-bit 2D matrix into a 4D
+ * @brief Reference implementation for packing a 32-bit 2D matrix into a 4D
  * blocked matrix layout.
  *
  * @param m - Num. rows in input matrix
