@@ -3,7 +3,7 @@
 // See LICENSE file in the project root for full license information.
 // SPDX-License-Identifier: MIT
 
-#include "pack/pack_e32rc_e32rcprc.h"
+#include "pack/pack_e16rc_e16rcprc.h"
 #include "skl-test-driver.h"
 #include "skl.h"
 
@@ -17,34 +17,34 @@
 /**
  * @brief Test cases for pack with Zve32x extension.
  *
- * This test uses the pack_e32rc_e32rcprc harness.
+ * This test uses the pack_e16rc_e16rcprc harness.
  */
 
 #define TEST                                                                   \
-  PACK_E32RC_E32RCPRC_DEFAULTS, .steps = {                                     \
-                                    .init = pack_e32rc_e32rcprc_init,          \
+  PACK_E16RC_E16RCPRC_DEFAULTS, .steps = {                                     \
+                                    .init = pack_e16rc_e16rcprc_init,          \
                                     .warmup = NULL,                            \
                                     .execute = execute,                        \
-                                    .verify = pack_e32rc_e32rcprc_verify,      \
-                                    .report = pack_e32rc_e32rcprc_test_report, \
-                                    .cleanup = pack_e32rc_e32rcprc_cleanup,    \
+                                    .verify = pack_e16rc_e16rcprc_verify,      \
+                                    .report = pack_e16rc_e16rcprc_test_report, \
+                                    .cleanup = pack_e16rc_e16rcprc_cleanup,    \
   }
 
 #define BENCH                                                                  \
-  PACK_E32RC_E32RCPRC_DEFAULTS,                                                \
+  PACK_E16RC_E16RCPRC_DEFAULTS,                                                \
       .steps = {                                                               \
-          .init = pack_e32rc_e32rcprc_init,                                    \
+          .init = pack_e16rc_e16rcprc_init,                                    \
           .warmup = execute,                                                   \
           .execute = execute,                                                  \
           .verify = NULL,                                                      \
-          .report = pack_e32rc_e32rcprc_benchmark_report,                      \
-          .cleanup = pack_e32rc_e32rcprc_cleanup,                              \
+          .report = pack_e16rc_e16rcprc_benchmark_report,                      \
+          .cleanup = pack_e16rc_e16rcprc_cleanup,                              \
   }
 
 static void execute(skl_test_t *t);
 
 // clang-format off
-pack_e32rc_e32rcprc_t tests[] = {
+pack_e16rc_e16rcprc_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
   // Benchmark tests
   {BENCH, .m = 128, .n = 128, .rs = 128, .cs = 1, .m0 = 8, .n0 = 8,
@@ -161,15 +161,15 @@ pack_e32rc_e32rcprc_t tests[] = {
 };
 // clang-format on
 
-static skl_test_suite_t suite = {.name = "skl_pack_e32_zve32x",
+static skl_test_suite_t suite = {.name = "skl_pack_e16rc_e16rcprc_zve32x",
                                  .num_tests = sizeof(tests) / sizeof(tests[0]),
-                                 .test_size = sizeof(pack_e32rc_e32rcprc_t),
+                                 .test_size = sizeof(pack_e16rc_e16rcprc_t),
                                  .tests = tests};
 
 static void execute(skl_test_t *t) {
-  const pack_e32rc_e32rcprc_t *h = (pack_e32rc_e32rcprc_t *)t->harness;
+  const pack_e16rc_e16rcprc_t *h = (pack_e16rc_e16rcprc_t *)t->harness;
 
-  skl_pack_e32rc_e32rcprc_zve32x(h->m, h->n, h->src.data, h->rs, h->cs, h->m0,
+  skl_pack_e16rc_e16rcprc_zve32x(h->m, h->n, h->src.data, h->rs, h->cs, h->m0,
                                  h->n0, h->dst.data, h->rs0, h->cs0, h->rs1,
                                  h->cs1, h->pad);
 }
