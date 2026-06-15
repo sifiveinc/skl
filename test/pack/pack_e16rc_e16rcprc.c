@@ -80,8 +80,8 @@ void pack_e16rc_e16rcprc_verify(skl_test_t *t) {
   // Verify result
   for (size_t i = 0; i < h->dst.len; ++i) {
     if (dst[i] != ref_dst[i]) {
-      SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR, "position [%zu]: %hhu != ref %hhu\n",
-                   i, dst[i], ref_dst[i]);
+      SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR, "position [%zu]: %hu != ref %hu\n", i,
+                   dst[i], ref_dst[i]);
       t->status.verify_status = SKL_TEST_FAIL;
       return;
     }
