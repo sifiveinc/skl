@@ -200,9 +200,9 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i
+  skl_gemm_a1b01_i8ptex1c_i8cp1xte_i32rcptexte_xsfmm32a8i
   gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i.c
+  gemm/xsfmm/skl_gemm_a1b01_i8ptex1c_i8cp1xte_i32rcptexte_xsfmm32a8i.c
   "xsfmm32a8i"
   ""
 )
@@ -214,9 +214,9 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f
+  skl_gemm_a1b01_f8e4m3ptex1c_f8e4m3cp1xte_f32rcptexte_xsfmm32a8f
   gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_f8e4m3pc_f8e4m3cp_f32rcp_xsfmm32a8f.c
+  gemm/xsfmm/skl_gemm_a1b01_f8e4m3ptex1c_f8e4m3cp1xte_f32rcptexte_xsfmm32a8f.c
   "xsfmm32a8f"
   ""
 )
@@ -228,9 +228,9 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f
+  skl_gemm_a1b01_f8e5m2ptex1c_f8e5m2cp1xte_f32rcptexte_xsfmm32a8f
   gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_f8e5m2pc_f8e5m2cp_f32rcp_xsfmm32a8f.c
+  gemm/xsfmm/skl_gemm_a1b01_f8e5m2ptex1c_f8e5m2cp1xte_f32rcptexte_xsfmm32a8f.c
   "xsfmm32a8f"
   ""
 )
@@ -249,9 +249,9 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f
+  skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f
   gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f.c
+  gemm/xsfmm/skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f.c
   "xsfmm32a16f"
   ""
 )
@@ -277,9 +277,9 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f
+  skl_gemm_a1b01_f16ptex1c_f16cp1xte_f32rcptexte_xsfmm32a16f
   gemm/gemm_f16rcprc_f16rcprc_f32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_f16pc_f16cp_f32rcp_xsfmm32a16f.c
+  gemm/xsfmm/skl_gemm_a1b01_f16ptex1c_f16cp1xte_f32rcptexte_xsfmm32a16f.c
   "xsfmm32a16f"
   ""
 )
@@ -298,9 +298,9 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f
+  skl_gemm_a1b01_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f
   gemm/gemm_f32rcprc_f32rcprc_f32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_f32pc_f32cp_f32rcp_xsfmm32a32f.c
+  gemm/xsfmm/skl_gemm_a1b01_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f.c
   "xsfmm32a32f"
   ""
 )

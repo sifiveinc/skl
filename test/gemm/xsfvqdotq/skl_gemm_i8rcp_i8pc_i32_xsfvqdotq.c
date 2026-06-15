@@ -132,7 +132,7 @@ static void execute(skl_test_t *t) {
       (gemm_i8rcprc_i8rcprc_i32rcprc_t *)t->harness;
 
   skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(
-      h->m1, h->n1, h->k0 * h->k1, h->alpha, h->a_pack.data, h->rsa1, h->csa1,
+      h->m1, h->n1, h->k1, h->alpha, h->a_pack.data, h->rsa1, h->csa1,
       h->b_pack.data, h->rsb1, h->beta, h->c_pack.data, h->rsc1);
 }
 
