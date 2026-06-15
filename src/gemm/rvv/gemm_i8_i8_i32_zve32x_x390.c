@@ -13,6 +13,12 @@
 
 #include "skl-common.h"
 
+#if defined(__riscv_zihintntl)
+#define NTL_P1 "ntl.p1 \n\t"
+#else
+#define NTL_P1
+#endif
+
 /**
  * @brief RVV int8 matrix-matrix multiplication with int32 output for row-major
  * matrices, tuned for X390.
@@ -250,12 +256,15 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
               "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
               "vwmacc.vx %[acc00], %[a00], %[b00w] \n\t"
               "vwmacc.vx %[acc10], %[a10], %[b00w] \n\t"
+              NTL_P1
+              "lb %[a00], 0(%[a_addr0]) \n\t"
+              NTL_P1
+              "lb %[a10], 0(%[a_addr1]) \n\t"
               "vwmacc.vx %[acc20], %[a20], %[b00w] \n\t"
               "vwmacc.vx %[acc30], %[a30], %[b00w] \n\t"
-
-              "lb %[a00], 0(%[a_addr0]) \n\t"
-              "lb %[a10], 0(%[a_addr1]) \n\t"
+              NTL_P1
               "lb %[a20], 0(%[a_addr2]) \n\t"
+              NTL_P1
               "lb %[a30], 0(%[a_addr3]) \n\t"
 
               "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
@@ -267,12 +276,15 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
               "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
               "vwmacc.vx %[acc00], %[a01], %[b10w] \n\t"
               "vwmacc.vx %[acc10], %[a11], %[b10w] \n\t"
+              NTL_P1
+              "lb %[a01], 1(%[a_addr0]) \n\t"
+              NTL_P1
+              "lb %[a11], 1(%[a_addr1]) \n\t"
               "vwmacc.vx %[acc20], %[a21], %[b10w] \n\t"
               "vwmacc.vx %[acc30], %[a31], %[b10w] \n\t"
-
-              "lb %[a01], 1(%[a_addr0]) \n\t"
-              "lb %[a11], 1(%[a_addr1]) \n\t"
+              NTL_P1
               "lb %[a21], 1(%[a_addr2]) \n\t"
+              NTL_P1
               "lb %[a31], 1(%[a_addr3]) \n\t"
 
               "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
@@ -284,12 +296,15 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
               "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
               "vwmacc.vx %[acc00], %[a02], %[b20w] \n\t"
               "vwmacc.vx %[acc10], %[a12], %[b20w] \n\t"
+              NTL_P1
+              "lb %[a02], 2(%[a_addr0]) \n\t"
+              NTL_P1
+              "lb %[a12], 2(%[a_addr1]) \n\t"
               "vwmacc.vx %[acc20], %[a22], %[b20w] \n\t"
               "vwmacc.vx %[acc30], %[a32], %[b20w] \n\t"
-
-              "lb %[a02], 2(%[a_addr0]) \n\t"
-              "lb %[a12], 2(%[a_addr1]) \n\t"
+              NTL_P1
               "lb %[a22], 2(%[a_addr2]) \n\t"
+              NTL_P1
               "lb %[a32], 2(%[a_addr3]) \n\t"
 
               "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
@@ -301,12 +316,15 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
               "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
               "vwmacc.vx %[acc00], %[a03], %[b30w] \n\t"
               "vwmacc.vx %[acc10], %[a13], %[b30w] \n\t"
+              NTL_P1
+              "lb %[a03], 3(%[a_addr0]) \n\t"
+              NTL_P1
+              "lb %[a13], 3(%[a_addr1]) \n\t"
               "vwmacc.vx %[acc20], %[a23], %[b30w] \n\t"
               "vwmacc.vx %[acc30], %[a33], %[b30w] \n\t"
-
-              "lb %[a03], 3(%[a_addr0]) \n\t"
-              "lb %[a13], 3(%[a_addr1]) \n\t"
+              NTL_P1
               "lb %[a23], 3(%[a_addr2]) \n\t"
+              NTL_P1
               "lb %[a33], 3(%[a_addr3]) \n\t"
 
               "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
@@ -580,3 +598,5 @@ SKL_FUNC void skl_gemm_i8_i8_i32_zve32x_x390(size_t m, size_t n, size_t k,
   skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c,
                                         rsc);
 }
+
+#undef NTL_P1
