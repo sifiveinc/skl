@@ -213,62 +213,13 @@ skl_transpose_mvec_e32_zve32x(size_t m, size_t n,
                               uint32_t *SKL_RESTRICT at, size_t rsat) {
 
   size_t vl = 0;
-  size_t n_multiple_8 = n / 8 * 8;
   const ptrdiff_t input_seg_bstride = (ptrdiff_t)(rsa * sizeof(uint32_t));
 
-  if (n_multiple_8) {
-    for (size_t ii = 0; ii + 7 < n_multiple_8; ii += 8) {
-      // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
-      vuint32m1x8_t vcols = __riscv_vundefined_u32m1x8();
-      // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+  const uint32_t *in_tile = a;
+  uint32_t *out_tile = at;
+  size_t n_mod8 = n % 8;
 
-      const uint32_t *in_tile = a + ii;
-      uint32_t *out_tile = at + ii * rsat;
-      for (size_t jj = 0; jj < m; jj += vl) {
-        vl = __riscv_vsetvl_e32m1(m - jj);
-
-        if (rsa == 8) {
-          vcols = __riscv_vlseg8e32_v_u32m1x8(in_tile, vl);
-        } else {
-          vcols = __riscv_vlsseg8e32_v_u32m1x8(in_tile, input_seg_bstride, vl);
-        }
-
-        uint32_t *write_ptr = out_tile;
-        // store each segment continuously along m
-        __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 0),
-                              vl);
-        write_ptr += rsat;
-        __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 1),
-                              vl);
-        write_ptr += rsat;
-        __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 2),
-                              vl);
-        write_ptr += rsat;
-        __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 3),
-                              vl);
-        write_ptr += rsat;
-        __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 4),
-                              vl);
-        write_ptr += rsat;
-        __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 5),
-                              vl);
-        write_ptr += rsat;
-        __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 6),
-                              vl);
-        write_ptr += rsat;
-        __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 7),
-                              vl);
-
-        in_tile += vl * rsa;
-        out_tile += vl;
-      }
-    }
-  }
-
-  const uint32_t *in_tile = a + n_multiple_8;
-  uint32_t *out_tile = at + n_multiple_8 * rsat;
-
-  switch (n % 8) {
+  switch (n_mod8) {
   case 1: {
     // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
     vuint32m8_t vcol = __riscv_vundefined_u32m8();
@@ -494,6 +445,57 @@ skl_transpose_mvec_e32_zve32x(size_t m, size_t n,
   default:
     break;
   }
+
+  n -= n_mod8;
+  a += n_mod8;
+  at += n_mod8 * rsat;
+
+  for (size_t ii = 0; ii < n; ii += 8) {
+    // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
+    vuint32m1x8_t vcols = __riscv_vundefined_u32m1x8();
+    // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+
+    const uint32_t *in_tile = a + ii;
+    uint32_t *out_tile = at + ii * rsat;
+    for (size_t jj = 0; jj < m; jj += vl) {
+      vl = __riscv_vsetvl_e32m1(m - jj);
+
+      if (rsa == 8) {
+        vcols = __riscv_vlseg8e32_v_u32m1x8(in_tile, vl);
+      } else {
+        vcols = __riscv_vlsseg8e32_v_u32m1x8(in_tile, input_seg_bstride, vl);
+      }
+
+      uint32_t *write_ptr = out_tile;
+      // store each segment continuously along m
+      __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 0),
+                            vl);
+      write_ptr += rsat;
+      __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 1),
+                            vl);
+      write_ptr += rsat;
+      __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 2),
+                            vl);
+      write_ptr += rsat;
+      __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 3),
+                            vl);
+      write_ptr += rsat;
+      __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 4),
+                            vl);
+      write_ptr += rsat;
+      __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 5),
+                            vl);
+      write_ptr += rsat;
+      __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 6),
+                            vl);
+      write_ptr += rsat;
+      __riscv_vse32_v_u32m1(write_ptr, __riscv_vget_v_u32m1x8_u32m1(vcols, 7),
+                            vl);
+
+      in_tile += vl * rsa;
+      out_tile += vl;
+    }
+  }
 }
 
 /* Transposes an M x N row-major matrix (pointed by `a`) to an N x M row-major
@@ -505,58 +507,13 @@ skl_transpose_nvec_e32_zve32x(size_t m, size_t n,
                               uint32_t *SKL_RESTRICT at, size_t rsat) {
 
   size_t vl = 0;
-  size_t m_align8 = m / 8 * 8;
   const ptrdiff_t output_seg_bstride = (ptrdiff_t)(rsat * sizeof(uint32_t));
 
-  if (m_align8) {
-    // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
-    vuint32m1_t vrow0 = __riscv_vundefined_u32m1();
-    vuint32m1_t vrow1 = __riscv_vundefined_u32m1();
-    vuint32m1_t vrow2 = __riscv_vundefined_u32m1();
-    vuint32m1_t vrow3 = __riscv_vundefined_u32m1();
-    vuint32m1_t vrow4 = __riscv_vundefined_u32m1();
-    vuint32m1_t vrow5 = __riscv_vundefined_u32m1();
-    vuint32m1_t vrow6 = __riscv_vundefined_u32m1();
-    vuint32m1_t vrow7 = __riscv_vundefined_u32m1();
-    // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+  size_t m_mod8 = m % 8;
+  const uint32_t *in_tile = a;
+  uint32_t *out_tile = at;
 
-    for (size_t ii = 0; ii + 7 < m_align8; ii += 8) {
-      for (size_t jj = 0; jj < n; jj += vl) {
-        const uint32_t *read_ptr = a + ii * rsa + jj;
-        vl = __riscv_vsetvl_e32m1(n - jj);
-
-        vrow0 = __riscv_vle32_v_u32m1(read_ptr, vl);
-        read_ptr += rsa;
-        vrow1 = __riscv_vle32_v_u32m1(read_ptr, vl);
-        read_ptr += rsa;
-        vrow2 = __riscv_vle32_v_u32m1(read_ptr, vl);
-        read_ptr += rsa;
-        vrow3 = __riscv_vle32_v_u32m1(read_ptr, vl);
-        read_ptr += rsa;
-        vrow4 = __riscv_vle32_v_u32m1(read_ptr, vl);
-        read_ptr += rsa;
-        vrow5 = __riscv_vle32_v_u32m1(read_ptr, vl);
-        read_ptr += rsa;
-        vrow6 = __riscv_vle32_v_u32m1(read_ptr, vl);
-        read_ptr += rsa;
-        vrow7 = __riscv_vle32_v_u32m1(read_ptr, vl);
-
-        vuint32m1x8_t vrows = __riscv_vcreate_v_u32m1x8(
-            vrow0, vrow1, vrow2, vrow3, vrow4, vrow5, vrow6, vrow7);
-        if (rsat == 8) {
-          __riscv_vsseg8e32_v_u32m1x8(at + (jj * rsat) + ii, vrows, vl);
-        } else {
-          __riscv_vssseg8e32_v_u32m1x8(at + (jj * rsat) + ii,
-                                       output_seg_bstride, vrows, vl);
-        }
-      }
-    }
-  }
-
-  const uint32_t *in_tile = a + m_align8 * rsa;
-  uint32_t *out_tile = at + m_align8;
-
-  switch (m % 8) {
+  switch (m_mod8) {
   case 1: {
     // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
     vuint32m8_t vrow = __riscv_vundefined_u32m8();
@@ -760,6 +717,53 @@ skl_transpose_nvec_e32_zve32x(size_t m, size_t n,
   }
   default:
     break;
+  }
+
+  m -= m_mod8;
+  a += m_mod8 * rsa;
+  at += m_mod8;
+
+  // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
+  vuint32m1_t vrow0 = __riscv_vundefined_u32m1();
+  vuint32m1_t vrow1 = __riscv_vundefined_u32m1();
+  vuint32m1_t vrow2 = __riscv_vundefined_u32m1();
+  vuint32m1_t vrow3 = __riscv_vundefined_u32m1();
+  vuint32m1_t vrow4 = __riscv_vundefined_u32m1();
+  vuint32m1_t vrow5 = __riscv_vundefined_u32m1();
+  vuint32m1_t vrow6 = __riscv_vundefined_u32m1();
+  vuint32m1_t vrow7 = __riscv_vundefined_u32m1();
+  // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+
+  for (size_t ii = 0; ii < m; ii += 8) {
+    for (size_t jj = 0; jj < n; jj += vl) {
+      const uint32_t *read_ptr = a + ii * rsa + jj;
+      vl = __riscv_vsetvl_e32m1(n - jj);
+
+      vrow0 = __riscv_vle32_v_u32m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow1 = __riscv_vle32_v_u32m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow2 = __riscv_vle32_v_u32m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow3 = __riscv_vle32_v_u32m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow4 = __riscv_vle32_v_u32m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow5 = __riscv_vle32_v_u32m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow6 = __riscv_vle32_v_u32m1(read_ptr, vl);
+      read_ptr += rsa;
+      vrow7 = __riscv_vle32_v_u32m1(read_ptr, vl);
+
+      vuint32m1x8_t vrows = __riscv_vcreate_v_u32m1x8(
+          vrow0, vrow1, vrow2, vrow3, vrow4, vrow5, vrow6, vrow7);
+      if (rsat == 8) {
+        __riscv_vsseg8e32_v_u32m1x8(at + (jj * rsat) + ii, vrows, vl);
+      } else {
+        __riscv_vssseg8e32_v_u32m1x8(at + (jj * rsat) + ii, output_seg_bstride,
+                                     vrows, vl);
+      }
+    }
   }
 }
 
