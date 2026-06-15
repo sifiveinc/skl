@@ -140,31 +140,30 @@ void skl_gemm_matrix_max_f32_f32rcp_xsfmmbase(
 ```
 
 ### Fused Kernel Application Function
-The following fused kernel application function is provided to easily apply a fused kernel to multiple tiles and blocks:
+The following (private) function applies a fused kernel to multiple tiles:
 ```
 void skl_gemm_apply_fused_f32_f32rcprc_xsfmm32a32f(
     size_t m, size_t n, size_t tss, size_t rstss, size_t cstss, float *c,
     size_t rsc0, size_t csc0, size_t rsc1, size_t csc1, size_t row1,
     size_t col1, fused_f32_f32_t kernel, void *params);
 ```
-`tss`, `rstss`, and `cstss` determine the tile layout.
-The tile specifier of `tss` indicates the upper leftmost tile.
-`rstss` and `cstss` are the row and column strides for the tile index.
+`tss`, `rstss`, and `cstss` determine a tile layout analogous to the packed layout for matrices.
+The tile specifier of `tss` indicates the upper leftmost tile, while `rstss` and `cstss` are the row and column strides for the tile index.
 Examples:
 ```
-tss = 0, cstss = 4
-mt0 mt4 mt8 mt12
-
 tss = 0, rstss = 8, cstss = 4
 mt0 mt4
 mt8 mt12
 
-tss = 3, rstss = 1, cstss = 3
-mt3 mt6 ...
-mt4 mt7 ...
-mt5 mt8 ...
+tss = 3 << 27, rstss = 1, cstss = 3
+mt3 mt6 ... mt12
+mt4 mt7 ... mt13
+mt5 mt8 ... mt14
 ```
-This function applies the kernel to the leading `m` x `n` portion of the tile layout and the corresponding part of `C`.
+The function applies the kernel to the leading `m` x `n` portion of the tile layout.
+Below is an illustration for the first tile layout above when `m` and `n` are between `ETE` and `2 * ETE`:
+```
+```
 
 
 
@@ -189,8 +188,32 @@ tss = 0, rstss = 8, cstss = 4
 mt0 mt4
 mt8 mt12
 ```
-
+ --------------n--------------
+|┌────────────────┬───────────┬────┐
+|│                │           |    │
+|│                │           |    │
+|│      mt0       │      mt4  |    │
+m│                │           |    │
+|│                │           |    │
+|├────────────────┼───────────┼────┤
+|│                │           |    │
+|│                │           |    │
+|│      mt8       │      mt12 |    │
+ │----------------┼─----------┘    │
+ │                │                │
+ └────────────────┴────────────────┘
 ```
+Thus, `m` and `n` requires an `m1` x `n1` tile layout, where `m1 = ceil(m / ETE)` and `n1 = ceil(n / ETE)`.
+The dimensions `tm` and `tn` for the `(i1, j1)` tile are `tm = i1 == m1 - 1 ? m % ETE : ETE` and `tn = j1 == n1 - 1 ? n % ETE : ETE`.
+Finally, the `(i1, j1)` tile corresponds to the block of `C` at `c + (row1 + i1) * rsc1 + (col1 + j1) * csc1`.
+```
+for (size_t i1 = 0; i1 < m1; ++i1)
+  for (size_t j1 = 0; j1 < n1; ++j1)
+    size_t tm = i1 == m1 - 1 ? m % ETE : ETE;
+    size_t tn = i1 == n1 - 1 ? n % ETE : ETE;
+    fused(tm, tn, tss + i1 * (rstss << 27) + j1 * (cstss << 27), c, rsc0, rsc1, csc1, row1 + i1, col1 + j1, params);
+```
+
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
 void skl_tile_load_f32rcp_f32_xsfmmbase(size_t m, size_t n, const float *c,
