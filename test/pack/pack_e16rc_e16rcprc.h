@@ -36,22 +36,22 @@ typedef struct {
   size_t rs0, cs0; // within block
   size_t rs1, cs1; // between blocks
 
-  uint8_t pad;
+  uint16_t pad;
   // Buffer generation settings
-  SKL_TEST_BUFFER(uint8_t) src, dst;
+  SKL_TEST_BUFFER(uint16_t) src, dst;
 
   // Derived parameters & buffers (private to the test harness)
   struct {
-    uint8_t *ref_dst;
+    uint16_t *ref_dst;
   } ctx;
-} pack_e8rc_e8rcprc_t;
+} pack_e16rc_e16rcprc_t;
 
-#define PACK_E8RC_E8RCPRC_DEFAULTS                                             \
+#define PACK_E16RC_E16RCPRC_DEFAULTS                                           \
   .src = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM},                      \
-  .dst = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM}, .pad = 0xFF
+  .dst = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM}, .pad = 0xBEEF
 
-void pack_e8rc_e8rcprc_init(skl_test_t *t);
-void pack_e8rc_e8rcprc_verify(skl_test_t *t);
-void pack_e8rc_e8rcprc_test_report(skl_test_t *t);
-void pack_e8rc_e8rcprc_benchmark_report(skl_test_t *t);
-void pack_e8rc_e8rcprc_cleanup(skl_test_t *t);
+void pack_e16rc_e16rcprc_init(skl_test_t *t);
+void pack_e16rc_e16rcprc_verify(skl_test_t *t);
+void pack_e16rc_e16rcprc_test_report(skl_test_t *t);
+void pack_e16rc_e16rcprc_benchmark_report(skl_test_t *t);
+void pack_e16rc_e16rcprc_cleanup(skl_test_t *t);

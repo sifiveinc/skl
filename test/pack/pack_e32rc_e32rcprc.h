@@ -36,22 +36,22 @@ typedef struct {
   size_t rs0, cs0; // within block
   size_t rs1, cs1; // between blocks
 
-  uint8_t pad;
+  uint32_t pad;
   // Buffer generation settings
-  SKL_TEST_BUFFER(uint8_t) src, dst;
+  SKL_TEST_BUFFER(uint32_t) src, dst;
 
   // Derived parameters & buffers (private to the test harness)
   struct {
-    uint8_t *ref_dst;
+    uint32_t *ref_dst;
   } ctx;
-} pack_e8rc_e8rcprc_t;
+} pack_e32rc_e32rcprc_t;
 
-#define PACK_E8RC_E8RCPRC_DEFAULTS                                             \
+#define PACK_E32RC_E32RCPRC_DEFAULTS                                           \
   .src = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM},                      \
-  .dst = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM}, .pad = 0xFF
+  .dst = {.min = 0, .max = 255, .mode = SKL_TEST_RANDOM}, .pad = 0xDEADBEEF
 
-void pack_e8rc_e8rcprc_init(skl_test_t *t);
-void pack_e8rc_e8rcprc_verify(skl_test_t *t);
-void pack_e8rc_e8rcprc_test_report(skl_test_t *t);
-void pack_e8rc_e8rcprc_benchmark_report(skl_test_t *t);
-void pack_e8rc_e8rcprc_cleanup(skl_test_t *t);
+void pack_e32rc_e32rcprc_init(skl_test_t *t);
+void pack_e32rc_e32rcprc_verify(skl_test_t *t);
+void pack_e32rc_e32rcprc_test_report(skl_test_t *t);
+void pack_e32rc_e32rcprc_benchmark_report(skl_test_t *t);
+void pack_e32rc_e32rcprc_cleanup(skl_test_t *t);
