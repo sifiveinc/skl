@@ -1164,8 +1164,7 @@ SKL_FUNC_PRIVATE void skl_pack_e32_e32rcprc_zve32x(
       skl_transpose_e32_zve32x(m0, n, src_block, rs, dst_block, cs0);
       if (n % n0) {
         // pad right
-        skl_set_2d_e32_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), cs0,
-                              pad, n0 - n % n0, m0);
+        skl_set_2d_e32_zve32x(dst_block + cs0 * n, cs0, pad, n0 - n % n0, m0);
       }
       src_block += m0 * rs;
       dst_block += rs1;
@@ -1175,8 +1174,7 @@ SKL_FUNC_PRIVATE void skl_pack_e32_e32rcprc_zve32x(
                                       cs0, pad);
     if (n % n0) {
       // pad right
-      skl_set_2d_e32_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), cs0,
-                            pad, n0 - n % n0, m0);
+      skl_set_2d_e32_zve32x(dst_block + cs0 * n, cs0, pad, n0 - n % n0, m0);
     }
     return;
   }

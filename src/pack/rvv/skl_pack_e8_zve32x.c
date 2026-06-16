@@ -1127,8 +1127,7 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
       skl_transpose_e8_zve32x(m0, n, src_block, rs, dst_block, cs0);
       if (n % n0) {
         // pad right
-        skl_set_2d_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), cs0,
-                             pad, n0 - n % n0, m0);
+        skl_set_2d_e8_zve32x(dst_block + cs0 * n, cs0, pad, n0 - n % n0, m0);
       }
       src_block += m0 * rs;
       dst_block += rs1;
@@ -1138,8 +1137,7 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
                                      cs0, pad);
     if (n % n0) {
       // pad right
-      skl_set_2d_e8_zve32x(dst_block + cs1 * (n1 - 1) + cs0 * (n % n0), cs0,
-                           pad, n0 - n % n0, m0);
+      skl_set_2d_e8_zve32x(dst_block + cs0 * n, cs0, pad, n0 - n % n0, m0);
     }
     return;
   }
