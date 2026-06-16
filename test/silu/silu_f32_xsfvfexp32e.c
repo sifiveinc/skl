@@ -26,7 +26,8 @@ unary_f32_t tests[] = {
     FUNCTION_BENCHMARKS(skl_silu_52u_f32_xsfvfexp32e, -1, 1),
 #endif
 #if defined(SKL_ENABLE_TESTS)
-    FUNCTION_TESTS(skl_silu_52u_f32_xsfvfexp32e, skl_silu_1u_f32_ref, MIN, MAX, 52.0f),
+    FUNCTION_TESTS(skl_silu_52u_f32_xsfvfexp32e, skl_silu_1u_f32_ref, MIN, MAX,
+                   52.0f),
 #endif
 };
 

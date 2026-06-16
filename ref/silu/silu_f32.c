@@ -11,6 +11,6 @@ SKL_FUNC void skl_silu_1u_f32_ref(float *out, const float *in, size_t n) {
   for (size_t i = 0; i < n; i++) {
     double x = in[i];
     double e = exp(-x);
-    out[i] = (float) (x / (1. + e));
+    out[i] = (float)(x / (1. + e));
   }
 }

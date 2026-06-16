@@ -26,7 +26,8 @@ unary_f16_t tests[] = {
     FUNCTION_BENCHMARKS(skl_logistic_5u_f16_xsfvfexp16e, -1, 1),
 #endif
 #if defined(SKL_ENABLE_TESTS)
-    FUNCTION_TESTS(skl_logistic_5u_f16_xsfvfexp16e, skl_logistic_1u_f16_ref, MIN, MAX, 5.0f),
+    FUNCTION_TESTS(skl_logistic_5u_f16_xsfvfexp16e, skl_logistic_1u_f16_ref,
+                   MIN, MAX, 5.0f),
 #endif
 };
 

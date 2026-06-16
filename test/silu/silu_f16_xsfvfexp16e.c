@@ -26,7 +26,8 @@ unary_f16_t tests[] = {
     FUNCTION_BENCHMARKS(skl_silu_31u_f16_xsfvfexp16e, -1, 1),
 #endif
 #if defined(SKL_ENABLE_TESTS)
-    FUNCTION_TESTS(skl_silu_31u_f16_xsfvfexp16e, skl_silu_1u_f16_ref, MIN, MAX, 31.0f),
+    FUNCTION_TESTS(skl_silu_31u_f16_xsfvfexp16e, skl_silu_1u_f16_ref, MIN, MAX,
+                   31.0f),
 #endif
 };
 

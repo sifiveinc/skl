@@ -26,7 +26,8 @@ unary_f32_t tests[] = {
     FUNCTION_BENCHMARKS(skl_logistic_3u_f32_zve32f, -1, 1),
 #endif
 #if defined(SKL_ENABLE_TESTS)
-    FUNCTION_TESTS(skl_logistic_3u_f32_zve32f, skl_logistic_1u_f32_ref, MIN, MAX, 3.0f),
+    FUNCTION_TESTS(skl_logistic_3u_f32_zve32f, skl_logistic_1u_f32_ref, MIN,
+                   MAX, 3.0f),
 #endif
 };
 
