@@ -17,14 +17,12 @@
 SKL_FUNC_PRIVATE void skl_set_e8_zve32x(uint8_t *dst, uint8_t value, size_t n) {
   size_t vl = __riscv_vsetvl_e8m8(n);
   vuint8m8_t v_value = __riscv_vmv_v_x_u8m8(value, vl);
-  __riscv_vse8_v_u8m8(dst, v_value, vl);
-  n -= vl;
 
   while (n) {
-    dst += vl;
     vl = __riscv_vsetvl_e8m8(n);
     __riscv_vse8_v_u8m8(dst, v_value, vl);
     n -= vl;
+    dst += vl;
   }
 }
 
@@ -199,6 +197,58 @@ SKL_FUNC_PRIVATE void skl_copy_2d_e8_zve32x(size_t m, size_t n,
   }
   for (size_t i = 0; i < m; ++i) {
     skl_copy_e8_zve32x(b + i * rsb, a + i * rsa, n);
+  }
+}
+
+/**
+ * @brief Copy a 2D matrix and pad the output matrix with a constant value in
+ * the N dimension.
+ *
+ * @param n_padded - Number of columns in output matrix
+ * @param m - Number of rows in input matrix and output matrix
+ * @param n - Number of columns in input matrix
+ * @param a - Pointer to input matrix
+ * @param rsa - Row stride of input matrix in elements.
+ * @param b - Pointer to output matrix.
+ * @param rsb - Row stride of output matrix in elements.
+ * @param pad - Value to use for padding.
+ *
+ */
+SKL_FUNC_PRIVATE void skl_copy_2d_padded_n_e8_zve32x(
+    size_t n_padded, size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
+    size_t rsa, uint8_t *SKL_RESTRICT b, size_t rsb, uint8_t pad) {
+  if (n_padded == n) {
+    skl_copy_2d_e8_zve32x(m, n, a, rsa, b, rsb);
+    return;
+  }
+  /* Process N dimension in 3 parts:
+   * - head: Full vlmax-element chunks (direct copy)
+   * - transition: Partial vlmax chunk with data + padding
+   * - tail: Pure padding beyond transition
+   */
+  size_t vlmax = __riscv_vsetvlmax_e8m8();
+  size_t n_head = n / vlmax * vlmax;
+  if (n_head) {
+    skl_copy_2d_e8_zve32x(m, n_head, a, rsa, b, rsb);
+    a += n_head;
+    b += n_head;
+  }
+
+  size_t n_transition = 0;
+  if (n % vlmax) {
+    n_transition = n_padded - n_head > vlmax ? vlmax : n_padded - n_head;
+    vuint8m8_t pad_vec = __riscv_vmv_v_x_u8m8(pad, n_transition);
+    size_t n_load = n - n_head;
+    for (size_t i = 0; i < m; ++i) {
+      pad_vec = __riscv_vle8_v_u8m8_tu(pad_vec, a + i * rsa, n_load);
+      __riscv_vse8_v_u8m8(b + i * rsb, pad_vec, n_transition);
+    }
+    b += n_transition;
+  }
+
+  size_t n_tail = n_padded - n_head - n_transition;
+  if (n_tail) {
+    skl_set_2d_e8_zve32x(b, rsb, pad, m, n_tail);
   }
 }
 
@@ -1146,12 +1196,7 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
   if (cs0 == 1 && m0 == 1) {
     if (n0 == cs1) {
       /* row-major block ordering */
-      skl_copy_2d_e8_zve32x(m, n, src, rs, dst, rs1);
-      // pad right
-      if (n % n0) {
-        skl_set_2d_e8_zve32x(dst + n, rs1, pad, m, n0 - n % n0);
-      }
-
+      skl_copy_2d_padded_n_e8_zve32x(n0 * n1, m, n, src, rs, dst, rs1, pad);
     } else {
       /* column-major block ordering */
       const uint8_t *src_block = src;
@@ -1163,9 +1208,8 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
         dst_block += cs1;
       }
       size_t n_tail = n - n0 * (n1 - 1);
-      skl_copy_2d_e8_zve32x(m, n_tail, src_block, rs, dst_block, rs1);
-      // pad right: pad (n0 - n_tail) elements in each of m rows
-      skl_set_2d_e8_zve32x(dst_block + n_tail, rs1, pad, m, n0 - n_tail);
+      skl_copy_2d_padded_n_e8_zve32x(n0, m, n_tail, src_block, rs, dst_block,
+                                     rs1, pad);
     }
     return;
   }
@@ -1184,13 +1228,12 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
       dst_block += cs1;
     }
     size_t n_tail = n - n0 * (n1 - 1);
-    skl_copy_2d_e8_zve32x(m, n_tail, src_block, rs, dst_block, rs0);
+    skl_copy_2d_padded_n_e8_zve32x(n0, m, n_tail, src_block, rs, dst_block, rs0,
+                                   pad);
     if (m % m0) {
       // pad bottom
       skl_set_2d_e8_zve32x(dst_block + m * rs0, rs0, pad, m0 - m % m0, n0);
     }
-    // pad right: pad (n0 - n_tail) elements in each of m rows
-    skl_set_2d_e8_zve32x(dst_block + n_tail, rs0, pad, m, n0 - n_tail);
     return;
   }
 
@@ -1207,11 +1250,8 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
         skl_set_2d_e8_zve32x(dst_block + cs0 * n_length, cs0, pad,
                              n0 - n_length, m0);
       } else if (cs0 == 1) {
-        skl_copy_2d_e8_zve32x(m_length, n_length, src_block, rs, dst_block,
-                              rs0);
-        // pad right: pad (n0 - n_length) elements in each of m_length rows
-        skl_set_2d_e8_zve32x(dst_block + n_length, rs0, pad, m_length,
-                             n0 - n_length);
+        skl_copy_2d_padded_n_e8_zve32x(n0, m_length, n_length, src_block, rs,
+                                       dst_block, rs0, pad);
         // pad bottom: pad (m0 - m_length) rows, each with n0 elements
         skl_set_2d_e8_zve32x(dst_block + m_length * rs0, rs0, pad,
                              m0 - m_length, n0);
