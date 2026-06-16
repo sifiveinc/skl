@@ -239,7 +239,7 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
               [b00w] "=&vr" (b00w),
               [b10w] "=&vr" (b10w),
               [b20w] "=&vr" (b20w),
-              [b30w] "=&vr" (b30w)
+              [b30w] "=vr" (b30w)
             : [jj_vl] "r" (jj_vl),
               [a_inc] "r" (sizeof(int8_t) * preload_distance),
               [b_inc] "r" (sizeof(int8_t) * rsb)
@@ -582,7 +582,7 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
             [acc00] "vr" (acc00),
             [alpha] "r" (alpha),
             [beta] "r" (beta),
-            [c_addr] "r" (c + ii*rsc + jj)
+            [c_addr] "r" (c + ii * rsc + jj)
           : "vtype", "vl", "memory"
           // clang-format on
       );
