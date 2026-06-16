@@ -135,54 +135,59 @@ m│                │           │    ││
  └────────────────┴────────────────┘┘
  └──────ETE───────┴──────ETE───────┘
 ```
-Thus, an `m` x `n` region requires an `m1` x `n1` tile layout, where `m1 = ceil(m / ETE)` and `n1 = ceil(n / ETE)`.
-Finally, the `(i1, j1)` tile corresponds to the block of `C` at `c + (row1 + i1) * rsc1 + (col1 + j1) * csc1`.
-
+The pseudocode below illustrates the application function's operation:
 ```
-for (size_t i1 = 0; i1 < m1; ++i1)
-  for (size_t j1 = 0; j1 < n1; ++j1)
-    size_t tm = i1 == m1 - 1 ? m % ETE : ETE;
-    size_t tn = i1 == n1 - 1 ? n % ETE : ETE;
+size_t m1 = (m + ETE - 1) / ETE; // ceil(m / ETE)
+size_t n1 = (n + ETE - 1) / ETE; // ceil(n / ETE)
+size_t m_avl = m;
+for (size_t i1 = 0; i1 < m1; ++i1) {
+  size_t tm = m_avl > ETE ? ETE : m_avl;
+  size_t n_avl = n;
+  for (size_t j1 = 0; j1 < n1; ++j1) {
+    size_t tn = n_avl > ETE ? ETE : n_avl;
     fused(tm, tn, tss + i1 * (rstss << 27) + j1 * (cstss << 27), c, rsc0, rsc1, csc1, row1 + i1, col1 + j1, params);
+    n_avl -= tn;
+  }
+  m_avl -= tm;
+}
 ```
-If `tss` has a column pattern, then the application function can be thought of as
+If `tss` has a column pattern, the kernel is applied to the transpose of each subtile and stored to the leading `m` x `n` portion of `C`.
+Continuing the example above, the tile state would look like:
 ```
-If tss has a column pattern, the application function will apply the kernel to the following regions.
-The operation is applied to the transpose of each subtile and stored to the leading `m` x `n` portion of `C`:
- --------------n--------------
-|┌────────────────┬────────────────┐
-|│                │                │ |
-|│                │                │ n - ETE
-|│      mt0       │      mt4       │ |
-m│                │----------------│
-|│                │                │
-|├────────────────┼────────────────┤
-|│          |     │           |    │
-|│          |     │           |    │
-|│      mt8 |     │      mt12 |    │
- │          |     │-----------┘    │
- │          |     │                │
- └────────────────┴────────────────┘
- --m - ETE--
-
-
-It may be easier to think of it like this:
-The kernel is applied to the transpose of this region, then stored to `C`.
- --------------m--------------
-|┌────────────────┬───────────┬────┐
-|│                │           |    │
-|│                │           |    │
-|│      mt0       │      mt8  |    │
-n│                │           |    │
-|│                │           |    │
-|├────────────────┼───────────┼────┤
-|│                │           |    │
-|│                │           |    │
-|│      mt4       │      mt12 |    │
- │----------------┼─----------┘    │
+   ┌──────ETE───────┬──────ETE───────┐
+  ┌┌────────────────┬────────────────┐┐
+  ││                │                ││ 
+  ││                │                │n - ETE
+ETE│      mt0       │      mt4       ││
+  ││                ├────────────────┤┘
+  ││                │                │
+  ├├──────────┬─────┼───────────┬────┤┐
+  ││          │     │           │    ││
+  ││          │     │           │    │n - ETE
+ETE│      mt8 │     │      mt12 │    ││
+  ││          │     ├───────────┘    │┘
+  ││          │     │                │
+  └└──────────┴─────┴────────────────┘
+   └─m - ETE──┘     └──m - ETE──┘
+```
+It may be easier to visualize by interpreting `rstss` as the column stride and `cstss` as the row stride:
+```
+ ┌─────────────m──────────────┐
+┌┌────────────────┬───────────┬────┐
+││                │           │    │
+││                │           │    │
+││      mt0       │      mt8  │    │
+││                │           │    │
+n│                │           │    │
+│├────────────────┼───────────┼────┤
+││                │           │    │
+││                │           │    │
+││      mt4       │      mt12 │    │
+└├────────────────┼───────────┘    │
  │                │                │
  └────────────────┴────────────────┘
 ```
+So, if `tss` has a column pattern, then the application function transposes this region of the tile state, applies the kernel to each subtile, and then stores them to the leading `m` x `n` portion of `C`.
 
 ## Inner loop functions
 The Xsfmm inner loop functions accumulate a matrix product `A * B` into the current tile state.
