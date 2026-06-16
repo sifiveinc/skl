@@ -1,11 +1,191 @@
-# Xsfmm fused kernel API
+# Xsfmm Fused Kernel API
 In applications, users might want to perform an operation such as alpha/beta scaling, adding a bias, applying an activation function, etc. after computing a matrix product.
-This document describes an API for kernels that can be fused to a GEMM operation, i.e. applied directly to the output of a GEMM operation in the tile state.
-Assumes reader is familiar with packed GEMM API.
+The simplest approach is to have distinct GEMM and post-GEMM kernels.
+The former compute a GEMM and store the result to memory, while the latter operate on matrices in memory.
+However, this approach unnecessarily stores and reloads the matrix.
+An alternate approach for GEMM kernels using SiFive's Xsfmm extension is to leave the matrix product in the tile state and pass it directly to the post-GEMM operator.
+This document describes an API for post-GEMM kernels that allow them to be "fused" to Xsfmm GEMM kernels.
+It is assumed that readers are familiar with SKL's packed GEMM API and SiFive's Xsfmm extension.
 
-## ABI attributes
+## Fused Kernel API
+Fused kernels perform an operation on a single tile in the Xsfmm tile state and a single block of `C`.
+Their API is
+```
+SKL_XSFMM_IN
+void fused(size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
+           size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params);
+```
+where
+- `tss` is the tile subset specifier for the first row (column) of the subtile to be operated on
+- tn is the length of the row (resp. column) `tss` specifies
+- `tm` is the number of rows (resp. columns) of the subtile, i.e. rows (resp. columns) `tss` to `tss + tm - 1`
+- `c + row1 + rsc1 + col1 * csc1` points to the block of `C` to be operated on
+- `rsc0` and `csc0` are the block's row and column strides
+- `params` points to a struct containing any other parameters the kernel needs.
+
+### Examples
+In the examples below, `tss[i, j]` denotes the `j`th entry of the row or column specified by `tss + i`.
+Pseudocode is given to illustrate the operation each kernel performs.
+
+#### Alpha/beta scaling
+To compute a GEMM `C = alpha * A * B + beta * C`, the user can apply an alpha/beta scaling kernel:
+```
+typedef struct {
+  float alpha;
+  float beta;
+} alpha_beta_scaling_params_f32_f32_t;
+
+void skl_gemm_alpha_beta_scaling_f32_f32rcp_xsfmmbase(
+    size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
+    size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
+  alpha_beta_scaling_params_f32_f32_t *params_cast =
+      (alpha_beta_scaling_params_f32_f32_t *)params;
+  
+  float *c_block = c + row1 * rsc1 + col1 * csc1;
+  for (size_t i = 0; i < tm; ++i)
+    for (size_t j = 0; j < tn; ++j)
+      c_block[i * rsc0 + j * csc0] = beta * c_block[i * rsc0 + j * csc0] + alpha * tss[i, j];
+}
+```
+Note that if `tss` specifies a column, then the transpose of the subtile is scaled and stored to `C`.
+
+#### Adding a bias
+The following kernel can be used to compute `C = A * B + bias`, where `bias` is a row vector that is added to each row of `A * B`:
+```
+typedef struct {
+  float *bias;
+  size_t csbias1;
+} add_bias_params_f32_f32_t;
+
+void skl_gemm_add_bias_f32_f32rcp_xsfmmbase(
+    size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
+    size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
+  add_bias_params_f32_f32_t *params_cast = (add_bias_params_f32_f32_t *)params;
+  
+  float *c_block = c + row1 * rsc1 + col1 * csc1;
+  float *bias_block = bias + col1 * csbias1;
+  for (size_t i = 0; i < tm; ++i)
+    for (size_t j = 0; j < tn; ++j)
+      c_block[i * rsc0 + j * csc0] = tss[i, j] + bias_block[j];
+}
+```
+Note that if `tss` specifies a column, then the bias is added to the *columns* of the subtile.
+
+#### Computing a global maximum
+To compute the maximum value of a matrix product, the following kernel can be used tile-by-tile to update the current maximum:
+```
+typedef struct {
+  float *max;
+} matrix_max_params_f32_f32_t;
+
+void skl_gemm_matrix_max_f32_f32rcp_xsfmmbase(
+    size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
+    size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
+  matrix_max_params_f32_f32_t *params_cast =
+      (matrix_max_params_f32_f32_t *)params;
+  
+  float *c_block = c + row1 * rsc1 + col1 * csc1;
+  for (size_t i = 0; i < tm; ++i)
+    for (size_t j = 0; j < tn; ++j) {
+      if (tss[i, j] > *max)
+        *max = tss[i, j];
+      c_block[i * rsc0 + j * csc0] = tss[i, j];
+    }
+}
+```
+As with the alpha/beta scaling kernel, if `tss` specifies a column, then the transpose of the subtile is stored to `C`.
+
+### Fused Kernel Application Function
+The following (private) function applies a fused kernel to multiple tiles:
+```
+void skl_gemm_apply_fused_f32_f32rcprc_xsfmm32a32f(
+    size_t m, size_t n, size_t tss, size_t rstss, size_t cstss, float *c,
+    size_t rsc0, size_t csc0, size_t rsc1, size_t csc1, size_t row1,
+    size_t col1, fused_f32_f32_t kernel, void *params);
+```
+`tss`, `rstss`, and `cstss` determine a tile layout analogous to the packed layout for matrices.
+The tile specifier of `tss` indicates the upper leftmost tile, while `rstss` and `cstss` are the row and column strides for the tile index.
+Examples:
+```
+tss = 0, rstss = 8, cstss = 4
+mt0 mt4
+mt8 mt12
+
+tss = 3 << 27, rstss = 1, cstss = 3
+mt3 mt6 ... mt12
+mt4 mt7 ... mt13
+mt5 mt8 ... mt14
+```
+The application function applies the kernel to the leading `m` x `n` portion of the tile layout.
+Below is an illustration for the first tile layout above (`tss = 0`, `rstss = 8`, `cstss = 4`) when `m` and `n` are between `ETE` and `2 * ETE`:
+```
+ ┌─────────────n──────────────┐
+┌┌────────────────┬───────────┬────┐┐
+││                │           │    ││
+││                │           │    ││
+││      mt0       │      mt4  │    │ETE
+││                │           │    ││
+m│                │           │    ││
+│├────────────────┼───────────┼────┤┤
+││                │           │    ││
+││                │           │    ││
+││      mt8       │      mt12 │    │ETE
+└├────────────────┼───────────┘    ││
+ │                │                ││
+ └────────────────┴────────────────┘┘
+ └──────ETE───────┴──────ETE───────┘
+```
+Thus, an `m` x `n` region requires an `m1` x `n1` tile layout, where `m1 = ceil(m / ETE)` and `n1 = ceil(n / ETE)`.
+Finally, the `(i1, j1)` tile corresponds to the block of `C` at `c + (row1 + i1) * rsc1 + (col1 + j1) * csc1`.
+
+```
+for (size_t i1 = 0; i1 < m1; ++i1)
+  for (size_t j1 = 0; j1 < n1; ++j1)
+    size_t tm = i1 == m1 - 1 ? m % ETE : ETE;
+    size_t tn = i1 == n1 - 1 ? n % ETE : ETE;
+    fused(tm, tn, tss + i1 * (rstss << 27) + j1 * (cstss << 27), c, rsc0, rsc1, csc1, row1 + i1, col1 + j1, params);
+```
+If `tss` has a column pattern, then the application function can be thought of as
+```
+If tss has a column pattern, the application function will apply the kernel to the following regions.
+The operation is applied to the transpose of each subtile and stored to the leading `m` x `n` portion of `C`:
+ --------------n--------------
+|┌────────────────┬────────────────┐
+|│                │                │ |
+|│                │                │ n - ETE
+|│      mt0       │      mt4       │ |
+m│                │----------------│
+|│                │                │
+|├────────────────┼────────────────┤
+|│          |     │           |    │
+|│          |     │           |    │
+|│      mt8 |     │      mt12 |    │
+ │          |     │-----------┘    │
+ │          |     │                │
+ └────────────────┴────────────────┘
+ --m - ETE--
+
+
+It may be easier to think of it like this:
+The kernel is applied to the transpose of this region, then stored to `C`.
+ --------------m--------------
+|┌────────────────┬───────────┬────┐
+|│                │           |    │
+|│                │           |    │
+|│      mt0       │      mt8  |    │
+n│                │           |    │
+|│                │           |    │
+|├────────────────┼───────────┼────┤
+|│                │           |    │
+|│                │           |    │
+|│      mt4       │      mt12 |    │
+ │----------------┼─----------┘    │
+ │                │                │
+ └────────────────┴────────────────┘
+```
 
 ## Inner loop functions
+The Xsfmm inner loop functions accumulate a matrix product `A * B` into the current tile state.
 The number of available tiles in the Xsfmm tile state determines the possible tilings of the `C` matrix.
 When `TEW` = 32, there are four available tiles (`mt0`, `mt4`, `mt8`, and `mt12`), which can support 1 x 1, 1 x 2, 1 x 3, 1 x 4, 2 x 1, 3 x 1, 4 x 1, and 2 x 2 tilings of `C`.
 When `TEW = 8`, there are 16 tiles (`mt0` to `mt15`), which can support tilings of shape `m1` x `n1`, where `m1 * n1 <= 16`.
@@ -24,6 +204,22 @@ SKL_FUNC_PRIVATE void inner_loop_m1xn1_f32rcpc_f32rcp_f32_xsfmm32a32f(
 ```
 The product `A * B` remains in the tile state so that the fused kernel can operate on it directly.
 This API handles partial tiles if `m` or `n` is not a multiple of `ETE`.
+```
+ --------------n--------------
+|┌────────────────┬───────────┬────┐
+|│                │           |    │
+|│                │           |    │
+|│      mt0       │      mt4  |    │
+m│                │           |    │
+|│                │           |    │
+|├────────────────┼───────────┼────┤
+|│                │           |    │
+|│                │           |    │
+|│      mt8       │      mt12 |    │
+ │----------------┼─----------┘    │
+ │                │                │
+ └────────────────┴────────────────┘
+```
 The inner loop functions obey the following tile allocation scheme: if `m1 == n1`, tiles are arranged by index in increasing order in row-major order; otherwise, if `m1 < n1`, tiles are arranged by index in increasing order in column-major order.
 Below are some examples of the tile allocation scheme:
 `TEW` = 32
@@ -52,118 +248,6 @@ mt6 mt7 mt8     mt2 mt5 mt8 mt11
 mt12 mt13 mt14 mt15
 ```
 
-## Fused Kernel API
-Fused kernels perform an operation on a tile in the tile state and a block of `C`.
-Their API is
-```
-SKL_XSFMM_IN
-void fused(size_t tm, size_t tn, size_t tss, float *c, size_t rsc0,
-           size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params);
-```
-where
-- `tss` is a tile subset specifier
-- tn is the length of the row (column) `tss` specifies
-- `tm` is the number of rows (resp. columns) to be operated on, i.e. rows (resp. columns) `tss` to `tss + tm - 1`
-- `c + row1 + rsc1 + col1 * csc1` points to the block of `C`
-- `rsc0` is the block's row stride
-- `params` points to a struct containing any other parameters the kernel needs.
-
-### Examples
-In the examples below, `tss[i, j]` denotes the `j`th entry of the row or column specified by `tss + i`.
-Pseudocode is given to illustrate the operation each kernel performs.
-#### Alpha/beta scaling
-To compute a GEMM `C = alpha * A * B + beta * C`, the user can apply an alpha/beta scaling kernel to `A * B`.
-```
-typedef struct {
-  float alpha;
-  float beta;
-} alpha_beta_scaling_params_f32_f32_t;
-
-void skl_gemm_alpha_beta_scaling_f32_f32rcp_xsfmmbase(
-    size_t tm, size_t tn, size_t tss, float *c, size_t rsc0,
-    size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
-  alpha_beta_scaling_params_f32_f32_t *params_cast =
-      (alpha_beta_scaling_params_f32_f32_t *)params;
-  
-  float *c_block = c + row1 * rsc1 + col1 * csc1;
-  for (size_t i = 0; i < tm; ++i)
-    for (size_t j = 0; j < tn; ++j)
-      c_block[i * rsc0 + j] = beta * c_block[i * rsc0 + j] + alpha * tss[i, j];
-}
-```
-Note that if `tss` specifies a column, then the transpose of the tile is scaled and stored to `C`.
-
-#### Adding a bias
-The following kernel can be used to compute `C = A * B + bias`, where `bias` is a row vector that is added to each row of `A * B`:
-```
-typedef struct {
-  float *bias;
-  size_t csbias1;
-} add_bias_params_f32_f32_t;
-
-void skl_gemm_add_bias_f32_f32rcp_xsfmmbase(
-    size_t tm, size_t tn, size_t tss, float *c, size_t rsc0,
-    size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
-  add_bias_params_f32_f32_t *params_cast = (add_bias_params_f32_f32_t *)params;
-  
-  float *c_block = c + row1 * rsc1 + col1 * csc1;
-  float *bias_block = bias + col1 * csbias1;
-  for (size_t i = 0; i < tm; ++i)
-    for (size_t j = 0; j < tn; ++j)
-      c_block[i * rsc0 + j] = tss[i, j] + bias_block[j];
-}
-```
-Note that if `tss` specifies a column, then the bias is added to each row of the transpose of the tile and the result is stored to `C.
-In other words, the bias is added to the *columns* of the tile.
-
-#### Computing a global maximum
-To compute the maximum value of the matrix product, the following kernel can be used tile-by-tile to update the current maximum:
-```
-typedef struct {
-  float *max;
-} matrix_max_params_f32_f32_t;
-
-void skl_gemm_matrix_max_f32_f32rcp_xsfmmbase(
-    size_t tm, size_t tn, size_t tss, float *c, size_t rsc0,
-    size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
-  matrix_max_params_f32_f32_t *params_cast =
-      (matrix_max_params_f32_f32_t *)params;
-  
-  float *c_block = c + row1 * rsc1 + col1 * csc1;
-  for (size_t i = 0; i < tm; ++i)
-    for (size_t j = 0; j < tn; ++j) {
-      if (tss[i, j] > *max)
-        *max = tss[i, j];
-      c_block[i * rsc0 + j] = tss[i, j];
-    }
-}
-```
-
-### Fused Kernel Application Function
-The following (private) function applies a fused kernel to multiple tiles:
-```
-void skl_gemm_apply_fused_f32_f32rcprc_xsfmm32a32f(
-    size_t m, size_t n, size_t tss, size_t rstss, size_t cstss, float *c,
-    size_t rsc0, size_t csc0, size_t rsc1, size_t csc1, size_t row1,
-    size_t col1, fused_f32_f32_t kernel, void *params);
-```
-`tss`, `rstss`, and `cstss` determine a tile layout analogous to the packed layout for matrices.
-The tile specifier of `tss` indicates the upper leftmost tile, while `rstss` and `cstss` are the row and column strides for the tile index.
-Examples:
-```
-tss = 0, rstss = 8, cstss = 4
-mt0 mt4
-mt8 mt12
-
-tss = 3 << 27, rstss = 1, cstss = 3
-mt3 mt6 ... mt12
-mt4 mt7 ... mt13
-mt5 mt8 ... mt14
-```
-The function applies the kernel to the leading `m` x `n` portion of the tile layout.
-Below is an illustration for the first tile layout above when `m` and `n` are between `ETE` and `2 * ETE`:
-```
-```
 
 
 
@@ -188,20 +272,7 @@ tss = 0, rstss = 8, cstss = 4
 mt0 mt4
 mt8 mt12
 ```
- --------------n--------------
-|┌────────────────┬───────────┬────┐
-|│                │           |    │
-|│                │           |    │
-|│      mt0       │      mt4  |    │
-m│                │           |    │
-|│                │           |    │
-|├────────────────┼───────────┼────┤
-|│                │           |    │
-|│                │           |    │
-|│      mt8       │      mt12 |    │
- │----------------┼─----------┘    │
- │                │                │
- └────────────────┴────────────────┘
+```
 ```
 Thus, `m` and `n` requires an `m1` x `n1` tile layout, where `m1 = ceil(m / ETE)` and `n1 = ceil(n / ETE)`.
 The dimensions `tm` and `tn` for the `(i1, j1)` tile are `tm = i1 == m1 - 1 ? m % ETE : ETE` and `tn = j1 == n1 - 1 ? n % ETE : ETE`.
