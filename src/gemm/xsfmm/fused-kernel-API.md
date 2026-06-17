@@ -2,10 +2,9 @@
 In applications, users might want to perform an operation such as alpha/beta scaling, adding a bias, applying an activation function, etc. after computing a matrix product.
 The simplest approach is to have distinct GEMM and post-GEMM kernels.
 The former compute a GEMM and store the result to memory, while the latter operate on matrices in memory.
-However, this approach unnecessarily stores and reloads the matrix.
-An alternate approach for GEMM kernels using SiFive's Xsfmm extension is to leave the matrix product in the tile state and pass it directly to the post-GEMM operator.
-This document describes an API for post-GEMM kernels that allow them to be "fused" to Xsfmm GEMM kernels.
-It is assumed that readers are familiar with SKL's packed GEMM API and SiFive's Xsfmm extension.
+An alternate approach for GEMM kernels using SiFive's Xsfmm extension is to leave the matrix product in the tile state and pass it directly to the post-GEMM operator, avoiding the storing and reloading of the matrix.
+This document describes an API for post-GEMM kernels that allows them to be "fused" to the Xsfmm GEMM kernels.
+It is assumed that readers are familiar with [SKL's packed GEMM API](../packed-gemm.md) and SiFive's Xsfmm extension.
 
 ## Fused Kernel API
 Fused kernels perform an elementwise operation on a single tile in the Xsfmm tile state and a single block of `C`.
@@ -23,6 +22,7 @@ where
 - `c + row1 * rsc1 + col1 * csc1` points to the block of `C` to be operated on
 - `rsc0` and `csc0` are the block's row and column strides
 - `params` points to a struct containing any other parameters the kernel needs.
+
 Let `tss[i, j]` denotes the `j`th entry of the row or column specified by `tss + i`, and let `c_block = c + row1 * rsc1 + col1 * csc1`.
 Then `tss[i, j]` should correspond to `c_block[i * rsc0 + j * csc0]` under the kernel's elementwise operation.
 Note that if `tss` has a column pattern, then the operation is effectively applied to the *transpose* of the subtile.
@@ -39,6 +39,7 @@ typedef struct {
   float beta;
 } alpha_beta_scaling_params_f32_f32_t;
 
+SKL_XSFMM_IN
 void skl_gemm_alpha_beta_scaling_f32_f32rcptexterc_xsfmmbase(
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
     size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
@@ -61,6 +62,7 @@ typedef struct {
   size_t csbias1;
 } add_bias_params_f32_f32_t;
 
+SKL_XSFMM_IN
 void skl_gemm_add_bias_f32_f32rcptexterc_xsfmmbase(
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
     size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
@@ -82,6 +84,7 @@ typedef struct {
   float *max;
 } matrix_max_params_f32_f32_t;
 
+SKL_XSFMM_IN
 void skl_gemm_matrix_max_f32_f32rcptexterc_xsfmmbase(
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
     size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
@@ -107,6 +110,7 @@ typedef void (*fused_<type>_<type>_t)(size_t tm, size_t tn, size_t tss,
                                       size_t rsc1, size_t csc1, size_t row1,
                                       size_t col1, void *params) SKL_XSFMM_IN;
 
+SKL_XSFMM_IN
 void skl_gemm_apply_fused_<type>_<type>rcptexterc_<isa>(
     size_t m, size_t n, size_t tss, size_t rstss, size_t cstss, <type> *c,
     size_t rsc0, size_t csc0, size_t rsc1, size_t csc1, size_t row1,
