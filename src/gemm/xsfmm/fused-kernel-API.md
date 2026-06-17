@@ -8,23 +8,27 @@ This document describes an API for post-GEMM kernels that allow them to be "fuse
 It is assumed that readers are familiar with SKL's packed GEMM API and SiFive's Xsfmm extension.
 
 ## Fused Kernel API
-Fused kernels perform an operation on a single tile in the Xsfmm tile state and a single block of `C`.
+Fused kernels perform an elementwise operation on a single tile in the Xsfmm tile state and a single block of `C`.
 Their API is
 ```
 SKL_XSFMM_IN
-void fused(size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
-           size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params);
+void kernel(size_t tm, size_t tn, size_t tss, <type> *c, size_t rsc0,
+            size_t csc0, size_t rsc1, size_t csc1, size_t row1, size_t col1,
+            void *params);
 ```
 where
 - `tss` is the tile subset specifier for the first row (column) of the subtile to be operated on
 - tn is the length of the row (resp. column) `tss` specifies
 - `tm` is the number of rows (resp. columns) of the subtile, i.e. rows (resp. columns) `tss` to `tss + tm - 1`
-- `c + row1 + rsc1 + col1 * csc1` points to the block of `C` to be operated on
+- `c + row1 * rsc1 + col1 * csc1` points to the block of `C` to be operated on
 - `rsc0` and `csc0` are the block's row and column strides
 - `params` points to a struct containing any other parameters the kernel needs.
+Let `tss[i, j]` denotes the `j`th entry of the row or column specified by `tss + i`, and let `c_block = c + row1 * rsc1 + col1 * csc1`.
+Then `tss[i, j]` should correspond to `c_block[i * rsc0 + j * csc0]` under the kernel's elementwise operation.
+Note that if `tss` has a column pattern, then the operation is effectively applied to the *transpose* of the subtile.
 
 ### Examples
-In the examples below, `tss[i, j]` denotes the `j`th entry of the row or column specified by `tss + i`.
+We give some examples below of fused kernels for the `float` type.
 Pseudocode is given to illustrate the operation each kernel performs.
 
 #### Alpha/beta scaling
@@ -35,19 +39,19 @@ typedef struct {
   float beta;
 } alpha_beta_scaling_params_f32_f32_t;
 
-void skl_gemm_alpha_beta_scaling_f32_f32rcp_xsfmmbase(
+void skl_gemm_alpha_beta_scaling_f32_f32rcptexterc_xsfmmbase(
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
     size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
   alpha_beta_scaling_params_f32_f32_t *params_cast =
       (alpha_beta_scaling_params_f32_f32_t *)params;
-  
+
   float *c_block = c + row1 * rsc1 + col1 * csc1;
   for (size_t i = 0; i < tm; ++i)
     for (size_t j = 0; j < tn; ++j)
-      c_block[i * rsc0 + j * csc0] = beta * c_block[i * rsc0 + j * csc0] + alpha * tss[i, j];
+      c_block[i * rsc0 + j * csc0] =
+          alpha * tss[i, j] + beta * c_block[i * rsc0 + j * csc0];
 }
 ```
-Note that if `tss` specifies a column, then the transpose of the subtile is scaled and stored to `C`.
 
 #### Adding a bias
 The following kernel can be used to compute `C = A * B + bias`, where `bias` is a row vector that is added to each row of `A * B`:
@@ -57,11 +61,11 @@ typedef struct {
   size_t csbias1;
 } add_bias_params_f32_f32_t;
 
-void skl_gemm_add_bias_f32_f32rcp_xsfmmbase(
+void skl_gemm_add_bias_f32_f32rcptexterc_xsfmmbase(
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
     size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
   add_bias_params_f32_f32_t *params_cast = (add_bias_params_f32_f32_t *)params;
-  
+
   float *c_block = c + row1 * rsc1 + col1 * csc1;
   float *bias_block = bias + col1 * csbias1;
   for (size_t i = 0; i < tm; ++i)
@@ -78,12 +82,12 @@ typedef struct {
   float *max;
 } matrix_max_params_f32_f32_t;
 
-void skl_gemm_matrix_max_f32_f32rcp_xsfmmbase(
+void skl_gemm_matrix_max_f32_f32rcptexterc_xsfmmbase(
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
     size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
   matrix_max_params_f32_f32_t *params_cast =
       (matrix_max_params_f32_f32_t *)params;
-  
+
   float *c_block = c + row1 * rsc1 + col1 * csc1;
   for (size_t i = 0; i < tm; ++i)
     for (size_t j = 0; j < tn; ++j) {
@@ -93,15 +97,20 @@ void skl_gemm_matrix_max_f32_f32rcp_xsfmmbase(
     }
 }
 ```
-As with the alpha/beta scaling kernel, if `tss` specifies a column, then the transpose of the subtile is stored to `C`.
 
 ### Fused Kernel Application Function
-The following (private) function applies a fused kernel to multiple tiles:
+SKL provides (private) functions that apply a fused kernel to multiple tiles.
+For `float`, this function looks like:
 ```
-void skl_gemm_apply_fused_f32_f32rcprc_xsfmm32a32f(
-    size_t m, size_t n, size_t tss, size_t rstss, size_t cstss, float *c,
+typedef void (*fused_<type>_<type>_t)(size_t tm, size_t tn, size_t tss,
+                                      <type> *c, size_t rsc0, size_t csc0,
+                                      size_t rsc1, size_t csc1, size_t row1,
+                                      size_t col1, void *params) SKL_XSFMM_IN;
+
+void skl_gemm_apply_fused_<type>_<type>rcptexterc_<isa>(
+    size_t m, size_t n, size_t tss, size_t rstss, size_t cstss, <type> *c,
     size_t rsc0, size_t csc0, size_t rsc1, size_t csc1, size_t row1,
-    size_t col1, fused_f32_f32_t kernel, void *params);
+    size_t col1, fused_<type>_<type>_t kernel, void *params);
 ```
 `tss`, `rstss`, and `cstss` determine a tile layout analogous to the packed layout for matrices.
 The tile specifier of `tss` indicates the upper leftmost tile, while `rstss` and `cstss` are the row and column strides for the tile index.
@@ -145,7 +154,8 @@ for (size_t i1 = 0; i1 < m1; ++i1) {
   size_t n_avl = n;
   for (size_t j1 = 0; j1 < n1; ++j1) {
     size_t tn = n_avl > ETE ? ETE : n_avl;
-    fused(tm, tn, tss + i1 * (rstss << 27) + j1 * (cstss << 27), c, rsc0, rsc1, csc1, row1 + i1, col1 + j1, params);
+    kernel(tm, tn, tss + i1 * (rstss << 27) + j1 * (cstss << 27), c, rsc0, csc0,
+           rsc1, csc1, row1 + i1, col1 + j1, params);
     n_avl -= tn;
   }
   m_avl -= tm;
@@ -201,9 +211,10 @@ Since the inner loop functions use Xsfmm instructions to compute `A * B`, they a
 The inner loop functions have the following API:
 ```
 SKL_XSFMM_INOUT
-SKL_FUNC_PRIVATE void inner_loop_m1xn1_f32rcpc_f32rcp_f32_xsfmm32a32f(
-    size_t m, size_t n, size_t k, const float *a, size_t rsa1, size_t csa1,
-    const float *b, size_t rsb1, size_t csb1);
+SKL_FUNC_PRIVATE void
+skl_gemm_inner_loop_m1xn1_<type>rcptex1c_<type>rcp1xte_<type>_<isa>(
+    size_t m, size_t n, size_t k, const <type> *a, size_t rsa1, size_t csa1,
+    const <type> *b, size_t rsb1, size_t csb1);
 ```
 As with the fused kernel application function, these functions will compute partial tiles if `m` or `n` is not a multiple of `ETE`.
 Since the fused kernels act directly on the tile state, they must be aware of which tiles each inner loop function writes its output to.
@@ -247,20 +258,19 @@ SKL provides the following (private) function for zeroing out a portion of the t
 ```
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
-void skl_tile_zero_f32_f32_xsfmmbase(size_t m, size_t n, size_t tss,
-                                     size_t rstss, size_t cstss);
+void skl_tile_zero_<type>_<type>_xsfmmbase(size_t m, size_t n, size_t tss,
+                                           size_t rstss, size_t cstss);
 ```
 This function zeroes out the leading `m` x `n`portion of the tile layout determined by `tss`, `rstss`, and `cstss`.
 Unlike the fused kernel application function, this one ignores the pattern and index of `tss` and only uses its tile specifier.
 
-SKL provides the following (private) function for loading a matrix into the tile state:
+SKL provides the following (private) function for loading a matrix with row-major blocks into the tile state:
 ```
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
-void skl_tile_load_f32rcp_f32_xsfmmbase(size_t m, size_t n, const float *c,
-                                        size_t rsc0, size_t csc0, size_t rsc1, size_t csc1,
-                                        size_t tss, size_t rstss,
-                                        size_t cstss)
+void skl_tile_load_<type>rcptexterc_<type>_xsfmmbase(
+    size_t m, size_t n, const <type> *c, size_t rsc0, size_t csc0, size_t rsc1,
+    size_t csc1, size_t tss, size_t rstss, size_t cstss);
 ```
 This function loads the leading `m` x `n` portion of `C` block-by-block into the tile layout determined by `tss`, `rstss`, and `cstss`.
 The following pseudocode illustrates this function's operation:
@@ -275,7 +285,7 @@ for (size_t i1 = 0; i1 < m1; ++i1) {
     size_t tn = n_avl > ETE ? ETE : n_avl;
     for (size_t i0 = 0; i0 < tm; ++i0) {
       for (size_t j0 = 0; j0 < tn; ++j0)
-        tss[i0, j0] = c[i1 * rsc1 + j1 * csc1 + i0 * rsc0 + j0 * csc0];
+        tss[i0, j0] = c[i1 * rsc1 + j1 * csc1 + i0 * rsc0 + j0];
     }
     n_avl -= tn;
   }
@@ -289,7 +299,7 @@ This is similar to the column pattern case for the fused kernel application func
 Now that we have described tile state initialization functions, inner loop functions, and fused kernels, we can put them all together to process parts of `C`.
 We will first initialize the tile state with zeros or by loading from `C`, then accumulate `A * B` into the tile state, and finally apply a fused kernel to the tile state.
 Applying an `m1` x `n1` tiling when `m1 <= n1` is relatively straightforward since transposition is not required.
-We can illustrate with a 1 x 2 tiling for `TEW` = 32.
+We can illustrate with a 1 x 2 tiling when `A`, `B`, and `C` are `float` matrices.
 The tile allocation is just `mt0 mt4`.
 Initialize the tile state by
 ```
@@ -297,15 +307,20 @@ skl_tile_zero_f32_f32_xsfmmbase(m, n, 0, 0 /* unused */, 4);
 ```
 or
 ```
-skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c, rsc0, csc0, rsc1, csc1, 0, 0, 4);
+skl_tile_load_f32rcptexte_f32_xsfmmbase(m, n, c, rsc0, csc0, rsc1, csc1, 0, 0,
+                                        4);
 ```
 Then accumulate `A * B` into the tile state:
 ```
-inner_loop_1x2_f32rcpc_f32rcp_f32_xsfmm32a32f(m, n, k, a, rsa1, csa1, b, rsb1, csb1);
+skl_gemm_inner_loop_1x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(m, n, k, a, rsa1,
+                                                               csa1, b, rsb1,
+                                                               csb1);
 ```
 And finally apply the fused kernel:
 ```
-skl_gemm_apply_fused_f32_f32rcprc_xsfmm32a32f(m, n, 0, 0, 4, c, rsc0, csc0, rsc1, csc1, row1, col1, kernel, params);
+skl_gemm_apply_fused_f32_f32rcptexterc_xsfmm32a32f(m, n, 0, 0, 4, c, rsc0, csc0,
+                                                   rsc1, csc1, row1, col1,
+                                                   kernel, params);
 ```
 
 Tilings with `m1 > n1` are slightly more complicated because they involve transposition.
@@ -332,13 +347,19 @@ n│                │           │    │
 Recall that we can load the transpose of `C` by using a `tss` with a column pattern and interpreting `rstss` as the column stride and `cstss` as the row stride.
 So, we would call:
 ```
-skl_tile_load_f32rcp_f32_xsfmmbase(m, n, c, rsc0, csc0, rsc1, csc1, 1 << 24 /* mt0 with column pattern */, 4, 0);
+skl_tile_load_f32rcptexte_f32_xsfmmbase(m, n, c, rsc0, csc0, rsc1, csc1,
+                                        1 << 24 /* mt0 with column pattern */,
+                                        4, 0);
 ```
 The inner loop function is called with `A` and `B` swapped and transposed:
 ```
-inner_loop_1x2_f32rcpc_f32rcp_f32_xsfmm32a32f(n, m, k, b, csb1, rsb1, a, csa1, rsa1);
+skl_gemm_inner_loop_1x2_f32rcptex1c_f32rc1xtep_f32_xsfmm32a32f(n, m, k, b, csb1,
+                                                               rsb1, a, csa1,
+                                                               rsa1);
 ```
 Finally, we apply the fused kernel with a column pattern:
 ```
-skl_gemm_apply_fused_f32_f32rcprc_xsfmm32a32f(m, n, 1 << 24, 4, 0, c, rsc0, csc0, rsc1, csc1, row1, col1, kernel, params);
+skl_gemm_apply_fused_f32_f32rcptexterc_xsfmm32a32f(m, n, 1 << 24, 4, 0, c, rsc0,
+                                                   csc0, rsc1, csc1, row1, col1,
+                                                   kernel, params);
 ```
