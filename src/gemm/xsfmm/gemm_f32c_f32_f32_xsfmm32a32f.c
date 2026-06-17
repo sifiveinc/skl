@@ -1055,7 +1055,7 @@ skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
  *  - m, n, k: matrix dimensions. m and n must be small enough for inner_loop.
  *  - a, rsa1, csa1: packed matrix A and its strides
  *  - b, rsb1, csb1: packed matrix B and its strides
- *  - c. rsc0, rsc1, csc1: packed matrix C and its strides
+ *  - c. rsc0, csc0, rsc1, csc1: packed matrix C and its strides
  *  - row1, col1: block-row and -column indices for first block of C
  *  - kernel: pointer to fused kernel
  *  - params: pointer to params struct for fused kernel
@@ -1225,10 +1225,10 @@ SKL_FUNC void skl_gemm_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
 }
 
 /* Computes C = alpha * A * B + beta * C for packed matrices A, B, and C. */
-SKL_FUNC void skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexte_xsfmm32a32f(
+SKL_FUNC void skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
     size_t m1, size_t n1, size_t k, float alpha, const float *a, size_t rsa1,
     size_t csa1, const float *b, size_t rsb1, size_t csb1, float beta, float *c,
-    size_t rsc0, size_t rsc1, size_t csc1) {
+    size_t rsc0, size_t csc0, size_t rsc1, size_t csc1) {
   skl_alpha_beta_scaling_params_f32_f32_t params = {.alpha = alpha,
                                                     .beta = beta};
 
@@ -1236,7 +1236,7 @@ SKL_FUNC void skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexte_xsfmm32a32f(
   __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
 
   skl_gemm_fused_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
-      m1 * ete, n1 * ete, k, a, rsa1, csa1, b, rsb1, csb1, c, rsc0, 1, rsc1,
+      m1 * ete, n1 * ete, k, a, rsa1, csa1, b, rsb1, csb1, c, rsc0, csc0, rsc1,
       csc1, false, skl_gemm_alpha_beta_scaling_f32_f32rcptexterc_xsfmmbase,
       &params);
 }

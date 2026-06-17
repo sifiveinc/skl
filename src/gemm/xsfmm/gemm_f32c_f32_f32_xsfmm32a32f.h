@@ -75,6 +75,7 @@ void skl_gemm_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
  * @param beta - Scaling factor for C.
  * @param c - Pointer to packed matrix C.
  * @param rsc0 - Row stride within a block of C in elements.
+ * @param csc0 - Column stride within a block of C in elements.
  * @param rsc1 - Row stride between blocks of C in elements.
  * @param csc1 - Column stride between blocks of C in elements.
  *
@@ -83,19 +84,19 @@ void skl_gemm_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
  * Equivalent to calling:
  * ```
  * skl_gemm_f32rcprc_f32rcprc_f32rcprc_ref(
- *     ETE, ETE, 1, m1, n1, k, // m0, n0, k0, m1, n1, k1
- *     alpha,                  // alpha
- *     a, 1, 0, rsa1, csa1,    // a, rsa0, csa0, rsa1, csa1
- *     b, 0, 1, rsb1, csb1,    // b, rsb0, csb0, rsb1, csb1
- *     beta,                   // beta
- *     c, rsc0, 1, rsc1, csc1  // c, rsc0, csc0, rsc1, csc1
+ *     ETE, ETE, 1, m1, n1, k,   // m0, n0, k0, m1, n1, k1
+ *     alpha,                    // alpha
+ *     a, 1, 0, rsa1, csa1,      // a, rsa0, csa0, rsa1, csa1
+ *     b, 0, 1, rsb1, csb1,      // b, rsb0, csb0, rsb1, csb1
+ *     beta,                     // beta
+ *     c, rsc0, csc0, rsc1, csc1 // c, rsc0, csc0, rsc1, csc1
  * );
  * ```
  */
-void skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexte_xsfmm32a32f(
+void skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
     size_t m1, size_t n1, size_t k, float alpha, const float *a, size_t rsa1,
     size_t csa1, const float *b, size_t rsb1, size_t csb1, float beta, float *c,
-    size_t rsc0, size_t rsc1, size_t csc1);
+    size_t rsc0, size_t csc0, size_t rsc1, size_t csc1);
 
 #if defined(__cplusplus)
 } // extern "C"

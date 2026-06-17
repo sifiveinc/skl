@@ -148,12 +148,14 @@ gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
     {TEST, .m1 = 7, .n1 = 5, .k1 = 15, .alpha = 2.f, .beta = 3.f},
     {TEST, .m1 = 7, .n1 = 6, .k1 = 15, .alpha = 2.f, .beta = 3.f},
     {TEST, .m1 = 7, .n1 = 7, .k1 = 15, .alpha = 2.f, .beta = 3.f},
+
+    {TEST, .m1 = 7, .n1 = 7, .k1 = 15, .alpha = 2.f, .beta = 3.f, .csc0 = 2},
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on
 
 static skl_test_suite_t suite = {
-    .name = "skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexte_xsfmm32a32f",
+    .name = "skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f",
     .num_tests = sizeof(tests) / sizeof(tests[0]),
     .test_size = sizeof(gemm_f32rcprc_f32rcprc_f32rcprc_t),
     .tests = tests};
@@ -168,7 +170,6 @@ static void init(skl_test_t *t) {
   SKL_TEST_REQUIRE(t, init_status, h->k0 == 1);
   SKL_TEST_REQUIRE(t, init_status, h->rsa0 == 1); // Note: column-major
   SKL_TEST_REQUIRE(t, init_status, h->csb0 == 1);
-  SKL_TEST_REQUIRE(t, init_status, h->csc0 == 1);
 
   gemm_f32rcprc_f32rcprc_f32rcprc_init(t);
 }
@@ -180,10 +181,10 @@ static void execute(skl_test_t *t) {
   // Call the kernel with the appropriate parameters
   // The kernel signature is: (m1, n1, k, alpha, a_pack, rsa1, csa1, b_pack,
   // rsb1, csb1, beta, c_pack, rsc0, rsc1, csc1)
-  skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexte_xsfmm32a32f(
+  skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
       h->m1, h->n1, h->k1 * h->k0, h->alpha, h->a_pack.data, h->rsa1, h->csa1,
       h->b_pack.data, h->rsb1, h->csb1, h->beta, h->c_pack.data, h->rsc0,
-      h->rsc1, h->csc1);
+      h->csc0, h->rsc1, h->csc1);
 }
 
 int main(void) {
@@ -205,8 +206,8 @@ int main(void) {
     tests[i].rsb1 = tests[i].rsb1 ? tests[i].rsb1 : tests[i].k0 * tests[i].n0;
     tests[i].csb1 = tests[i].csb1 ? tests[i].csb1 : tests[i].k1 * tests[i].rsb1;
 
-    tests[i].rsc0 = tests[i].rsc0 ? tests[i].rsc0 : tests[i].n0;
-    tests[i].csc0 = 1;
+    tests[i].csc0 = tests[i].csc0 ? tests[i].csc0 : 1;
+    tests[i].rsc0 = tests[i].rsc0 ? tests[i].rsc0 : tests[i].n0 * tests[i].csc0;
     tests[i].csc1 = tests[i].csc1 ? tests[i].csc1 : tests[i].m0 * tests[i].rsc0;
     tests[i].rsc1 = tests[i].rsc1 ? tests[i].rsc1 : tests[i].n1 * tests[i].csc1;
   }
