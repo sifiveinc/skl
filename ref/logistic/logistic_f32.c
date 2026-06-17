@@ -10,7 +10,6 @@
 SKL_FUNC void skl_logistic_1u_f32_ref(float *out, const float *in, size_t n) {
   for (size_t i = 0; i < n; i++) {
     double x = in[i];
-    double e = exp(-x);
-    out[i] = (float)(1 / (1. + e));
+    out[i] = (float)(1 / (1. + exp(-x)));
   }
 }
