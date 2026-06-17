@@ -140,7 +140,7 @@ void skl_tile_load_f32rcptexterc_f32_xsfmmbase(size_t m, size_t n,
     size_t n_avl = n;
     for (size_t j1 = 0; j1 < n1; ++j1) {
       size_t tn = n_avl >= ete ? ete : n_avl;
-      size_t tss_block = tss + i1 * rstss + j1 * cstss;
+      size_t tss_tile = tss + i1 * rstss + j1 * cstss;
       const float *c_block = c + i1 * rsc1 + j1 * csc1;
       size_t i0 = 0;
       if (csc0 == 1) {
@@ -149,12 +149,12 @@ void skl_tile_load_f32rcptexterc_f32_xsfmmbase(size_t m, size_t n,
 
             "0:\n"
             "addi %[i0], %[i0], 1\n"
-            "sf.vlte32 %[tss_block], (%[c_block])\n"
-            "add %[tss_block], %[tss_block], %[kRowInc]\n"
+            "sf.vlte32 %[tss_tile], (%[c_block])\n"
+            "add %[tss_tile], %[tss_tile], %[kRowInc]\n"
             "add %[c_block], %[c_block], %[rsc0]\n"
             "bltu %[i0], %[tm], 0b\n"
-            : [tss_block] "+&r"(tss_block), [c_block] "+&r"(c_block),
-              [i0] "+&r"(i0)
+            :
+            [tss_tile] "+&r"(tss_tile), [c_block] "+&r"(c_block), [i0] "+&r"(i0)
             : [kRowInc] "rI"(kRowInc), [rsc0] "r"(rsc0 * sizeof(float)),
               [tm] "r"(tm), [tn] "r"(tn)
             : "vtype", "vl", "memory");
@@ -166,11 +166,11 @@ void skl_tile_load_f32rcptexterc_f32_xsfmmbase(size_t m, size_t n,
             "0:\n"
             "addi %[i0], %[i0], 1\n"
             "vlse32.v %[cvec], (%[c_block]), %[csc0]\n"
-            "sf.vmtv.t.v %[tss_block], %[cvec]\n"
-            "add %[tss_block], %[tss_block], %[kRowInc]\n"
+            "sf.vmtv.t.v %[tss_tile], %[cvec]\n"
+            "add %[tss_tile], %[tss_tile], %[kRowInc]\n"
             "add %[c_block], %[c_block], %[rsc0]\n"
             "bltu %[i0], %[tm], 0b\n"
-            : [cvec] "=&vr"(cvec), [tss_block] "+&r"(tss_block),
+            : [cvec] "=&vr"(cvec), [tss_tile] "+&r"(tss_tile),
               [c_block] "+&r"(c_block), [i0] "+&r"(i0)
             : [kRowInc] "rI"(kRowInc), [rsc0] "r"(rsc0 * sizeof(float)),
               [csc0] "r"(csc0 * sizeof(float)), [tm] "r"(tm), [tn] "r"(tn)
@@ -649,19 +649,19 @@ skl_gemm_inner_loop_1x1_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
                    "addi %[k], %[k], -1\n"
                    "sf.vsettn x0, %[m]\n"
                    "vle32.v v0, (%[a0])\n"
-                   "add %[a0], %[a0], %[sa]\n"
+                   "add %[a0], %[a0], %[csa1]\n"
 
                    "sf.vsettn x0, %[n]\n"
                    "vle32.v v8, (%[b0])\n"
-                   "add %[b0], %[b0], %[sb]\n"
+                   "add %[b0], %[b0], %[rsb1]\n"
 
                    "sf.mm.f.f mt0, v0, v8\n"
                    "bnez %[k], 0b\n"
 
                    "1:\n"
                    : [a0] "+&r"(a0), [b0] "+&r"(b0), [k] "+&r"(k)
-                   : [sa] "r"(csa1 * sizeof(float)),
-                     [sb] "r"(rsb1 * sizeof(float)), [m] "r"(m), [n] "r"(n)
+                   : [csa1] "r"(csa1 * sizeof(float)),
+                     [rsb1] "r"(rsb1 * sizeof(float)), [m] "r"(m), [n] "r"(n)
                    : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9",
                      "v10", "v11", "v12", "v13", "v14", "v15", "vtype", "vl",
                      "memory");
@@ -695,11 +695,11 @@ skl_gemm_inner_loop_1x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
 
       "sf.vsettn x0, %[m]\n"
       "vle32.v v0, (%[a0])\n"
-      "add %[a0], %[a0], %[sa]\n"
+      "add %[a0], %[a0], %[csa1]\n"
 
       "sf.vsettn x0, %[tn0]\n"
       "vle32.v v8, (%[b0])\n"
-      "add %[b0], %[b0], %[sb]\n"
+      "add %[b0], %[b0], %[rsb1]\n"
 
       "bltu %[k], %[i2], 1f\n"
 
@@ -708,20 +708,20 @@ skl_gemm_inner_loop_1x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
 
       "sf.vsettn x0, %[tn1]\n"
       "vle32.v v16, (%[b1])\n"
-      "add %[b1], %[b1], %[sb]\n"
+      "add %[b1], %[b1], %[rsb1]\n"
 
       "sf.vsettn x0, %[tn0]\n"
       "sf.mm.f.f mt0, v0, v8\n"
 
       "vle32.v v8, (%[b0])\n"
-      "add %[b0], %[b0], %[sb]\n"
+      "add %[b0], %[b0], %[rsb1]\n"
 
       "sf.vsettn x0, %[tn1]\n"
       "sf.mm.f.f mt4, v0, v16\n"
 
       "sf.vsettn x0, %[m]\n"
       "vle32.v v0, (%[a0])\n"
-      "add %[a0], %[a0], %[sa]\n"
+      "add %[a0], %[a0], %[csa1]\n"
 
       "bgeu %[k], %[i2], 0b\n"
 
@@ -736,7 +736,7 @@ skl_gemm_inner_loop_1x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
 
       "2:\n"
       : [a0] "+&r"(a0), [b0] "+&r"(b0), [b1] "+&r"(b1), [k] "+&r"(k)
-      : [sa] "r"(csa1 * sizeof(float)), [sb] "r"(rsb1 * sizeof(float)),
+      : [csa1] "r"(csa1 * sizeof(float)), [rsb1] "r"(rsb1 * sizeof(float)),
         [m] "r"(m), [tn0] "r"(tn0), [tn1] "r"(tn1), [i2] "r"(2)
       : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
         "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20",
@@ -774,11 +774,11 @@ skl_gemm_inner_loop_1x3_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
 
       "sf.vsettn x0, %[m]\n"
       "vle32.v v0, (%[a0])\n"
-      "add %[a0], %[a0], %[sa]\n"
+      "add %[a0], %[a0], %[csa1]\n"
 
       "sf.vsettn x0, %[tn0]\n"
       "vle32.v v8, (%[b0])\n"
-      "add %[b0], %[b0], %[sb]\n"
+      "add %[b0], %[b0], %[rsb1]\n"
 
       "bltu %[k], %[i2], 1f\n"
 
@@ -787,28 +787,28 @@ skl_gemm_inner_loop_1x3_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
 
       "sf.vsettn x0, %[tn1]\n"
       "vle32.v v16, (%[b1])\n"
-      "add %[b1], %[b1], %[sb]\n"
+      "add %[b1], %[b1], %[rsb1]\n"
 
       "sf.vsettn x0, %[tn0]\n"
       "sf.mm.f.f mt0, v0, v8\n"
 
       "sf.vsettn x0, %[tn2]\n"
       "vle32.v v24, (%[b2])\n"
-      "add %[b2], %[b2], %[sb]\n"
+      "add %[b2], %[b2], %[rsb1]\n"
 
       "sf.vsettn x0, %[tn1]\n"
       "sf.mm.f.f mt4, v0, v16\n"
 
       "sf.vsettn x0, %[tn0]\n"
       "vle32.v v8, (%[b0])\n"
-      "add %[b0], %[b0], %[sb]\n"
+      "add %[b0], %[b0], %[rsb1]\n"
 
       "sf.vsettn x0, %[tn2]\n"
       "sf.mm.f.f mt8, v0, v24\n"
 
       "sf.vsettn x0, %[m]\n"
       "vle32.v v0, (%[a0])\n"
-      "add %[a0], %[a0], %[sa]\n"
+      "add %[a0], %[a0], %[csa1]\n"
 
       "bgeu %[k], %[i2], 0b\n"
       "1:\n"
@@ -830,7 +830,7 @@ skl_gemm_inner_loop_1x3_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
       "2:\n"
       : [a0] "+&r"(a0), [b0] "+&r"(b0), [b1] "+&r"(b1), [b2] "+&r"(b2),
         [k] "+&r"(k)
-      : [sa] "r"(csa1 * sizeof(float)), [sb] "r"(rsb1 * sizeof(float)),
+      : [csa1] "r"(csa1 * sizeof(float)), [rsb1] "r"(rsb1 * sizeof(float)),
         [m] "r"(m), [tn0] "r"(tn0), [tn1] "r"(tn1), [tn2] "r"(tn2), [i2] "r"(2)
       : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
         "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20",
@@ -863,90 +863,90 @@ skl_gemm_inner_loop_1x4_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
   const float *b1 = b0 + csb1;
   const float *b2 = b0 + 2 * csb1;
   const float *b3 = b0 + 3 * csb1;
-  __asm__ volatile("beqz %[k], 2f\n"
+  __asm__ volatile(
+      "beqz %[k], 2f\n"
 
-                   "sf.vsettnt x0, %[tn0], e32, w1\n"
-                   "sf.vsettm x0, %[m]\n"
-                   "sf.vsettk x0, %[k]\n"
+      "sf.vsettnt x0, %[tn0], e32, w1\n"
+      "sf.vsettm x0, %[m]\n"
+      "sf.vsettk x0, %[k]\n"
 
-                   "sf.vsettn x0, %[m]\n"
-                   "vle32.v v0, (%[a0])\n"
-                   "add %[a0], %[a0], %[sa]\n"
+      "sf.vsettn x0, %[m]\n"
+      "vle32.v v0, (%[a0])\n"
+      "add %[a0], %[a0], %[csa1]\n"
 
-                   "sf.vsettn x0, %[tn0]\n"
-                   "vle32.v v8, (%[b0])\n"
-                   "add %[b0], %[b0], %[sb]\n"
+      "sf.vsettn x0, %[tn0]\n"
+      "vle32.v v8, (%[b0])\n"
+      "add %[b0], %[b0], %[rsb1]\n"
 
-                   "bltu %[k], %[i2], 1f\n"
+      "bltu %[k], %[i2], 1f\n"
 
-                   "0:\n"
-                   "addi %[k], %[k], -1\n"
+      "0:\n"
+      "addi %[k], %[k], -1\n"
 
-                   "sf.vsettn x0, %[tn1]\n"
-                   "vle32.v v16, (%[b1])\n"
-                   "add %[b1], %[b1], %[sb]\n"
+      "sf.vsettn x0, %[tn1]\n"
+      "vle32.v v16, (%[b1])\n"
+      "add %[b1], %[b1], %[rsb1]\n"
 
-                   "sf.vsettn x0, %[tn0]\n"
-                   "sf.mm.f.f mt0, v0, v8\n"
+      "sf.vsettn x0, %[tn0]\n"
+      "sf.mm.f.f mt0, v0, v8\n"
 
-                   "sf.vsettn x0, %[tn2]\n"
-                   "vle32.v v8, (%[b2])\n"
-                   "add %[b2], %[b2], %[sb]\n"
+      "sf.vsettn x0, %[tn2]\n"
+      "vle32.v v8, (%[b2])\n"
+      "add %[b2], %[b2], %[rsb1]\n"
 
-                   "sf.vsettn x0, %[tn1]\n"
-                   "sf.mm.f.f mt4, v0, v16\n"
+      "sf.vsettn x0, %[tn1]\n"
+      "sf.mm.f.f mt4, v0, v16\n"
 
-                   "sf.vsettn x0, %[tn3]\n"
-                   "vle32.v v16, (%[b3])\n"
-                   "add %[b3], %[b3], %[sb]\n"
+      "sf.vsettn x0, %[tn3]\n"
+      "vle32.v v16, (%[b3])\n"
+      "add %[b3], %[b3], %[rsb1]\n"
 
-                   "sf.vsettn x0, %[tn2]\n"
-                   "sf.mm.f.f mt8, v0, v8\n"
+      "sf.vsettn x0, %[tn2]\n"
+      "sf.mm.f.f mt8, v0, v8\n"
 
-                   "sf.vsettn x0, %[tn0]\n"
-                   "vle32.v v8, (%[b0])\n"
-                   "add %[b0], %[b0], %[sb]\n"
+      "sf.vsettn x0, %[tn0]\n"
+      "vle32.v v8, (%[b0])\n"
+      "add %[b0], %[b0], %[rsb1]\n"
 
-                   "sf.vsettn x0, %[tn3]\n"
-                   "sf.mm.f.f mt12, v0, v16\n"
+      "sf.vsettn x0, %[tn3]\n"
+      "sf.mm.f.f mt12, v0, v16\n"
 
-                   "sf.vsettn x0, %[m]\n"
-                   "vle32.v v0, (%[a0])\n"
-                   "add %[a0], %[a0], %[sa]\n"
+      "sf.vsettn x0, %[m]\n"
+      "vle32.v v0, (%[a0])\n"
+      "add %[a0], %[a0], %[csa1]\n"
 
-                   "bgeu %[k], %[i2], 0b\n"
-                   "1:\n"
+      "bgeu %[k], %[i2], 0b\n"
+      "1:\n"
 
-                   "sf.vsettn x0, %[tn1]\n"
-                   "vle32.v v16, (%[b1])\n"
+      "sf.vsettn x0, %[tn1]\n"
+      "vle32.v v16, (%[b1])\n"
 
-                   "sf.vsettn x0, %[tn0]\n"
-                   "sf.mm.f.f mt0, v0, v8\n"
+      "sf.vsettn x0, %[tn0]\n"
+      "sf.mm.f.f mt0, v0, v8\n"
 
-                   "sf.vsettn x0, %[tn2]\n"
-                   "vle32.v v8, (%[b2])\n"
+      "sf.vsettn x0, %[tn2]\n"
+      "vle32.v v8, (%[b2])\n"
 
-                   "sf.vsettn x0, %[tn1]\n"
-                   "sf.mm.f.f mt4, v0, v16\n"
+      "sf.vsettn x0, %[tn1]\n"
+      "sf.mm.f.f mt4, v0, v16\n"
 
-                   "sf.vsettn x0, %[tn3]\n"
-                   "vle32.v v16, (%[b3])\n"
+      "sf.vsettn x0, %[tn3]\n"
+      "vle32.v v16, (%[b3])\n"
 
-                   "sf.vsettn x0, %[tn2]\n"
-                   "sf.mm.f.f mt8, v0, v8\n"
-                   "sf.vsettn x0, %[tn3]\n"
-                   "sf.mm.f.f mt12, v0, v16\n"
+      "sf.vsettn x0, %[tn2]\n"
+      "sf.mm.f.f mt8, v0, v8\n"
+      "sf.vsettn x0, %[tn3]\n"
+      "sf.mm.f.f mt12, v0, v16\n"
 
-                   "2:\n"
-                   : [a0] "+&r"(a0), [b0] "+&r"(b0), [b1] "+&r"(b1),
-                     [b2] "+&r"(b2), [b3] "+&r"(b3), [k] "+&r"(k)
-                   : [sa] "r"(csa1 * sizeof(float)),
-                     [sb] "r"(rsb1 * sizeof(float)), [m] "r"(m), [tn0] "r"(tn0),
-                     [tn1] "r"(tn1), [tn2] "r"(tn2), [tn3] "r"(tn3), [i2] "r"(2)
-                   : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9",
-                     "v10", "v11", "v12", "v13", "v14", "v15", "v16", "v17",
-                     "v18", "v19", "v20", "v21", "v22", "v23", "vtype", "vl",
-                     "memory");
+      "2:\n"
+      : [a0] "+&r"(a0), [b0] "+&r"(b0), [b1] "+&r"(b1), [b2] "+&r"(b2),
+        [b3] "+&r"(b3), [k] "+&r"(k)
+      : [csa1] "r"(csa1 * sizeof(float)), [rsb1] "r"(rsb1 * sizeof(float)),
+        [m] "r"(m), [tn0] "r"(tn0), [tn1] "r"(tn1), [tn2] "r"(tn2),
+        [tn3] "r"(tn3), [i2] "r"(2)
+      : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
+        "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20",
+        "v21", "v22", "v23", "vtype", "vl", "memory");
 }
 
 /* m <= 2 * ETE, n <= 2 * ETE. */
@@ -977,11 +977,11 @@ skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
                    "sf.vsettk x0, %[k]\n"
 
                    "vle32.v v16, (%[b0])\n"
-                   "add %[b0], %[b0], %[sb]\n"
+                   "add %[b0], %[b0], %[rsb1]\n"
 
                    "sf.vsettn x0, %[tm0]\n"
                    "vle32.v v0, (%[a0])\n"
-                   "add %[a0], %[a0], %[sa]\n"
+                   "add %[a0], %[a0], %[csa1]\n"
 
                    "bltu %[k], %[i2], 1f\n"
 
@@ -989,7 +989,7 @@ skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
                    "addi %[k], %[k], -1\n"
                    "sf.vsettn x0, %[tn1]\n"
                    "vle32.v v24, (%[b1])\n"
-                   "add %[b1], %[b1], %[sb]\n"
+                   "add %[b1], %[b1], %[rsb1]\n"
 
                    "sf.vsettm x0, %[tm0]\n"
                    "sf.vsettn x0, %[tn0]\n"
@@ -997,21 +997,21 @@ skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
 
                    "sf.vsettn x0, %[tm1]\n"
                    "vle32.v v8, (%[a1])\n"
-                   "add %[a1], %[a1], %[sa]\n"
+                   "add %[a1], %[a1], %[csa1]\n"
 
                    "sf.vsettn x0, %[tn1]\n"
                    "sf.mm.f.f mt4, v0, v24\n"
 
                    "sf.vsettn x0, %[tm0]\n"
                    "vle32.v v0, (%[a0])\n"
-                   "add %[a0], %[a0], %[sa]\n"
+                   "add %[a0], %[a0], %[csa1]\n"
 
                    "sf.vsettm x0, %[tm1]\n"
                    "sf.vsettn x0, %[tn0]\n"
                    "sf.mm.f.f mt8, v8, v16\n"
 
                    "vle32.v v16, (%[b0])\n"
-                   "add %[b0], %[b0], %[sb]\n"
+                   "add %[b0], %[b0], %[rsb1]\n"
 
                    "sf.vsettn x0, %[tn1]\n"
                    "sf.mm.f.f mt12, v8, v24\n"
@@ -1039,8 +1039,8 @@ skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
                    "2:\n"
                    : [a0] "+&r"(a0), [a1] "+&r"(a1), [b0] "+&r"(b0),
                      [b1] "+&r"(b1), [k] "+&r"(k)
-                   : [sa] "r"(csa1 * sizeof(float)),
-                     [sb] "r"(rsb1 * sizeof(float)), [tm0] "r"(tm0),
+                   : [csa1] "r"(csa1 * sizeof(float)),
+                     [rsb1] "r"(rsb1 * sizeof(float)), [tm0] "r"(tm0),
                      [tm1] "r"(tm1), [tn0] "r"(tn0), [tn1] "r"(tn1), [i2] "r"(2)
                    : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9",
                      "v10", "v11", "v12", "v13", "v14", "v15", "v16", "v17",
