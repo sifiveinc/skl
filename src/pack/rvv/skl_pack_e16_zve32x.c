@@ -819,10 +819,7 @@ skl_transpose_nvec_e16_zve32x(size_t m, size_t n,
 
 SKL_FUNC_PRIVATE bool skl_transpose_e16_is_mvec(size_t m, size_t n) {
   size_t vlmax = __riscv_vsetvlmax_e16m1();
-  if (m > n || m >= vlmax) {
-    return true;
-  }
-  return false;
+  return m > n || m >= vlmax;
 }
 
 SKL_FUNC_PRIVATE void
