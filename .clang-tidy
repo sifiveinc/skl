@@ -16,12 +16,14 @@ Checks:
   - -portability-avoid-pragma-once # Supported by most modern compilers
   - readability-*
   - -readability-identifier-length
+  - -readability-implicit-bool-conversion
   - -readability-isolate-declaration
   - -readability-magic-numbers
   - -readability-math-missing-parentheses
   - -readability-use-concise-preprocessor-directives
   - -*-braces-around-statements
   - -*-uppercase-literal-suffix # Allow lowercase litteral suffixes
+  - -*-use-nullptr
 WarningsAsErrors: '*'
 CheckOptions:
   bugprone-reserved-identifier.AllowedIdentifiers: '__riscv_*'

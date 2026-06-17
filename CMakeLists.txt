@@ -36,6 +36,15 @@ set(SKL_LIBRARY skl)
 
 add_library(${SKL_LIBRARY} STATIC)
 
+# Try to compile SKL with a recent standard with GNU extensions.
+set_target_properties(${SKL_LIBRARY}
+    PROPERTIES
+    C_STANDARD 23
+    C_STANDARD_REQUIRED ON
+)
+# But do require at least C99.
+target_compile_features(${SKL_LIBRARY} PUBLIC c_std_99)
+
 set(SKL_COMPILE_OPTIONS
     -Wall
     -Wextra

@@ -58,7 +58,12 @@ The optimized kernels in a given family are described as calls to the reference 
 
 SKL is intended to be used either as a collection of standalone kernels which can be individually exported to other projects, or as a static library.
 
-Compiling SKL kernels requires a C compiler that supports the relevant ISAs for those kernel(s), as well as any corresponding C-language intrinsics.
+Compiling SKL kernels requires a C compiler supporting:
+
+- at least the C99 standard, with GNU extensions where inline assembly is used,
+- the relevant ISAs for those kernel(s), as well as
+- any corresponding C-language intrinsics.
+
 The Clang toolchain is highly recommended, though the upstream version may not have support for all SiFive-specific extensions used in SKL.
 
 It is strongly recommended to compile SKL functions with `-O3` for maximum performance.

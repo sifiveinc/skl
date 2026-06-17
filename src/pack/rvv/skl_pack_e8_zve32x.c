@@ -781,10 +781,7 @@ skl_transpose_nvec_e8_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT a,
 
 SKL_FUNC_PRIVATE bool skl_transpose_e8_is_mvec(size_t m, size_t n) {
   size_t vlmax = __riscv_vsetvlmax_e8m1();
-  if (m > n || m >= vlmax) {
-    return true;
-  }
-  return false;
+  return m > n || m >= vlmax;
 }
 
 SKL_FUNC_PRIVATE void
