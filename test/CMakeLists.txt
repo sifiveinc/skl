@@ -347,6 +347,41 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_logistic_f16_xsfvfexp16e
+  elementwise/unary_f16.c
+  logistic/logistic_f16_xsfvfexp16e.c
+  "xsfvfexp16e"
+  ""
+)
+skl_add_test(
+  skl_logistic_f16_zvfh
+  elementwise/unary_f16.c
+  logistic/logistic_f16_zvfh.c
+  "zvfh"
+  ""
+)
+skl_add_test(
+  skl_logistic_f32_xsfvfexp32e
+  elementwise/unary_f32.c
+  logistic/logistic_f32_xsfvfexp32e.c
+  "xsfvfexp32e"
+  ""
+)
+skl_add_test(
+  skl_logistic_f32_xsfvfexpa
+  elementwise/unary_f32.c
+  logistic/logistic_f32_xsfvfexpa.c
+  "xsfvfexpa"
+  ""
+)
+skl_add_test(
+  skl_logistic_f32_zve32f
+  elementwise/unary_f32.c
+  logistic/logistic_f32_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
   skl_pack_e16rc_e16rcprc_zve32x
   pack/pack_e16rc_e16rcprc.c
   pack/rvv/skl_pack_e16rc_e16rcprc_zve32x.c
@@ -365,6 +400,48 @@ skl_add_test(
   pack/pack_e8rc_e8rcprc.c
   pack/rvv/skl_pack_e8rc_e8rcprc_zve32x.c
   "zve32x"
+  ""
+)
+skl_add_test(
+  skl_silu_f16_xsfvfexp16e
+  elementwise/unary_f16.c
+  silu/silu_f16_xsfvfexp16e.c
+  "xsfvfexp16e"
+  ""
+)
+skl_add_test(
+  skl_silu_f16_xsfvfexpa_zvfh
+  elementwise/unary_f16.c
+  silu/silu_f16_xsfvfexpa_zvfh.c
+  "xsfvfexpa;zvfh"
+  ""
+)
+skl_add_test(
+  skl_silu_f16_zvfh
+  elementwise/unary_f16.c
+  silu/silu_f16_zvfh.c
+  "zvfh"
+  ""
+)
+skl_add_test(
+  skl_silu_f32_xsfvfexp32e
+  elementwise/unary_f32.c
+  silu/silu_f32_xsfvfexp32e.c
+  "xsfvfexp32e"
+  ""
+)
+skl_add_test(
+  skl_silu_f32_xsfvfexpa
+  elementwise/unary_f32.c
+  silu/silu_f32_xsfvfexpa.c
+  "xsfvfexpa"
+  ""
+)
+skl_add_test(
+  skl_silu_f32_zve32f
+  elementwise/unary_f32.c
+  silu/silu_f32_zve32f.c
+  "zve32f"
   ""
 )
 skl_add_test(
