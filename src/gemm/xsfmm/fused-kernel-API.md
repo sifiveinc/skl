@@ -318,10 +318,10 @@ skl_tile_zero_f32_f32_xsfmmbase(m, n, 0, 0, 4);
 ```
 or
 ```
-skl_tile_load_f32rcptexte_f32_xsfmmbase(m, n, c, rsc0, csc0, rsc1, csc1, 0, 0,
-                                        4);
+skl_tile_load_f32rcptexterc_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
+                                          rsc0, csc0, rsc1, csc1, 0, 0, 4);
 ```
-`rstss` is set to 0 since the tiling has only one row and hence is unused.
+`rstss` is set to 0 since the tiling has only one row and hence it is unused.
 Then accumulate `A * B` into the tile state:
 ```
 skl_gemm_inner_loop_1x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(m, n, k, a, rsa1,
@@ -337,14 +337,14 @@ skl_gemm_apply_fused_f32_f32rcptexterc_xsfmm32a32f(m, n, 0, 0, 4, c, rsc0, csc0,
 
 Tilings with `m1 > n1` are slightly more complicated because they involve transposition.
 Suppose we now want to apply a 2 x 1 tiling to `C`.
-To use the 1 x 2 inner loop, we need to use transposition to convert the 2 x 1 GEMM tiling `A * B` into the 1 x 2 tiling `B^T * A^T`.
-The latter is now an `n` x `m` x `k` GEMM problem.
-We still use the same tile allocation `mt0 mt4`.
-If we zero out the tile state, the correct call is
+To use the 1 x 2 inner loop function, we need to transpose the 2 x 1 GEMM tiling `A * B` into the 1 x 2 tiling `B^T * A^T`.
+The latter is an `n` x `m` x `k` GEMM problem.
+Since we are using the 1 x 2 inner loop function, the tile allocation is still `mt0 mt4`.
+We can zero out the tile state using
 ```
 skl_tile_zero_f32_f32_xsfmmbase(n, m, 0, 0, 4);
 ```
-On the other hand, if we wish initialize the tile state with values from `C`, we actually need to load its transpose `C^T`.
+On the other hand, if we wish to initialize the tile state with values from `C`, we need to load its transpose `C^T`.
 The tile state should look like:
 ```
  ┌─────────────m──────────────┐
@@ -359,9 +359,10 @@ n│                │           │    │
 Recall that we can load the transpose of `C` by using a `tss` with a column pattern and interpreting `rstss` as the column stride and `cstss` as the row stride.
 So, we would call:
 ```
-skl_tile_load_f32rcptexte_f32_xsfmmbase(m, n, c, rsc0, csc0, rsc1, csc1,
-                                        1 << 24 /* mt0 with column pattern */,
-                                        4, 0);
+skl_tile_load_f32rcptexterc_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
+                                          rsc0, csc0, rsc1, csc1,
+                                          1 << 24 /* mt0 with column pattern */,
+                                          4, 0);
 ```
 The inner loop function is called with `A` and `B` swapped and transposed:
 ```
