@@ -108,10 +108,11 @@ void skl_gemm_matrix_max_f32_f32rcptexterc_xsfmmbase(
 ### Fused Kernel Application Functions
 SKL provides (private) functions that apply a fused kernel to multiple tiles:
 ```
-typedef void (*fused_<type>_<type>_t)(size_t tm, size_t tn, size_t tss,
-                                      <type> *c, size_t rsc0, size_t csc0,
-                                      size_t rsc1, size_t csc1, size_t row1,
-                                      size_t col1, void *params) SKL_XSFMM_IN;
+typedef void (*skl_fused_<type>_<type>_t)(size_t tm, size_t tn, size_t tss,
+                                          <type> *c, size_t rsc0, size_t csc0,
+                                          size_t rsc1, size_t csc1, size_t row1,
+                                          size_t col1,
+                                          void *params) SKL_XSFMM_IN;
 
 SKL_XSFMM_IN
 SKL_FUNC_PRIVATE
