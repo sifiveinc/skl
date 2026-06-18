@@ -27,6 +27,9 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Set CPU core count
+      run: echo "NPROC=$(nproc)" >> $GITHUB_ENV
+
     - name: Check license headers
       if: ${{ github.event_name == 'pull_request' }}
       run: |
@@ -67,23 +70,23 @@ jobs:
         HEAD_SHA=${{ github.event.pull_request.head.sha }}
         BASE_SHA=${{ github.event.pull_request.base.sha }}
         MERGE_BASE_SHA=$(git merge-base $HEAD_SHA $BASE_SHA)
-        git diff --name-only $MERGE_BASE_SHA $HEAD_SHA | \
-          egrep "\.(c|h)$" | \
-          xargs -I{} bash -c "if [ -f {} ] ; then clang-format --dry-run -style=file --Werror {} ; fi"
+        git diff --name-only --diff-filter=ACMR $MERGE_BASE_SHA $HEAD_SHA "*.[ch]"| \
+          xargs clang-format --dry-run --Werror
 
     - name: Configure and build (tests and benchmarks)
       run: |
+        echo "Using $NPROC threads for build step"
         cmake -B ${{ github.workspace }}/build \
               -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
               -DSKL_BUILD_BENCHMARKS=ON \
               -DSKL_BUILD_TESTS=ON \
               -DSKL_ENABLE_BENCHMARKS=ON \
               -DSKL_ENABLE_TESTS=ON
-        cmake --build ${{ github.workspace }}/build --verbose
+        cmake --build ${{ github.workspace }}/build --verbose --parallel $NPROC
 
     - name: Run (tests and benchmarks)
       working-directory: ${{ github.workspace }}/build
-      run: ctest --verbose --output-on-failure
+      run: ctest --output-on-failure --parallel $NPROC
 
     - name: Configure and build (tests only)
       run: |
@@ -93,11 +96,11 @@ jobs:
               -DSKL_BUILD_TESTS=ON \
               -DSKL_ENABLE_BENCHMARKS=OFF \
               -DSKL_ENABLE_TESTS=ON
-        cmake --build ${{ github.workspace }}/build --verbose
+        cmake --build ${{ github.workspace }}/build --verbose --parallel $NPROC
 
     - name: Run (tests only)
       working-directory: ${{ github.workspace }}/build
-      run: ctest --verbose --output-on-failure
+      run: ctest --output-on-failure --parallel $NPROC
 
     - name: Configure and build (benchmarks only)
       run: |
@@ -107,8 +110,8 @@ jobs:
               -DSKL_BUILD_TESTS=OFF \
               -DSKL_ENABLE_BENCHMARKS=ON \
               -DSKL_ENABLE_TESTS=OFF
-        cmake --build ${{ github.workspace }}/build --verbose
+        cmake --build ${{ github.workspace }}/build --verbose --parallel $NPROC
 
     - name: Run (benchmarks only)
       working-directory: ${{ github.workspace }}/build
-      run: ctest --verbose --output-on-failure
+      run: ctest --output-on-failure --parallel $NPROC
