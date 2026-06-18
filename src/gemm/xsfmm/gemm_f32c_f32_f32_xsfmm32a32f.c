@@ -1063,6 +1063,7 @@ skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
  * This function will compute partial blocks of C if m or n is not multiple of
  * ETE. If m1 > n1, then the n1 x m1 inner loop function should be called.
  */
+SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void
 skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
     skl_gemm_inner_loop_f32rcptex1c_f32rcp1xte_f32_t inner_loop, size_t m,
