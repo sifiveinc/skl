@@ -20,6 +20,7 @@
 #include <math.h>
 #include <stdlib.h>
 
+#if defined(SKL_ENABLE_TESTS)
 // Scalar GELU using FP64 intermediates for high accuracy.
 static void ref_gelu_f32(float *out, const float *in, size_t n) {
   const double sqrt2 = 0x1.6a09e667f3bcdp0;
@@ -42,6 +43,7 @@ static void ref_gelu_f32(float *out, const float *in, size_t n) {
     }
   }
 }
+#endif
 
 #define MIN (-0x1.cb64e8p3f) // ~14.356
 #define MAX (+0x1.563db2p2f) // ~5.348
