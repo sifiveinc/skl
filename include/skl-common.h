@@ -57,7 +57,7 @@
  */
 #define SKL_FUNC_UTIL static inline
 
-/*
+/**
  * Xsfmm ABI macros:
  *
  * Placeholders for function attributes that indicate how Xsfmm matrix tile
@@ -65,20 +65,36 @@
  * once they are provided by the compiler.
  */
 
-/** Xsfmm state shared with caller. Function reads state but does not modify. */
-#define SKL_XSFMM_IN
-
-/**
- * Xsfmm state shared with caller. Function ignores incoming state and
- * overwrites it.
+/* Xsfmm state shared with caller.
+ * Function reads state but does not modify it.
  */
+#if !defined(SKL_XSFMM_IN)
+#define SKL_XSFMM_IN
+#endif
+
+/* Xsfmm state shared with caller.
+ * Function ignores incoming state and overwrites it.
+ */
+#if !defined(SKL_XSFMM_OUT)
 #define SKL_XSFMM_OUT
+#endif
 
-/** Xsfmm state shared with caller. Function reads and modifies state. */
+/* Xsfmm state shared with caller.
+ * Function reads and modifies state.
+ */
+#if !defined(SKL_XSFMM_INOUT)
 #define SKL_XSFMM_INOUT
+#endif
 
-/** Function creates a new scope for Xsfmm state. */
+/* Function creates a new scope for Xsfmm state. */
+#if !defined(SKL_XSFMM_NEW)
 #define SKL_XSFMM_NEW
+#endif
+
+/* Function preserves Xsfmm state. */
+#if !defined(SKL_XSFMM_PRESERVES)
+#define SKL_XSFMM_PRESERVES
+#endif
 
 /** Portable restrict pointer qualifier for C and C++ */
 #if !defined(__cplusplus)
