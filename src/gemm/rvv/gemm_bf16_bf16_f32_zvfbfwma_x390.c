@@ -70,12 +70,12 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x18_bf16_bf16_f32_zvfbfwma_x390(
   float a3;
   float a4;
   float a5;
-  vfloat16m4_t b0;
-  vfloat16m4_t b1;
-  vfloat16m4_t b2;
-  vfloat16m4_t b3;
-  vfloat16m4_t b4;
-  vfloat16m4_t b5;
+  vbfloat16m4_t b0;
+  vbfloat16m4_t b1;
+  vbfloat16m4_t b2;
+  vbfloat16m4_t b3;
+  vbfloat16m4_t b4;
+  vbfloat16m4_t b5;
   vfloat32m8_t acc;
   vfloat32m8_t c0;
 
@@ -453,10 +453,10 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4x12_bf16_bf16_f32_zvfbfwma_x390(
   float a33;
   float a43;
   float a53;
-  vfloat16m2_t b00;
-  vfloat16m2_t b10;
-  vfloat16m2_t b20;
-  vfloat16m2_t b30;
+  vbfloat16m2_t b00;
+  vbfloat16m2_t b10;
+  vbfloat16m2_t b20;
+  vbfloat16m2_t b30;
   vfloat32m4_t acc0;
   vfloat32m4_t acc1;
   vfloat32m4_t acc2;
@@ -464,7 +464,7 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4x12_bf16_bf16_f32_zvfbfwma_x390(
   vfloat32m4_t acc4;
   vfloat32m4_t acc5;
   float a0;
-  vfloat16m2_t b0;
+  vbfloat16m2_t b0;
   vfloat32m4_t acc;
   vfloat32m4_t c0;
   vfloat32m4_t c1;
