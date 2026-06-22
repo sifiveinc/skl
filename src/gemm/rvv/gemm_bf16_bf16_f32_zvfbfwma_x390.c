@@ -473,9 +473,9 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4x12_bf16_bf16_f32_zvfbfwma_x390(
     for (ii = 0; (ii + 1) <= m; ii = ii + 1) {
       for (jj = 0; jj < n; jj = jj + jj_vl) {
         jj_vl = __riscv_vsetvl_e32m4(n - jj);
-        c0 = __riscv_vle32_v_f32m4(c + ii * rsc + jj, jj_vl);
-        c0 = __riscv_vfmul_vf_f32m4(c0, beta, jj_vl);
-        __riscv_vse32_v_f32m4(c + ii * rsc + jj, c0, jj_vl);
+        vfloat32m8_t c0m8 = __riscv_vle32_v_f32m8(c + ii * rsc + jj, jj_vl);
+        c0m8 = __riscv_vfmul_vf_f32m8(c0m8, beta, jj_vl);
+        __riscv_vse32_v_f32m8(c + ii * rsc + jj, c0m8, jj_vl);
       }
     }
     return;
