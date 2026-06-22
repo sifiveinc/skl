@@ -497,7 +497,7 @@ static inline int skl_check_error_ulp_bf16(const char *name, const __bf16 *res,
 #define SKL_TEST_INIT_FUNC(TYPE, SUFFIX, IMPL_TYPE, FRAC_TYPE)                 \
   static inline void skl_test_init_##SUFFIX(TYPE *buf, size_t len, TYPE min,   \
                                             TYPE max) {                        \
-    assert(TEST_INIT_MODE == RANDOM || TEST_INIT_MODE == SEQ);                 \
+    static_assert(TEST_INIT_MODE == RANDOM || TEST_INIT_MODE == SEQ, "TEST_INIT_MODE can only be RANDOM or SEQ");          \
     const TYPE step = (max - min) / len;                                       \
     for (size_t i = 0; i < len; i++) {                                         \
       if (TEST_INIT_MODE == RANDOM) {                                          \
