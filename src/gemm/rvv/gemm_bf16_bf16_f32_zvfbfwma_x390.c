@@ -112,7 +112,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x18_bf16_bf16_f32_zvfbfwma_x390(
           "vfmul.vf %[acc], %[acc], %[a0] \n\t"
           : [a0] "=&f"(a0),
             [b0] "=&vr"(b0),
-            [acc] "=vr"(acc)
+            [acc] "=&vr"(acc)
           : [jj_vl_in] "r"(jj_vl),
             [a_addr] "r"(a + ii * rsa),
             [b_addr] "r"(b + jj)
@@ -1172,7 +1172,7 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4x12_bf16_bf16_f32_zvfbfwma_x390(
 
             "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
             "vfmul.vf %[acc], %[acc], %[a0] \n\t"
-            : [a0] "=&f"(a0), [b0] "=&vr"(b0), [acc] "=vr"(acc)
+            : [a0] "=&f"(a0), [b0] "=&vr"(b0), [acc] "=&vr"(acc)
             : [a_addr_83] "r"(a + (((ii0 + 0) * rsa) + ((kk_peel + 0) * 1))),
               [jj_vl_in] "r"(jj_vl),
               [b_addr_13] "r"(b + (((kk_peel + 0) * rsb) + ((jj + 0) * 1)))
