@@ -62,8 +62,11 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x18_bf16_bf16_f32_zvfbfwma_x390(
   size_t jj;
   size_t kk;
 
-  // Due to a compiler bug, temporary A matrix values used in the inline
-  // assembly below are typed as float instead of __bf16.
+  // FIXME: due to a compiler bug, temporary A matrix values used in the inline
+  // assembly of this kernel are typed as float instead of __bf16. Change to
+  // __bf16 once the following patch is available in our toolchain:
+  // https://github.com/llvm/llvm-project/pull/184566
+
   float a0;
   float a1;
   float a2;
@@ -427,8 +430,10 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4x12_bf16_bf16_f32_zvfbfwma_x390(
   size_t ii0;
   size_t kk_peel;
 
-  // Due to a compiler bug, temporary A matrix values used in the inline
-  // assembly below are typed as float instead of __bf16.
+  // FIXME: due to a compiler bug, temporary A matrix values used in the inline
+  // assembly of this kernel are typed as float instead of __bf16. Change to
+  // __bf16 once the following patch is available in our toolchain:
+  // https://github.com/llvm/llvm-project/pull/184566
   float a00;
   float a10;
   float a20;
