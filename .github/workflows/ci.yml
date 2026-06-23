@@ -73,45 +73,15 @@ jobs:
         git diff --name-only --diff-filter=ACMR $MERGE_BASE_SHA $HEAD_SHA "*.[ch]"| \
           xargs clang-format --dry-run --Werror
 
-    - name: Configure and build (tests and benchmarks)
+    - name: CMake configure and build
       run: |
         echo "Using $NPROC threads for build step"
         cmake -B ${{ github.workspace }}/build \
               -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
-              -DSKL_BUILD_BENCHMARKS=ON \
-              -DSKL_BUILD_TESTS=ON \
               -DSKL_ENABLE_BENCHMARKS=ON \
               -DSKL_ENABLE_TESTS=ON
         cmake --build ${{ github.workspace }}/build --verbose --parallel $NPROC
 
-    - name: Run (tests and benchmarks)
-      working-directory: ${{ github.workspace }}/build
-      run: ctest --output-on-failure --parallel $NPROC
-
-    - name: Configure and build (tests only)
-      run: |
-        cmake -B ${{ github.workspace }}/build \
-              -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
-              -DSKL_BUILD_BENCHMARKS=OFF \
-              -DSKL_BUILD_TESTS=ON \
-              -DSKL_ENABLE_BENCHMARKS=OFF \
-              -DSKL_ENABLE_TESTS=ON
-        cmake --build ${{ github.workspace }}/build --verbose --parallel $NPROC
-
-    - name: Run (tests only)
-      working-directory: ${{ github.workspace }}/build
-      run: ctest --output-on-failure --parallel $NPROC
-
-    - name: Configure and build (benchmarks only)
-      run: |
-        cmake -B ${{ github.workspace }}/build \
-              -DCMAKE_TOOLCHAIN_FILE=cmake/riscv.cmake \
-              -DSKL_BUILD_BENCHMARKS=ON \
-              -DSKL_BUILD_TESTS=OFF \
-              -DSKL_ENABLE_BENCHMARKS=ON \
-              -DSKL_ENABLE_TESTS=OFF
-        cmake --build ${{ github.workspace }}/build --verbose --parallel $NPROC
-
-    - name: Run (benchmarks only)
+    - name: CTest
       working-directory: ${{ github.workspace }}/build
       run: ctest --output-on-failure --parallel $NPROC
