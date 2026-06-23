@@ -27,19 +27,18 @@ SKL_FUNC_PRIVATE void skl_pack_tile_load_e32_e32_xsfmmbase(size_t tm, size_t tn,
   }
 
   const size_t kRowInc = 1;
+  const uint32_t *src_end = src + tm * rs;
 
-  size_t i = 0;
   __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
 
                    "0:\n"
-                   "addi %[i], %[i], 1\n"
                    "sf.vlte32 %[tss], (%[src])\n"
                    "add %[tss], %[tss], %[kRowInc]\n"
                    "add %[src], %[src], %[rs]\n"
-                   "bltu %[i], %[tm], 0b\n"
-                   : [tss] "+&r"(tss), [src] "+&r"(src), [i] "+&r"(i)
-                   : [kRowInc] "rI"(kRowInc), [rs] "r"(rs * sizeof(uint32_t)),
-                     [tm] "r"(tm), [tn] "r"(tn)
+                   "bltu %[src], %[src_end], 0b\n"
+                   : [tss] "+&r"(tss), [src] "+&r"(src)
+                   : [src_end] "r"(src_end), [kRowInc] "rI"(kRowInc),
+                     [rs] "r"(rs * sizeof(uint32_t)), [tm] "r"(tm), [tn] "r"(tn)
                    : "vtype", "vl", "memory");
 }
 
@@ -59,31 +58,31 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_pad_bottom_e32_e32_xsfmmbase(
 
   vuint32m8_t pad_vec = __riscv_vmv_v_x_u32m8(pad, n0);
   const size_t kRowInc = 1;
+  const uint32_t *dst_store_end = dst + tm * rs;
+  const uint32_t *dst_pad_end = dst + m0 * rs;
 
-  size_t i = 0;
   __asm__ volatile("sf.vsettnt x0, %[n0], e32, w1\n"
 
-                   "bgeu %[i], %[tm], 1f\n"
+                   "bgeu %[dst], %[dst_store_end], 1f\n"
                    "0:\n"
-                   "addi %[i], %[i], 1\n"
                    "sf.vste32 %[tss], (%[dst])\n"
                    "add %[tss], %[tss], %[kRowInc]\n"
                    "add %[dst], %[dst], %[rs]\n"
-                   "bltu %[i], %[tm], 0b\n"
+                   "bltu %[dst], %[dst_store_end], 0b\n"
 
                    "1:\n"
-                   "bgeu %[i], %[m0], 2f\n"
+                   "bgeu %[dst], %[dst_pad_end], 2f\n"
                    "0:\n"
-                   "addi %[i], %[i], 1\n"
                    "vse32.v %[pad_vec], (%[dst])\n"
                    "add %[dst], %[dst], %[rs]\n"
-                   "bltu %[i], %[m0], 0b\n"
+                   "bltu %[dst], %[dst_pad_end], 0b\n"
 
                    "2:\n"
-                   : [tss] "+&r"(tss), [dst] "+&r"(dst), [i] "+&r"(i)
-                   : [pad_vec] "vr"(pad_vec), [kRowInc] "rI"(kRowInc),
-                     [rs] "r"(rs * sizeof(uint32_t)), [m0] "r"(m0),
-                     [n0] "r"(n0), [tm] "r"(tm)
+                   : [tss] "+&r"(tss), [dst] "+&r"(dst)
+                   : [dst_store_end] "r"(dst_store_end),
+                     [dst_pad_end] "r"(dst_pad_end), [pad_vec] "vr"(pad_vec),
+                     [kRowInc] "rI"(kRowInc), [rs] "r"(rs * sizeof(uint32_t)),
+                     [m0] "r"(m0), [n0] "r"(n0), [tm] "r"(tm)
                    : "vtype", "vl", "memory");
 }
 
@@ -110,16 +109,18 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
   vuint32m8_t pad_vec = __riscv_vmv_v_x_u32m8(pad, n0);
 
   const size_t kRowInc = 1;
-
   size_t k0 = tm_store <= tm_load ? tm_store : tm_load;
   size_t k1 = m0 <= tm_load ? m0 : tm_load;
-  size_t i = 0;
+  const uint32_t *src_end = src + tm_load * rssrc;
+  const uint32_t *dst_store_load_end = dst + k0 * rsdst;
+  const uint32_t *dst_pad_load_end = dst + k1 * rsdst;
+  const uint32_t *dst_store_end = dst + tm_store * rsdst;
+  const uint32_t *dst_pad_end = dst + m0 * rsdst;
   __asm__ volatile(
       "sf.vsettnt x0, x0, e32, w1\n"
 
-      "bgeu %[i], %[k0], 1f\n"
+      "bgeu %[dst], %[dst_store_load_end], 1f\n"
       "0:\n"
-      "addi %[i], %[i], 1\n"
       "sf.vsettn x0, %[n0]\n"
       "sf.vste32 %[tss_store], (%[dst])\n"
       "add %[tss_store], %[tss_store], %[kRowInc]\n"
@@ -128,12 +129,11 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
       "sf.vlte32 %[tss_load], (%[src])\n"
       "add %[tss_load], %[tss_load], %[kRowInc]\n"
       "add %[src], %[src], %[rssrc]\n"
-      "bltu %[i], %[k0], 0b\n"
+      "bltu %[dst], %[dst_store_load_end], 0b\n"
 
       "1:\n"
-      "bgeu %[i], %[k1], 2f\n"
+      "bgeu %[dst], %[dst_pad_load_end], 2f\n"
       "0:\n"
-      "addi %[i], %[i], 1\n"
       "sf.vsettn x0, %[n0]\n"
       "vse32.v %[pad_vec], (%[dst])\n"
       "add %[dst], %[dst], %[rsdst]\n"
@@ -141,42 +141,42 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
       "sf.vlte32 %[tss_load], (%[src])\n"
       "add %[tss_load], %[tss_load], %[kRowInc]\n"
       "add %[src], %[src], %[rssrc]\n"
-      "bltu %[i], %[k1], 0b\n"
+      "bltu %[dst], %[dst_pad_load_end], 0b\n"
 
       "2:\n"
-      "bgeu %[i], %[tm_store], 3f\n"
+      "bgeu %[dst], %[dst_store_end], 3f\n"
       "sf.vsettn x0, %[n0]\n"
       "0:\n"
-      "addi %[i], %[i], 1\n"
       "sf.vste32 %[tss_store], (%[dst])\n"
       "add %[tss_store], %[tss_store], %[kRowInc]\n"
       "add %[dst], %[dst], %[rsdst]\n"
-      "bltu %[i], %[tm_store], 0b\n"
+      "bltu %[dst], %[dst_store_end], 0b\n"
 
       "3:\n"
-      "bgeu %[i], %[m0], 4f\n"
+      "bgeu %[dst], %[dst_pad_end], 4f\n"
       "sf.vsettn x0, %[n0]\n"
       "0:\n"
-      "addi %[i], %[i], 1\n"
       "vse32.v %[pad_vec], (%[dst])\n"
       "add %[dst], %[dst], %[rsdst]\n"
-      "bltu %[i], %[m0], 0b\n"
+      "bltu %[dst], %[dst_pad_end], 0b\n"
 
       "4:\n"
-      "bgeu %[i], %[tm_load], 5f\n"
+      "bgeu %[src], %[src_end], 5f\n"
       "sf.vsettn x0, %[tn_load]\n"
       "0:\n"
-      "addi %[i], %[i], 1\n"
       "sf.vlte32 %[tss_load], (%[src])\n"
       "add %[tss_load], %[tss_load], %[kRowInc]\n"
       "add %[src], %[src], %[rssrc]\n"
-      "bltu %[i], %[tm_load], 0b\n"
+      "bltu %[src], %[src_end], 0b\n"
 
       "5:\n"
       : [tss_store] "+&r"(tss_store), [tss_load] "+&r"(tss_load),
-        [dst] "+&r"(dst), [src] "+&r"(src), [i] "+&r"(i)
-      : [pad_vec] "vr"(pad_vec), [kRowInc] "rI"(kRowInc),
-        [rsdst] "r"(rsdst * sizeof(uint32_t)),
+        [dst] "+&r"(dst), [src] "+&r"(src)
+      : [dst_store_load_end] "r"(dst_store_load_end),
+        [dst_pad_load_end] "r"(dst_pad_load_end),
+        [dst_store_end] "r"(dst_store_end), [dst_pad_end] "r"(dst_pad_end),
+        [src_end] "r"(src_end), [pad_vec] "vr"(pad_vec),
+        [kRowInc] "rI"(kRowInc), [rsdst] "r"(rsdst * sizeof(uint32_t)),
         [rssrc] "r"(rssrc * sizeof(uint32_t)), [k0] "r"(k0), [k1] "r"(k1),
         [m0] "r"(m0), [n0] "r"(n0), [tm_store] "r"(tm_store),
         [tm_load] "r"(tm_load), [tn_load] "r"(tn_load)
