@@ -166,7 +166,7 @@ void skl_gemm_tile_load_f32rcptexterc_f32_xsfmmbase(
             "0:\n"
             "addi %[i0], %[i0], 1\n"
             "vlse32.v %[cvec], (%[c_block]), %[csc0]\n"
-            "sf.vmtv.t.v %[tss_tile], %[cvec]\n"
+            "sf.vtmv.t.v %[tss_tile], %[cvec]\n"
             "add %[tss_tile], %[tss_tile], %[kRowInc]\n"
             "add %[c_block], %[c_block], %[rsc0]\n"
             "bltu %[i0], %[tm], 0b\n"
