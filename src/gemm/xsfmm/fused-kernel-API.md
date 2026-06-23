@@ -269,8 +269,8 @@ SKL provides the following (private) functions for zeroing out a portion of the 
 ```
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
-void skl_tile_zero_<type>_<type>_xsfmmbase(size_t m, size_t n, size_t tss,
-                                           size_t rstss, size_t cstss);
+void skl_gemm_tile_zero_<type>_<type>_xsfmmbase(size_t m, size_t n, size_t tss,
+                                                size_t rstss, size_t cstss);
 ```
 These functions zero out the leading `m` x `n` portion of the tile layout determined by `tss`, `rstss`, and `cstss`.
 Unlike the fused kernel application functions, these ones ignore the pattern and index of `tss` and only uses its tile specifier.
@@ -279,7 +279,7 @@ SKL provides the following (private) functions for loading a packed matrix into 
 ```
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
-void skl_tile_load_<type>rcptexterc_<type>_xsfmmbase(
+void skl_gemm_tile_load_<type>rcptexterc_<type>_xsfmmbase(
     size_t m, size_t n, const <type> *c, size_t rsc0, size_t csc0, size_t rsc1,
     size_t csc1, size_t tss, size_t rstss, size_t cstss);
 ```
@@ -315,12 +315,13 @@ We can illustrate with a 1 x 2 tiling when `A`, `B`, and `C` are `float` matrice
 The tile allocation is just `mt0 mt4`.
 Initialize the tile state by
 ```
-skl_tile_zero_f32_f32_xsfmmbase(m, n, 0, 0, 4);
+skl_gemm_tile_zero_f32_f32_xsfmmbase(m, n, 0, 0, 4);
 ```
 or
 ```
-skl_tile_load_f32rcptexterc_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
-                                          rsc0, csc0, rsc1, csc1, 0, 0, 4);
+skl_gemm_tile_load_f32rcptexterc_f32_xsfmmbase(m, n,
+                                               c + row1 * rsc1 + col1 * csc1,
+                                               rsc0, csc0, rsc1, csc1, 0, 0, 4);
 ```
 `rstss` is set to 0 since the tiling has only one row and hence it is unused.
 Then accumulate `A * B` into the tile state:
@@ -343,7 +344,7 @@ The latter is an `n` x `m` x `k` GEMM problem.
 Since we are using the 1 x 2 inner loop function, the tile allocation is still `mt0 mt4`.
 We can zero out the tile state using
 ```
-skl_tile_zero_f32_f32_xsfmmbase(n, m, 0, 0, 4);
+skl_gemm_tile_zero_f32_f32_xsfmmbase(n, m, 0, 0, 4);
 ```
 On the other hand, if we wish to initialize the tile state with values from `C`, we need to load its transpose `C^T`.
 The tile state should look like:
@@ -360,10 +361,9 @@ n│                │           │    │
 Recall that we can load the transpose of `C` by using a `tss` with a column pattern and interpreting `rstss` as the column stride and `cstss` as the row stride.
 So, we would call:
 ```
-skl_tile_load_f32rcptexterc_f32_xsfmmbase(m, n, c + row1 * rsc1 + col1 * csc1,
-                                          rsc0, csc0, rsc1, csc1,
-                                          1 << 24 /* mt0 with column pattern */,
-                                          4, 0);
+skl_gemm_tile_load_f32rcptexterc_f32_xsfmmbase(
+    m, n, c + row1 * rsc1 + col1 * csc1, rsc0, csc0, rsc1, csc1,
+    1 << 24 /* mt0 with column pattern */, 4, 0);
 ```
 The inner loop function is called with `A` and `B` swapped and transposed:
 ```
