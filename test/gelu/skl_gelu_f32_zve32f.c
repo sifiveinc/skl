@@ -18,41 +18,13 @@
 #include "skl-test-driver.h"
 #include "skl.h"
 
-#if defined(SKL_ENABLE_TESTS)
-#include <math.h>
-#include <stdlib.h>
-
-// Scalar GELU using FP64 intermediates for high accuracy.
-static void ref_gelu_f32(float *out, const float *in, size_t n) {
-  const double sqrt2 = 0x1.6a09e667f3bcdp0;
-  for (size_t i = 0; i < n; ++i) {
-    double h = 0.5 * in[i];
-    if (h > 0.) {
-      double e = erf(h * sqrt2);
-      out[i] = (float)fma(h, e, h);
-    } else {
-      if (isinf(h)) {
-        out[i] = -0.0f;
-      } else {
-        // Protect against catastrophic loss of precision for large
-        // magnitude inputs less than 0.  Note also that the
-        // formulation with FMA above produces the wrong sign for such
-        // inputs.
-        double e = erfc(-h * sqrt2);
-        out[i] = (float)(h * e);
-      }
-    }
-  }
-}
-#endif
-
 #define MIN (-0x1.cb64e8p3f) // ~14.356
 #define MAX (+0x1.563db2p2f) // ~5.348
 
-#define VARIANT_TESTS(VARIANT, MIN, MAX, ERR)                                  \
-  FUNCTION_TESTS(skl_gelu_##VARIANT##_f32_zve32f, ref_gelu_f32, MIN, MAX, ERR)
-
 // clang-format off
+#define VARIANT_TESTS(VARIANT, MIN, MAX, ERR)                                  \
+  FUNCTION_TESTS(skl_gelu_##VARIANT##_f32_zve32f, skl_gelu_f32_ref, MIN, MAX, ERR)
+
 #define GELU_TESTS(VARIANT, LTN2, GEN2, GEN1, GE0)                             \
   VARIANT_TESTS(VARIANT, MIN,  -2, LTN2),                                      \
   VARIANT_TESTS(VARIANT,  -2,  -1, GEN2),                                      \
@@ -62,6 +34,9 @@ static void ref_gelu_f32(float *out, const float *in, size_t n) {
 unary_f32_t tests[] = {
 #if defined(SKL_ENABLE_BENCHMARKS)
     FUNCTION_BENCHMARKS(skl_gelu_p9_f32_zve32f, MIN, MAX),
+    FUNCTION_BENCHMARKS(skl_gelu_p13_f32_zve32f, MIN, MAX),
+    FUNCTION_BENCHMARKS(skl_gelu_p17_f32_zve32f, MIN, MAX),
+    FUNCTION_BENCHMARKS(skl_gelu_rat_f32_zve32f, MIN, MAX),
 #endif
 #if defined(SKL_ENABLE_TESTS)
     GELU_TESTS(p9,  1.7e7f, 540097.f, 93837.f, 37021.f),
