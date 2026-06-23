@@ -28,16 +28,17 @@ extern "C" {
  * @param rs - Stride between rows of input matrix.
  * @param dst - Pointer to packed output matrix.
  * @param rs1 - Row stride between blocks of output matrix.
+ * @param cs1 - Column stride between blocks of output matrix.
  * @param pad - Padding value.
  *
  * Equivalent to scalar call:
  * ```
  * skl_pack_e32_e32rcprc_scalar(
- *     m, n,              // m, n,
- *     src, rs, 1,        // src, rs, cs
- *     te, 1,             // m0, n0,
- *     dst, 1, 0, rs1, te // dst, rs0, cs0, rs1, cs1
- *     pad                // pad
+ *     m, n,               // m, n,
+ *     src, rs, 1,         // src, rs, cs
+ *     te, 1,              // m0, n0,
+ *     dst, 1, 0, rs1, cs1 // dst, rs0, cs0, rs1, cs1
+ *     pad                 // pad
  * );
  * ```
  *
