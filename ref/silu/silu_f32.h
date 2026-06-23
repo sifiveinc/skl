@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Reference 52-ULP FP32 Sigmoid Linear Unit.
+ * @brief Reference 1-ULP FP32 Sigmoid Linear Unit.
  *
  * @param out - Array of output elements.
  * @param in - Array of input elements.
@@ -28,7 +28,7 @@ extern "C" {
  * This function is for API documentation purposes only, and should not be used
  * for performance applications.
  */
-void skl_silu_52u_f32_ref(float *out, const float *in, size_t n);
+void skl_silu_1u_f32_ref(float *out, const float *in, size_t n);
 
 #ifdef __cplusplus
 } // extern "C"

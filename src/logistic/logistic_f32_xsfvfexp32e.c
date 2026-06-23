@@ -26,6 +26,7 @@ SKL_FUNC void skl_logistic_5u_f32_xsfvfexp32e(float *out, const float *in,
       "     vsetvli  %[vl], %[n], e32, m8, ta, ma \n"
       /* 0. Load and clamp */
       "\t   vle32.v    %[x], (%[in])          \n"
+      "\t   vmsge.vi   %[w], %[x], 0          \n"
       "\t   vfsgnj.vf  %[x], %[x], %[b]       \n"
       "\t   vfmax.vf   %[x], %[x], %[b]       \n"
       /* 1. Split x = a - e */
@@ -34,7 +35,6 @@ SKL_FUNC void skl_logistic_5u_f32_xsfvfexp32e(float *out, const float *in,
       /* 2. Compute o = exp(a) and p = exp(e) */
       "\t   sf.vfexp.v %[y], %[y]             \n"
       "\t   sf.vfexp.v %[z], %[z]             \n"
-      "\t   vmslt.vi   %[w], %[x], 0          \n"
       "\t   vfadd.vv   %[x], %[y], %[z]       \n"
       /* 3. Assemble numerator: n = x>0 ? p : o */
       "\t   vmerge.vvm %[y], %[y], %[z], %[w] \n"

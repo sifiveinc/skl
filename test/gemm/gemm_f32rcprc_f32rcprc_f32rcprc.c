@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// NOLINTBEGIN(readability-function-cognitive-complexity)
 void gemm_f32rcprc_f32rcprc_f32rcprc_init(skl_test_t *t) {
   gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
@@ -93,6 +94,7 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_init(skl_test_t *t) {
     }
   }
 }
+// NOLINTEND(readability-function-cognitive-complexity)
 
 void gemm_f32rcprc_f32rcprc_f32rcprc_verify(skl_test_t *t) {
   /* Compute the reference matrix output. */

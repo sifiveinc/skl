@@ -27,7 +27,7 @@
 
 // a_pack is 4-byte aligned and rsa1 and csa1 are multiples of 4
 SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
-    size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t rsa1,
+    size_t n, size_t k1, int32_t alpha, const int8_t *a_pack, size_t rsa1,
     size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c,
     size_t rsc) {
   if (n == 0) {
@@ -44,8 +44,7 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
   const int8_t *a0 = a_pack + 0 * rsa1;
   const int8_t *a1 = a_pack + 1 * rsa1;
 
-  // process the first (k / 4) * 4 elements of the inner dimension
-  if (k >= 4) {
+  if (k1) {
     uint32_t a0_0;
     uint32_t a0_1;
     uint32_t a0_2;
@@ -101,7 +100,7 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
           [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n4] "r"(4 * n)
         : "vl", "vtype", "memory");
 
-    while (k >= 12) {
+    while (k1 >= 3) {
       __asm__ volatile(
           // clang-format off
           NTL_P1
@@ -193,10 +192,10 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
             [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n), [n4] "r"(4 * n)
           : "vl", "vtype", "memory");
 
-      k -= 8;
+      k1 -= 2;
     }
 
-    if (k >= 8) { // 8 <= k < 11
+    if (k1 == 2) {
       __asm__ volatile(
           // clang-format off
           NTL_P1
@@ -257,9 +256,7 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
             [rsa1_1] "rI"(csa1 - 4 * rsa1 * sizeof(int8_t)),
             [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n), [n4] "r"(4 * n)
           : "vl", "vtype", "memory");
-
-      k -= 8;
-    } else { // 4 <= k < 8
+    } else { // k1 == 1
       __asm__ volatile(
           // compute first tile
           "vsetvli x0, %[n], e32, m4, ta, ma\n"
@@ -275,26 +272,7 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
             [a0_2] "r"(a0_2), [a0_3] "r"(a0_3), [a0_4] "r"(a0_4),
             [a0_5] "r"(a0_5), [n] "r"(n)
           : "vl", "vtype");
-
-      k -= 4;
     }
-  }
-
-  // process the last k % 4 elements of the inner dimension
-  if (k) {
-    uint32_t mask = 0xFFFFFFFF >> (8 * (4 - k));
-
-    vint8m4_t bvec = __riscv_vle8_v_i8m4(b_pack, 4 * n);
-    vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec, *(uint32_t *)a0 & mask, n);
-    vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec, *(uint32_t *)a1 & mask, n);
-    vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec,
-                                     *(uint32_t *)(a0 + 2 * rsa1) & mask, n);
-    vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec,
-                                     *(uint32_t *)(a1 + 2 * rsa1) & mask, n);
-    vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec,
-                                     *(uint32_t *)(a0 + 4 * rsa1) & mask, n);
-    vec5 = __riscv_sf_vqdot_vx_i32m4(vec5, bvec,
-                                     *(uint32_t *)(a1 + 4 * rsa1) & mask, n);
   }
 
   if (beta != 0) {
@@ -356,7 +334,7 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
 
 // a_pack is 4-byte aligned and rsa1 and csa1 are multiples of 4
 SKL_FUNC_PRIVATE void skl_gemm_lt6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
-    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
+    size_t m, size_t n, size_t k1, int32_t alpha, const int8_t *a_pack,
     size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
     int32_t *c, size_t rsc) {
   if (m == 0 || n == 0) {
@@ -376,7 +354,7 @@ SKL_FUNC_PRIVATE void skl_gemm_lt6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
   const int8_t *a4 = a_pack + 4 * rsa1;
 
   // compute 1 micro-tile at once
-  while (k >= 4) {
+  while (k1) {
     // load one B tile (4xn)
     vint8m4_t bvec = __riscv_vle8_v_i8m4(b_pack, 4 * n);
     b_pack += rsb1;
@@ -407,34 +385,7 @@ SKL_FUNC_PRIVATE void skl_gemm_lt6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
       break;
     }
 
-    k -= 4;
-  }
-
-  // handle k not a multiple of 4
-  if (k) {
-    uint32_t mask = 0xFFFFFFFF >> (8 * (4 - k));
-    vint8m4_t bvec = __riscv_vle8_v_i8m4(b_pack, 4 * n);
-
-    // compute micro-tile
-    switch (m) {
-    case 5:
-      vec4 = __riscv_sf_vqdot_vx_i32m4(vec4, bvec, *(uint32_t *)a4 & mask, n);
-      __attribute__((fallthrough));
-    case 4:
-      vec3 = __riscv_sf_vqdot_vx_i32m4(vec3, bvec, *(uint32_t *)a3 & mask, n);
-      __attribute__((fallthrough));
-    case 3:
-      vec2 = __riscv_sf_vqdot_vx_i32m4(vec2, bvec, *(uint32_t *)a2 & mask, n);
-      __attribute__((fallthrough));
-    case 2:
-      vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec, *(uint32_t *)a1 & mask, n);
-      __attribute__((fallthrough));
-    case 1:
-      vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec, *(uint32_t *)a0 & mask, n);
-      __attribute__((fallthrough));
-    default:
-      break;
-    }
+    k1 -= 1;
   }
 
   if (beta != 0) {
@@ -549,7 +500,7 @@ SKL_FUNC_PRIVATE void skl_gemm_lt6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
 
 // a_pack need not be 4-byte-aligned nor csa1 a multiple of 4
 SKL_FUNC_PRIVATE void skl_gemm_1xm4_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
-    size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t csa1,
+    size_t n, size_t k1, int32_t alpha, const int8_t *a_pack, size_t csa1,
     const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c) {
   if (n == 0) {
     return;
@@ -560,7 +511,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
 
   uint32_t a0;
 
-  while (k >= 4) {
+  while (k1) {
     // load 1 word from A
     skl_memcpy(&a0, a_pack, 4);
     a_pack += csa1;
@@ -571,14 +522,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
 
     vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0, n);
 
-    k -= 4;
-  }
-
-  if (k) {
-    uint32_t mask = 0xFFFFFFFF >> (8 * (4 - k));
-    skl_memcpy(&a0, a_pack, k);
-    vint8m4_t bvec0 = __riscv_vle8_v_i8m4(b_pack, 4 * n);
-    vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0 & mask, n);
+    k1 -= 1;
   }
 
   if (beta != 0) {
@@ -599,7 +543,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
 
 // a_pack is 4-byte aligned and csa1 is a multiple of 4
 SKL_FUNC_PRIVATE void skl_gemm_1xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
-    size_t n, size_t k, int32_t alpha, const int8_t *a_pack, size_t csa1,
+    size_t n, size_t k1, int32_t alpha, const int8_t *a_pack, size_t csa1,
     const int8_t *b_pack, size_t rsb1, int32_t beta, int32_t *c) {
   if (n == 0) {
     return;
@@ -609,7 +553,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
   vint32m4_t vec0 = __riscv_vmv_v_x_i32m4(0, n);
   vint32m4_t vec1 = __riscv_vmv_v_x_i32m4(0, n);
 
-  while (k >= 16) {
+  while (k1 >= 4) {
     // load 4 words from A
     uint32_t a0 = *(uint32_t *)a_pack;
     a_pack += csa1;
@@ -635,10 +579,10 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
     vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec2, a2, n);
     vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec3, a3, n);
 
-    k -= 16;
+    k1 -= 4;
   }
 
-  while (k >= 8) {
+  while (k1 >= 2) {
     // load 2 words from A
     uint32_t a0 = *(uint32_t *)a_pack;
     a_pack += csa1;
@@ -654,10 +598,10 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
     vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0, n);
     vec1 = __riscv_sf_vqdot_vx_i32m4(vec1, bvec1, a1, n);
 
-    k -= 8;
+    k1 -= 2;
   }
 
-  while (k >= 4) {
+  while (k1) {
     // load 1 word from A
     uint32_t a0 = *(uint32_t *)a_pack;
     a_pack += csa1;
@@ -668,13 +612,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
 
     vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec0, a0, n);
 
-    k -= 4;
-  }
-
-  if (k) {
-    uint32_t mask = 0xFFFFFFFF >> (8 * (4 - k));
-    vint8m4_t bvec = __riscv_vle8_v_i8m4(b_pack, 4 * n);
-    vec0 = __riscv_sf_vqdot_vx_i32m4(vec0, bvec, *(uint32_t *)a_pack & mask, n);
+    k1 -= 1;
   }
 
   vec0 = __riscv_vadd_vv_i32m4(vec0, vec1, n);
@@ -695,34 +633,8 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
   __riscv_vse32_v_i32m4(c, vec0, n);
 }
 
-SKL_FUNC_PRIVATE void skl_gemm_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
-    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
-    size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
-    int32_t *c, size_t rsc) {
-  if (m == 0 || n == 0) {
-    return;
-  }
-
-  const size_t m0 = 1;
-  const size_t n0 = __riscv_vsetvlmax_e32m4();
-  const size_t k0 = 4;
-
-  size_t m_idx = 0;
-  for (; m_idx + m0 - 1 < m; m_idx += m0) {
-    int32_t *c_write = c + m_idx * rsc;
-    const int8_t *a_tile_ptr = a_pack + m_idx * rsa1;
-    for (size_t n_idx = 0; n_idx < n; n_idx += n0) {
-      const int8_t *b_tile_ptr = b_pack + k0 * n_idx;
-      const size_t n_tile = n0 <= n - n_idx ? n0 : n - n_idx;
-      skl_gemm_1xm4_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
-          n_tile, k, alpha, a_tile_ptr, csa1, b_tile_ptr, rsb1, beta, c_write);
-      c_write += n_tile;
-    }
-  }
-}
-
 SKL_FUNC_PRIVATE void skl_gemm_aligned_i8rcp_i8pc_i32_xsfvqdotq(
-    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
+    size_t m, size_t n, size_t k1, int32_t alpha, const int8_t *a_pack,
     size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
     int32_t *c, size_t rsc) {
   if (m == 0 || n == 0) {
@@ -730,30 +642,37 @@ SKL_FUNC_PRIVATE void skl_gemm_aligned_i8rcp_i8pc_i32_xsfvqdotq(
   }
 
   const size_t m0 = 6;
-  const size_t n0 = __riscv_vsetvlmax_e32m4();
   const size_t k0 = 4;
 
   if (m == 1) {
     // dispatch to GEMV kernel for better performance
-    for (size_t n_idx = 0; n_idx < n; n_idx += n0) {
-      int32_t *c_write = c + n_idx;
-      const int8_t *b_tile_ptr = b_pack + k0 * n_idx;
-      const size_t n_tile = n0 <= n - n_idx ? n0 : n - n_idx;
+    int32_t *c_write = c;
+    const int8_t *a_tile_ptr = a_pack;
+    const int8_t *b_tile_ptr = b_pack;
+    size_t n_avl = n;
+    while (n_avl) {
+      size_t vl = __riscv_vsetvl_e32m4(n_avl);
       skl_gemm_1xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
-          n_tile, k, alpha, a_pack, csa1, b_tile_ptr, rsb1, beta, c_write);
+          vl, k1, alpha, a_tile_ptr, csa1, b_tile_ptr, rsb1, beta, c_write);
+      b_tile_ptr += k0 * vl;
+      c_write += vl;
+      n_avl -= vl;
     }
   } else {
     size_t m_idx = 0;
     for (; m_idx + m0 - 1 < m; m_idx += m0) {
       int32_t *c_write = c + m_idx * rsc;
       const int8_t *a_tile_ptr = a_pack + m_idx * rsa1;
-      for (size_t n_idx = 0; n_idx < n; n_idx += n0) {
-        const int8_t *b_tile_ptr = b_pack + k0 * n_idx;
-        const size_t n_tile = n0 <= n - n_idx ? n0 : n - n_idx;
+      const int8_t *b_tile_ptr = b_pack;
+      size_t n_avl = n;
+      while (n_avl) {
+        size_t vl = __riscv_vsetvl_e32m4(n_avl);
         skl_gemm_6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
-            n_tile, k, alpha, a_tile_ptr, rsa1, csa1, b_tile_ptr, rsb1, beta,
+            vl, k1, alpha, a_tile_ptr, rsa1, csa1, b_tile_ptr, rsb1, beta,
             c_write, rsc);
-        c_write += n_tile;
+        b_tile_ptr += k0 * vl;
+        c_write += vl;
+        n_avl -= vl;
       }
     }
 
@@ -761,20 +680,23 @@ SKL_FUNC_PRIVATE void skl_gemm_aligned_i8rcp_i8pc_i32_xsfvqdotq(
     if (m_left) {
       int32_t *c_write = c + m_idx * rsc;
       const int8_t *a_tile_ptr = a_pack + m_idx * rsa1;
-      for (size_t n_idx = 0; n_idx < n; n_idx += n0) {
-        const int8_t *b_tile_ptr = b_pack + k0 * n_idx;
-        const size_t n_tile = n0 <= n - n_idx ? n0 : n - n_idx;
+      const int8_t *b_tile_ptr = b_pack;
+      size_t n_avl = n;
+      while (n_avl) {
+        size_t vl = __riscv_vsetvl_e32m4(n_avl);
         skl_gemm_lt6xm4_aligned_i8rcp_i8pc_i32_xsfvqdotq(
-            m_left, n_tile, k, alpha, a_tile_ptr, rsa1, csa1, b_tile_ptr, rsb1,
+            m_left, vl, k1, alpha, a_tile_ptr, rsa1, csa1, b_tile_ptr, rsb1,
             beta, c_write, rsc);
-        c_write += n_tile;
+        b_tile_ptr += k0 * vl;
+        c_write += vl;
+        n_avl -= vl;
       }
     }
   }
 }
 
 SKL_FUNC void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(
-    size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a_pack,
+    size_t m, size_t n, size_t k1, int32_t alpha, const int8_t *a_pack,
     size_t rsa1, size_t csa1, const int8_t *b_pack, size_t rsb1, int32_t beta,
     int32_t *c, size_t rsc) {
   if (m == 0 || n == 0) {
@@ -785,10 +707,23 @@ SKL_FUNC void skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(
 
   if ((uintptr_t)a_pack % (k0 * sizeof(int8_t)) == 0 && rsa1 % k0 == 0 &&
       csa1 % k0 == 0) {
-    skl_gemm_aligned_i8rcp_i8pc_i32_xsfvqdotq(m, n, k, alpha, a_pack, rsa1,
+    skl_gemm_aligned_i8rcp_i8pc_i32_xsfvqdotq(m, n, k1, alpha, a_pack, rsa1,
                                               csa1, b_pack, rsb1, beta, c, rsc);
   } else {
-    skl_gemm_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
-        m, n, k, alpha, a_pack, rsa1, csa1, b_pack, rsb1, beta, c, rsc);
+    size_t m_idx = 0;
+    for (; m_idx < m; ++m_idx) {
+      int32_t *c_write = c + m_idx * rsc;
+      const int8_t *a_tile_ptr = a_pack + m_idx * rsa1;
+      const int8_t *b_tile_ptr = b_pack;
+      size_t n_avl = n;
+      while (n_avl) {
+        size_t vl = __riscv_vsetvl_e32m4(n_avl);
+        skl_gemm_1xm4_unaligned_i8rcp_i8pc_i32_xsfvqdotq(
+            vl, k1, alpha, a_tile_ptr, csa1, b_tile_ptr, rsb1, beta, c_write);
+        b_tile_ptr += k0 * vl;
+        c_write += vl;
+        n_avl -= vl;
+      }
+    }
   }
 }

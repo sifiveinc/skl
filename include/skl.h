@@ -55,14 +55,6 @@
 #endif
 
 /*
- * Matrix packing Kernels
- */
-
-#if defined(__riscv_zve32x)
-#include "gemm/xsfvqdotq/pack_b_xsfvqdotq.h"
-#endif
-
-/*
  * Transpose Kernels
  */
 
@@ -79,52 +71,79 @@
 #endif
 
 /*
- * Exponential and Logistic Function Kernels
+ * Exponential Function Kernels
  */
-
-#if defined(__riscv_zvfbfmin)
-#include "exp/exp_bf16_zvfbfmin.h"
-#endif
-
-#if defined(__riscv_xsfvfbfa)
-#include "exp/exp_bf16_xsfvfbfa.h"
-#endif
 
 #if defined(__riscv_zvfh)
 #include "exp/exp_f16_zvfh.h"
-#include "logistic/logistic_f16_zvfh.h"
 #endif
-
-#if defined(__riscv_zve32f)
-#include "exp/exp_bf16_zve32f.h"
-#include "exp/exp_f32_zve32f.h"
-#include "logistic/logistic_f32_zve32f.h"
-#endif
-
-#if defined(__riscv_xsfvfbfexp16e)
-#include "exp/exp_bf16_xsfvfbfexp16e.h"
-#endif
-
 #if defined(__riscv_xsfvfexp16e)
 #include "exp/exp_f16_xsfvfexp16e.h"
-#include "logistic/logistic_f16_xsfvfexp16e.h"
 #endif
-
-#if defined(__riscv_xsfvfexp32e)
-#include "exp/exp_f32_xsfvfexp32e.h"
-#include "logistic/logistic_f32_xsfvfexp32e.h"
-#endif
-
-#if defined(__riscv_xsfvfexpa) && defined(__riscv_zvfbfmin)
-#include "exp/exp_bf16_xsfvfexpa_zvfbfmin.h"
-#endif
-
 #if defined(__riscv_xsfvfexpa) && defined(__riscv_zvfh)
 #include "exp/exp_f16_xsfvfexpa_zvfh.h"
 #endif
 
+#if defined(__riscv_zve32f)
+#include "exp/exp_bf16_zve32f.h"
+#endif
+#if defined(__riscv_xsfvfbfa)
+#include "exp/exp_bf16_xsfvfbfa.h"
+#endif
+#if defined(__riscv_xsfvfbfexp16e)
+#include "exp/exp_bf16_xsfvfbfexp16e.h"
+#endif
+#if defined(__riscv_xsfvfexpa) && defined(__riscv_zvfbfmin)
+#include "exp/exp_bf16_xsfvfexpa_zvfbfmin.h"
+#endif
+#if defined(__riscv_zvfbfmin)
+#include "exp/exp_bf16_zvfbfmin.h"
+#endif
+
+#if defined(__riscv_zve32f)
+#include "exp/exp_f32_zve32f.h"
+#endif
+#if defined(__riscv_xsfvfexp32e)
+#include "exp/exp_f32_xsfvfexp32e.h"
+#endif
 #if defined(__riscv_xsfvfexpa)
 #include "exp/exp_f32_xsfvfexpa.h"
+#endif
+
+/*
+ * Logistic Function Kernels
+ */
+
+#if defined(__riscv_zvfh)
+#include "logistic/logistic_f16_zvfh.h"
+#endif
+#if defined(__riscv_xsfvfexp16e)
+#include "logistic/logistic_f16_xsfvfexp16e.h"
+#endif
+
+#if defined(__riscv_zve32f)
+#include "logistic/logistic_bf16_zve32f.h"
+#endif
+#if defined(__riscv_xsfvfbfa)
+#include "logistic/logistic_bf16_xsfvfbfa.h"
+#endif
+#if defined(__riscv_xsfvfbfexp16e) && defined(__riscv_xsfvfbfa)
+#include "logistic/logistic_bf16_xsfvfbfexp16e_xsfvfbfa.h"
+#endif
+#if defined(__riscv_xsfvfexp32e)
+#include "logistic/logistic_bf16_xsfvfexp32e.h"
+#endif
+#if defined(__riscv_xsfvfexpa)
+#include "logistic/logistic_bf16_xsfvfexpa.h"
+#endif
+
+#if defined(__riscv_zve32f)
+#include "logistic/logistic_f32_zve32f.h"
+#endif
+#if defined(__riscv_xsfvfexp32e)
+#include "logistic/logistic_f32_xsfvfexp32e.h"
+#endif
+#if defined(__riscv_xsfvfexpa)
 #include "logistic/logistic_f32_xsfvfexpa.h"
 #endif
 
@@ -239,6 +258,15 @@
 
 #if defined(__riscv_zve32f)
 #include "gelu/gelu_f32_zve32f.h"
+#endif
+
+/*
+ * Pack Kernels
+ */
+#if defined(__riscv_zve32x)
+#include "pack/rvv/skl_pack_e16_zve32x.h"
+#include "pack/rvv/skl_pack_e32_zve32x.h"
+#include "pack/rvv/skl_pack_e8_zve32x.h"
 #endif
 
 // IWYU pragma: end_exports

@@ -33,8 +33,12 @@ add_library(skl-ref
     gemm/gemm_f64rcprc_f64rcprc_f64rcprc.c
     gemm/gemm_i8rc_i8rc_i32rc.c
     gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+    logistic/logistic_bf16.c
     logistic/logistic_f16.c
     logistic/logistic_f32.c
+    pack/pack_e16rc_e16rcprc.c
+    pack/pack_e32rc_e32rcprc.c
+    pack/pack_e8rc_e8rcprc.c
     silu/silu_f16.c
     silu/silu_f32.c
     softmax/softmax_bf16.c
