@@ -24,6 +24,7 @@
 #error This file requires the Zvfh extension
 #endif
 
+// NOLINTBEGIN(readability-function-cognitive-complexity)
 void depthwise_conv2d_f16_f16_f16_init(skl_test_t *t) {
   depthwise_conv2d_f16_f16_f16_t *h =
       (depthwise_conv2d_f16_f16_f16_t *)t->harness;
@@ -48,6 +49,7 @@ void depthwise_conv2d_f16_f16_f16_init(skl_test_t *t) {
         h->output.len > 0 ? malloc(h->output.len * sizeof(double)) : NULL;
   }
 }
+// NOLINTEND(readability-function-cognitive-complexity)
 
 void depthwise_conv2d_f16_f16_f16_verify(skl_test_t *t) {
   /* Compute the reference output and error bounds. */
