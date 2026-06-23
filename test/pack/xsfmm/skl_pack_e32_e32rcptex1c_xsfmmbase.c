@@ -9,7 +9,6 @@
 #include "skl.h"
 
 #include <stddef.h>
-#include <stdint.h>
 
 #if !defined(__riscv_xsfmmbase)
 #error This file requires the Xsfmmbase extension
@@ -49,7 +48,7 @@ static void execute(skl_test_t *t);
 pack_e32rc_e32rcprc_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
   // Benchmark tests
-  {BENCH, .m = 256, .n = 256, .rs = 256, .cs = 1, .rs1 = 16384, .cs1 = 64},
+  {BENCH, .m = 256, .n = 256},
 #endif
 
 #ifdef SKL_ENABLE_TESTS
