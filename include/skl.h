@@ -22,6 +22,7 @@
 
 #if defined(__riscv_zvfbfwma)
 #include "gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma.h"
+#include "gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma_x390.h"
 #endif
 
 #if defined(__riscv_zve32f)
@@ -57,12 +58,6 @@
 /*
  * Transpose Kernels
  */
-
-#if defined(__riscv_zve32x)
-#include "transpose/rvv/transpose_e16_zve32x.h"
-#include "transpose/rvv/transpose_e32_zve32x.h"
-#include "transpose/rvv/transpose_e8_zve32x.h"
-#endif
 
 #if defined(__riscv_xsfmmbase)
 #include "transpose/xsfmm/transpose_e16_xsfmmbase.h"

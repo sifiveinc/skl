@@ -46,6 +46,12 @@
 #include "ref/exp/exp_f32.h"
 
 /*
+ * GELU Function Kernels
+ */
+
+#include "../ref/gelu/gelu_f32.h"
+
+/*
  * Logistic Function Kernels
  */
 

@@ -17,6 +17,7 @@ add_library(skl-ref
     exp/exp_bf16.c
     exp/exp_f16.c
     exp/exp_f32.c
+    gelu/gelu_f32.c
     gemm/gemm_bf16rc_bf16rc_f32rc.c
     gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc.c
     gemm/gemm_f8e4m3rc_f8e4m3rc_f32rc.c

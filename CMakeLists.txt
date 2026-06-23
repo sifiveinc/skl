@@ -117,6 +117,7 @@ add_skl_src(src/exp/exp_f32_zve32f.c "zve32f")
 add_skl_src(src/gelu/gelu_f32_zve32f.c "zve32f")
 
 add_skl_src(src/gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma.c "zvfbfwma")
+add_skl_src(src/gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma_x390.c "zvfbfwma")
 add_skl_src(src/gemm/rvv/gemm_f16_f16_f16_zvfh_x390.c "zvfh")
 add_skl_src(src/gemm/rvv/gemm_f16_f16_f32_zvfh_x390.c "zvfh")
 add_skl_src(src/gemm/rvv/gemm_f32_f32_f32_zve32f_x390.c "zve32f")
@@ -167,9 +168,6 @@ add_skl_src(src/softmax/softmax_f32_xsfvfexp32e.c "xsfvfexp32e")
 add_skl_src(src/softmax/softmax_f32_xsfvfexpa.c "xsfvfexpa")
 add_skl_src(src/softmax/softmax_f32_zve32f.c "zve32f")
 
-add_skl_src(src/transpose/rvv/transpose_e16_zve32x.c "zve32x")
-add_skl_src(src/transpose/rvv/transpose_e32_zve32x.c "zve32x")
-add_skl_src(src/transpose/rvv/transpose_e8_zve32x.c "zve32x")
 add_skl_src(src/transpose/xsfmm/transpose_e16_xsfmmbase.c "xsfmmbase")
 add_skl_src(src/transpose/xsfmm/transpose_e32_xsfmmbase.c "xsfmmbase")
 add_skl_src(src/transpose/xsfmm/transpose_e8_xsfmmbase.c "xsfmmbase")
@@ -227,10 +225,6 @@ endfunction()
 
 if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   enable_testing()
-
-  if("zve32f" IN_LIST RISCV_EXTENSIONS)
-    skl_add_test_legacy(gelu_f32 gelu/gelu_f32.c "")
-  endif()
 endif()
 
 # Configure libskl installation
