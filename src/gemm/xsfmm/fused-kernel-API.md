@@ -37,14 +37,14 @@ To compute a GEMM `C = alpha * A * B + beta * C`, the user can apply an alpha/be
 typedef struct {
   float alpha;
   float beta;
-} skl_alpha_beta_scaling_params_f32_f32_t;
+} skl_gemm_alpha_beta_scaling_params_f32_f32_t;
 
 SKL_XSFMM_IN
 void skl_gemm_alpha_beta_scaling_f32_f32rcptexterc_xsfmmbase(
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
     size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
-  skl_alpha_beta_scaling_params_f32_f32_t *params_cast =
-      (skl_alpha_beta_scaling_params_f32_f32_t *)params;
+  skl_gemm_alpha_beta_scaling_params_f32_f32_t *params_cast =
+      (skl_gemm_alpha_beta_scaling_params_f32_f32_t *)params;
   float alpha = params_cast->alpha;
   float beta = params_cast->beta;
 
@@ -61,14 +61,14 @@ The following kernel can be used to compute `C = A * B + bias`, where `bias` is 
 ```
 typedef struct {
   float *bias;
-} skl_add_bias_params_f32_f32_t;
+} skl_gemm_add_bias_params_f32_f32_t;
 
 SKL_XSFMM_IN
 void skl_gemm_add_bias_f32_f32rcptexterc_xsfmmbase(
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
     size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
-  skl_add_bias_params_f32_f32_t *params_cast =
-      (skl_add_bias_params_f32_f32_t *)params;
+  skl_gemm_add_bias_params_f32_f32_t *params_cast =
+      (skl_gemm_add_bias_params_f32_f32_t *)params;
   float *bias = params_cast->bias;
 
   float *c_block = c + row1 * rsc1 + col1 * csc1;
@@ -85,14 +85,14 @@ To compute the maximum value of a matrix product, the following kernel can be us
 ```
 typedef struct {
   float *max;
-} skl_matrix_max_params_f32_f32_t;
+} skl_gemm_matrix_max_params_f32_f32_t;
 
 SKL_XSFMM_IN
 void skl_gemm_matrix_max_f32_f32rcptexterc_xsfmmbase(
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
     size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
-  skl_matrix_max_params_f32_f32_t *params_cast =
-      (skl_matrix_max_params_f32_f32_t *)params;
+  skl_gemm_matrix_max_params_f32_f32_t *params_cast =
+      (skl_gemm_matrix_max_params_f32_f32_t *)params;
   float *max = params_cast->max;
 
   float *c_block = c + row1 * rsc1 + col1 * csc1;
@@ -108,18 +108,17 @@ void skl_gemm_matrix_max_f32_f32rcptexterc_xsfmmbase(
 ### Fused Kernel Application Functions
 SKL provides (private) functions that apply a fused kernel to multiple tiles:
 ```
-typedef void (*skl_fused_<type>_<type>_t)(size_t tm, size_t tn, size_t tss,
-                                          <type> *c, size_t rsc0, size_t csc0,
-                                          size_t rsc1, size_t csc1, size_t row1,
-                                          size_t col1,
-                                          void *params) SKL_XSFMM_IN;
+typedef void (*skl_gemm_fused_kernel_<type>_<type>_t)(
+    size_t tm, size_t tn, size_t tss, <type> *c, size_t rsc0, size_t csc0,
+    size_t rsc1, size_t csc1, size_t row1, size_t col1,
+    void *params) SKL_XSFMM_IN;
 
 SKL_XSFMM_IN
 SKL_FUNC_PRIVATE
 void skl_gemm_apply_fused_<type>_<type>rcptexterc_<isa>(
     size_t m, size_t n, size_t tss, size_t rstss, size_t cstss, <type> *c,
     size_t rsc0, size_t csc0, size_t rsc1, size_t csc1, size_t row1,
-    size_t col1, fused_<type>_<type>_t kernel, void *params);
+    size_t col1, skl_gemm_fused_kernel_<type>_<type>_t kernel, void *params);
 ```
 `tss`, `rstss`, and `cstss` determine a tile layout analogous to the packed layout for matrices.
 The tile specifier of `tss` indicates the upper leftmost tile, while `rstss` and `cstss` are the row and column strides for the tile index.
