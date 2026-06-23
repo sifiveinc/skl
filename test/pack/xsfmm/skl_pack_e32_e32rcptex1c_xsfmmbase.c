@@ -80,6 +80,13 @@ pack_e32rc_e32rcprc_t tests[] = {
   {TEST, .m = 191, .n = 127},
   {TEST, .m = 191, .n = 191},
   {TEST, .m = 191, .n = 255},
+
+  {TEST, .m = 192, .n = 256, .rs1 = (size_t)(256 * 65), .cs1 = 65},
+  {TEST, .m = 192, .n = 256, .rs1 = 64, .cs1 = 192},
+  {TEST, .m = 192, .n = 256, .rs1 = 65, .cs1 = (size_t)(3 * 65)},
+  {TEST, .m = 191, .n = 255, .rs1 = (size_t)(256 * 65), .cs1 = 65},
+  {TEST, .m = 191, .n = 255, .rs1 = 64, .cs1 = 192},
+  {TEST, .m = 191, .n = 255, .rs1 = 65, .cs1 = (size_t)(3 * 65)},
 #endif
 };
 // clang-format on
@@ -96,7 +103,7 @@ static void init(skl_test_t *t) {
   pack_e32rc_e32rcprc_init(t);
 }
 
-static skl_test_suite_t suite = {.name = "skl_pack_e32_e32ptex1c_xsfmmbase",
+static skl_test_suite_t suite = {.name = "skl_pack_e32_e32rcptex1c_xsfmmbase",
                                  .num_tests = sizeof(tests) / sizeof(tests[0]),
                                  .test_size = sizeof(pack_e32rc_e32rcprc_t),
                                  .tests = tests};
@@ -104,8 +111,8 @@ static skl_test_suite_t suite = {.name = "skl_pack_e32_e32ptex1c_xsfmmbase",
 static void execute(skl_test_t *t) {
   const pack_e32rc_e32rcprc_t *h = (pack_e32rc_e32rcprc_t *)t->harness;
 
-  skl_pack_e32_e32ptex1c_xsfmmbase(h->m, h->n, h->src.data, h->rs, h->dst.data,
-                                   h->rs1, h->pad);
+  skl_pack_e32_e32rcptex1c_xsfmmbase(h->m, h->n, h->src.data, h->rs,
+                                     h->dst.data, h->rs1, h->cs1, h->pad);
 }
 
 int main(void) {

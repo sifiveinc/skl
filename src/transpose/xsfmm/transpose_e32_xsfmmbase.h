@@ -45,9 +45,9 @@ extern "C" {
  * datatypes by way of type-punning through the input/output array pointers and
  * of the padding value.
  */
-void skl_pack_e32_e32ptex1c_xsfmmbase(size_t m, size_t n, const uint32_t *src,
-                                      size_t rs, uint32_t *dst, size_t rs1,
-                                      uint32_t pad);
+void skl_pack_e32_e32rcptex1c_xsfmmbase(size_t m, size_t n, const uint32_t *src,
+                                        size_t rs, uint32_t *dst, size_t rs1,
+                                        size_t cs1, uint32_t pad);
 
 /**
  * @brief Xsfmm matrix transposition for 32-bit matrices.

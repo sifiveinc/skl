@@ -318,10 +318,10 @@ SKL_FUNC_PRIVATE void skl_pack_m0xn0cbrc_padding_optional_e32_xsfmmbase(
 }
 
 SKL_XSFMM_NEW
-SKL_FUNC void skl_pack_e32_e32ptex1c_xsfmmbase(size_t m, size_t n,
-                                               const uint32_t *src, size_t rs,
-                                               uint32_t *dst, size_t rs1,
-                                               uint32_t pad) {
+SKL_FUNC void skl_pack_e32_e32rcptex1c_xsfmmbase(size_t m, size_t n,
+                                                 const uint32_t *src, size_t rs,
+                                                 uint32_t *dst, size_t rs1,
+                                                 size_t cs1, uint32_t pad) {
   if (m == 0 || n == 0) {
     return;
   }
@@ -333,7 +333,7 @@ SKL_FUNC void skl_pack_e32_e32ptex1c_xsfmmbase(size_t m, size_t n,
                    : "vtype", "vl");
 
   skl_pack_m0xn0cbrc_padding_optional_e32_xsfmmbase(
-      m, n, src, rs, ete, ete, dst, ete, rs1, ete * ete, false, true, pad);
+      m, n, src, rs, ete, ete, dst, cs1, rs1, ete * cs1, false, true, pad);
 
   __asm__ volatile("sf.vtdiscard");
 }
