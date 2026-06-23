@@ -8,7 +8,7 @@
 #include <stddef.h>
 
 /* This reference is based on the observation that the GELU is a
-   calculated offset from the RELU */
+   calculated offset from the ReLU */
 SKL_FUNC void skl_gelu_f32_ref(float *out, const float *in, size_t n) {
   const double sqrt2 = 0x1.6a09e667f3bcdp0;
   for (size_t i = 0; i < n; i++) {
