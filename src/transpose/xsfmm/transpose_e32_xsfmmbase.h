@@ -12,6 +12,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "skl-common.h"
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
