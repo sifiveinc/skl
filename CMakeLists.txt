@@ -206,8 +206,4 @@ endfunction()
 
 if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
   enable_testing()
-
-  if("zve32f" IN_LIST RISCV_EXTENSIONS)
-    skl_add_test_legacy(gelu_f32 gelu/gelu_f32.c "")
-  endif()
 endif()
