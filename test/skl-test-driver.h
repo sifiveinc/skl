@@ -367,10 +367,10 @@ enum {
 // Helper macros for generating random values (used internally by
 // SKL_TEST_BUF_CREATE)
 
-#define SKL_TEST_RANDOM_FLOAT_(TYPE, MIN, MAX, LEN)                            \
+#define SKL_TEST_RANDOM_FLOAT_(TYPE, MIN, MAX)                                 \
   ((TYPE)(TYPE)((MIN) + ((float)rand() / (float)RAND_MAX) * ((MAX) - (MIN))))
 
-#define SKL_TEST_RANDOM_INT_(TYPE, MIN, MAX, LEN)                              \
+#define SKL_TEST_RANDOM_INT_(TYPE, MIN, MAX)                                   \
   ((TYPE)(rand() % ((MAX) - (MIN) + 1) + (MIN)))
 
 /**
@@ -389,7 +389,7 @@ enum {
                  "  populating with random values in [%" FMT ", %" FMT "]\n",  \
                  (PRINT_TYPE)min, (PRINT_TYPE)max);                            \
     for (size_t i = 0; i < len; ++i) {                                         \
-      buf[i] = SKL_TEST_RANDOM_##RAND_TYPE##_(BUF_TYPE, min, max, len);        \
+      buf[i] = SKL_TEST_RANDOM_##RAND_TYPE##_(BUF_TYPE, min, max);             \
     }                                                                          \
   }
 
