@@ -33,6 +33,7 @@
 #pragma once
 
 #include <float.h>
+#include <inttypes.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -366,38 +367,119 @@ enum {
 // Helper macros for generating random values (used internally by
 // SKL_TEST_BUF_CREATE)
 
-#define SKL_TEST_BUF_RANDOM_FLOAT_(TYPE, MIN, MAX, LEN)                        \
+#define SKL_TEST_RANDOM_FLOAT_(TYPE, MIN, MAX, LEN)                            \
   ((TYPE)(TYPE)((MIN) + ((float)rand() / (float)RAND_MAX) * ((MAX) - (MIN))))
 
-#define SKL_TEST_BUF_RANDOM___bf16(TYPE, MIN, MAX, LEN)                        \
-  SKL_TEST_BUF_RANDOM_FLOAT_(TYPE, MIN, MAX, LEN)
-
-#define SKL_TEST_BUF_RANDOM__Float16(TYPE, MIN, MAX, LEN)                      \
-  SKL_TEST_BUF_RANDOM_FLOAT_(TYPE, MIN, MAX, LEN)
-#define SKL_TEST_BUF_RANDOM_float(TYPE, MIN, MAX, LEN)                         \
-  SKL_TEST_BUF_RANDOM_FLOAT_(TYPE, MIN, MAX, LEN)
-#define SKL_TEST_BUF_RANDOM_double(TYPE, MIN, MAX, LEN)                        \
-  SKL_TEST_BUF_RANDOM_FLOAT_(TYPE, MIN, MAX, LEN)
-
-#define SKL_TEST_BUF_RANDOM_INT_(TYPE, MIN, MAX, LEN)                          \
+#define SKL_TEST_RANDOM_INT_(TYPE, MIN, MAX, LEN)                              \
   ((TYPE)(rand() % ((MAX) - (MIN) + 1) + (MIN)))
 
-#define SKL_TEST_BUF_RANDOM_int8_t(TYPE, MIN, MAX, LEN)                        \
-  SKL_TEST_BUF_RANDOM_INT_(TYPE, MIN, MAX, LEN)
-#define SKL_TEST_BUF_RANDOM_uint8_t(TYPE, MIN, MAX, LEN)                       \
-  SKL_TEST_BUF_RANDOM_INT_(TYPE, MIN, MAX, LEN)
-#define SKL_TEST_BUF_RANDOM_int16_t(TYPE, MIN, MAX, LEN)                       \
-  SKL_TEST_BUF_RANDOM_INT_(TYPE, MIN, MAX, LEN)
-#define SKL_TEST_BUF_RANDOM_uint16_t(TYPE, MIN, MAX, LEN)                      \
-  SKL_TEST_BUF_RANDOM_INT_(TYPE, MIN, MAX, LEN)
-#define SKL_TEST_BUF_RANDOM_int32_t(TYPE, MIN, MAX, LEN)                       \
-  SKL_TEST_BUF_RANDOM_INT_(TYPE, MIN, MAX, LEN)
-#define SKL_TEST_BUF_RANDOM_uint32_t(TYPE, MIN, MAX, LEN)                      \
-  SKL_TEST_BUF_RANDOM_INT_(TYPE, MIN, MAX, LEN)
-#define SKL_TEST_BUF_RANDOM_int64_t(TYPE, MIN, MAX, LEN)                       \
-  SKL_TEST_BUF_RANDOM_INT_(TYPE, MIN, MAX, LEN)
-#define SKL_TEST_BUF_RANDOM_uint64_t(TYPE, MIN, MAX, LEN)                      \
-  SKL_TEST_BUF_RANDOM_INT_(TYPE, MIN, MAX, LEN)
+/**
+ * @brief Populate a buffer with random data.
+ *
+ * @param t Test context pointer.
+ * @param buf The buffer to populate.
+ * @param len Length of the buffer buf.
+ * @param min Minimum value of interval from which to sample values.
+ * @param max Maximum value of interval from which to sample values.
+ */
+#define SKL_TEST_BUF_RANDOM_IMPL(BUF_TYPE, PRINT_TYPE, RAND_TYPE, FMT)         \
+  static inline void skl_test_buf_random_##BUF_TYPE(                           \
+      skl_test_t *t, BUF_TYPE *buf, size_t len, BUF_TYPE min, BUF_TYPE max) {  \
+    SKL_TEST_LOG(t, SKL_TEST_LOG_DEBUG,                                        \
+                 "  populating with random values in [%" FMT ", %" FMT "]\n",  \
+                 (PRINT_TYPE)min, (PRINT_TYPE)max);                            \
+    for (size_t i = 0; i < len; ++i) {                                         \
+      buf[i] = SKL_TEST_RANDOM_##RAND_TYPE##_(BUF_TYPE, min, max, len);        \
+    }                                                                          \
+  }
+
+// clang-format off
+SKL_TEST_BUF_RANDOM_IMPL(int8_t,   int8_t,   INT,   PRId8)
+SKL_TEST_BUF_RANDOM_IMPL(int16_t,  int16_t,  INT,   PRId16)
+SKL_TEST_BUF_RANDOM_IMPL(int32_t,  int32_t,  INT,   PRId32)
+SKL_TEST_BUF_RANDOM_IMPL(int64_t,  int64_t,  INT,   PRId64)
+SKL_TEST_BUF_RANDOM_IMPL(uint8_t,  uint8_t,  INT,   PRIu8)
+SKL_TEST_BUF_RANDOM_IMPL(uint16_t, uint16_t, INT,   PRIu16)
+SKL_TEST_BUF_RANDOM_IMPL(uint32_t, uint32_t, INT,   PRIu32)
+SKL_TEST_BUF_RANDOM_IMPL(uint64_t, uint64_t, INT,   PRIu64)
+SKL_TEST_BUF_RANDOM_IMPL(_Float16, double,   FLOAT, "f")
+SKL_TEST_BUF_RANDOM_IMPL(__bf16,   double,   FLOAT, "f")
+SKL_TEST_BUF_RANDOM_IMPL(float,    double,   FLOAT, "f")
+SKL_TEST_BUF_RANDOM_IMPL(double,   double,   FLOAT, "f")
+// clang-format on
+
+/**
+ * @brief Populate a buffer with sequential data.
+ *
+ * @param t Test context pointer.
+ * @param buf The buffer to populate.
+ * @param len Length of the buffer buf.
+ * @param min Starting value of generated data.
+ * @param max Ending value of generated data.
+ *
+ * The generated values will be spaced uniformly between min and max, in
+ * ascending order.
+ */
+#define SKL_TEST_BUF_SEQ_IMPL(BUF_TYPE, PRINT_TYPE, FMT)                       \
+  static inline void skl_test_buf_seq_##BUF_TYPE(                              \
+      skl_test_t *t, BUF_TYPE *buf, size_t len, BUF_TYPE min, BUF_TYPE max) {  \
+    BUF_TYPE step = len ? (max - min) / len : 0;                               \
+    SKL_TEST_LOG(t, SKL_TEST_LOG_DEBUG,                                        \
+                 "  populating with sequential values in [%" FMT ", %" FMT     \
+                 "] by %" FMT "\n",                                            \
+                 (PRINT_TYPE)min, (PRINT_TYPE)max, (PRINT_TYPE)step);          \
+    for (size_t i = 0; i < len; ++i) {                                         \
+      buf[i] = min + step * i;                                                 \
+    }                                                                          \
+  }
+
+// clang-format off
+SKL_TEST_BUF_SEQ_IMPL(int8_t,   int8_t,   PRId8)
+SKL_TEST_BUF_SEQ_IMPL(int16_t,  int16_t,  PRId16)
+SKL_TEST_BUF_SEQ_IMPL(int32_t,  int32_t,  PRId32)
+SKL_TEST_BUF_SEQ_IMPL(int64_t,  int64_t,  PRId64)
+SKL_TEST_BUF_SEQ_IMPL(uint8_t,  uint8_t,  PRIu8)
+SKL_TEST_BUF_SEQ_IMPL(uint16_t, uint16_t, PRIu16)
+SKL_TEST_BUF_SEQ_IMPL(uint32_t, uint32_t, PRIu32)
+SKL_TEST_BUF_SEQ_IMPL(uint64_t, uint64_t, PRIu64)
+SKL_TEST_BUF_SEQ_IMPL(_Float16, double,   "f")
+SKL_TEST_BUF_SEQ_IMPL(__bf16,   double,   "f")
+SKL_TEST_BUF_SEQ_IMPL(float,    double,   "f")
+SKL_TEST_BUF_SEQ_IMPL(double,   double,   "f")
+// clang-format on
+
+/**
+ * @brief Populate a buffer by copying data from a circular buffer.
+ *
+ * @param t Test context pointer.
+ * @param dst The destination buffer to populate.
+ * @param dst_len The length of the destination buffer dst.
+ * @param src The source buffer to copy values from.
+ * @param src_len The length of the source buffer src.
+ * @param sizeof_data The size of each element of the buffers, in bytes.
+ *
+ * If src_len < dst_len, the source buffer src will be circularly copied.
+ */
+static inline void skl_test_buf_circular_copy(skl_test_t *t, void *dst,
+                                              size_t dst_len, const void *src,
+                                              size_t src_len,
+                                              size_t sizeof_data) {
+  if (!src || (src_len == 0)) {
+    SKL_TEST_LOG(t, SKL_TEST_LOG_DEBUG, "  no static data available!\n");
+    return;
+  }
+  SKL_TEST_LOG(t, SKL_TEST_LOG_DEBUG,
+               "  populating with static data from %p (len = %zd)\n", src,
+               src_len);
+  /* Copy static data in chunks for efficiency */
+  char *dst_offset = dst;
+  for (size_t remaining = dst_len; remaining > 0;) {
+    size_t n_copy = (remaining < src_len) ? remaining : src_len;
+    memcpy(dst_offset, src, n_copy * sizeof_data);
+    dst_offset += n_copy * sizeof_data;
+    remaining -= n_copy;
+  }
+}
 
 /**
  * @brief Test buffer descriptor.
@@ -452,41 +534,17 @@ typedef enum {
                  #BUF, (BUF)->len, (BUF)->data);                               \
     switch ((BUF)->mode) {                                                     \
     case SKL_TEST_RANDOM:                                                      \
-      SKL_TEST_LOG((T), SKL_TEST_LOG_DEBUG, "random values in [%f, %f]\n",     \
-                   (double)(BUF)->min, (double)(BUF)->max);                    \
-      for (size_t i = 0; i < (BUF)->len; ++i) {                                \
-        (BUF)->data[i] = SKL_TEST_BUF_RANDOM_##TYPE(TYPE, (BUF)->min,          \
-                                                    (BUF)->max, (BUF)->len);   \
-      }                                                                        \
+      skl_test_buf_random_##TYPE((T), (BUF)->data, (BUF)->len, (BUF)->min,     \
+                                 (BUF)->max);                                  \
       break;                                                                   \
     case SKL_TEST_STATIC:                                                      \
-      SKL_TEST_LOG((T), SKL_TEST_LOG_DEBUG,                                    \
-                   "static data from %p (len = %zd)\n", (BUF)->static_data,    \
-                   (BUF)->static_data_len);                                    \
-      if ((BUF)->static_data) {                                                \
-        /* Copy static data in chunks for efficiency */                        \
-        size_t offset = 0;                                                     \
-        for (size_t remaining = (BUF)->len; remaining > 0;) {                  \
-          size_t n_copy = (remaining < (BUF)->static_data_len)                 \
-                              ? remaining                                      \
-                              : (BUF)->static_data_len;                        \
-          memcpy((BUF)->data + offset, (BUF)->static_data,                     \
-                 n_copy * sizeof(TYPE));                                       \
-          offset += n_copy;                                                    \
-          remaining -= n_copy;                                                 \
-        }                                                                      \
-      } else {                                                                 \
-        SKL_TEST_LOG((T), SKL_TEST_LOG_DEBUG, "no static data\n");             \
-      }                                                                        \
+      skl_test_buf_circular_copy((T), (BUF)->data, (BUF)->len,                 \
+                                 (BUF)->static_data, (BUF)->static_data_len,   \
+                                 sizeof(TYPE));                                \
       break;                                                                   \
     case SKL_TEST_SEQ: {                                                       \
-      TYPE step = (BUF)->len ? ((BUF)->max - (BUF)->min) / (BUF)->len : 0;     \
-      SKL_TEST_LOG((T), SKL_TEST_LOG_DEBUG,                                    \
-                   "sequential values in [%f, %f] by %f\n",                    \
-                   (double)(BUF)->min, (double)(BUF)->max, (double)step);      \
-      for (size_t i = 0; i < (BUF)->len; ++i) {                                \
-        (BUF)->data[i] = (BUF)->min + step * i;                                \
-      }                                                                        \
+      skl_test_buf_seq_##TYPE((T), (BUF)->data, (BUF)->len, (BUF)->min,        \
+                              (BUF)->max);                                     \
       break;                                                                   \
     }                                                                          \
     }                                                                          \

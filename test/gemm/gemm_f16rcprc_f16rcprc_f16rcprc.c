@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// NOLINTBEGIN(readability-function-cognitive-complexity)
 void gemm_f16rcprc_f16rcprc_f16rcprc_init(skl_test_t *t) {
   gemm_f16rcprc_f16rcprc_f16rcprc_t *h =
       (gemm_f16rcprc_f16rcprc_f16rcprc_t *)t->harness;
@@ -91,7 +90,6 @@ void gemm_f16rcprc_f16rcprc_f16rcprc_init(skl_test_t *t) {
     }
   }
 }
-// NOLINTEND(readability-function-cognitive-complexity)
 
 void gemm_f16rcprc_f16rcprc_f16rcprc_verify(skl_test_t *t) {
   gemm_f16rcprc_f16rcprc_f16rcprc_t *h =
