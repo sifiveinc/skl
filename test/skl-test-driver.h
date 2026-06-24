@@ -464,8 +464,16 @@ typedef enum {
                    "static data from %p (len = %zd)\n", (BUF)->static_data,    \
                    (BUF)->static_data_len);                                    \
       if ((BUF)->static_data) {                                                \
-        for (size_t i = 0; i < (BUF)->len; ++i) {                              \
-          (BUF)->data[i] = (BUF)->static_data[i % (BUF)->static_data_len];     \
+        /* Copy static data in chunks for efficiency */                        \
+        size_t offset = 0;                                                     \
+        for (size_t remaining = (BUF)->len; remaining > 0;) {                  \
+          size_t n_copy = (remaining < (BUF)->static_data_len)                 \
+                              ? remaining                                      \
+                              : (BUF)->static_data_len;                        \
+          memcpy((BUF)->data + offset, (BUF)->static_data,                     \
+                 n_copy * sizeof(TYPE));                                       \
+          offset += n_copy;                                                    \
+          remaining -= n_copy;                                                 \
         }                                                                      \
       } else {                                                                 \
         SKL_TEST_LOG((T), SKL_TEST_LOG_DEBUG, "no static data\n");             \
