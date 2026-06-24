@@ -542,11 +542,13 @@ typedef enum {
                                  (BUF)->static_data, (BUF)->static_data_len,   \
                                  sizeof(TYPE));                                \
       break;                                                                   \
-    case SKL_TEST_SEQ: {                                                       \
+    case SKL_TEST_SEQ:                                                         \
       skl_test_buf_seq_##TYPE((T), (BUF)->data, (BUF)->len, (BUF)->min,        \
                               (BUF)->max);                                     \
       break;                                                                   \
-    }                                                                          \
+    default:                                                                   \
+      SKL_TEST_LOG((T), SKL_TEST_LOG_ERROR,                                    \
+                   "  unknown initialization mode for %s!\n", #BUF);           \
     }                                                                          \
   } while (0)
 
