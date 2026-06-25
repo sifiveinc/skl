@@ -478,9 +478,7 @@ SKL_FUNC void skl_depthwise_conv2d_f3x3m1_i8hwc_i8hwim_i32hwc_zve32x(
 
   for (size_t output_c_avl = output_channel, vl; output_c_avl > 0;
        output_c_avl -= vl) {
-    __asm__ volatile("min %0, %1, %2"
-                     : "=r"(vl)
-                     : "r"(output_c_avl), "r"(e8m2_vlmax));
+    vl = (output_c_avl < e8m2_vlmax) ? output_c_avl : e8m2_vlmax;
 
     const int8_t *kernel_input_ptrs[3][3];
     const int8_t *kernel_filter_ptrs[3][3];

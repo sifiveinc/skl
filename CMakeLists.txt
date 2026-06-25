@@ -194,39 +194,6 @@ if(SKL_ENABLE_TESTS OR SKL_ENABLE_BENCHMARKS)
   add_subdirectory(test)
 endif()
 
-# --- Legacy ---
-
-function(skl_add_test_legacy TEST_NAME TEST_SRC OPTS)
-  add_executable(test-${TEST_NAME} test/${TEST_SRC})
-  target_link_libraries(test-${TEST_NAME}
-    PRIVATE
-      ${SKL_LIBRARY}
-      ${SKL_TEST_LIBS}
-  )
-  target_compile_options(test-${TEST_NAME} PRIVATE
-    ${SKL_COMPILE_OPTIONS}
-    ${SKL_TEST_COMPILE_OPTIONS}
-    ${OPTS}
-  )
-  target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_TEST_NAME=${TEST_NAME})
-  if (SKL_BUILD_TESTS)
-    target_compile_definitions(test-${TEST_NAME} PRIVATE ENABLE_TEST)
-  endif()
-  if (SKL_BUILD_BENCHMARKS)
-    target_compile_definitions(test-${TEST_NAME} PRIVATE ENABLE_BENCHMARK)
-  endif()
-  target_include_directories(test-${TEST_NAME} PRIVATE test)
-  add_test(
-    NAME test-${TEST_NAME}
-    COMMAND
-    ${SKL_TESTER} ${SKL_TESTER_OPTIONS} $<TARGET_FILE:test-${TEST_NAME}>
-  )
-endfunction()
-
-if (SKL_BUILD_TESTS OR SKL_BUILD_BENCHMARKS)
-  enable_testing()
-endif()
-
 # Configure libskl installation
 
 include(GNUInstallDirs)
