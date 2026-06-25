@@ -3,12 +3,15 @@
 # See LICENSE file in the project root for full license information.
 # SPDX-License-Identifier: MIT
 
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.23)
 
 # This option may affect the call to `project` and thus must come first.
 option(SKL_ENABLE_CLANG_TIDY "Enable linting with clang-tidy" ON)
 
-project(SKL)
+project(skl
+  VERSION 3.0.0
+  LANGUAGES C
+)
 
 set(DEFAULT_CMAKE_BUILD_TYPE "Release")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -54,8 +57,23 @@ set(SKL_COMPILE_OPTIONS
     ${SKL_COMPILE_OPTIONS}
 )
 
-target_include_directories(${SKL_LIBRARY} PUBLIC include)
 target_compile_options(${SKL_LIBRARY} PRIVATE ${SKL_COMPILE_OPTIONS})
+
+target_sources(${SKL_LIBRARY} PUBLIC FILE_SET HEADERS
+  BASE_DIRS
+    include
+  FILES
+    include/skl.h
+)
+
+file(GLOB_RECURSE SKL_SRC_H LIST_DIRECTORIES FALSE CONFIGURE_DEPENDS "src/*.h")
+target_sources(${SKL_LIBRARY} PUBLIC FILE_SET source_headers TYPE HEADERS
+  BASE_DIRS
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<INSTALL_INTERFACE:skl>
+  FILES
+    ${SKL_SRC_H}
+)
 
 # Build the reference library for functional testing
 add_subdirectory(ref)
@@ -175,3 +193,57 @@ if(SKL_ENABLE_TESTS OR SKL_ENABLE_BENCHMARKS)
   enable_testing()
   add_subdirectory(test)
 endif()
+
+# Configure libskl installation
+
+include(GNUInstallDirs)
+
+install(
+  TARGETS ${SKL_LIBRARY}
+  EXPORT SklTargets
+  FILE_SET HEADERS
+  FILE_SET source_headers DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/skl
+)
+
+install(
+  FILES LICENSE.txt
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/skl
+)
+
+install(
+  EXPORT SklTargets
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Skl
+  NAMESPACE Skl::
+)
+
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/SklConfigVersion.cmake
+  COMPATIBILITY SameMajorVersion
+)
+
+install(
+  FILES
+    cmake/SklConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/SklConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Skl
+)
+
+# Configure libskl packaging
+
+set(CPACK_PACKAGE_VENDOR "SiFive, Inc")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
+set(CPACK_GENERATOR "TGZ;STGZ" CACHE STRING
+    "List of CPack binary generators to use.")
+set(CPACK_SOURCE_GENERATOR TGZ CACHE STRING
+    "List of CPack source generators to use.")
+set(CPACK_SOURCE_IGNORE_FILES
+  ".git*"
+  build/
+  ".*~$"    # Emacs backup files
+  ".*sw[a-p]$"  # Vim swap files
+  "*.orig$"  # Git mergetool backup files
+)
+set(CPACK_VERBATIM_VARIABLES YES)
+include(CPack)
