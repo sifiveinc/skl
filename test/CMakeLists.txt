@@ -193,9 +193,9 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq
+  skl_gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq
   gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
-  gemm/xsfvqdotq/skl_gemm_i8rcp_i8pc_i32_xsfvqdotq.c
+  gemm/xsfvqdotq/skl_gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq.c
   "xsfvqdotq"
   ""
 )
