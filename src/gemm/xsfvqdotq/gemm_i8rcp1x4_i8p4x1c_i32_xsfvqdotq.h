@@ -54,17 +54,12 @@ extern "C" {
  *
  * This kernel uses the SiFive Xsfvqdotq extension for vector quad widening 4D
  * dot product operations to achieve high performance on 8-bit integer data.
- * When A satisfies certain alignment requirements (it is 4-byte aligned
- * and rsa1 and csa1 are multiples of 4), the kernel automatically dispatches to
- * optimized internal implementations:
- * - For m=1: uses an internal GEMV kernel
- * - For m>1: uses tiled GEMM kernels
+ * Works best when A is 4-byte aligned and rsa1 and csa1 are multiples of 4.
  *
  * @note
  * If A does not meet the alignment requirements stated above, the kernel
- * falls back to an unaligned 1xm4 implementation. This implementation is
- * unlikely to get good performance since it must handle misaligned loads from
- * A.
+ * falls back to an unaligned implementation that is unlikely to get good
+ * performance since it must handle misaligned loads from A.
  *
  * @note
  * The simplest way to pack a row-major A matrix into an A that meets the
