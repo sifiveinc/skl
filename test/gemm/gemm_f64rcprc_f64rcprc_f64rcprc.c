@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// NOLINTBEGIN(readability-function-cognitive-complexity)
 void gemm_f64rcprc_f64rcprc_f64rcprc_init(skl_test_t *t) {
   gemm_f64rcprc_f64rcprc_f64rcprc_t *h =
       (gemm_f64rcprc_f64rcprc_f64rcprc_t *)t->harness;
@@ -91,7 +90,6 @@ void gemm_f64rcprc_f64rcprc_f64rcprc_init(skl_test_t *t) {
     }
   }
 }
-// NOLINTEND(readability-function-cognitive-complexity)
 
 // Higher precision reference GEMM for computing error bounds for GEMMs with
 // float64 accumulators. This function is placed here instead of skl-ref because
