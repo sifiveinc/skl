@@ -23,11 +23,9 @@
 void depthwise_conv2d_i8_i8_i32_init(skl_test_t *t) {
   depthwise_conv2d_i8_i8_i32_t *h = (depthwise_conv2d_i8_i8_i32_t *)t->harness;
 
-  h->input.len = h->input_height * h->input_col_stride * h->input_row_stride;
-  h->filter.len =
-      h->filter_height * h->filter_col_stride * h->filter_row_stride;
-  h->output.len =
-      h->output_height * h->output_col_stride * h->output_row_stride;
+  h->input.len = h->input_height * h->input_row_stride;
+  h->filter.len = h->filter_height * h->filter_row_stride;
+  h->output.len = h->output_height * h->output_row_stride;
 
   SKL_TEST_BUF_CREATE(t, int8_t, &h->input);
   SKL_TEST_BUF_CREATE(t, int8_t, &h->filter);
