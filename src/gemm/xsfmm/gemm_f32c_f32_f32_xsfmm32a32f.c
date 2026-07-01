@@ -1051,8 +1051,10 @@ skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
 
 /* Computes A * B (accum == false) or C + A * B (accum == true) and applies a
  * fused kernel.
- *  - inner_loop: inner loop function used to compute A * B
- *  - m, n, k: matrix dimensions. m and n must be small enough for inner_loop.
+ *  - m1, n1: tiling dimensions
+ *  - inner_loop: inner loop function used to compute A * B (or A^T * B^T if
+ *    m1 > n1)
+ *  - m, n, k: matrix dimensions. m must be <= m1 * ETE, n <= n1 * ETE.
  *  - a, rsa1, csa1: packed matrix A and its strides
  *  - b, rsb1, csb1: packed matrix B and its strides
  *  - c. rsc0, csc0, rsc1, csc1: packed matrix C and its strides
@@ -1066,6 +1068,7 @@ skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
 SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void
 skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
+    size_t m1, size_t n1,
     skl_gemm_inner_loop_f32rcptex1c_f32rcp1xte_f32_t inner_loop, size_t m,
     size_t n, size_t k, const float *a, size_t rsa1, size_t csa1,
     const float *b, size_t rsb1, size_t csb1, float *c, size_t rsc0,
@@ -1081,9 +1084,6 @@ skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
 
   size_t ete = 0; // Effective tile edge length (always TE for TEW = 32).
   __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
-
-  size_t m1 = (m + ete - 1) / ete;
-  size_t n1 = (n + ete - 1) / ete;
 
   size_t rstss = 0;
   size_t cstss = 0;
@@ -1124,9 +1124,10 @@ skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
   __asm__ volatile("sf.vtdiscard");
 }
 
-#define SKL_GEMM_TILE(M1XN1, M, N, ROW1, COL1)                                 \
+#define SKL_GEMM_TILE(M1, N1, M1XN1, M, N, ROW1, COL1)                         \
   do {                                                                         \
     skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(    \
+        M1, N1,                                                                \
         skl_gemm_inner_loop_##M1XN1##_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f,  \
         M, N, k, a + (ROW1) * rsa1, rsa1, csa1, b + (COL1) * csb1, rsb1, csb1, \
         c, rsc0, csc0, rsc1, csc1, ROW1, COL1, accum, kernel, params);         \
@@ -1158,12 +1159,12 @@ skl_gemm_fused_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
     size_t j1 = 0;
     for (; j1 + 1 < n1; j1 += 2) {
       size_t n_vl = n_avl >= 2 * ete ? 2 * ete : n_avl;
-      SKL_GEMM_TILE(2x2, 2 * ete, n_vl, i1, j1);
-      SKL_GEMM_TILE(2x2, m_vl - 2 * ete, n_vl, i1 + 2, j1);
+      SKL_GEMM_TILE(2, 2, 2x2, 2 * ete, n_vl, i1, j1);
+      SKL_GEMM_TILE(2, 2, 2x2, m_vl - 2 * ete, n_vl, i1 + 2, j1);
       n_avl -= n_vl;
     }
     if (j1 < n1) {
-      SKL_GEMM_TILE(1x4, m_vl, n_avl, i1, j1);
+      SKL_GEMM_TILE(4, 1, 1x4, m_vl, n_avl, i1, j1);
     }
     m_avl -= m_vl;
   }
@@ -1174,11 +1175,11 @@ skl_gemm_fused_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
     size_t j1 = 0;
     for (; j1 + 1 < n1; j1 += 2) {
       size_t n_vl = n_avl >= 2 * ete ? 2 * ete : n_avl;
-      SKL_GEMM_TILE(2x2, m_vl, n_vl, i1, j1);
+      SKL_GEMM_TILE(2, 2, 2x2, m_vl, n_vl, i1, j1);
       n_avl -= n_vl;
     }
     if (j1 < n1) {
-      SKL_GEMM_TILE(1x2, m_vl, n_avl, i1, j1);
+      SKL_GEMM_TILE(2, 1, 1x2, m_vl, n_avl, i1, j1);
     }
     m_avl -= m_vl;
   }
@@ -1188,18 +1189,18 @@ skl_gemm_fused_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
     size_t j1 = 0;
     for (; j1 + 3 < n1; j1 += 4) {
       size_t n_vl = n_avl >= 4 * ete ? 4 * ete : n_avl;
-      SKL_GEMM_TILE(1x4, m_avl, n_vl, i1, j1);
+      SKL_GEMM_TILE(1, 4, 1x4, m_avl, n_vl, i1, j1);
       n_avl -= n_vl;
     }
     switch (n1 - j1) {
     case 3:
-      SKL_GEMM_TILE(1x3, m_avl, n_avl, i1, j1);
+      SKL_GEMM_TILE(1, 3, 1x3, m_avl, n_avl, i1, j1);
       break;
     case 2:
-      SKL_GEMM_TILE(1x2, m_avl, n_avl, i1, j1);
+      SKL_GEMM_TILE(1, 2, 1x2, m_avl, n_avl, i1, j1);
       break;
     case 1:
-      SKL_GEMM_TILE(1x1, m_avl, n_avl, i1, j1);
+      SKL_GEMM_TILE(1, 1, 1x1, m_avl, n_avl, i1, j1);
       break;
     default:
       break;
