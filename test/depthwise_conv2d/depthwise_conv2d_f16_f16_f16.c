@@ -140,8 +140,7 @@ void depthwise_conv2d_f16_f16_f16_report(skl_test_t *t) {
 #define INFO(fmt, ...) SKL_TEST_LOG(t, SKL_TEST_LOG_INFO, fmt, __VA_ARGS__)
   INFO("Input: %zu x %zu x %zu\n", h->input_height, h->input_width,
        h->input_channel);
-  INFO("Filter: %zu x %zu x %zu\n", h->filter_height, h->filter_width,
-       h->output_channel);
+  INFO("Filter: %zu x %zu\n", h->filter_height, h->filter_width);
   INFO("Output: %zu x %zu x %zu\n", h->output_height, h->output_width,
        h->output_channel);
   INFO("Input Stride (Row, Col): (%zu, %zu)\n", h->input_row_stride,
