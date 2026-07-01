@@ -137,7 +137,7 @@ void depthwise_conv2d_f32_f32_f32_report(skl_test_t *t) {
   INFO("Input: %zu x %zu x %zu\n", h->input_height, h->input_width,
        h->input_channel);
   INFO("Filter: %zu x %zu x %zu\n", h->filter_height, h->filter_width,
-       h->input_channel);
+       h->output_channel);
   INFO("Output: %zu x %zu x %zu\n", h->output_height, h->output_width,
        h->output_channel);
   INFO("Input Stride (Row, Col): (%zu, %zu)\n", h->input_row_stride,
