@@ -38,19 +38,18 @@
 #endif
 
 #if defined(__riscv_xsfmmbase)
-void skl_pack_texte_e32_e32rcpc_xsfmmbase_wrapper(
+void skl_pack_tex1_e32_e32pc_xsfmmbase_wrapper(
     size_t m, size_t n, const uint32_t *a, size_t rsa, size_t m0, size_t n0,
-    uint32_t *a_pack, size_t rsa0, size_t csa0, size_t rsa1, size_t csa1,
-    uint32_t padding_value) {
+    uint32_t *a_pack, size_t rsa0, __attribute((unused)) size_t csa0,
+    size_t rsa1, __attribute((unused)) size_t csa1, uint32_t padding_value) {
   int status = 0;
   SKL_TEST_REQUIRE(status, m0 == skl_get_te_xsfmmbase());
-  SKL_TEST_REQUIRE(status, n0 == skl_get_te_xsfmmbase());
+  SKL_TEST_REQUIRE(status, n0 == 1);
   SKL_TEST_REQUIRE(status, rsa0 == 1);
   if (status) {
     exit(status);
   }
-  skl_pack_texte_e32_e32rcpc_xsfmmbase(m, n, a, rsa, a_pack, csa0, rsa1, csa1,
-                                       true, true, padding_value);
+  skl_pack_tex1_e32_e32pc_xsfmmbase(m, n, a, rsa, a_pack, rsa1, padding_value);
 }
 #endif
 

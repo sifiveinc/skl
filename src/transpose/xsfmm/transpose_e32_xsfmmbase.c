@@ -14,6 +14,7 @@
 
 #include "skl-common.h"
 
+/* Load a tm x tn tile from row-major matrix a into tss. */
 SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE void skl_load_tile_e32_xsfmmbase(size_t tm, size_t tn,
                                                   const uint32_t *a, size_t rsa,
@@ -39,12 +40,20 @@ SKL_FUNC_PRIVATE void skl_load_tile_e32_xsfmmbase(size_t tm, size_t tn,
                    : "vtype", "vl", "memory");
 }
 
-// Interleaves store of tss0 to a0 with load of a1 into tss1.
-// Tile size is m0 x n0.
-// tss0 is tm0 x tn0 tile with column pattern.
-// tss1 is tm1 x tn1 tile with row pattern.
-// Note: this function will only be called with tm0 == m0 or tn0 == n0 since the
-// bottom right corner tile is stored last.
+/* Store the tm0 x tn0 tile tss0 into column-major matrix a0,
+ * and load a tm1 x tn1 tile from row-major matrix a1 into tss1.
+ *
+ * tss0 should have the column pattern bit set.
+ * The final output written to a0 has dimensions m0 x n0.
+ * If tm0 < m0, bottom padding is added, and if tn0 < n0, right padding is
+ * added. The padding value is set by padding_value.
+ *
+ * This kernel is only called with tm0 == m0 or tn0 == n0 since the bottom right
+ * corner tile is stored last.
+ *
+ * Stores and loads are interleaved for improved performance over storing tss0
+ * first and then loading a1.
+ */
 SKL_XSFMM_INOUT
 SKL_FUNC_PRIVATE void skl_store_load_tile_e32c_e32_xsfmmbase(
     size_t tm0, size_t tn0, size_t tss0, size_t m0, size_t n0, uint32_t *a0,
@@ -190,7 +199,13 @@ SKL_FUNC_PRIVATE void skl_store_load_tile_e32c_e32_xsfmmbase(
   }
 }
 
-// tss is a tm x tn tile with column pattern
+/* Store the tm x tn tile tss into column-major matrix a.
+ *
+ * tss should have the column pattern bit set.
+ * The final output written to a has dimensions m0 x n0.
+ * If tm < m0, bottom padding is added, and if tn < n0, right padding is
+ * added. The padding value is set by padding_value.
+ */
 SKL_XSFMM_IN
 SKL_FUNC_PRIVATE void skl_store_tile_e32c_xsfmmbase(size_t tm, size_t tn,
                                                     size_t tss, size_t m0,
@@ -247,24 +262,18 @@ SKL_FUNC_PRIVATE void skl_store_tile_e32c_xsfmmbase(size_t tm, size_t tn,
       : "vtype", "vl", "memory");
 }
 
-SKL_XSFMM_NEW
-SKL_FUNC void
-skl_pack_texte_e32_e32rcpc_xsfmmbase(size_t m, size_t n, const uint32_t *a,
-                                     size_t rsa, uint32_t *a_pack, size_t csa0,
-                                     size_t rsa1, size_t csa1, bool pad_right,
-                                     bool pad_bottom, uint32_t padding_value) {
+/* Pack a into packed matrix a_pack with column-major blocks.
+ * pad_right and pad_bottom determine whether right and bottom padding,
+ * respectively, are written. m0 and n0 must be > 0 and <= TE.
+ */
+SKL_XSFMM_OUT
+SKL_FUNC_PRIVATE void skl_pack_e32_e32rcpc_xsfmmbase(
+    size_t m, size_t n, const uint32_t *a, size_t rsa, size_t m0, size_t n0,
+    uint32_t *a_pack, size_t csa0, size_t rsa1, size_t csa1, bool pad_right,
+    bool pad_bottom, uint32_t padding_value) {
   if (m == 0 || n == 0) {
     return;
   }
-
-  size_t te = 0;
-  __asm__ volatile("sf.vsettnt %[te], x0, e32, w1"
-                   : [te] "=r"(te)
-                   :
-                   : "vtype", "vl");
-
-  const size_t m0 = te;
-  const size_t n0 = te;
 
   size_t m0_bottom = pad_bottom ? m0 : (m - 1) % m0 + 1;
   size_t n0_right = pad_right ? n0 : (n - 1) % n0 + 1;
@@ -357,17 +366,25 @@ skl_pack_texte_e32_e32rcpc_xsfmmbase(size_t m, size_t n, const uint32_t *a,
   }
 }
 
-__attribute((unused)) SKL_FUNC_PRIVATE void
-skl_pack_tex1_e32_e32pc_xsfmmbase(size_t m, size_t n, const uint32_t *a,
-                                  size_t rsa, uint32_t *a_pack, size_t rsa1,
-                                  uint32_t padding_value) {
+SKL_XSFMM_NEW
+SKL_FUNC void skl_pack_tex1_e32_e32pc_xsfmmbase(size_t m, size_t n,
+                                                const uint32_t *a, size_t rsa,
+                                                uint32_t *a_pack, size_t rsa1,
+                                                uint32_t padding_value) {
+  if (m == 0 || n == 0) {
+    return;
+  }
+
   size_t te = 0;
   __asm__ volatile("sf.vsettnt %[te], x0, e32, w1"
                    : [te] "=r"(te)
                    :
                    : "vtype", "vl");
-  skl_pack_texte_e32_e32rcpc_xsfmmbase(m, n, a, rsa, a_pack, te, rsa1, te * te,
-                                       false, true, padding_value);
+
+  skl_pack_e32_e32rcpc_xsfmmbase(m, n, a, rsa, te, te, a_pack, te, rsa1,
+                                 te * te, false, true, padding_value);
+
+  __asm__ volatile("sf.vtdiscard");
 }
 
 SKL_XSFMM_NEW
@@ -385,6 +402,8 @@ SKL_FUNC void skl_transpose_e32_xsfmmbase(size_t m, size_t n,
                    :
                    : "vtype", "vl");
 
-  skl_pack_texte_e32_e32rcpc_xsfmmbase(m, n, a, rsa, at, rsat, te, te * rsat,
-                                       false, false, 0);
+  skl_pack_e32_e32rcpc_xsfmmbase(m, n, a, rsa, te, te, at, rsat, te, te * rsat,
+                                 false, false, 0);
+
+  __asm__ volatile("sf.vtdiscard");
 }
