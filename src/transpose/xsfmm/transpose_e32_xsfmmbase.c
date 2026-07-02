@@ -248,13 +248,26 @@ SKL_FUNC_PRIVATE void skl_store_tile_e32c_xsfmmbase(size_t tm, size_t tn,
 }
 
 SKL_XSFMM_NEW
-SKL_FUNC void skl_pack_e32_e32rcpc_xsfmmbase(
-    size_t m, size_t n, const uint32_t *a, size_t rsa, size_t m0, size_t n0,
-    uint32_t *a_pack, size_t csa0, size_t rsa1, size_t csa1, bool pad_right,
-    bool pad_bottom, uint32_t padding_value) {
+SKL_FUNC void
+skl_pack_texte_e32_e32rcpc_xsfmmbase(size_t m, size_t n, const uint32_t *a,
+                                     size_t rsa, uint32_t *a_pack, size_t csa0,
+                                     size_t rsa1, size_t csa1, bool pad_right,
+                                     bool pad_bottom, uint32_t padding_value) {
   if (m == 0 || n == 0) {
     return;
   }
+
+  size_t te = 0;
+  __asm__ volatile("sf.vsettnt %[te], x0, e32, w1"
+                   : [te] "=r"(te)
+                   :
+                   : "vtype", "vl");
+
+  const size_t m0 = te;
+  const size_t n0 = te;
+
+  size_t m0_bottom = pad_bottom ? m0 : (m - 1) % m0 + 1;
+  size_t n0_right = pad_right ? n0 : (n - 1) % n0 + 1;
 
   const size_t m1 = (m + m0 - 1) / m0;
   const size_t n1 = (n + n0 - 1) / n0;
@@ -269,9 +282,6 @@ SKL_FUNC void skl_pack_e32_e32rcpc_xsfmmbase(
   size_t mb1 = 0;
   size_t nb0 = n0 <= n ? n0 : n;
   size_t nb1 = 0;
-
-  size_t m0_bottom = pad_bottom ? m0 : (m - 1) % m0 + 1;
-  size_t n0_right = pad_right ? n0 : (n - 1) % n0 + 1;
 
   skl_load_tile_e32_xsfmmbase(mb0, nb0, a, rsa, mt0);
 
@@ -356,8 +366,8 @@ skl_pack_tex1_e32_e32pc_xsfmmbase(size_t m, size_t n, const uint32_t *a,
                    : [te] "=r"(te)
                    :
                    : "vtype", "vl");
-  skl_pack_e32_e32rcpc_xsfmmbase(m, n, a, rsa, te, te, a_pack, te, rsa1,
-                                 te * te, false, true, padding_value);
+  skl_pack_texte_e32_e32rcpc_xsfmmbase(m, n, a, rsa, a_pack, te, rsa1, te * te,
+                                       false, true, padding_value);
 }
 
 SKL_XSFMM_NEW
@@ -375,6 +385,6 @@ SKL_FUNC void skl_transpose_e32_xsfmmbase(size_t m, size_t n,
                    :
                    : "vtype", "vl");
 
-  skl_pack_e32_e32rcpc_xsfmmbase(m, n, a, rsa, te, te, at, rsat, te, te * rsat,
-                                 false, false, 0);
+  skl_pack_texte_e32_e32rcpc_xsfmmbase(m, n, a, rsa, at, rsat, te, te * rsat,
+                                       false, false, 0);
 }
