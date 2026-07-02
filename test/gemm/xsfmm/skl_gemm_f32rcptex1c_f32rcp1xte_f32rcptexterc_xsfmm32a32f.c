@@ -21,7 +21,6 @@
  *  - The block dimensions are m0 = TE, n0 = TE, and k0 = 1
  *  - Matrix A_pack has column-major blocks (rsa0 == 1)
  *  - Matrix B_pack has row-major blocks (csb0 == 1)
- *  - Matrix C_pack has row-major blocks (csc0 == 1)
  *
  * The kernel computes C_pack = alpha * A_pack * B_pack + beta * C_pack.
  */
@@ -188,8 +187,7 @@ static void execute(skl_test_t *t) {
 }
 
 int main(void) {
-  // Set default strides: A has column-major blocks, B and C have row-major
-  // blocks
+  // Set default strides: A has column-major blocks, B has row-major blocks
   size_t ete = skl_get_ete_xsfmmbase();
   for (size_t i = 0; i < suite.num_tests; ++i) {
     tests[i].m0 = ete;
@@ -208,7 +206,9 @@ int main(void) {
 
     tests[i].csc0 = tests[i].csc0 ? tests[i].csc0 : 1;
     tests[i].rsc0 = tests[i].rsc0 ? tests[i].rsc0 : tests[i].n0 * tests[i].csc0;
-    tests[i].csc1 = tests[i].csc1 ? tests[i].csc1 : tests[i].m0 * tests[i].rsc0;
+    tests[i].csc1 = tests[i].csc1 ? tests[i].csc1
+                                  : (tests[i].m0 - 1) * tests[i].rsc0 +
+                                        (tests[i].n0 - 1) * tests[i].csc0 + 1;
     tests[i].rsc1 = tests[i].rsc1 ? tests[i].rsc1 : tests[i].n1 * tests[i].csc1;
   }
 

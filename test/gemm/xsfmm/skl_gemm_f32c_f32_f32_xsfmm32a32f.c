@@ -59,7 +59,7 @@ gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
 #endif // SKL_ENABLE_BENCHMARKS
 
 #ifdef SKL_ENABLE_TESTS
-    // Verification tests - comprehensive coverage for Xsfmm A1B01 layout (ETE=64)
+    // Verification tests - comprehensive coverage for Xsfmm (ETE=64)
     /* Edge case: 1x1 matrix with k=0 (no computation, C = beta * C) */
     {TEST, .m1 = 1,   .n1 = 1,   .k1 = 0, .alpha = 1.f},
     /* Edge case: 1x1 matrix with k=1 (minimal computation) */
