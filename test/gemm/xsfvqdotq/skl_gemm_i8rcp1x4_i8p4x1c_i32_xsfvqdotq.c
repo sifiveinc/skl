@@ -106,11 +106,11 @@ gemm_i8rcprc_i8rcprc_i32rcprc_t tests[] = {
 };
 // clang-format on
 
-static skl_test_suite_t suite = {.name = "skl_gemm_i8rcp_i8pc_i32_xsfvqdotq",
-                                 .num_tests = sizeof(tests) / sizeof(tests[0]),
-                                 .test_size =
-                                     sizeof(gemm_i8rcprc_i8rcprc_i32rcprc_t),
-                                 .tests = tests};
+static skl_test_suite_t suite = {
+    .name = "skl_gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq",
+    .num_tests = sizeof(tests) / sizeof(tests[0]),
+    .test_size = sizeof(gemm_i8rcprc_i8rcprc_i32rcprc_t),
+    .tests = tests};
 
 static void init(skl_test_t *t) {
   const gemm_i8rcprc_i8rcprc_i32rcprc_t *h =
@@ -131,7 +131,7 @@ static void execute(skl_test_t *t) {
   const gemm_i8rcprc_i8rcprc_i32rcprc_t *h =
       (gemm_i8rcprc_i8rcprc_i32rcprc_t *)t->harness;
 
-  skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(
+  skl_gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
       h->m1, h->n1, h->k1, h->alpha, h->a_pack.data, h->rsa1, h->csa1,
       h->b_pack.data, h->rsb1, h->beta, h->c_pack.data, h->rsc1);
 }
