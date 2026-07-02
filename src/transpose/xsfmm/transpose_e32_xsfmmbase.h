@@ -42,7 +42,8 @@ void skl_transpose_e32_xsfmmbase(size_t m, size_t n,
 void skl_pack_e32_e32rcpc_xsfmmbase(size_t m, size_t n, const uint32_t *a,
                                     size_t rsa, size_t m0, size_t n0,
                                     uint32_t *a_pack, size_t csa0, size_t rsa1,
-                                    size_t csa1);
+                                    size_t csa1, bool pad_right,
+                                    bool pad_bottom, uint32_t padding_value);
 
 #if defined(__cplusplus)
 } // extern "C"

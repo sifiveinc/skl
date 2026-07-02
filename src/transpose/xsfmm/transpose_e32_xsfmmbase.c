@@ -248,7 +248,7 @@ SKL_FUNC_PRIVATE void skl_store_tile_e32c_xsfmmbase(size_t tm, size_t tn,
 }
 
 SKL_XSFMM_NEW
-SKL_FUNC_PRIVATE void skl_pack_e32_e32rcpc_xsfmmbase(
+SKL_FUNC void skl_pack_e32_e32rcpc_xsfmmbase(
     size_t m, size_t n, const uint32_t *a, size_t rsa, size_t m0, size_t n0,
     uint32_t *a_pack, size_t csa0, size_t rsa1, size_t csa1, bool pad_right,
     bool pad_bottom, uint32_t padding_value) {
