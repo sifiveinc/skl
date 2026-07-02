@@ -424,6 +424,13 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_pack_e32rc_e32rcprc_xsfmmbase
+  pack/pack_e32rc_e32rcprc.c
+  pack/xsfmm/skl_pack_e32_e32ptex1c_xsfmmbase.c
+  "xsfmmbase"
+  ""
+)
+skl_add_test(
   skl_silu_f16_xsfvfexp16e
   elementwise/unary_f16.c
   silu/silu_f16_xsfvfexp16e.c
