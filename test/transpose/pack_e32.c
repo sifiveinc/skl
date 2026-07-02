@@ -83,10 +83,10 @@ enum {
   APACKLEN = RSA1 >= CSA1 ? M1 * RSA1 : N1 * CSA1
 };
 
-_Alignas(ALIGN) float a[ALEN];
-_Alignas(ALIGN) float a_pack[APACKLEN];
+_Alignas(ALIGN) uint32_t a[ALEN];
+_Alignas(ALIGN) uint32_t a_pack[APACKLEN];
 #if defined(ENABLE_TEST)
-float ref_a_pack[APACKLEN], test_a_pack[APACKLEN];
+uint32_t ref_a_pack[APACKLEN], test_a_pack[APACKLEN];
 #endif // ENABLE_TEST
 
 static void skl_pack_e32_scalar(size_t m, size_t n, const uint32_t *a,
@@ -123,7 +123,7 @@ int check_error(void) {
           size_t idx = i1 * (size_t)RSA1 + j1 * (size_t)CSA1 +
                        i0 * (size_t)RSA0 + j0 * (size_t)CSA0;
           if (test_a_pack[idx] != ref_a_pack[idx]) {
-            printf("result [%zu, %zu, %zu, %zu] (%f) != reference (%f)\n", i1,
+            printf("result [%zu, %zu, %zu, %zu] (%u) != reference (%u)\n", i1,
                    j1, i0, j0, test_a_pack[idx], ref_a_pack[idx]);
             return 1;
           }
@@ -145,13 +145,13 @@ int main(void) {
   PRINT_TEST_NAME(SKL_TEST_NAME);
 
   /* Populate the matrices. */
-  skl_test_init_f32(a, ALEN, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32);
-  skl_test_init_f32(a_pack, APACKLEN, SKL_TEST_MIN_F32, SKL_TEST_MAX_F32);
+  skl_test_init_u32(a, ALEN, SKL_TEST_MIN_U32, SKL_TEST_MAX_U32);
+  skl_test_init_u32(a_pack, APACKLEN, SKL_TEST_MIN_U32, SKL_TEST_MAX_U32);
 
 #if defined(ENABLE_TEST)
   /* Make copies of A_pack to write the reference and test outputs to. */
-  memcpy(ref_a_pack, a_pack, APACKLEN * sizeof(float));
-  memcpy(test_a_pack, a_pack, APACKLEN * sizeof(float));
+  memcpy(ref_a_pack, a_pack, APACKLEN * sizeof(uint32_t));
+  memcpy(test_a_pack, a_pack, APACKLEN * sizeof(uint32_t));
   SKL_TEST_NAME(M, N, (uint32_t *)a, (size_t)RSA, M0, N0,
                 (uint32_t *)test_a_pack, (size_t)RSA0, (size_t)CSA0,
                 (size_t)RSA1, (size_t)CSA1, PADDING_VALUE);
