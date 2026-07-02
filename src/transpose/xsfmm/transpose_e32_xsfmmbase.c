@@ -187,7 +187,7 @@ SKL_FUNC_PRIVATE void skl_store_load_tile_e32_e32_xsfmmbase(
  * respectively, are written. m0 and n0 must be > 0 and <= ETE.
  */
 SKL_XSFMM_OUT
-SKL_FUNC_PRIVATE void skl_pack_e32_e32rcpc_xsfmmbase(
+SKL_FUNC_PRIVATE void skl_pack_m0xn0cbrc_padding_optional_e32_xsfmmbase(
     size_t m, size_t n, const uint32_t *a, size_t rsa, size_t m0, size_t n0,
     uint32_t *a_pack, size_t csa0, size_t rsa1, size_t csa1, bool pad_right,
     bool pad_bottom, uint32_t padding_value) {
@@ -318,22 +318,23 @@ SKL_FUNC_PRIVATE void skl_pack_e32_e32rcpc_xsfmmbase(
 }
 
 SKL_XSFMM_NEW
-SKL_FUNC void skl_pack_tex1_e32_e32pc_xsfmmbase(size_t m, size_t n,
-                                                const uint32_t *a, size_t rsa,
-                                                uint32_t *a_pack, size_t rsa1,
-                                                uint32_t padding_value) {
+SKL_FUNC void skl_pack_tex1c_e32_xsfmmbase(size_t m, size_t n,
+                                           const uint32_t *a, size_t rsa,
+                                           uint32_t *a_pack, size_t rsa1,
+                                           uint32_t padding_value) {
   if (m == 0 || n == 0) {
     return;
   }
 
-  size_t te = 0;
-  __asm__ volatile("sf.vsettnt %[te], x0, e32, w1"
-                   : [te] "=r"(te)
+  size_t ete = 0;
+  __asm__ volatile("sf.vsettnt %[ete], x0, e32, w1"
+                   : [ete] "=r"(ete)
                    :
                    : "vtype", "vl");
 
-  skl_pack_e32_e32rcpc_xsfmmbase(m, n, a, rsa, te, te, a_pack, te, rsa1,
-                                 te * te, false, true, padding_value);
+  skl_pack_m0xn0cbrc_padding_optional_e32_xsfmmbase(
+      m, n, a, rsa, ete, ete, a_pack, ete, rsa1, ete * ete, false, true,
+      padding_value);
 
   __asm__ volatile("sf.vtdiscard");
 }
@@ -347,14 +348,14 @@ SKL_FUNC void skl_transpose_e32_xsfmmbase(size_t m, size_t n,
     return;
   }
 
-  size_t te = 0;
-  __asm__ volatile("sf.vsettnt %[te], x0, e32, w1"
-                   : [te] "=r"(te)
+  size_t ete = 0;
+  __asm__ volatile("sf.vsettnt %[ete], x0, e32, w1"
+                   : [ete] "=r"(ete)
                    :
                    : "vtype", "vl");
 
-  skl_pack_e32_e32rcpc_xsfmmbase(m, n, a, rsa, te, te, at, rsat, te, te * rsat,
-                                 false, false, 0);
+  skl_pack_m0xn0cbrc_padding_optional_e32_xsfmmbase(
+      m, n, a, rsa, ete, ete, at, rsat, ete, ete * rsat, false, false, 0);
 
   __asm__ volatile("sf.vtdiscard");
 }
