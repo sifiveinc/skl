@@ -22,22 +22,22 @@ extern "C" {
  * @brief TE x 1 matrix packing for 32-bit matrices using SiFive's Xsfmm matrix
  * engine.
  *
- * @param m - Number of rows in row-major matrix A.
- * @param n - Number of columns in A.
- * @param a - Pointer to input matrix A.
- * @param rsa - Row stride of A (stride between rows) in elements.
- * @param a_pack - Pointer to packed output matrix A_pack.
- * @param rsa1 - Row stride between blocks of A_pack in elements.
- * @param padding_value - Padding value.
+ * @param m - Num. rows in input matrix.
+ * @param n - Num. columns in input matrix.
+ * @param src - Pointer to input matrix.
+ * @param rs - Stride between rows of input matrix.
+ * @param dst - Pointer to packed output matrix.
+ * @param rs1 - Row stride between blocks of output matrix.
+ * @param pad - Padding value.
  *
  * Equivalent to scalar call:
  * ```
- * skl_pack_e32_scalar(
- *     m, n,                  // m, n,
- *     a, rsa, 1,             // a, rsa, csa
- *     te, 1,                 // m0, n0,
- *     a_pack, 1, 0, rsa1, te // a_pack, rsa0, csa0, rsa1, csa1
- *     padding_value          // padding_value
+ * skl_pack_e32_e32rcprc_scalar(
+ *     m, n,              // m, n,
+ *     src, rs, 1,        // src, rs, cs
+ *     te, 1,             // m0, n0,
+ *     dst, 1, 0, rs1, te // dst, rs0, cs0, rs1, cs1
+ *     pad                // pad
  * );
  * ```
  *
@@ -45,9 +45,9 @@ extern "C" {
  * datatypes by way of type-punning through the input/output array pointers and
  * of the padding value.
  */
-void skl_pack_tex1c_e32_xsfmmbase(size_t m, size_t n, const uint32_t *a,
-                                  size_t rsa, uint32_t *a_pack, size_t rsa1,
-                                  uint32_t padding_value);
+void skl_pack_e32_e32ptex1c_xsfmmbase(size_t m, size_t n, const uint32_t *src,
+                                      size_t rs, uint32_t *dst, size_t rs1,
+                                      uint32_t pad);
 
 /**
  * @brief Xsfmm matrix transposition for 32-bit matrices.
