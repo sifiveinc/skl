@@ -88,7 +88,7 @@ Public SKL GEMM functions are dispatch functions that choose between one or more
 - `skl_gemm_f32_f32_f32_zve32f_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc)`
 - `skl_gemm_i8_i8_i32_zve32x_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c, rsc)`
 - `skl_gemm_f32c_f32_f32_xsfmm32a32f(m, n, k, alpha, a, csa, b, rsb, beta, c, rsc)`
-- `skl_gemm_f32ptex1c_f32cp1xte_f32rcptexte_xsfmm32a32f(...)`  (See the [Packed GEMM API](packed-gemm.md) document for details)
+- `skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(...)`  (See the [Packed GEMM API](packed-gemm.md) document for details)
 - `skl_gemm_i8rcp_i8pc_i32_xsfvqdotq(...)` (See above.)
 
 ### Memory Layout and Packing
@@ -142,7 +142,7 @@ For many ISAs, such as RVV, internal specialized kernels are likely but not guar
 Generally, the names of these internal functions indicate the type of specialization (in addition to any required by the target already) in terms of register tile dimensions:
 - `skl_gemm_4x1m4x1_f32_f32_f32_zve32f_x390` for a 4x1 register tile (4 rows, 1 LMUL-4 column)
 - `skl_gemm_2x1m2x1_f32_f32_f32_zve32f_x390` for a 2x1 register tile (2 rows, 1 LMUL-4 column)
-- `skl_gemm_2x2_f32rcp_f32rcp_f32rcp_xsfmm32a32f` for a 2x2 Xsfmm register tile
+- `skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f` for a 2x2 Xsfmm register tile
 
 ### Cache Blocking and Outer-Loop Nest Optimizations
 
