@@ -33,7 +33,7 @@ extern "C" {
  *
  * Equivalent to scalar call:
  * ```
- * skl_pack_e32_e32rcprc_scalar(
+ * skl_pack_e32rc_e32rcprc_ref(
  *     m, n,               // m, n,
  *     src, rs, 1,         // src, rs, cs
  *     te, 1,              // m0, n0,
@@ -56,9 +56,9 @@ void skl_pack_e32_e32rcptex1c_xsfmmbase(size_t m, size_t n, const uint32_t *src,
  * @param m - Number of rows in A and columns in A^T.
  * @param n - Number of columns in A and rows in A^T.
  * @param a - Pointer to input matrix A.
- * @param rsa - Row stride of A (stride between rows) in elements.
+ * @param rsa - Stride between rows of A in elements.
  * @param at - Pointer to output matrix A^T.
- * @param rsat - Row stride of A^T (stride between rows) in elements.
+ * @param rsat - Stride between rows of A^T in elements.
  *
  * Both A and A^T must be row-major.
  *
