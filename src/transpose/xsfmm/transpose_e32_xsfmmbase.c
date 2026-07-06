@@ -187,7 +187,7 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
  * pad_right and pad_bottom determine whether right and bottom padding,
  * respectively, are written.
  */
-SKL_XSFMM_OUT
+SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void skl_pack_padding_optional_e32_e32rcptextec_xsfmmbase(
     size_t m, size_t n, const uint32_t *src, size_t rs, uint32_t *dst,
     size_t cs0, size_t rs1, size_t cs1, bool pad_right, bool pad_bottom,
@@ -321,10 +321,11 @@ SKL_FUNC_PRIVATE void skl_pack_padding_optional_e32_e32rcptextec_xsfmmbase(
         tn1, mt4c, n0_right, m0_bottom, dst + i1 * rs1 + (j1 + 1) * cs1, cs0,
         pad);
   }
+
+  __asm__ volatile("sf.vtdiscard");
   // NOLINTEND(readability-suspicious-call-argument)
 }
 
-SKL_XSFMM_NEW
 SKL_FUNC void skl_pack_e32_e32rcptex1c_xsfmmbase(size_t m, size_t n,
                                                  const uint32_t *src, size_t rs,
                                                  uint32_t *dst, size_t rs1,
@@ -345,7 +346,6 @@ SKL_FUNC void skl_pack_e32_e32rcptex1c_xsfmmbase(size_t m, size_t n,
   __asm__ volatile("sf.vtdiscard");
 }
 
-SKL_XSFMM_NEW
 SKL_FUNC void skl_transpose_e32_xsfmmbase(size_t m, size_t n,
                                           const uint32_t *SKL_RESTRICT a,
                                           size_t rsa, uint32_t *SKL_RESTRICT at,
