@@ -154,7 +154,6 @@ add_skl_src(src/silu/silu_f32_xsfvfexp32e.c "xsfvfexp32e")
 add_skl_src(src/silu/silu_f32_xsfvfexpa.c "xsfvfexpa")
 add_skl_src(src/silu/silu_f32_zve32f.c "zve32f")
 
-add_skl_src(src/rmsnorm/rmsnorm_f16_zvfh.c "zvfh")
 add_skl_src(src/rmsnorm/rmsnorm_f32_zve32f.c "zve32f")
 
 add_skl_src(src/softmax/softmax_bf16_xsfvfbfa.c "xsfvfbfa")

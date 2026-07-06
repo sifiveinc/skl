@@ -170,11 +170,6 @@
 /*
  * RMSNorm Kernels
  */
-
-#if defined(__riscv_zvfh)
-#include "../src/rmsnorm/rmsnorm_f16_zvfh.h"
-#endif
-
 #if defined(__riscv_zve32f)
 #include "../src/rmsnorm/rmsnorm_f32_zve32f.h"
 #endif

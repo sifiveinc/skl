@@ -70,7 +70,6 @@
  * RMSNorm Kernels
  */
 
-#include "../ref/rmsnorm/rmsnorm_f16.h"
 #include "../ref/rmsnorm/rmsnorm_f32.h"
 
 /*
