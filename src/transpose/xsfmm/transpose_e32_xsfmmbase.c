@@ -42,10 +42,11 @@ SKL_FUNC_PRIVATE void skl_pack_tile_load_e32_e32_xsfmmbase(size_t tm, size_t tn,
                    : "vtype", "vl", "memory");
 }
 
-/* Store the tm x n0 tile specified by tss into an m0 x n0 row-major matrix.
- *  - If tss has a column pattern, tm is the number of columns in the tile.
- *  - tm must be <= ETE.
- *  - If tm < m0, the bottom rows of the output are padded.
+/* Store tm rows (columns) of length n0 from the tile specified by tss into the
+ * rows of an m0 x n0 row-major matrix.
+ *  - If tss has a column pattern, columns are stored.
+ *  - m0 and n0 must be <= ETE.
+ *  - tm must be <= m0. If tm < m0, the bottom rows of the output are padded.
  */
 SKL_XSFMM_IN
 SKL_FUNC_PRIVATE void skl_pack_tile_store_pad_bottom_e32_e32_xsfmmbase(
@@ -94,7 +95,7 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_pad_bottom_e32_e32_xsfmmbase(
                                         tss_load);
  *
  * This kernel overlaps store and load execution for improved performance over
- * storing tss_load first and then loading src.
+ * storing tss_store first and then loading src.
  */
 SKL_XSFMM_INOUT
 SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
@@ -183,9 +184,8 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
       : "vtype", "vl", "memory");
 }
 
-/* Pack src into a packed matrix with ETE x ETE column-major blocks.
- * pad_right and pad_bottom determine whether right and bottom padding,
- * respectively, are written.
+/* Pack src into ETE x ETE column-major blocks. pad_right and pad_bottom
+ * determine whether right and bottom padding are written.
  */
 SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void skl_pack_padding_optional_e32_e32rcptextec_xsfmmbase(
@@ -207,10 +207,12 @@ SKL_FUNC_PRIVATE void skl_pack_padding_optional_e32_e32rcptextec_xsfmmbase(
   vuint32m8_t pad_vec = __riscv_vmv_v_x_u32m8(pad, n0);
 
   const size_t kRowInc = 1;
+  const size_t kShiftTile = 27;
+  const size_t kShiftPattern = 24;
   const size_t mt0 = 0;
-  const size_t mt0c = mt0 | (size_t)1 << 24;
-  const size_t mt4 = (size_t)4 << 27;
-  const size_t mt4c = mt4 | (size_t)1 << 24;
+  const size_t mt0c = mt0 | (size_t)1 << kShiftPattern;
+  const size_t mt4 = (size_t)4 << kShiftTile;
+  const size_t mt4c = mt4 | (size_t)1 << kShiftPattern;
 
   const size_t m1 = (m + m0 - 1) / m0;
   const size_t n1 = (n + n0 - 1) / n0;
