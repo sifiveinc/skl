@@ -53,6 +53,13 @@ pack_e32rc_e32rcprc_t tests[] = {
 
 #ifdef SKL_ENABLE_TESTS
   // Verification tests
+  /* Test different {r,c}s1, set in main */
+  {TEST, .m = 192, .n = 256},
+  {TEST, .m = 192, .n = 256},
+  {TEST, .m = 192, .n = 256},
+  {TEST, .m = 191, .n = 255},
+  {TEST, .m = 191, .n = 255},
+  {TEST, .m = 191, .n = 255},
 
   {TEST, .m =  64, .n =  64},
   {TEST, .m =  64, .n = 128},
@@ -79,13 +86,6 @@ pack_e32rc_e32rcprc_t tests[] = {
   {TEST, .m = 191, .n = 127},
   {TEST, .m = 191, .n = 191},
   {TEST, .m = 191, .n = 255},
-
-  {TEST, .m = 192, .n = 256, .rs1 = (size_t)(256 * 65), .cs1 = 65},
-  {TEST, .m = 192, .n = 256, .rs1 = 64, .cs1 = 192},
-  {TEST, .m = 192, .n = 256, .rs1 = 65, .cs1 = (size_t)(3 * 65)},
-  {TEST, .m = 191, .n = 255, .rs1 = (size_t)(256 * 65), .cs1 = 65},
-  {TEST, .m = 191, .n = 255, .rs1 = 64, .cs1 = 192},
-  {TEST, .m = 191, .n = 255, .rs1 = 65, .cs1 = (size_t)(3 * 65)},
 #endif
 };
 // clang-format on
@@ -128,5 +128,26 @@ int main(void) {
     tests[i].cs1 = tests[i].cs1 ? tests[i].cs1 : tests[i].m0 * tests[i].n0;
     tests[i].rs1 = tests[i].rs1 ? tests[i].rs1 : tests[i].n * tests[i].cs1;
   }
+
+#ifdef SKL_ENABLE_TESTS
+  tests[0].cs1 = ete + 1;
+  tests[0].rs1 = tests[0].n * tests[0].cs1;
+
+  tests[1].rs1 = ete;
+  tests[1].cs1 = (tests[1].m + ete - 1) / ete * tests[1].rs1;
+
+  tests[2].rs1 = ete + 1;
+  tests[2].cs1 = (tests[2].m + ete - 1) / ete * tests[2].rs1;
+
+  tests[3].cs1 = ete + 1;
+  tests[3].rs1 = (tests[3].n + 1) * tests[3].cs1;
+
+  tests[4].rs1 = ete;
+  tests[4].cs1 = (tests[4].m + ete - 1) / ete * tests[4].rs1;
+
+  tests[5].rs1 = ete + 1;
+  tests[5].cs1 = (tests[5].m + ete - 1) / ete * tests[5].rs1;
+#endif
+
   return skl_test_driver_run_suite(&suite);
 }
