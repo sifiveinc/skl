@@ -19,12 +19,12 @@
 #include "skl.h"
 
 rmsnorm_f32_t tests[] = {
-#ifdef SKL_ENABLE_BENCHMARKS
-    VARIANT_BENCHMARKS(zve32f),
-#endif
-// #ifdef SKL_ENABLE_TESTS
-//     VARIANT_TESTS(zve32f),
+// #ifdef SKL_ENABLE_BENCHMARKS
+//     VARIANT_BENCHMARKS(zve32f),
 // #endif
+#ifdef SKL_ENABLE_TESTS
+    VARIANT_TESTS(zve32f),
+#endif
 };
 
 static skl_test_suite_t suite = {.name = "skl_rmsnorm_f32_zve32f",

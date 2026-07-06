@@ -68,10 +68,10 @@ void rmsnorm_f32_cleanup(skl_test_t *);
   {BENCHMARK, BASE_PARAMS(VAR), .n = 65536, .src.min = -1, .src.max = 1., .weight.min = -1, .weight.max = 1., .rsc = 4096, .epsilon = 1e-09, .ctx.max_err = 100.f}                       \
 
 #define VARIANT_TESTS(VAR)                                                     \
-  {TEST, BASE_PARAMS(VAR), .n = 1024, .src.min = -1, .src.max = 1., .weight.min = -1, .weight.max = 1., .rsc = 128, .epsilon = 1e-09, .ctx.max_err = 100.f},                        \
-  {TEST, BASE_PARAMS(VAR), .n = 2048, .src.min = -1, .src.max = 1., .weight.min = -1, .weight.max = 1., .rsc = 256, .epsilon = 1e-09, .ctx.max_err = 100.f},                        \
-  {TEST, BASE_PARAMS(VAR), .n = 4096, .src.min = -1, .src.max = 1., .weight.min = -1, .weight.max = 1., .rsc = 512, .epsilon = 1e-09, .ctx.max_err = 100.f},                        \
-  {TEST, BASE_PARAMS(VAR), .n = 8192, .src.min = -1, .src.max = 1., .weight.min = -1, .weight.max = 1., .rsc = 1024, .epsilon = 1e-09, .ctx.max_err =100.f}
+  {TEST, BASE_PARAMS(VAR), .n = 1024, .src.min = -1, .src.max = 1., .weight.min = -1, .weight.max = 1., .rsc = 128, .epsilon = 1e-09, .ctx.max_err = 10.f},                        \
+  {TEST, BASE_PARAMS(VAR), .n = 2048, .src.min = -1, .src.max = 1., .weight.min = -1, .weight.max = 1., .rsc = 256, .epsilon = 1e-09, .ctx.max_err = 10.f},                        \
+  {TEST, BASE_PARAMS(VAR), .n = 4096, .src.min = -1, .src.max = 1., .weight.min = -1, .weight.max = 1., .rsc = 512, .epsilon = 1e-09, .ctx.max_err = 10.f},                        \
+  {TEST, BASE_PARAMS(VAR), .n = 8192, .src.min = -1, .src.max = 1., .weight.min = -1, .weight.max = 1., .rsc = 1024, .epsilon = 1e-09, .ctx.max_err =10.f}
 
 
 // clang-format on

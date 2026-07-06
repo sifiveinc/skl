@@ -10,20 +10,20 @@
 SKL_FUNC void skl_rmsnorm_f32_ref(float *pDst, const float *pSrc,
                                   const float *pWeight, size_t rsc,
                                   float epsilon, size_t n) {
-  // TODO: Implement reference RMS normalization
-  size_t row_cnt = n/rsc;
+  size_t row_cnt = n / rsc;
   for (size_t r = 0; r < row_cnt; r++) {
     const float *cur_src = pSrc + (r * rsc);
     float *cur_dst = pDst + (r * rsc);
 
-    float sum_sq = 0.0f;
+    double sum_sq = 0.0; 
 
     for (size_t i = 0; i < rsc; i++) {
-      sum_sq += cur_src[i] * cur_src[i];
+      double val = (double)cur_src[i];
+      sum_sq += val * val;
     }
 
-    float mean_sq = sum_sq / (float)rsc;
-    float inv_rms = 1.0f / sqrtf(mean_sq + epsilon);
+    double mean_sq = sum_sq / (double)rsc;
+    float inv_rms = (float)(1.0 / sqrt(mean_sq + (double)epsilon));
 
     for (size_t i = 0; i < rsc; i++) {
       cur_dst[i] = cur_src[i] * inv_rms * pWeight[i];
