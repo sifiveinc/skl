@@ -16,8 +16,10 @@
 
 /* Load a tm x tn row-major matrix into the tile specified by tss.
  * tm and tn must be <= ETE.
+ *
+ * Tiles may have padding, so marked as INOUT.
  */
-SKL_XSFMM_OUT
+SKL_XSFMM_INOUT
 SKL_FUNC_PRIVATE void skl_pack_tile_load_e32_e32_xsfmmbase(size_t tm, size_t tn,
                                                            const uint32_t *src,
                                                            size_t rs,
@@ -184,6 +186,34 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
       : "vtype", "vl", "memory");
 }
 
+/* Set the entries of the tm x tn tile specified by tss to pad.
+ * Tiles may have loaded data, so marked as INOUT.
+ */
+SKL_XSFMM_INOUT
+SKL_FUNC_PRIVATE void skl_pack_tile_set_e32_xsfmmbase(size_t tm, size_t tn,
+                                                      size_t tss,
+                                                      uint32_t pad) {
+  if (tm == 0 || tn == 0) {
+    return;
+  }
+
+  vuint32m8_t pad_vec = __riscv_vmv_v_x_u32m8(pad, tn);
+
+  const size_t kRowInc = 1;
+  size_t tss_end = tss + kRowInc * tm;
+  __asm__ volatile("bgeu %[tss], %[tss_end], 1f\n"
+                   "sf.vsettnt x0, %[tn], e32, w1\n"
+                   "0:\n"
+                   "sf.vtmv.t.v %[tss], %[pad_vec]\n"
+                   "add %[tss], %[tss], %[kRowInc]\n"
+                   "bltu %[tss], %[tss_end], 0b\n"
+                   "1:\n"
+                   : [tss] "+&r"(tss)
+                   : [pad_vec] "vr"(pad_vec), [tn] "r"(tn),
+                     [tss_end] "r"(tss_end), [kRowInc] "rI"(kRowInc)
+                   : "vtype", "vl");
+}
+
 /* Pack src into ETE x ETE column-major blocks. pad_right and pad_bottom
  * determine whether right and bottom padding are written.
  */
@@ -204,8 +234,6 @@ SKL_FUNC_PRIVATE void skl_pack_padding_optional_e32_e32rcptextec_xsfmmbase(
   const size_t m0 = ete;
   const size_t n0 = ete;
 
-  vuint32m8_t pad_vec = __riscv_vmv_v_x_u32m8(pad, n0);
-
   const size_t kRowInc = 1;
   const size_t kShiftTile = 27;
   const size_t kShiftPattern = 24;
@@ -225,107 +253,77 @@ SKL_FUNC_PRIVATE void skl_pack_padding_optional_e32_e32rcptextec_xsfmmbase(
   size_t i1 = 0;
   size_t j1 = 0;
 
-  size_t tm0 = m1 == 1 ? tm_bottom : m0;
-  size_t tm1 = 0;
-  size_t tn0 = n1 == 1 ? tn_right : n0;
-  size_t tn1 = 0;
-
-  skl_pack_tile_load_e32_e32_xsfmmbase(tm0, tn0, src, rs, mt0);
+  size_t tm_load = m1 == 1 ? tm_bottom : m0;
+  size_t tn_load = n1 == 1 ? tn_right : n0;
+  skl_pack_tile_load_e32_e32_xsfmmbase(tm_load, tn_load, src, rs, mt0);
 
   // NOLINTBEGIN(readability-suspicious-call-argument)
   for (; i1 + 1 < m1; i1 += 2) {
-    tm1 = m0;
-    size_t m0_2nd_row = m0;
+    size_t m0_store_bottom = m0;
+    size_t tm_load_bottom = m0;
     if (i1 == m1 - 2) {
-      tm1 = tm_bottom;
-      m0_2nd_row = m0_bottom;
-      size_t tss4 = mt4 + tm_bottom * kRowInc;
-      size_t tss4_end = mt4 + m0_bottom * kRowInc;
-      __asm__ volatile("bgeu %[tss4], %[tss4_end], 1f\n"
-                       "sf.vsettnt x0, %[n0], e32, w1\n"
-                       "0:\n"
-                       "sf.vtmv.t.v %[tss4], %[pad_vec]\n"
-                       "add %[tss4], %[tss4], %[kRowInc]\n"
-                       "bltu %[tss4], %[tss4_end], 0b\n"
-                       "1:\n"
-                       : [tss4] "+&r"(tss4)
-                       : [pad_vec] "vr"(pad_vec), [n0] "r"(n0),
-                         [tss4_end] "r"(tss4_end), [kRowInc] "rI"(kRowInc)
-                       : "vtype", "vl");
+      m0_store_bottom = m0_bottom;
+      tm_load_bottom = tm_bottom;
+      skl_pack_tile_set_e32_xsfmmbase(m0_bottom - tm_bottom, n0,
+                                      mt4 + tm_bottom * kRowInc, pad);
     }
     for (j1 = 0; j1 + 1 < n1; ++j1) {
-      tn1 = j1 == n1 - 2 ? tn_right : n0;
+      size_t tn_load_right = j1 == n1 - 2 ? tn_right : n0;
       skl_pack_tile_store_load_e32_e32_xsfmmbase(
-          tn0, mt0c, n0, m0, dst + i1 * rs1 + j1 * cs1, cs0, tm1, tn0,
+          n0, mt0c, n0, m0, dst + i1 * rs1 + j1 * cs1, cs0, tm_load_bottom, n0,
           src + (i1 + 1) * m0 * rs + j1 * n0, rs, mt4, pad);
       skl_pack_tile_store_load_e32_e32_xsfmmbase(
-          tn0, mt4c, n0, m0_2nd_row, dst + (i1 + 1) * rs1 + j1 * cs1, cs0, tm0,
-          tn1, src + i1 * m0 * rs + (j1 + 1) * n0, rs, mt0, pad);
-      tn0 = tn1;
+          n0, mt4c, n0, m0_store_bottom, dst + (i1 + 1) * rs1 + j1 * cs1, cs0,
+          m0, tn_load_right, src + i1 * m0 * rs + (j1 + 1) * n0, rs, mt0, pad);
     }
     skl_pack_tile_store_load_e32_e32_xsfmmbase(
-        tn0, mt0c, n0_right, m0, dst + i1 * rs1 + j1 * cs1, cs0, tm1, tn0,
-        src + (i1 + 1) * m0 * rs + j1 * n0, rs, mt4, pad);
+        tn_right, mt0c, n0_right, m0, dst + i1 * rs1 + j1 * cs1, cs0,
+        tm_load_bottom, tn_right, src + (i1 + 1) * m0 * rs + j1 * n0, rs, mt4,
+        pad);
     if (i1 < m1 - 2) {
-      tm0 = i1 == m1 - 3 ? tm_bottom : m0;
-      tn1 = n1 == 1 ? tn_right : n0;
+      tm_load = i1 == m1 - 3 ? tm_bottom : m0;
+      tn_load = n1 == 1 ? tn_right : n0;
       skl_pack_tile_store_load_e32_e32_xsfmmbase(
-          tn0, mt4c, n0_right, m0_2nd_row, dst + (i1 + 1) * rs1 + j1 * cs1, cs0,
-          tm0, tn1, src + (i1 + 2) * m0 * rs + 0 * n0, rs, mt0, pad);
-      tn0 = tn1;
+          tn_right, mt4c, n0_right, m0, dst + (i1 + 1) * rs1 + j1 * cs1, cs0,
+          tm_load, tn_load, src + (i1 + 2) * m0 * rs + 0 * n0, rs, mt0, pad);
     } else {
       skl_pack_tile_store_pad_bottom_e32_e32_xsfmmbase(
-          tn0, mt4c, n0_right, m0_2nd_row, dst + (i1 + 1) * rs1 + j1 * cs1, cs0,
-          pad);
+          tn_right, mt4c, n0_right, m0_bottom, dst + (i1 + 1) * rs1 + j1 * cs1,
+          cs0, pad);
       return;
     }
   }
 
   // m1 % 2 == 1
-  size_t tss0 = mt0 + tm_bottom * kRowInc;
-  size_t tss4 = mt4 + tm_bottom * kRowInc;
-  size_t tss4_end = mt4 + m0_bottom * kRowInc;
-  __asm__ volatile("bgeu %[tss4], %[tss4_end], 1f\n"
-                   "sf.vsettnt x0, %[n0], e32, w1\n"
-                   "0:\n"
-                   "sf.vtmv.t.v %[tss0], %[pad_vec]\n"
-                   "sf.vtmv.t.v %[tss4], %[pad_vec]\n"
-                   "add %[tss0], %[tss0], %[kRowInc]\n"
-                   "add %[tss4], %[tss4], %[kRowInc]\n"
-                   "bltu %[tss4], %[tss4_end], 0b\n"
-                   "1:\n"
-                   : [tss0] "+&r"(tss0), [tss4] "+&r"(tss4)
-                   : [pad_vec] "vr"(pad_vec), [n0] "r"(n0),
-                     [tss4_end] "r"(tss4_end), [kRowInc] "rI"(kRowInc)
-                   : "vtype", "vl");
-
-  size_t tn2 = 0;
+  skl_pack_tile_set_e32_xsfmmbase(m0_bottom - tm_bottom, n0,
+                                  mt0 + tm_bottom * kRowInc, pad);
+  skl_pack_tile_set_e32_xsfmmbase(m0_bottom - tm_bottom, n0,
+                                  mt4 + tm_bottom * kRowInc, pad);
   for (j1 = 0; j1 + 2 < n1; j1 += 2) {
-    tn1 = n0;
-    tn2 = j1 == n1 - 3 ? tn_right : n0;
+    size_t tn_load_right = j1 == n1 - 3 ? tn_right : n0;
     skl_pack_tile_store_load_e32_e32_xsfmmbase(
-        tn0, mt0c, n0, m0_bottom, dst + i1 * rs1 + j1 * cs1, cs0, tm0, tn1,
+        n0, mt0c, n0, m0_bottom, dst + i1 * rs1 + j1 * cs1, cs0, tm_bottom, n0,
         src + i1 * m0 * rs + (j1 + 1) * n0, rs, mt4, pad);
     skl_pack_tile_store_load_e32_e32_xsfmmbase(
-        tn1, mt4c, n0, m0_bottom, dst + i1 * rs1 + (j1 + 1) * cs1, cs0, tm0,
-        tn2, src + i1 * m0 * rs + (j1 + 2) * n0, rs, mt0, pad);
-    tn0 = tn2;
+        n0, mt4c, n0, m0_bottom, dst + i1 * rs1 + (j1 + 1) * cs1, cs0,
+        tm_bottom, tn_load_right, src + i1 * m0 * rs + (j1 + 2) * n0, rs, mt0,
+        pad);
   }
   if (n1 % 2) {
     skl_pack_tile_store_pad_bottom_e32_e32_xsfmmbase(
-        tn0, mt0c, n0_right, m0_bottom, dst + i1 * rs1 + j1 * cs1, cs0, pad);
-  } else {
-    tn1 = tn_right;
-    skl_pack_tile_store_load_e32_e32_xsfmmbase(
-        tn0, mt0c, n0, m0_bottom, dst + i1 * rs1 + j1 * cs1, cs0, tm0, tn1,
-        src + i1 * m0 * rs + (j1 + 1) * n0, rs, mt4, pad);
-    skl_pack_tile_store_pad_bottom_e32_e32_xsfmmbase(
-        tn1, mt4c, n0_right, m0_bottom, dst + i1 * rs1 + (j1 + 1) * cs1, cs0,
+        tn_right, mt0c, n0_right, m0_bottom, dst + i1 * rs1 + j1 * cs1, cs0,
         pad);
+  } else {
+    skl_pack_tile_store_load_e32_e32_xsfmmbase(
+        n0, mt0c, n0, m0_bottom, dst + i1 * rs1 + j1 * cs1, cs0, tm_bottom,
+        tn_right, src + i1 * m0 * rs + (j1 + 1) * n0, rs, mt4, pad);
+    skl_pack_tile_store_pad_bottom_e32_e32_xsfmmbase(
+        tn_right, mt4c, n0_right, m0_bottom, dst + i1 * rs1 + (j1 + 1) * cs1,
+        cs0, pad);
   }
+  // NOLINTEND(readability-suspicious-call-argument)
 
   __asm__ volatile("sf.vtdiscard");
-  // NOLINTEND(readability-suspicious-call-argument)
 }
 
 SKL_FUNC void skl_pack_e32_e32rcptex1c_xsfmmbase(size_t m, size_t n,
