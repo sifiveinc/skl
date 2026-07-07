@@ -2,11 +2,7 @@
 
 The Sigmoid Linear Unit (SiLU) function is a widely-used activation function in large language models (LLMs), computer vision, and stable diffusion neural networks, as a smooth alternative to the Rectified Linear Unit (ReLU).
 SiLU multiplies its input with a sigmoid function.
-SKL's SiLU uses the logistic as its sigmoid function, which is typically the case in AI frameworks.
-
-## Overview
-
-SiLU, also known as Swish, computes the following function, elementwise:
+SKL's SiLU uses the logistic as its sigmoid, computing the following elementwise function:
 
 ```
 silu(x) = x / (1 + e^(-x))
@@ -44,6 +40,6 @@ void skl_silu_9u_f16_xsfvfexpa_zvfh(_Float16 *out, const _Float16 *in, size_t n)
 void skl_silu_31u_f16_xsfvfexp16e(_Float16 *out, const _Float16 *in, size_t n);
 ```
 
-## Implementation Details
+## Notes
 
 For x = -∞, implementations return NaN.

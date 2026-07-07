@@ -3,9 +3,8 @@
 The Logistic function is a widely-used sigmoid activation function in neural networks that maps inputs to values between 0 and 1.
 It is primarily used in multi-label classification and logistic regression models.
 
-## Overview
+Sometimes known simply as "sigmoid", the Logistic function computes the following elementwise function:
 
-The Logistic function, also known as the sigmoid function, computes the following function, elementwise:
 
 ```
 logistic(x) = 1 / (1 + e^(-x))
