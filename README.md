@@ -229,7 +229,7 @@ Performance benchmarks can be enabled by supplying `-DSKL_ENABLE_BENCHMARKS=TRUE
 
 SKL provides two kinds of documentation to assist developers in using SKL.
 
-Many directories contain a `README.md` file that gives a summary of the files and kernels residing in that directory, and possible also in subdirectories.
+Many directories contain a `README.md` file that gives a summary of the files and kernels residing in that directory, and possibly also in subdirectories.
 More comprehensive documents can be found in the `doc` directory.
 
 Each SKL function that is exposed in the SKL API (i.e., those declared with the `SKL_FUNC` attribute) also has a [Doxygen](https://www.doxygen.nl/index.html) documentation string in its associated header which describes the function's operation and its arguments.
