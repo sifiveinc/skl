@@ -13,6 +13,12 @@
 
 #include "skl-common.h"
 
+#if defined(__riscv_zihintntl)
+#define NTL_P1 "ntl.p1 \n\t"
+#else
+#define NTL_P1
+#endif
+
 /**
  * @brief RVV int8 matrix-matrix multiplication with int32 output for row-major
  * matrices, tuned for X390.
@@ -43,198 +49,543 @@
  *     c, rsc, 1
  * );
  * ```
- * Uses a 4 x LMUL=4 x 2 register tile. Vectorized across the N dimension.
+ * Uses a 4 x LMUL=4 x 4 register tile. Vectorized across the N dimension.
  *
  * @note
  * Works best when `m >= 4` and `n >= __riscv_vsetvlmax_e32m4()`.
  */
-SKL_FUNC_PRIVATE void skl_gemm_4xm4x2_i8_i8_i32_zve32x_x390(
+SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
     size_t m, size_t n, size_t k, int32_t alpha, const int8_t *a, size_t rsa,
     const int8_t *b, size_t rsb, int32_t beta, int32_t *c, size_t rsc) {
   size_t jj_vl;
   size_t ii;
   size_t jj;
-  size_t kk_init;
   size_t kk;
-  size_t kk0;
-  size_t ii0;
-  int8_t a00_0;
-  int8_t a01_0;
+  int8_t a00;
+  int8_t a10;
+  int8_t a20;
+  int8_t a30;
+  int8_t a01;
+  int8_t a11;
+  int8_t a21;
+  int8_t a31;
   int8_t a02;
+  int8_t a12;
+  int8_t a22;
+  int8_t a32;
   int8_t a03;
-  vint8m1_t b0;
-  vint16m2_t prod0_0;
-  vint16m2_t prod1_0;
-  vint16m2_t prod2;
-  vint16m2_t prod3;
-  vint32m4_t acc0;
-  vint32m4_t acc1;
-  vint32m4_t acc2;
-  vint32m4_t acc3;
-  vint32m4_t c00;
-  vint32m4_t c01;
-  vint32m4_t c02;
-  vint32m4_t c03;
-  int8_t a000;
-  int8_t a001;
-  int8_t a002;
-  int8_t a003;
-  int8_t a010;
-  int8_t a011;
-  int8_t a012;
-  int8_t a013;
+  int8_t a13;
+  int8_t a23;
+  int8_t a33;
   vint8m1_t b00;
-  vint8m1_t b01;
-  vint16m2_t prod00;
-  vint16m2_t prod01;
-  vint16m2_t prod02;
-  vint16m2_t prod03;
-  vint16m2_t prod10;
-  vint16m2_t prod11;
-  vint16m2_t prod12;
-  vint16m2_t prod13;
-  int8_t a0;
-  vint16m2_t prod;
-  vint32m4_t acc;
-  vint32m4_t c0;
-  int8_t a00_1;
-  int8_t a01_1;
-  vint16m2_t prod0_1;
-  vint16m2_t prod1_1;
+  vint8m1_t b10;
+  vint8m1_t b20;
+  vint8m1_t b30;
+  vint16m2_t b00w;
+  vint16m2_t b10w;
+  vint16m2_t b20w;
+  vint16m2_t b30w;
+  vint32m4_t acc00;
+  vint32m4_t acc10;
+  vint32m4_t acc20;
+  vint32m4_t acc30;
+  vint32m4_t c00;
+  vint32m4_t c10;
+  vint32m4_t c20;
+  vint32m4_t c30;
+
   if (k == 0) {
     for (ii = 0; ii < m; ii++) {
-      for (jj = 0; jj < n; jj = jj + jj_vl) {
-        jj_vl = __riscv_vsetvl_e32m4(n - jj);
-        c0 = __riscv_vle32_v_i32m4(c + (((ii + 0) * rsc) + jj), jj_vl);
-        c0 = __riscv_vmul_vx_i32m4(c0, beta, jj_vl);
-        __riscv_vse32_v_i32m4(c + (((ii + 0) * rsc) + jj), c0, jj_vl);
+      for (jj = 0; jj < n; jj += jj_vl) {
+        jj_vl = __riscv_vsetvl_e32m8(n - jj);
+        vint32m8_t c0m8 = __riscv_vle32_v_i32m8(c + ii * rsc + jj, jj_vl);
+        c0m8 = __riscv_vmul_vx_i32m8(c0m8, beta, jj_vl);
+        __riscv_vse32_v_i32m8(c + ii * rsc + jj, c0m8, jj_vl);
       }
     }
     return;
   }
-  for (ii = 0; (ii + 4) <= m; ii = ii + 4) {
-    for (jj = 0; jj < n; jj = jj + jj_vl) {
+
+  for (ii = 0; ii + 4 <= m; ii += 4) {
+    for (jj = 0; jj < n; jj += jj_vl) {
       jj_vl = __riscv_vsetvl_e8m1(n - jj);
-      for (kk_init = 0; ((kk_init + 1) <= k) && (kk_init < (0 + (1 * 1)));
-           kk_init = kk_init + 1) {
-        a00_0 = a[((ii + 0) * rsa) + ((kk_init + 0) * 1)];
-        a01_0 = a[((ii + 1) * rsa) + ((kk_init + 0) * 1)];
-        a02 = a[((ii + 2) * rsa) + ((kk_init + 0) * 1)];
-        a03 = a[((ii + 3) * rsa) + ((kk_init + 0) * 1)];
-        b0 = __riscv_vle8_v_i8m1(b + (((kk_init + 0) * rsb) + ((jj + 0) * 1)),
-                                 jj_vl);
-        prod0_0 = __riscv_vwmul_vx_i16m2(b0, a00_0, jj_vl);
-        prod1_0 = __riscv_vwmul_vx_i16m2(b0, a01_0, jj_vl);
-        prod2 = __riscv_vwmul_vx_i16m2(b0, a02, jj_vl);
-        prod3 = __riscv_vwmul_vx_i16m2(b0, a03, jj_vl);
-        acc0 = __riscv_vwcvt_x_x_v_i32m4(prod0_0, jj_vl);
-        acc1 = __riscv_vwcvt_x_x_v_i32m4(prod1_0, jj_vl);
-        acc2 = __riscv_vwcvt_x_x_v_i32m4(prod2, jj_vl);
-        acc3 = __riscv_vwcvt_x_x_v_i32m4(prod3, jj_vl);
+
+      const int8_t *a_addr0 = a + (ii + 0) * rsa;
+      const int8_t *a_addr1 = a + (ii + 1) * rsa;
+      const int8_t *a_addr2 = a + (ii + 2) * rsa;
+      const int8_t *a_addr3 = a + (ii + 3) * rsa;
+      const int8_t *b_addr0 = b + jj;
+
+      __asm__ volatile(
+          // clang-format off
+          "\n\t"
+          "lb %[a00], 0(%[a_addr0]) \n\t"
+          "add %[a_addr0], %[a_addr0], %[a_inc] \n\t"
+          "lb %[a10], 0(%[a_addr1]) \n\t"
+          "add %[a_addr1], %[a_addr1], %[a_inc] \n\t"
+          "lb %[a20], 0(%[a_addr2]) \n\t"
+          "add %[a_addr2], %[a_addr2], %[a_inc] \n\t"
+          "lb %[a30], 0(%[a_addr3]) \n\t"
+          "add %[a_addr3], %[a_addr3], %[a_inc] \n\t"
+
+          "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
+          "vle8.v %[b00], (%[b_addr0]) \n\t"
+          "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
+          "vwcvt.x.x.v %[b00w], %[b00] \n\t"
+
+          "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
+          "vwmul.vx %[acc00], %[b00w], %[a00] \n\t"
+          "vwmul.vx %[acc10], %[b00w], %[a10] \n\t"
+          "vwmul.vx %[acc20], %[b00w], %[a20] \n\t"
+          "vwmul.vx %[acc30], %[b00w], %[a30] \n\t"
+          : [a_addr0] "+&r" (a_addr0),
+            [a_addr1] "+&r" (a_addr1),
+            [a_addr2] "+&r" (a_addr2),
+            [a_addr3] "+&r" (a_addr3),
+            [b_addr0] "+&r" (b_addr0),
+            [a00] "=&r" (a00),
+            [a10] "=&r" (a10),
+            [a20] "=&r" (a20),
+            [a30] "=&r" (a30),
+            [b00] "=&vr" (b00),
+            [b00w] "=&vr" (b00w),
+            [acc00] "=&vr" (acc00),
+            [acc10] "=&vr" (acc10),
+            [acc20] "=&vr" (acc20),
+            [acc30] "=vr" (acc30)
+          : [a_inc] "r" (sizeof(int8_t)),
+            [b_inc] "r" (sizeof(int8_t) * rsb),
+            [jj_vl] "r" (jj_vl)
+          : "vtype", "vl", "memory"
+          // clang-format on
+      );
+
+      kk = 1;
+      const size_t kk_unroll_degree = 4;
+      const size_t preload_distance = 4;
+
+      if (kk_unroll_degree + preload_distance < k) {
+
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "lb %[a00], 0(%[a_addr0]) \n\t"
+            "lb %[a10], 0(%[a_addr1]) \n\t"
+            "lb %[a20], 0(%[a_addr2]) \n\t"
+            "lb %[a30], 0(%[a_addr3]) \n\t"
+
+            "lb %[a01], 1(%[a_addr0]) \n\t"
+            "lb %[a11], 1(%[a_addr1]) \n\t"
+            "lb %[a21], 1(%[a_addr2]) \n\t"
+            "lb %[a31], 1(%[a_addr3]) \n\t"
+
+            "lb %[a02], 2(%[a_addr0]) \n\t"
+            "lb %[a12], 2(%[a_addr1]) \n\t"
+            "lb %[a22], 2(%[a_addr2]) \n\t"
+            "lb %[a32], 2(%[a_addr3]) \n\t"
+
+            "lb %[a03], 3(%[a_addr0]) \n\t"
+            "lb %[a13], 3(%[a_addr1]) \n\t"
+            "lb %[a23], 3(%[a_addr2]) \n\t"
+            "lb %[a33], 3(%[a_addr3]) \n\t"
+
+            "add %[a_addr0], %[a_addr0], %[a_inc] \n\t"
+            "add %[a_addr1], %[a_addr1], %[a_inc] \n\t"
+            "add %[a_addr2], %[a_addr2], %[a_inc] \n\t"
+            "add %[a_addr3], %[a_addr3], %[a_inc] \n\t"
+
+            "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
+
+            "vle8.v %[b00], (%[b_addr0]) \n\t"
+            "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
+            "vwcvt.x.x.v %[b00w], %[b00] \n\t"
+
+            "vle8.v %[b10], (%[b_addr0]) \n\t"
+            "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
+            "vwcvt.x.x.v %[b10w], %[b10] \n\t"
+
+            "vle8.v %[b20], (%[b_addr0]) \n\t"
+            "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
+            "vwcvt.x.x.v %[b20w], %[b20] \n\t"
+
+            "vle8.v %[b30], (%[b_addr0]) \n\t"
+            "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
+            "vwcvt.x.x.v %[b30w], %[b30] \n\t"
+            : [a_addr0] "+&r" (a_addr0),
+              [a_addr1] "+&r" (a_addr1),
+              [a_addr2] "+&r" (a_addr2),
+              [a_addr3] "+&r" (a_addr3),
+              [b_addr0] "+&r" (b_addr0),
+              [a00] "=&r" (a00),
+              [a10] "=&r" (a10),
+              [a20] "=&r" (a20),
+              [a30] "=&r" (a30),
+              [a01] "=&r" (a01),
+              [a11] "=&r" (a11),
+              [a21] "=&r" (a21),
+              [a31] "=&r" (a31),
+              [a02] "=&r" (a02),
+              [a12] "=&r" (a12),
+              [a22] "=&r" (a22),
+              [a32] "=&r" (a32),
+              [a03] "=&r" (a03),
+              [a13] "=&r" (a13),
+              [a23] "=&r" (a23),
+              [a33] "=&r" (a33),
+              [b00] "=&vr" (b00),
+              [b10] "=&vr" (b10),
+              [b20] "=&vr" (b20),
+              [b30] "=&vr" (b30),
+              [b00w] "=&vr" (b00w),
+              [b10w] "=&vr" (b10w),
+              [b20w] "=&vr" (b20w),
+              [b30w] "=vr" (b30w)
+            : [jj_vl] "r" (jj_vl),
+              [a_inc] "r" (sizeof(int8_t) * preload_distance),
+              [b_inc] "r" (sizeof(int8_t) * rsb)
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
+
+        for (; kk + kk_unroll_degree + preload_distance <= k;
+             kk += kk_unroll_degree) {
+
+          __asm__ volatile(
+              // clang-format off
+              "\n\t"
+              "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
+              "vwmacc.vx %[acc00], %[a00], %[b00w] \n\t"
+              "vwmacc.vx %[acc10], %[a10], %[b00w] \n\t"
+              NTL_P1
+              "lb %[a00], 0(%[a_addr0]) \n\t"
+              NTL_P1
+              "lb %[a10], 0(%[a_addr1]) \n\t"
+              "vwmacc.vx %[acc20], %[a20], %[b00w] \n\t"
+              "vwmacc.vx %[acc30], %[a30], %[b00w] \n\t"
+              NTL_P1
+              "lb %[a20], 0(%[a_addr2]) \n\t"
+              NTL_P1
+              "lb %[a30], 0(%[a_addr3]) \n\t"
+
+              "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
+              "vle8.v %[b00], (%[b_addr0]) \n\t"
+              "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
+              "vwcvt.x.x.v %[b00w], %[b00] \n\t"
+
+
+              "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
+              "vwmacc.vx %[acc00], %[a01], %[b10w] \n\t"
+              "vwmacc.vx %[acc10], %[a11], %[b10w] \n\t"
+              NTL_P1
+              "lb %[a01], 1(%[a_addr0]) \n\t"
+              NTL_P1
+              "lb %[a11], 1(%[a_addr1]) \n\t"
+              "vwmacc.vx %[acc20], %[a21], %[b10w] \n\t"
+              "vwmacc.vx %[acc30], %[a31], %[b10w] \n\t"
+              NTL_P1
+              "lb %[a21], 1(%[a_addr2]) \n\t"
+              NTL_P1
+              "lb %[a31], 1(%[a_addr3]) \n\t"
+
+              "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
+              "vle8.v %[b10], (%[b_addr0]) \n\t"
+              "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
+              "vwcvt.x.x.v %[b10w], %[b10] \n\t"
+
+
+              "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
+              "vwmacc.vx %[acc00], %[a02], %[b20w] \n\t"
+              "vwmacc.vx %[acc10], %[a12], %[b20w] \n\t"
+              NTL_P1
+              "lb %[a02], 2(%[a_addr0]) \n\t"
+              NTL_P1
+              "lb %[a12], 2(%[a_addr1]) \n\t"
+              "vwmacc.vx %[acc20], %[a22], %[b20w] \n\t"
+              "vwmacc.vx %[acc30], %[a32], %[b20w] \n\t"
+              NTL_P1
+              "lb %[a22], 2(%[a_addr2]) \n\t"
+              NTL_P1
+              "lb %[a32], 2(%[a_addr3]) \n\t"
+
+              "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
+              "vle8.v %[b20], (%[b_addr0]) \n\t"
+              "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
+              "vwcvt.x.x.v %[b20w], %[b20] \n\t"
+
+
+              "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
+              "vwmacc.vx %[acc00], %[a03], %[b30w] \n\t"
+              "vwmacc.vx %[acc10], %[a13], %[b30w] \n\t"
+              NTL_P1
+              "lb %[a03], 3(%[a_addr0]) \n\t"
+              NTL_P1
+              "lb %[a13], 3(%[a_addr1]) \n\t"
+              "vwmacc.vx %[acc20], %[a23], %[b30w] \n\t"
+              "vwmacc.vx %[acc30], %[a33], %[b30w] \n\t"
+              NTL_P1
+              "lb %[a23], 3(%[a_addr2]) \n\t"
+              NTL_P1
+              "lb %[a33], 3(%[a_addr3]) \n\t"
+
+              "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
+              "vle8.v %[b30], (%[b_addr0]) \n\t"
+              "add %[b_addr0], %[b_addr0], %[b_inc] \n\t"
+              "vwcvt.x.x.v %[b30w], %[b30] \n\t"
+
+              "add %[a_addr0], %[a_addr0], %[a_inc] \n\t"
+              "add %[a_addr1], %[a_addr1], %[a_inc] \n\t"
+              "add %[a_addr2], %[a_addr2], %[a_inc] \n\t"
+              "add %[a_addr3], %[a_addr3], %[a_inc] \n\t"
+              : [a_addr0] "+&r" (a_addr0),
+                [a_addr1] "+&r" (a_addr1),
+                [a_addr2] "+&r" (a_addr2),
+                [a_addr3] "+&r" (a_addr3),
+                [b_addr0] "+&r" (b_addr0),
+                [a00] "+&r" (a00),
+                [a10] "+&r" (a10),
+                [a20] "+&r" (a20),
+                [a30] "+&r" (a30),
+                [a01] "+&r" (a01),
+                [a11] "+&r" (a11),
+                [a21] "+&r" (a21),
+                [a31] "+&r" (a31),
+                [a02] "+&r" (a02),
+                [a12] "+&r" (a12),
+                [a22] "+&r" (a22),
+                [a32] "+&r" (a32),
+                [a03] "+&r" (a03),
+                [a13] "+&r" (a13),
+                [a23] "+&r" (a23),
+                [a33] "+&r" (a33),
+                [b00] "=&vr" (b00),
+                [b10] "=&vr" (b10),
+                [b20] "=&vr" (b20),
+                [b30] "=&vr" (b30),
+                [b00w] "+&vr" (b00w),
+                [b10w] "+&vr" (b10w),
+                [b20w] "+&vr" (b20w),
+                [b30w] "+&vr" (b30w),
+                [acc00] "+&vr" (acc00),
+                [acc10] "+&vr" (acc10),
+                [acc20] "+&vr" (acc20),
+                [acc30] "+&vr" (acc30)
+              : [jj_vl] "r" (jj_vl),
+                [a_inc] "r" (sizeof(int8_t) * kk_unroll_degree),
+                [b_inc] "r" (sizeof(int8_t) * rsb)
+              : "vtype", "vl", "memory"
+              // clang-format on
+          );
+        }
+
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
+
+            "vwmacc.vx %[acc00], %[a00], %[b00w] \n\t"
+            "vwmacc.vx %[acc10], %[a10], %[b00w] \n\t"
+            "vwmacc.vx %[acc20], %[a20], %[b00w] \n\t"
+            "vwmacc.vx %[acc30], %[a30], %[b00w] \n\t"
+
+            "vwmacc.vx %[acc00], %[a01], %[b10w] \n\t"
+            "vwmacc.vx %[acc10], %[a11], %[b10w] \n\t"
+            "vwmacc.vx %[acc20], %[a21], %[b10w] \n\t"
+            "vwmacc.vx %[acc30], %[a31], %[b10w] \n\t"
+
+            "vwmacc.vx %[acc00], %[a02], %[b20w] \n\t"
+            "vwmacc.vx %[acc10], %[a12], %[b20w] \n\t"
+            "vwmacc.vx %[acc20], %[a22], %[b20w] \n\t"
+            "vwmacc.vx %[acc30], %[a32], %[b20w] \n\t"
+
+            "vwmacc.vx %[acc00], %[a03], %[b30w] \n\t"
+            "vwmacc.vx %[acc10], %[a13], %[b30w] \n\t"
+            "vwmacc.vx %[acc20], %[a23], %[b30w] \n\t"
+            "vwmacc.vx %[acc30], %[a33], %[b30w] \n\t"
+            : [acc00] "+&vr" (acc00),
+              [acc10] "+&vr" (acc10),
+              [acc20] "+&vr" (acc20),
+              [acc30] "+&vr" (acc30)
+            : [jj_vl] "r" (jj_vl),
+              [a00] "r" (a00),
+              [a10] "r" (a10),
+              [a20] "r" (a20),
+              [a30] "r" (a30),
+              [a01] "r" (a01),
+              [a11] "r" (a11),
+              [a21] "r" (a21),
+              [a31] "r" (a31),
+              [a02] "r" (a02),
+              [a12] "r" (a12),
+              [a22] "r" (a22),
+              [a32] "r" (a32),
+              [a03] "r" (a03),
+              [a13] "r" (a13),
+              [a23] "r" (a23),
+              [a33] "r" (a33),
+              [b00w] "vr" (b00w),
+              [b10w] "vr" (b10w),
+              [b20w] "vr" (b20w),
+              [b30w] "vr" (b30w)
+            : "vtype", "vl"
+            // clang-format on
+        );
+
+        kk += preload_distance;
       }
-      for (kk = kk_init; (kk + 2) <= k; kk = kk + 2) {
-        a000 = a[((ii + 0) * rsa) + ((kk + 0) * 1)];
-        a001 = a[((ii + 1) * rsa) + ((kk + 0) * 1)];
-        a002 = a[((ii + 2) * rsa) + ((kk + 0) * 1)];
-        a003 = a[((ii + 3) * rsa) + ((kk + 0) * 1)];
-        a010 = a[((ii + 0) * rsa) + ((kk + 1) * 1)];
-        a011 = a[((ii + 1) * rsa) + ((kk + 1) * 1)];
-        a012 = a[((ii + 2) * rsa) + ((kk + 1) * 1)];
-        a013 = a[((ii + 3) * rsa) + ((kk + 1) * 1)];
-        b00 =
-            __riscv_vle8_v_i8m1(b + (((kk + 0) * rsb) + ((jj + 0) * 1)), jj_vl);
-        b01 =
-            __riscv_vle8_v_i8m1(b + (((kk + 1) * rsb) + ((jj + 0) * 1)), jj_vl);
-        prod00 = __riscv_vwmul_vx_i16m2(b00, a000, jj_vl);
-        prod01 = __riscv_vwmul_vx_i16m2(b00, a001, jj_vl);
-        prod02 = __riscv_vwmul_vx_i16m2(b00, a002, jj_vl);
-        prod03 = __riscv_vwmul_vx_i16m2(b00, a003, jj_vl);
-        prod10 = __riscv_vwmul_vx_i16m2(b01, a010, jj_vl);
-        prod11 = __riscv_vwmul_vx_i16m2(b01, a011, jj_vl);
-        prod12 = __riscv_vwmul_vx_i16m2(b01, a012, jj_vl);
-        prod13 = __riscv_vwmul_vx_i16m2(b01, a013, jj_vl);
-        acc0 = __riscv_vwadd_wv_i32m4(acc0, prod00, jj_vl);
-        acc1 = __riscv_vwadd_wv_i32m4(acc1, prod01, jj_vl);
-        acc2 = __riscv_vwadd_wv_i32m4(acc2, prod02, jj_vl);
-        acc3 = __riscv_vwadd_wv_i32m4(acc3, prod03, jj_vl);
-        acc0 = __riscv_vwadd_wv_i32m4(acc0, prod10, jj_vl);
-        acc1 = __riscv_vwadd_wv_i32m4(acc1, prod11, jj_vl);
-        acc2 = __riscv_vwadd_wv_i32m4(acc2, prod12, jj_vl);
-        acc3 = __riscv_vwadd_wv_i32m4(acc3, prod13, jj_vl);
+
+      for (; kk < k; kk++) {
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "lb %[a00], 0(%[a_addr0]) \n\t"
+            "lb %[a10], 0(%[a_addr1]) \n\t"
+            "lb %[a20], 0(%[a_addr2]) \n\t"
+            "lb %[a30], 0(%[a_addr3]) \n\t"
+
+            "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
+            "vle8.v %[b00], (%[b_addr0]) \n\t"
+            "vwcvt.x.x.v %[b00w], %[b00] \n\t"
+
+            "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
+            "vwmacc.vx %[acc00], %[a00], %[b00w] \n\t"
+            "vwmacc.vx %[acc10], %[a10], %[b00w] \n\t"
+            "vwmacc.vx %[acc20], %[a20], %[b00w] \n\t"
+            "vwmacc.vx %[acc30], %[a30], %[b00w] \n\t"
+            : [a00] "=&r" (a00),
+              [a10] "=&r" (a10),
+              [a20] "=&r" (a20),
+              [a30] "=&r" (a30),
+              [b00] "=&vr" (b00),
+              [b00w] "=&vr" (b00w),
+              [acc00] "+&vr" (acc00),
+              [acc10] "+&vr" (acc10),
+              [acc20] "+&vr" (acc20),
+              [acc30] "+vr" (acc30)
+            : [jj_vl] "r" (jj_vl),
+              [a_addr0] "r" (a + (ii + 0) * rsa + kk),
+              [a_addr1] "r" (a + (ii + 1) * rsa + kk),
+              [a_addr2] "r" (a + (ii + 2) * rsa + kk),
+              [a_addr3] "r" (a + (ii + 3) * rsa + kk),
+              [b_addr0] "r" (b + (kk + 0) * rsb + jj)
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
       }
-      for (kk0 = kk; (kk0 + 1) <= k; kk0 = kk0 + 1) {
-        a00_0 = a[((ii + 0) * rsa) + ((kk0 + 0) * 1)];
-        a01_0 = a[((ii + 1) * rsa) + ((kk0 + 0) * 1)];
-        a02 = a[((ii + 2) * rsa) + ((kk0 + 0) * 1)];
-        a03 = a[((ii + 3) * rsa) + ((kk0 + 0) * 1)];
-        b0 = __riscv_vle8_v_i8m1(b + (((kk0 + 0) * rsb) + ((jj + 0) * 1)),
-                                 jj_vl);
-        prod0_0 = __riscv_vwmul_vx_i16m2(b0, a00_0, jj_vl);
-        prod1_0 = __riscv_vwmul_vx_i16m2(b0, a01_0, jj_vl);
-        prod2 = __riscv_vwmul_vx_i16m2(b0, a02, jj_vl);
-        prod3 = __riscv_vwmul_vx_i16m2(b0, a03, jj_vl);
-        acc0 = __riscv_vwadd_wv_i32m4(acc0, prod0_0, jj_vl);
-        acc1 = __riscv_vwadd_wv_i32m4(acc1, prod1_0, jj_vl);
-        acc2 = __riscv_vwadd_wv_i32m4(acc2, prod2, jj_vl);
-        acc3 = __riscv_vwadd_wv_i32m4(acc3, prod3, jj_vl);
-      }
-      c00 = __riscv_vle32_v_i32m4(c + (((ii + 0) * rsc) + jj), jj_vl);
-      c01 = __riscv_vle32_v_i32m4(c + (((ii + 1) * rsc) + jj), jj_vl);
-      c02 = __riscv_vle32_v_i32m4(c + (((ii + 2) * rsc) + jj), jj_vl);
-      c03 = __riscv_vle32_v_i32m4(c + (((ii + 3) * rsc) + jj), jj_vl);
-      c00 = __riscv_vmul_vx_i32m4(c00, beta, jj_vl);
-      c00 = __riscv_vmacc_vx_i32m4(c00, alpha, acc0, jj_vl);
-      __riscv_vse32_v_i32m4(c + (((ii + 0) * rsc) + ((jj + 0) * 1)), c00,
-                            jj_vl);
-      c01 = __riscv_vmul_vx_i32m4(c01, beta, jj_vl);
-      c01 = __riscv_vmacc_vx_i32m4(c01, alpha, acc1, jj_vl);
-      __riscv_vse32_v_i32m4(c + (((ii + 1) * rsc) + ((jj + 0) * 1)), c01,
-                            jj_vl);
-      c02 = __riscv_vmul_vx_i32m4(c02, beta, jj_vl);
-      c02 = __riscv_vmacc_vx_i32m4(c02, alpha, acc2, jj_vl);
-      __riscv_vse32_v_i32m4(c + (((ii + 2) * rsc) + ((jj + 0) * 1)), c02,
-                            jj_vl);
-      c03 = __riscv_vmul_vx_i32m4(c03, beta, jj_vl);
-      c03 = __riscv_vmacc_vx_i32m4(c03, alpha, acc3, jj_vl);
-      __riscv_vse32_v_i32m4(c + (((ii + 3) * rsc) + ((jj + 0) * 1)), c03,
-                            jj_vl);
+
+      int32_t *c_addr = c + (ii + 0) * rsc + jj;
+      __asm__ volatile(
+          // clang-format off
+          "\n\t"
+          "vsetvli zero, %[jj_vl], e32, m4, ta, ma \n\t"
+
+          "vle32.v %[c00], (%[c_addr]) \n\t"
+          "vmul.vx %[c00], %[c00], %[beta] \n\t"
+          "vmacc.vx %[c00], %[alpha], %[acc00] \n\t"
+          "vse32.v %[c00], (%[c_addr]) \n\t"
+          "add %[c_addr], %[c_addr], %[c_inc] \n\t"
+
+          "vle32.v %[c10], (%[c_addr]) \n\t"
+          "vmul.vx %[c10], %[c10], %[beta] \n\t"
+          "vmacc.vx %[c10], %[alpha], %[acc10] \n\t"
+          "vse32.v %[c10], (%[c_addr]) \n\t"
+          "add %[c_addr], %[c_addr], %[c_inc] \n\t"
+
+          "vle32.v %[c20], (%[c_addr]) \n\t"
+          "vmul.vx %[c20], %[c20], %[beta] \n\t"
+          "vmacc.vx %[c20], %[alpha], %[acc20] \n\t"
+          "vse32.v %[c20], (%[c_addr]) \n\t"
+          "add %[c_addr], %[c_addr], %[c_inc] \n\t"
+
+          "vle32.v %[c30], (%[c_addr]) \n\t"
+          "vmul.vx %[c30], %[c30], %[beta] \n\t"
+          "vmacc.vx %[c30], %[alpha], %[acc30] \n\t"
+          "vse32.v %[c30], (%[c_addr]) \n\t"
+          : [c00] "=&vr" (c00),
+            [c10] "=&vr" (c10),
+            [c20] "=&vr" (c20),
+            [c30] "=&vr" (c30),
+            [c_addr] "+&r" (c_addr)
+          : [jj_vl] "r" (jj_vl),
+            [acc00] "vr" (acc00),
+            [acc10] "vr" (acc10),
+            [acc20] "vr" (acc20),
+            [acc30] "vr" (acc30),
+            [alpha] "r" (alpha),
+            [beta] "r" (beta),
+            [c_inc] "r" (sizeof(int32_t) * rsc)
+          : "vtype", "vl", "memory"
+          // clang-format on
+      );
     }
   }
-  for (ii0 = ii; (ii0 + 1) <= m; ii0 = ii0 + 1) {
-    for (jj = 0; jj < n; jj = jj + jj_vl) {
+
+  for (; ii < m; ii++) {
+    for (jj = 0; jj < n; jj += jj_vl) {
       jj_vl = __riscv_vsetvl_e8m1(n - jj);
-      for (kk_init = 0; ((kk_init + 1) <= k) && (kk_init < (0 + (1 * 1)));
-           kk_init = kk_init + 1) {
-        a0 = a[((ii0 + 0) * rsa) + ((kk_init + 0) * 1)];
-        b0 = __riscv_vle8_v_i8m1(b + (((kk_init + 0) * rsb) + ((jj + 0) * 1)),
-                                 jj_vl);
-        prod = __riscv_vwmul_vx_i16m2(b0, a0, jj_vl);
-        acc = __riscv_vwcvt_x_x_v_i32m4(prod, jj_vl);
+
+      __asm__ volatile(
+          // clang-format off
+          "\n\t"
+          "lb %[a00], 0(%[a_addr0]) \n\t"
+
+          "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
+          "vle8.v %[b00], (%[b_addr0]) \n\t"
+          "vwcvt.x.x.v %[b00w], %[b00] \n\t"
+
+          "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
+          "vwmul.vx %[acc00], %[b00w], %[a00] \n\t"
+          : [a00] "=&r" (a00),
+            [b00] "=&vr" (b00),
+            [b00w] "=&vr" (b00w),
+            [acc00] "=vr" (acc00)
+          : [jj_vl] "r" (jj_vl),
+            [a_addr0] "r" (a + ii * rsa),
+            [b_addr0] "r" (b + jj)
+          : "vtype", "vl", "memory"
+          // clang-format on
+      );
+
+      for (kk = 1; kk < k; kk++) {
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "lb %[a00], 0(%[a_addr0]) \n\t"
+
+            "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
+            "vle8.v %[b00], (%[b_addr0]) \n\t"
+            "vwcvt.x.x.v %[b00w], %[b00] \n\t"
+
+            "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
+            "vwmacc.vx %[acc00], %[a00], %[b00w] \n\t"
+            : [a00] "=&r" (a00),
+              [b00] "=&vr" (b00),
+              [b00w] "=&vr" (b00w),
+              [acc00] "+vr" (acc00)
+            : [jj_vl] "r" (jj_vl),
+              [a_addr0] "r" (a + ii * rsa + kk),
+              [b_addr0] "r" (b + kk * rsb + jj)
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
       }
-      for (kk = kk_init; (kk + 2) <= k; kk = kk + 2) {
-        a00_1 = a[((ii0 + 0) * rsa) + ((kk + 0) * 1)];
-        a01_1 = a[((ii0 + 0) * rsa) + ((kk + 1) * 1)];
-        b00 =
-            __riscv_vle8_v_i8m1(b + (((kk + 0) * rsb) + ((jj + 0) * 1)), jj_vl);
-        b01 =
-            __riscv_vle8_v_i8m1(b + (((kk + 1) * rsb) + ((jj + 0) * 1)), jj_vl);
-        prod0_1 = __riscv_vwmul_vx_i16m2(b00, a00_1, jj_vl);
-        prod1_1 = __riscv_vwmul_vx_i16m2(b01, a01_1, jj_vl);
-        acc = __riscv_vwadd_wv_i32m4(acc, prod0_1, jj_vl);
-        acc = __riscv_vwadd_wv_i32m4(acc, prod1_1, jj_vl);
-      }
-      for (kk0 = kk; (kk0 + 1) <= k; kk0 = kk0 + 1) {
-        a0 = a[((ii0 + 0) * rsa) + ((kk0 + 0) * 1)];
-        b0 = __riscv_vle8_v_i8m1(b + (((kk0 + 0) * rsb) + ((jj + 0) * 1)),
-                                 jj_vl);
-        prod = __riscv_vwmul_vx_i16m2(b0, a0, jj_vl);
-        acc = __riscv_vwadd_wv_i32m4(acc, prod, jj_vl);
-      }
-      c0 = __riscv_vle32_v_i32m4(c + (((ii0 + 0) * rsc) + jj), jj_vl);
-      c0 = __riscv_vmul_vx_i32m4(c0, beta, jj_vl);
-      c0 = __riscv_vmacc_vx_i32m4(c0, alpha, acc, jj_vl);
-      __riscv_vse32_v_i32m4(c + (((ii0 + 0) * rsc) + ((jj + 0) * 1)), c0,
-                            jj_vl);
+
+      __asm__ volatile(
+          // clang-format off
+          "\n\t"
+          "vsetvli zero, %[jj_vl], e32, m4, ta, ma \n\t"
+          "vle32.v %[c00], (%[c_addr]) \n\t"
+          "vmul.vx %[c00], %[c00], %[beta] \n\t"
+          "vmacc.vx %[c00], %[alpha], %[acc00] \n\t"
+          "vse32.v %[c00], (%[c_addr]) \n\t"
+          : [c00] "=&vr" (c00)
+          : [jj_vl] "r" (jj_vl),
+            [acc00] "vr" (acc00),
+            [alpha] "r" (alpha),
+            [beta] "r" (beta),
+            [c_addr] "r" (c + ii * rsc + jj)
+          : "vtype", "vl", "memory"
+          // clang-format on
+      );
     }
   }
 }
@@ -244,6 +595,8 @@ SKL_FUNC void skl_gemm_i8_i8_i32_zve32x_x390(size_t m, size_t n, size_t k,
                                              size_t rsa, const int8_t *b,
                                              size_t rsb, int32_t beta,
                                              int32_t *c, size_t rsc) {
-  skl_gemm_4xm4x2_i8_i8_i32_zve32x_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c,
+  skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(m, n, k, alpha, a, rsa, b, rsb, beta, c,
                                         rsc);
 }
+
+#undef NTL_P1
