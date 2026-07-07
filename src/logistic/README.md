@@ -1,4 +1,4 @@
-# Logistic (Sigmoid) Kernels
+# Logistic Kernels
 
 The Logistic function is a widely-used sigmoid activation function in neural networks that maps inputs to values between 0 and 1.
 It is primarily used in multi-label classification and logistic regression models.
