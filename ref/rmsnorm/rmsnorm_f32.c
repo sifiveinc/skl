@@ -25,8 +25,14 @@ SKL_FUNC void skl_rmsnorm_f32_ref(float *pDst, const float *pSrc,
     double mean_sq = sum_sq / (double)rsc;
     float inv_rms = (float)(1.0 / sqrt(mean_sq + (double)epsilon));
 
-    for (size_t i = 0; i < rsc; i++) {
-      cur_dst[i] = cur_src[i] * inv_rms * pWeight[i];
+    if(pWeight) {
+      for (size_t i = 0; i < rsc; i++) {
+        cur_dst[i] = cur_src[i] * inv_rms * pWeight[i];
+      }
+    } else {
+      for (size_t i = 0; i < rsc; i++) {
+        cur_dst[i] = cur_src[i] * inv_rms;
+      }
     }
   }
 }

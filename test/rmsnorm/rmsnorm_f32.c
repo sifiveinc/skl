@@ -37,7 +37,10 @@ typedef void (*skl_rmsnorm_f32_t)(float *, const float *, const float *, size_t,
 void rmsnorm_f32_execute(skl_test_t *t) {
   const rmsnorm_f32_t *h = (rmsnorm_f32_t *)t->harness;
   skl_rmsnorm_f32_t fn = (skl_rmsnorm_f32_t)(h->func);
-  fn(h->ctx.dst, h->src.data, h->weight.data, h->rsc, h->epsilon, h->n);
+  if(h->do_scale)
+    fn(h->ctx.dst, h->src.data, h->weight.data, h->rsc, h->epsilon, h->n);
+  else
+    fn(h->ctx.dst, h->src.data, NULL, h->rsc, h->epsilon, h->n);
 }
 
 void rmsnorm_f32_verify(skl_test_t *t) {
@@ -50,7 +53,10 @@ void rmsnorm_f32_verify(skl_test_t *t) {
   skl_rmsnorm_f32_t fn_ref = (skl_rmsnorm_f32_t)(h->ref_func);
 
   // Compute the reference result
-  fn_ref(h->ctx.ref_dst, h->src.data, h->weight.data, h->rsc, h->epsilon, h->n);
+  if(h->do_scale)
+    fn_ref(h->ctx.ref_dst, h->src.data, h->weight.data, h->rsc, h->epsilon, h->n);
+  else
+    fn_ref(h->ctx.ref_dst, h->src.data, NULL, h->rsc, h->epsilon, h->n);
 
   float ulp = 0.f;
   size_t errors = 0;
