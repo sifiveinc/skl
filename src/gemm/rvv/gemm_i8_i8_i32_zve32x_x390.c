@@ -61,30 +61,40 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
   size_t ii;
   size_t jj;
   size_t kk;
-  int32_t a00;
-  int32_t a10;
-  int32_t a20;
-  int32_t a30;
-  int32_t a01;
-  int32_t a11;
-  int32_t a21;
-  int32_t a31;
-  int32_t a02;
-  int32_t a12;
-  int32_t a22;
-  int32_t a32;
-  int32_t a03;
-  int32_t a13;
-  int32_t a23;
-  int32_t a33;
+
+  // A matrix has 8 bit values, which will be loaded with the lb instruction to
+  // take advantage of its sign extension in order to widen the values to 16
+  // bits at no cost. In some cases the compiler may decide to backup and
+  // restore the registers between loop iterations (perhaps in debug builds),
+  // and so these values are typed as int16_t instead of int8_t below to ensure
+  // the compiler reloads them having identical least significant 16 bits.
+  int16_t a00;
+  int16_t a10;
+  int16_t a20;
+  int16_t a30;
+  int16_t a01;
+  int16_t a11;
+  int16_t a21;
+  int16_t a31;
+  int16_t a02;
+  int16_t a12;
+  int16_t a22;
+  int16_t a32;
+  int16_t a03;
+  int16_t a13;
+  int16_t a23;
+  int16_t a33;
+
   vint8m1_t b00;
   vint8m1_t b10;
   vint8m1_t b20;
   vint8m1_t b30;
+
   vint16m2_t b00w;
   vint16m2_t b10w;
   vint16m2_t b20w;
   vint16m2_t b30w;
+
   vint32m4_t acc00;
   vint32m4_t acc10;
   vint32m4_t acc20;
