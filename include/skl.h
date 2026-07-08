@@ -26,6 +26,7 @@
 #endif
 
 #if defined(__riscv_zve32f)
+#include "gemm/rvv/gemm_f32_f32_f32_zve32f.h"
 #include "gemm/rvv/gemm_f32_f32_f32_zve32f_x390.h"
 #endif
 

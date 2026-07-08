@@ -298,6 +298,13 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_gemm_f32_f32_f32_zve32f
+  gemm/gemm_f32rcprc_f32rcprc_f32rcprc.c
+  gemm/rvv/skl_gemm_f32_f32_f32_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
   skl_gemm_f32_f32_f32_zve32f_x390
   gemm/gemm_f32rcprc_f32rcprc_f32rcprc.c
   gemm/rvv/skl_gemm_f32_f32_f32_zve32f_x390.c
