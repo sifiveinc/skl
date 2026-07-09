@@ -68,22 +68,22 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
   // restore the registers between loop iterations (perhaps in debug builds),
   // and so these values are typed as int16_t instead of int8_t below to ensure
   // the compiler reloads them having identical least significant 16 bits.
-  int16_t a00;
-  int16_t a10;
-  int16_t a20;
-  int16_t a30;
-  int16_t a01;
-  int16_t a11;
-  int16_t a21;
-  int16_t a31;
-  int16_t a02;
-  int16_t a12;
-  int16_t a22;
-  int16_t a32;
-  int16_t a03;
-  int16_t a13;
-  int16_t a23;
-  int16_t a33;
+  int16_t a00w;
+  int16_t a10w;
+  int16_t a20w;
+  int16_t a30w;
+  int16_t a01w;
+  int16_t a11w;
+  int16_t a21w;
+  int16_t a31w;
+  int16_t a02w;
+  int16_t a12w;
+  int16_t a22w;
+  int16_t a32w;
+  int16_t a03w;
+  int16_t a13w;
+  int16_t a23w;
+  int16_t a33w;
 
   vint8m1_t b00;
   vint8m1_t b10;
@@ -129,13 +129,13 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
       __asm__ volatile(
           // clang-format off
           "\n\t"
-          "lb %[a00], 0(%[a_addr0]) \n\t"
+          "lb %[a00w], 0(%[a_addr0]) \n\t"
           "add %[a_addr0], %[a_addr0], %[a_inc] \n\t"
-          "lb %[a10], 0(%[a_addr1]) \n\t"
+          "lb %[a10w], 0(%[a_addr1]) \n\t"
           "add %[a_addr1], %[a_addr1], %[a_inc] \n\t"
-          "lb %[a20], 0(%[a_addr2]) \n\t"
+          "lb %[a20w], 0(%[a_addr2]) \n\t"
           "add %[a_addr2], %[a_addr2], %[a_inc] \n\t"
-          "lb %[a30], 0(%[a_addr3]) \n\t"
+          "lb %[a30w], 0(%[a_addr3]) \n\t"
           "add %[a_addr3], %[a_addr3], %[a_inc] \n\t"
 
           "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
@@ -144,19 +144,19 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
           "vwcvt.x.x.v %[b00w], %[b00] \n\t"
 
           "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
-          "vwmul.vx %[acc00], %[b00w], %[a00] \n\t"
-          "vwmul.vx %[acc10], %[b00w], %[a10] \n\t"
-          "vwmul.vx %[acc20], %[b00w], %[a20] \n\t"
-          "vwmul.vx %[acc30], %[b00w], %[a30] \n\t"
+          "vwmul.vx %[acc00], %[b00w], %[a00w] \n\t"
+          "vwmul.vx %[acc10], %[b00w], %[a10w] \n\t"
+          "vwmul.vx %[acc20], %[b00w], %[a20w] \n\t"
+          "vwmul.vx %[acc30], %[b00w], %[a30w] \n\t"
           : [a_addr0] "+&r" (a_addr0),
             [a_addr1] "+&r" (a_addr1),
             [a_addr2] "+&r" (a_addr2),
             [a_addr3] "+&r" (a_addr3),
             [b_addr0] "+&r" (b_addr0),
-            [a00] "=&r" (a00),
-            [a10] "=&r" (a10),
-            [a20] "=&r" (a20),
-            [a30] "=&r" (a30),
+            [a00w] "=&r" (a00w),
+            [a10w] "=&r" (a10w),
+            [a20w] "=&r" (a20w),
+            [a30w] "=&r" (a30w),
             [b00] "=&vr" (b00),
             [b00w] "=&vr" (b00w),
             [acc00] "=&vr" (acc00),
@@ -179,25 +179,25 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
         __asm__ volatile(
             // clang-format off
             "\n\t"
-            "lb %[a00], 0(%[a_addr0]) \n\t"
-            "lb %[a10], 0(%[a_addr1]) \n\t"
-            "lb %[a20], 0(%[a_addr2]) \n\t"
-            "lb %[a30], 0(%[a_addr3]) \n\t"
+            "lb %[a00w], 0(%[a_addr0]) \n\t"
+            "lb %[a10w], 0(%[a_addr1]) \n\t"
+            "lb %[a20w], 0(%[a_addr2]) \n\t"
+            "lb %[a30w], 0(%[a_addr3]) \n\t"
 
-            "lb %[a01], 1(%[a_addr0]) \n\t"
-            "lb %[a11], 1(%[a_addr1]) \n\t"
-            "lb %[a21], 1(%[a_addr2]) \n\t"
-            "lb %[a31], 1(%[a_addr3]) \n\t"
+            "lb %[a01w], 1(%[a_addr0]) \n\t"
+            "lb %[a11w], 1(%[a_addr1]) \n\t"
+            "lb %[a21w], 1(%[a_addr2]) \n\t"
+            "lb %[a31w], 1(%[a_addr3]) \n\t"
 
-            "lb %[a02], 2(%[a_addr0]) \n\t"
-            "lb %[a12], 2(%[a_addr1]) \n\t"
-            "lb %[a22], 2(%[a_addr2]) \n\t"
-            "lb %[a32], 2(%[a_addr3]) \n\t"
+            "lb %[a02w], 2(%[a_addr0]) \n\t"
+            "lb %[a12w], 2(%[a_addr1]) \n\t"
+            "lb %[a22w], 2(%[a_addr2]) \n\t"
+            "lb %[a32w], 2(%[a_addr3]) \n\t"
 
-            "lb %[a03], 3(%[a_addr0]) \n\t"
-            "lb %[a13], 3(%[a_addr1]) \n\t"
-            "lb %[a23], 3(%[a_addr2]) \n\t"
-            "lb %[a33], 3(%[a_addr3]) \n\t"
+            "lb %[a03w], 3(%[a_addr0]) \n\t"
+            "lb %[a13w], 3(%[a_addr1]) \n\t"
+            "lb %[a23w], 3(%[a_addr2]) \n\t"
+            "lb %[a33w], 3(%[a_addr3]) \n\t"
 
             "add %[a_addr0], %[a_addr0], %[a_inc] \n\t"
             "add %[a_addr1], %[a_addr1], %[a_inc] \n\t"
@@ -226,22 +226,22 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
               [a_addr2] "+&r" (a_addr2),
               [a_addr3] "+&r" (a_addr3),
               [b_addr0] "+&r" (b_addr0),
-              [a00] "=&r" (a00),
-              [a10] "=&r" (a10),
-              [a20] "=&r" (a20),
-              [a30] "=&r" (a30),
-              [a01] "=&r" (a01),
-              [a11] "=&r" (a11),
-              [a21] "=&r" (a21),
-              [a31] "=&r" (a31),
-              [a02] "=&r" (a02),
-              [a12] "=&r" (a12),
-              [a22] "=&r" (a22),
-              [a32] "=&r" (a32),
-              [a03] "=&r" (a03),
-              [a13] "=&r" (a13),
-              [a23] "=&r" (a23),
-              [a33] "=&r" (a33),
+              [a00w] "=&r" (a00w),
+              [a10w] "=&r" (a10w),
+              [a20w] "=&r" (a20w),
+              [a30w] "=&r" (a30w),
+              [a01w] "=&r" (a01w),
+              [a11w] "=&r" (a11w),
+              [a21w] "=&r" (a21w),
+              [a31w] "=&r" (a31w),
+              [a02w] "=&r" (a02w),
+              [a12w] "=&r" (a12w),
+              [a22w] "=&r" (a22w),
+              [a32w] "=&r" (a32w),
+              [a03w] "=&r" (a03w),
+              [a13w] "=&r" (a13w),
+              [a23w] "=&r" (a23w),
+              [a33w] "=&r" (a33w),
               [b00] "=&vr" (b00),
               [b10] "=&vr" (b10),
               [b20] "=&vr" (b20),
@@ -264,18 +264,18 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
               // clang-format off
               "\n\t"
               "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
-              "vwmacc.vx %[acc00], %[a00], %[b00w] \n\t"
-              "vwmacc.vx %[acc10], %[a10], %[b00w] \n\t"
+              "vwmacc.vx %[acc00], %[a00w], %[b00w] \n\t"
+              "vwmacc.vx %[acc10], %[a10w], %[b00w] \n\t"
               NTL_P1
-              "lb %[a00], 0(%[a_addr0]) \n\t"
+              "lb %[a00w], 0(%[a_addr0]) \n\t"
               NTL_P1
-              "lb %[a10], 0(%[a_addr1]) \n\t"
-              "vwmacc.vx %[acc20], %[a20], %[b00w] \n\t"
-              "vwmacc.vx %[acc30], %[a30], %[b00w] \n\t"
+              "lb %[a10w], 0(%[a_addr1]) \n\t"
+              "vwmacc.vx %[acc20], %[a20w], %[b00w] \n\t"
+              "vwmacc.vx %[acc30], %[a30w], %[b00w] \n\t"
               NTL_P1
-              "lb %[a20], 0(%[a_addr2]) \n\t"
+              "lb %[a20w], 0(%[a_addr2]) \n\t"
               NTL_P1
-              "lb %[a30], 0(%[a_addr3]) \n\t"
+              "lb %[a30w], 0(%[a_addr3]) \n\t"
 
               "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
               "vle8.v %[b00], (%[b_addr0]) \n\t"
@@ -284,18 +284,18 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
 
 
               "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
-              "vwmacc.vx %[acc00], %[a01], %[b10w] \n\t"
-              "vwmacc.vx %[acc10], %[a11], %[b10w] \n\t"
+              "vwmacc.vx %[acc00], %[a01w], %[b10w] \n\t"
+              "vwmacc.vx %[acc10], %[a11w], %[b10w] \n\t"
               NTL_P1
-              "lb %[a01], 1(%[a_addr0]) \n\t"
+              "lb %[a01w], 1(%[a_addr0]) \n\t"
               NTL_P1
-              "lb %[a11], 1(%[a_addr1]) \n\t"
-              "vwmacc.vx %[acc20], %[a21], %[b10w] \n\t"
-              "vwmacc.vx %[acc30], %[a31], %[b10w] \n\t"
+              "lb %[a11w], 1(%[a_addr1]) \n\t"
+              "vwmacc.vx %[acc20], %[a21w], %[b10w] \n\t"
+              "vwmacc.vx %[acc30], %[a31w], %[b10w] \n\t"
               NTL_P1
-              "lb %[a21], 1(%[a_addr2]) \n\t"
+              "lb %[a21w], 1(%[a_addr2]) \n\t"
               NTL_P1
-              "lb %[a31], 1(%[a_addr3]) \n\t"
+              "lb %[a31w], 1(%[a_addr3]) \n\t"
 
               "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
               "vle8.v %[b10], (%[b_addr0]) \n\t"
@@ -304,18 +304,18 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
 
 
               "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
-              "vwmacc.vx %[acc00], %[a02], %[b20w] \n\t"
-              "vwmacc.vx %[acc10], %[a12], %[b20w] \n\t"
+              "vwmacc.vx %[acc00], %[a02w], %[b20w] \n\t"
+              "vwmacc.vx %[acc10], %[a12w], %[b20w] \n\t"
               NTL_P1
-              "lb %[a02], 2(%[a_addr0]) \n\t"
+              "lb %[a02w], 2(%[a_addr0]) \n\t"
               NTL_P1
-              "lb %[a12], 2(%[a_addr1]) \n\t"
-              "vwmacc.vx %[acc20], %[a22], %[b20w] \n\t"
-              "vwmacc.vx %[acc30], %[a32], %[b20w] \n\t"
+              "lb %[a12w], 2(%[a_addr1]) \n\t"
+              "vwmacc.vx %[acc20], %[a22w], %[b20w] \n\t"
+              "vwmacc.vx %[acc30], %[a32w], %[b20w] \n\t"
               NTL_P1
-              "lb %[a22], 2(%[a_addr2]) \n\t"
+              "lb %[a22w], 2(%[a_addr2]) \n\t"
               NTL_P1
-              "lb %[a32], 2(%[a_addr3]) \n\t"
+              "lb %[a32w], 2(%[a_addr3]) \n\t"
 
               "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
               "vle8.v %[b20], (%[b_addr0]) \n\t"
@@ -324,18 +324,18 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
 
 
               "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
-              "vwmacc.vx %[acc00], %[a03], %[b30w] \n\t"
-              "vwmacc.vx %[acc10], %[a13], %[b30w] \n\t"
+              "vwmacc.vx %[acc00], %[a03w], %[b30w] \n\t"
+              "vwmacc.vx %[acc10], %[a13w], %[b30w] \n\t"
               NTL_P1
-              "lb %[a03], 3(%[a_addr0]) \n\t"
+              "lb %[a03w], 3(%[a_addr0]) \n\t"
               NTL_P1
-              "lb %[a13], 3(%[a_addr1]) \n\t"
-              "vwmacc.vx %[acc20], %[a23], %[b30w] \n\t"
-              "vwmacc.vx %[acc30], %[a33], %[b30w] \n\t"
+              "lb %[a13w], 3(%[a_addr1]) \n\t"
+              "vwmacc.vx %[acc20], %[a23w], %[b30w] \n\t"
+              "vwmacc.vx %[acc30], %[a33w], %[b30w] \n\t"
               NTL_P1
-              "lb %[a23], 3(%[a_addr2]) \n\t"
+              "lb %[a23w], 3(%[a_addr2]) \n\t"
               NTL_P1
-              "lb %[a33], 3(%[a_addr3]) \n\t"
+              "lb %[a33w], 3(%[a_addr3]) \n\t"
 
               "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
               "vle8.v %[b30], (%[b_addr0]) \n\t"
@@ -351,22 +351,22 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
                 [a_addr2] "+&r" (a_addr2),
                 [a_addr3] "+&r" (a_addr3),
                 [b_addr0] "+&r" (b_addr0),
-                [a00] "+&r" (a00),
-                [a10] "+&r" (a10),
-                [a20] "+&r" (a20),
-                [a30] "+&r" (a30),
-                [a01] "+&r" (a01),
-                [a11] "+&r" (a11),
-                [a21] "+&r" (a21),
-                [a31] "+&r" (a31),
-                [a02] "+&r" (a02),
-                [a12] "+&r" (a12),
-                [a22] "+&r" (a22),
-                [a32] "+&r" (a32),
-                [a03] "+&r" (a03),
-                [a13] "+&r" (a13),
-                [a23] "+&r" (a23),
-                [a33] "+&r" (a33),
+                [a00w] "+&r" (a00w),
+                [a10w] "+&r" (a10w),
+                [a20w] "+&r" (a20w),
+                [a30w] "+&r" (a30w),
+                [a01w] "+&r" (a01w),
+                [a11w] "+&r" (a11w),
+                [a21w] "+&r" (a21w),
+                [a31w] "+&r" (a31w),
+                [a02w] "+&r" (a02w),
+                [a12w] "+&r" (a12w),
+                [a22w] "+&r" (a22w),
+                [a32w] "+&r" (a32w),
+                [a03w] "+&r" (a03w),
+                [a13w] "+&r" (a13w),
+                [a23w] "+&r" (a23w),
+                [a33w] "+&r" (a33w),
                 [b00] "=&vr" (b00),
                 [b10] "=&vr" (b10),
                 [b20] "=&vr" (b20),
@@ -392,46 +392,46 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
             "\n\t"
             "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
 
-            "vwmacc.vx %[acc00], %[a00], %[b00w] \n\t"
-            "vwmacc.vx %[acc10], %[a10], %[b00w] \n\t"
-            "vwmacc.vx %[acc20], %[a20], %[b00w] \n\t"
-            "vwmacc.vx %[acc30], %[a30], %[b00w] \n\t"
+            "vwmacc.vx %[acc00], %[a00w], %[b00w] \n\t"
+            "vwmacc.vx %[acc10], %[a10w], %[b00w] \n\t"
+            "vwmacc.vx %[acc20], %[a20w], %[b00w] \n\t"
+            "vwmacc.vx %[acc30], %[a30w], %[b00w] \n\t"
 
-            "vwmacc.vx %[acc00], %[a01], %[b10w] \n\t"
-            "vwmacc.vx %[acc10], %[a11], %[b10w] \n\t"
-            "vwmacc.vx %[acc20], %[a21], %[b10w] \n\t"
-            "vwmacc.vx %[acc30], %[a31], %[b10w] \n\t"
+            "vwmacc.vx %[acc00], %[a01w], %[b10w] \n\t"
+            "vwmacc.vx %[acc10], %[a11w], %[b10w] \n\t"
+            "vwmacc.vx %[acc20], %[a21w], %[b10w] \n\t"
+            "vwmacc.vx %[acc30], %[a31w], %[b10w] \n\t"
 
-            "vwmacc.vx %[acc00], %[a02], %[b20w] \n\t"
-            "vwmacc.vx %[acc10], %[a12], %[b20w] \n\t"
-            "vwmacc.vx %[acc20], %[a22], %[b20w] \n\t"
-            "vwmacc.vx %[acc30], %[a32], %[b20w] \n\t"
+            "vwmacc.vx %[acc00], %[a02w], %[b20w] \n\t"
+            "vwmacc.vx %[acc10], %[a12w], %[b20w] \n\t"
+            "vwmacc.vx %[acc20], %[a22w], %[b20w] \n\t"
+            "vwmacc.vx %[acc30], %[a32w], %[b20w] \n\t"
 
-            "vwmacc.vx %[acc00], %[a03], %[b30w] \n\t"
-            "vwmacc.vx %[acc10], %[a13], %[b30w] \n\t"
-            "vwmacc.vx %[acc20], %[a23], %[b30w] \n\t"
-            "vwmacc.vx %[acc30], %[a33], %[b30w] \n\t"
+            "vwmacc.vx %[acc00], %[a03w], %[b30w] \n\t"
+            "vwmacc.vx %[acc10], %[a13w], %[b30w] \n\t"
+            "vwmacc.vx %[acc20], %[a23w], %[b30w] \n\t"
+            "vwmacc.vx %[acc30], %[a33w], %[b30w] \n\t"
             : [acc00] "+&vr" (acc00),
               [acc10] "+&vr" (acc10),
               [acc20] "+&vr" (acc20),
               [acc30] "+&vr" (acc30)
             : [jj_vl] "r" (jj_vl),
-              [a00] "r" (a00),
-              [a10] "r" (a10),
-              [a20] "r" (a20),
-              [a30] "r" (a30),
-              [a01] "r" (a01),
-              [a11] "r" (a11),
-              [a21] "r" (a21),
-              [a31] "r" (a31),
-              [a02] "r" (a02),
-              [a12] "r" (a12),
-              [a22] "r" (a22),
-              [a32] "r" (a32),
-              [a03] "r" (a03),
-              [a13] "r" (a13),
-              [a23] "r" (a23),
-              [a33] "r" (a33),
+              [a00w] "r" (a00w),
+              [a10w] "r" (a10w),
+              [a20w] "r" (a20w),
+              [a30w] "r" (a30w),
+              [a01w] "r" (a01w),
+              [a11w] "r" (a11w),
+              [a21w] "r" (a21w),
+              [a31w] "r" (a31w),
+              [a02w] "r" (a02w),
+              [a12w] "r" (a12w),
+              [a22w] "r" (a22w),
+              [a32w] "r" (a32w),
+              [a03w] "r" (a03w),
+              [a13w] "r" (a13w),
+              [a23w] "r" (a23w),
+              [a33w] "r" (a33w),
               [b00w] "vr" (b00w),
               [b10w] "vr" (b10w),
               [b20w] "vr" (b20w),
@@ -447,24 +447,24 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
         __asm__ volatile(
             // clang-format off
             "\n\t"
-            "lb %[a00], 0(%[a_addr0]) \n\t"
-            "lb %[a10], 0(%[a_addr1]) \n\t"
-            "lb %[a20], 0(%[a_addr2]) \n\t"
-            "lb %[a30], 0(%[a_addr3]) \n\t"
+            "lb %[a00w], 0(%[a_addr0]) \n\t"
+            "lb %[a10w], 0(%[a_addr1]) \n\t"
+            "lb %[a20w], 0(%[a_addr2]) \n\t"
+            "lb %[a30w], 0(%[a_addr3]) \n\t"
 
             "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
             "vle8.v %[b00], (%[b_addr0]) \n\t"
             "vwcvt.x.x.v %[b00w], %[b00] \n\t"
 
             "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
-            "vwmacc.vx %[acc00], %[a00], %[b00w] \n\t"
-            "vwmacc.vx %[acc10], %[a10], %[b00w] \n\t"
-            "vwmacc.vx %[acc20], %[a20], %[b00w] \n\t"
-            "vwmacc.vx %[acc30], %[a30], %[b00w] \n\t"
-            : [a00] "=&r" (a00),
-              [a10] "=&r" (a10),
-              [a20] "=&r" (a20),
-              [a30] "=&r" (a30),
+            "vwmacc.vx %[acc00], %[a00w], %[b00w] \n\t"
+            "vwmacc.vx %[acc10], %[a10w], %[b00w] \n\t"
+            "vwmacc.vx %[acc20], %[a20w], %[b00w] \n\t"
+            "vwmacc.vx %[acc30], %[a30w], %[b00w] \n\t"
+            : [a00w] "=&r" (a00w),
+              [a10w] "=&r" (a10w),
+              [a20w] "=&r" (a20w),
+              [a30w] "=&r" (a30w),
               [b00] "=&vr" (b00),
               [b00w] "=&vr" (b00w),
               [acc00] "+&vr" (acc00),
@@ -536,15 +536,15 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
       __asm__ volatile(
           // clang-format off
           "\n\t"
-          "lb %[a00], 0(%[a_addr0]) \n\t"
+          "lb %[a00w], 0(%[a_addr0]) \n\t"
 
           "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
           "vle8.v %[b00], (%[b_addr0]) \n\t"
           "vwcvt.x.x.v %[b00w], %[b00] \n\t"
 
           "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
-          "vwmul.vx %[acc00], %[b00w], %[a00] \n\t"
-          : [a00] "=&r" (a00),
+          "vwmul.vx %[acc00], %[b00w], %[a00w] \n\t"
+          : [a00w] "=&r" (a00w),
             [b00] "=&vr" (b00),
             [b00w] "=&vr" (b00w),
             [acc00] "=vr" (acc00)
@@ -559,15 +559,15 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_i8_i8_i32_zve32x_x390(
         __asm__ volatile(
             // clang-format off
             "\n\t"
-            "lb %[a00], 0(%[a_addr0]) \n\t"
+            "lb %[a00w], 0(%[a_addr0]) \n\t"
 
             "vsetvli zero, %[jj_vl], e8, m1, ta, ma \n\t"
             "vle8.v %[b00], (%[b_addr0]) \n\t"
             "vwcvt.x.x.v %[b00w], %[b00] \n\t"
 
             "vsetvli zero, %[jj_vl], e16, m2, ta, ma \n\t"
-            "vwmacc.vx %[acc00], %[a00], %[b00w] \n\t"
-            : [a00] "=&r" (a00),
+            "vwmacc.vx %[acc00], %[a00w], %[b00w] \n\t"
+            : [a00w] "=&r" (a00w),
               [b00] "=&vr" (b00),
               [b00w] "=&vr" (b00w),
               [acc00] "+vr" (acc00)
