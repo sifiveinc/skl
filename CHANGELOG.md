@@ -27,10 +27,14 @@ Initial release of SKL. Features include:
         * Xsfvfexpa: `float16`, `bfloat16`, `float32`.
         * Xsfvfbfa: `bfloat16`.
         * Zvfbfmin: `bfloat16`.
-    * Logistic:
-        * RVV: `float16`, `float32`.
+    * Sigmoid:
+        * RVV: `bfloat16`, `float32`.
+        * Xsfvfbfa: `bfloat16`.
+        * Xsfvfbfexp16e + Xsfvfbfa: `bfloat16`.
         * Xsfvfexp16e: `float16`.
-        * Xsfvfexpa: `float32`.
+        * Xsfvfexp32e: `bfloat16`, `float32`.
+        * Xsfvfexpa: `float16`, `bfloat16`, `float32`.
+        * Zvfh: `float16`.
     * Depthwise Convolution 2D:
         * RVV: `float16`, `float32`, quad-widening `int8`.
     * OFP Conversion:

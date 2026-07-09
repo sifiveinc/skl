@@ -110,64 +110,43 @@
 #endif
 
 /*
- * Logistic Function Kernels
+ * Sigmoid Function Kernels
  */
 
-#if defined(__riscv_zvfh)
-#include "logistic/logistic_f16_zvfh.h"
-#endif
-#if defined(__riscv_xsfvfexp16e)
-#include "logistic/logistic_f16_xsfvfexp16e.h"
-#endif
-
-#if defined(__riscv_zve32f)
-#include "logistic/logistic_bf16_zve32f.h"
-#endif
 #if defined(__riscv_xsfvfbfa)
-#include "logistic/logistic_bf16_xsfvfbfa.h"
+#include "sigmoid/sigmoid_bf16_xsfvfbfa.h"
 #endif
 #if defined(__riscv_xsfvfbfexp16e) && defined(__riscv_xsfvfbfa)
-#include "logistic/logistic_bf16_xsfvfbfexp16e_xsfvfbfa.h"
+#include "sigmoid/sigmoid_bf16_xsfvfbfexp16e_xsfvfbfa.h"
 #endif
 #if defined(__riscv_xsfvfexp32e)
-#include "logistic/logistic_bf16_xsfvfexp32e.h"
+#include "sigmoid/sigmoid_bf16_xsfvfexp32e.h"
 #endif
 #if defined(__riscv_xsfvfexpa)
-#include "logistic/logistic_bf16_xsfvfexpa.h"
+#include "sigmoid/sigmoid_bf16_xsfvfexpa.h"
 #endif
-
 #if defined(__riscv_zve32f)
-#include "logistic/logistic_f32_zve32f.h"
+#include "sigmoid/sigmoid_bf16_zve32f.h"
 #endif
-#if defined(__riscv_xsfvfexp32e)
-#include "logistic/logistic_f32_xsfvfexp32e.h"
-#endif
-#if defined(__riscv_xsfvfexpa)
-#include "logistic/logistic_f32_xsfvfexpa.h"
-#endif
-
-/*
- * SiLU Function Kernels
- */
 
 #if defined(__riscv_zvfh)
-#include "silu/silu_f16_zvfh.h"
+#include "sigmoid/sigmoid_f16_zvfh.h"
 #endif
 #if defined(__riscv_xsfvfexp16e)
-#include "silu/silu_f16_xsfvfexp16e.h"
+#include "sigmoid/sigmoid_f16_xsfvfexp16e.h"
 #endif
 #if defined(__riscv_xsfvfexpa) && defined(__riscv_zvfh)
-#include "silu/silu_f16_xsfvfexpa_zvfh.h"
+#include "sigmoid/sigmoid_f16_xsfvfexpa_zvfh.h"
 #endif
 
 #if defined(__riscv_zve32f)
-#include "silu/silu_f32_zve32f.h"
+#include "sigmoid/sigmoid_f32_zve32f.h"
 #endif
 #if defined(__riscv_xsfvfexp32e)
-#include "silu/silu_f32_xsfvfexp32e.h"
+#include "sigmoid/sigmoid_f32_xsfvfexp32e.h"
 #endif
 #if defined(__riscv_xsfvfexpa)
-#include "silu/silu_f32_xsfvfexpa.h"
+#include "sigmoid/sigmoid_f32_xsfvfexpa.h"
 #endif
 
 /*
