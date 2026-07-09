@@ -7,7 +7,7 @@
  * @brief Implementation of the pack_e8rc_e8rcprc test harness.
  *
  * This file defines all harness functions _except_ `execute`, which is
- * defined in the test file (e.g. rvv/skl_pack_e8rc_e8rcprc_zve32x.c.c).
+ * defined in the test file (e.g. rvv/skl_pack_e8rc_e8rcprc_zve32x.c).
  */
 
 #include "pack_e8rc_e8rcprc.h"
