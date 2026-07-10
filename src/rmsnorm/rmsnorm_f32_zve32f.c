@@ -11,13 +11,14 @@
 #include <riscv_vector.h>
 #include <stddef.h>
 
+SKL_FUNC_PRIVATE void
+skl_rmsnorm_rows_f32_zve32f(const float *input, const float *scale,
+                            float *output, size_t nrows, size_t ncols,
+                            float reciprocal_ncols, float epsilon) {
 
-SKL_FUNC_PRIVATE void skl_rmsnorm_rows_f32_zve32f(const float *input, const float *scale, float *output,
-                      size_t nrows, size_t ncols, float reciprocal_ncols,
-                      float epsilon) {
-
-  size_t reg_vl_m4 = __riscv_v_min_vlen >> 3;
+  size_t vl_rsqrt;
   size_t reg_vl_m1 = __riscv_v_min_vlen >> 5;
+  size_t four_row_cap = reg_vl_m1 / 4;
 
   float *iptr = (float *)input;
   float *iptr2 = iptr + ncols;
@@ -26,226 +27,184 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rows_f32_zve32f(const float *input, const floa
   size_t remaining_rows = nrows;
 
   // Initial vsetvli configuration
-  __asm__ volatile(
-    "vsetvli zero, %[max_vl], e32, m8, tu, ma\n\t"
-    :
-    : [max_vl] "r"(~0UL)
-    : "vl", "vtype"
-  );
+  __asm__ volatile("vsetvli zero, %[max_vl], e32, m8, tu, ma\n\t"
+                   :
+                   : [max_vl] "r"(~0UL)
+                   : "vl", "vtype");
 
-  while(remaining_rows >= 4){
-    while(reg_vl_m4 > remaining_rows) reg_vl_m4 /= 2;
+  while (remaining_rows >= 4) {
 
-    while (remaining_rows >= reg_vl_m4) {
+    for (; (vl_rsqrt = __riscv_vsetvl_e32m4(remaining_rows)) > 0;
+         remaining_rows -= vl_rsqrt) {
       // Process 4 rows at a time
-      for(size_t i = 0 ; i < (reg_vl_m4/4) ; i++)
-      {
-        size_t avl;
+      for (size_t i = 0; i < (vl_rsqrt / 4); i++) {
+        size_t idx;
+        size_t bank_index;
 
-        /* ========== First 2 Rows Square Sum ========== */
-        // Register allocation:
-        // v0[m8]: accumulator for row 1 square sum
-        // v24[m8]: accumulator for row 2 square sum
-        // v8[m8]: temporary for loaded data
-        // v20, v21: reduction results
-        __asm__ volatile(
-          "vsetvli zero, %[max_vl], e32, m8, tu, ma\n\t"
-          "vmv.v.i v0, 0\n\t"
-          "vmv.v.i v24, 0\n\t"
-          :
-          : [max_vl] "r"(~0UL)
-          : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-            "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
-            "vl", "vtype"
-        );
-
-        avl = ncols;
-        while (avl) {
-          size_t vl;
-          __asm__ volatile(
-            "vsetvli %[vl_out], %[avl_in], e32, m8, tu, ma\n\t"
-            "vle32.v v8, (%[ptr1])\n\t"
-            "vfmacc.vv v0, v8, v8\n\t"
-            "vle32.v v8, (%[ptr2])\n\t"
-            "vfmacc.vv v24, v8, v8\n\t"
-            : [vl_out] "=&r"(vl)
-            : [avl_in] "r"(avl),
-              [ptr1] "r"(iptr),
-              [ptr2] "r"(iptr2)
-            : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-              "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15",
-              "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
-              "vl", "vtype", "memory"
-          );
-          avl -= vl;
-          iptr += vl;
-          iptr2 += vl;
-        }
-
-        // Tree reduction m8->m1
-        __asm__ volatile(
-          "vsetvli zero, %[max_vl], e32, m1, tu, ma\n\t"
-          "vfadd.vv v0, v0, v1\n\t"
-          "vfadd.vv v24, v24, v25\n\t"
-          "vfadd.vv v2, v2, v3\n\t"
-          "vfadd.vv v26, v26, v27\n\t"
-          "vfadd.vv v4, v4, v5\n\t"
-          "vfadd.vv v28, v28, v29\n\t"
-          "vfadd.vv v6, v6, v7\n\t"
-          "vfadd.vv v30, v30, v31\n\t"
-          "vmv.v.i v8, 0\n\t"
-          "vfadd.vv v0, v0, v2\n\t"
-          "vfadd.vv v24, v24, v26\n\t"
-          "vfadd.vv v4, v4, v6\n\t"
-          "vfadd.vv v28, v28, v30\n\t"
-          "vfadd.vv v0, v0, v4\n\t"
-          "vfadd.vv v24, v24, v28\n\t"
-          :
-          : [max_vl] "r"(~0UL)
-          : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-            "v8", "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
-            "vl", "vtype"
-        );
-
-        iptr += ncols;
-        iptr2 += ncols;
-        remaining_rows -= 2;
-
-        // Horizontal reduction
-        __asm__ volatile(
-          "vfredusum.vs v20, v0, v8\n\t"
-          "vfredusum.vs v21, v24, v8\n\t"
-          :
-          :
-          : "v20", "v21"
-        );
-
-        /* ========== Second 2 Rows Square Sum ========== */
-        __asm__ volatile(
-          "vsetvli zero, %[max_vl], e32, m8, tu, ma\n\t"
-          "vmv.v.i v0, 0\n\t"
-          "vmv.v.i v24, 0\n\t"
-          :
-          : [max_vl] "r"(~0UL)
-          : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-            "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
-            "vl", "vtype"
-        );
-
-        avl = ncols;
-        while (avl) {
-          size_t vl;
-          __asm__ volatile(
-            "vsetvli %[vl_out], %[avl_in], e32, m8, tu, ma\n\t"
-            "vle32.v v8, (%[ptr1])\n\t"
-            "vfmacc.vv v0, v8, v8\n\t"
-            "vle32.v v8, (%[ptr2])\n\t"
-            "vfmacc.vv v24, v8, v8\n\t"
-            : [vl_out] "=&r"(vl)
-            : [avl_in] "r"(avl),
-              [ptr1] "r"(iptr),
-              [ptr2] "r"(iptr2)
-            : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-              "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15",
-              "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
-              "vl", "vtype", "memory"
-          );
-          avl -= vl;
-          iptr += vl;
-          iptr2 += vl;
-        }
-
-        __asm__ volatile(
-          "vsetvli zero, %[max_vl], e32, m1, tu, ma\n\t"
-          "vfadd.vv v0, v0, v1\n\t"
-          "vfadd.vv v24, v24, v25\n\t"
-          "vfadd.vv v2, v2, v3\n\t"
-          "vfadd.vv v26, v26, v27\n\t"
-          "vfadd.vv v4, v4, v5\n\t"
-          "vfadd.vv v28, v28, v29\n\t"
-          "vfadd.vv v6, v6, v7\n\t"
-          "vfadd.vv v30, v30, v31\n\t"
-          "vmv.v.i v8, 0\n\t"
-          "vfadd.vv v0, v0, v2\n\t"
-          "vfadd.vv v24, v24, v26\n\t"
-          "vfadd.vv v4, v4, v6\n\t"
-          "vfadd.vv v28, v28, v30\n\t"
-          "vfadd.vv v0, v0, v4\n\t"
-          "vfadd.vv v24, v24, v28\n\t"
-          :
-          : [max_vl] "r"(~0UL)
-          : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-            "v8", "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
-            "vl", "vtype"
-        );
-
-        iptr += ncols;
-        iptr2 += ncols;
-        remaining_rows -= 2;
-
-        __asm__ volatile(
-          "vfredusum.vs v22, v0, v8\n\t"
-          "vfredusum.vs v23, v24, v8\n\t"
-          :
-          :
-          : "v22", "v23"
-        );
-
-        /* ========== Collect square sums into v16~v19 ========== */
-        __asm__ volatile(
-          "vsetvli zero, %[max_vl], e32, m1, tu, ma\n\t"
-          :
-          : [max_vl] "r"(~0UL)
-          : "vl", "vtype"
-        );
-
-        size_t four_row_cap = reg_vl_m1 / 4;
-        if(i >= (four_row_cap*3))
-        {
-          size_t idx = (i - four_row_cap*3)*4;
-          __asm__ volatile(
-            "vslideup.vx v19, v20, %[i0]\n\t"
-            "vslideup.vx v19, v21, %[i1]\n\t"
-            "vslideup.vx v19, v22, %[i2]\n\t"
-            "vslideup.vx v19, v23, %[i3]\n\t"
-            :
-            : [i0] "r"(idx+0), [i1] "r"(idx+1), [i2] "r"(idx+2), [i3] "r"(idx+3)
-            : "v19"
-          );
-        } else if(i >= (four_row_cap*2)) {
-          size_t idx = (i - four_row_cap*2)*4;
-          __asm__ volatile(
-            "vslideup.vx v18, v20, %[i0]\n\t"
-            "vslideup.vx v18, v21, %[i1]\n\t"
-            "vslideup.vx v18, v22, %[i2]\n\t"
-            "vslideup.vx v18, v23, %[i3]\n\t"
-            :
-            : [i0] "r"(idx+0), [i1] "r"(idx+1), [i2] "r"(idx+2), [i3] "r"(idx+3)
-            : "v18"
-          );
-        } else if(i >= four_row_cap) {
-          size_t idx = (i - four_row_cap)*4;
-          __asm__ volatile(
-            "vslideup.vx v17, v20, %[i0]\n\t"
-            "vslideup.vx v17, v21, %[i1]\n\t"
-            "vslideup.vx v17, v22, %[i2]\n\t"
-            "vslideup.vx v17, v23, %[i3]\n\t"
-            :
-            : [i0] "r"(idx+0), [i1] "r"(idx+1), [i2] "r"(idx+2), [i3] "r"(idx+3)
-            : "v17"
-          );
+        // Determine bank and index offset
+        if (i >= (four_row_cap * 3)) {
+          bank_index = 3;
+          idx = (i - four_row_cap * 3) * 4;
+        } else if (i >= (four_row_cap * 2)) {
+          bank_index = 2;
+          idx = (i - four_row_cap * 2) * 4;
+        } else if (i >= four_row_cap) {
+          bank_index = 1;
+          idx = (i - four_row_cap) * 4;
         } else {
-          size_t idx = i*4;
-          __asm__ volatile(
+          bank_index = 0;
+          idx = i * 4;
+        }
+        __asm__ volatile(
+            /* ========== First 2 Rows Square Sum ========== */
+            // Initialize accumulators (m8)
+            "vsetvli zero, %[max_vl], e32, m8, tu, ma\n\t"
+            "vmv.v.i v0, 0\n\t"
+            "vmv.v.i v24, 0\n\t"
+
+            // Setup loop
+            "mv t0, %[avl_init]\n\t" // t0 = avl
+
+            "1:\n\t"          // loop_start_1
+            "beqz t0, 2f\n\t" // if (avl == 0) goto loop_end_1
+
+            // Process one vector length
+            "vsetvli t3, t0, e32, m8, tu, ma\n\t" // t3 = vl
+            "vle32.v v8, (%[ptr1])\n\t"
+            "vfmacc.vv v0, v8, v8\n\t"
+            "vle32.v v8, (%[ptr2])\n\t"
+            "vfmacc.vv v24, v8, v8\n\t"
+
+            // Update pointers and counter
+            "sub t0, t0, t3\n\t"           // avl -= vl
+            "slli t4, t3, 2\n\t"           // t4 = vl * 4 (sizeof(float))
+            "add %[ptr1], %[ptr1], t4\n\t" // iptr += vl
+            "add %[ptr2], %[ptr2], t4\n\t" // iptr2 += vl
+            "j 1b\n\t"                     // goto loop_start_1
+
+            "2:\n\t" // loop_end_1
+
+            // Tree reduction: m8 -> m1
+            "vsetvli zero, %[max_vl], e32, m1, tu, ma\n\t"
+            "vfadd.vv v0, v0, v1\n\t"
+            "vfadd.vv v24, v24, v25\n\t"
+            "vfadd.vv v2, v2, v3\n\t"
+            "vfadd.vv v26, v26, v27\n\t"
+            "vfadd.vv v4, v4, v5\n\t"
+            "vfadd.vv v28, v28, v29\n\t"
+            "vfadd.vv v6, v6, v7\n\t"
+            "vfadd.vv v30, v30, v31\n\t"
+            "vmv.v.i v8, 0\n\t"
+            "vfadd.vv v0, v0, v2\n\t"
+            "vfadd.vv v24, v24, v26\n\t"
+            "vfadd.vv v4, v4, v6\n\t"
+            "vfadd.vv v28, v28, v30\n\t"
+            "vfadd.vv v0, v0, v4\n\t"
+            "vfadd.vv v24, v24, v28\n\t"
+            "vfredusum.vs v20, v0, v8\n\t"
+            "vfredusum.vs v21, v24, v8\n\t"
+
+            // Pointer update for next 2 rows (iptr += ncols; iptr2 += ncols;)
+            "slli t4, %[avl_init], 2\n\t"  // t4 = ncols * 4
+            "add %[ptr1], %[ptr1], t4\n\t" // iptr += ncols
+            "add %[ptr2], %[ptr2], t4\n\t" // iptr2 += ncols
+
+            /* ========== Second 2 Rows Square Sum ========== */
+            // Re-initialize accumulators (m8)
+            "vsetvli zero, %[max_vl], e32, m8, tu, ma\n\t"
+            "vmv.v.i v0, 0\n\t"
+            "vmv.v.i v24, 0\n\t"
+
+            // Setup loop
+            "mv t0, %[avl_init]\n\t" // t0 = avl
+
+            "3:\n\t"          // loop_start_2
+            "beqz t0, 4f\n\t" // if (avl == 0) goto loop_end_2
+
+            // Process one vector length
+            "vsetvli t3, t0, e32, m8, tu, ma\n\t" // t3 = vl
+            "vle32.v v8, (%[ptr1])\n\t"
+            "vfmacc.vv v0, v8, v8\n\t"
+            "vle32.v v8, (%[ptr2])\n\t"
+            "vfmacc.vv v24, v8, v8\n\t"
+
+            // Update pointers and counter
+            "sub t0, t0, t3\n\t"           // avl -= vl
+            "slli t4, t3, 2\n\t"           // t4 = vl * 4 (sizeof(float))
+            "add %[ptr1], %[ptr1], t4\n\t" // iptr += vl
+            "add %[ptr2], %[ptr2], t4\n\t" // iptr2 += vl
+            "j 3b\n\t"                     // goto loop_start_2
+
+            "4:\n\t" // loop_end_2
+
+            // Tree reduction: m8 -> m1
+            "vsetvli zero, %[max_vl], e32, m1, tu, ma\n\t"
+            "vfadd.vv v0, v0, v1\n\t"
+            "vfadd.vv v24, v24, v25\n\t"
+            "vfadd.vv v2, v2, v3\n\t"
+            "vfadd.vv v26, v26, v27\n\t"
+            "vfadd.vv v4, v4, v5\n\t"
+            "vfadd.vv v28, v28, v29\n\t"
+            "vfadd.vv v6, v6, v7\n\t"
+            "vfadd.vv v30, v30, v31\n\t"
+            "vmv.v.i v8, 0\n\t"
+            "vfadd.vv v0, v0, v2\n\t"
+            "vfadd.vv v24, v24, v26\n\t"
+            "vfadd.vv v4, v4, v6\n\t"
+            "vfadd.vv v28, v28, v30\n\t"
+            "vfadd.vv v0, v0, v4\n\t"
+            "vfadd.vv v24, v24, v28\n\t"
+            "vfredusum.vs v22, v0, v8\n\t"
+            "vfredusum.vs v23, v24, v8\n\t"
+
+            // Final pointer update (iptr += ncols; iptr2 += ncols;)
+            "slli t4, %[avl_init], 2\n\t"  // t4 = ncols * 4
+            "add %[ptr1], %[ptr1], t4\n\t" // iptr += ncols
+            "add %[ptr2], %[ptr2], t4\n\t" // iptr2 += ncols
+
+            /* ========== Collect square sums into v16~v19 ========== */
+            // Bank selection via computed jump
+            "slli t0, %[bank], 5\n\t" // bank_index * 32 (register offset)
+            "la t1, 5f\n\t"           // Load address of jump table
+            "add t1, t1, t0\n\t"      // Compute target address
+            "jr t1\n\t"               // Jump to selected bank
+            "5:\n\t"
+            // Bank 0 (v16)
             "vslideup.vx v16, v20, %[i0]\n\t"
             "vslideup.vx v16, v21, %[i1]\n\t"
             "vslideup.vx v16, v22, %[i2]\n\t"
             "vslideup.vx v16, v23, %[i3]\n\t"
-            :
-            : [i0] "r"(idx+0), [i1] "r"(idx+1), [i2] "r"(idx+2), [i3] "r"(idx+3)
-            : "v16"
-          );
-        }
+            "j 6f\n\t"
+            // Bank 1 (v17)
+            "vslideup.vx v17, v20, %[i0]\n\t"
+            "vslideup.vx v17, v21, %[i1]\n\t"
+            "vslideup.vx v17, v22, %[i2]\n\t"
+            "vslideup.vx v17, v23, %[i3]\n\t"
+            "j 6f\n\t"
+            // Bank 2 (v18)
+            "vslideup.vx v18, v20, %[i0]\n\t"
+            "vslideup.vx v18, v21, %[i1]\n\t"
+            "vslideup.vx v18, v22, %[i2]\n\t"
+            "vslideup.vx v18, v23, %[i3]\n\t"
+            "j 6f\n\t"
+            // Bank 3 (v19)
+            "vslideup.vx v19, v20, %[i0]\n\t"
+            "vslideup.vx v19, v21, %[i1]\n\t"
+            "vslideup.vx v19, v22, %[i2]\n\t"
+            "vslideup.vx v19, v23, %[i3]\n\t"
+            "6:\n\t"
+
+            : [ptr1] "+&r"(iptr), // Read-Write
+              [ptr2] "+&r"(iptr2) // Read-Write
+            : [max_vl] "r"(~0UL), [avl_init] "r"(ncols), [bank] "r"(bank_index),
+              [i0] "r"(idx + 0), [i1] "r"(idx + 1), [i2] "r"(idx + 2),
+              [i3] "r"(idx + 3)
+            : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
+              "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19",
+              "v20", "v21", "v22", "v23", "v24", "v25", "v26", "v27", "v28",
+              "v29", "v30", "v31", "t0", "t1", "t3", "t4", "vl", "vtype",
+              "memory", "frm", "fflags");
+
       } // end for loop
 
       /* ========== Calculate rsqrt for all rows ========== */
@@ -256,180 +215,172 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rows_f32_zve32f(const float *input, const floa
       // v8[m4], v12[m4], v20[m4]: temporaries
       float f_one = 1.0f;
       const float half = (float)0x1.000206p-1;
-
       __asm__ volatile(
-        "vsetvli zero, %[max_vl], e32, m4, tu, ma\n\t"
-        "vfmv.v.f v0, %[eps]\n\t"
-        "vfmadd.vf v16, %[recip], v0\n\t"
-        "vfmv.v.f v20, %[one]\n\t"
-        "vfrsqrt7.v v28, v16\n\t"
-        "vfmul.vv v8, v28, v16\n\t"
-        "vmfeq.vv v0, v8, v8\n\t"
-        "vfmsub.vv v8, v28, v20\n\t"
-        "vfmul.vf v12, v28, %[half]\n\t"
-        "vfnmsac.vv v28, v12, v8, v0.t\n\t"
-        "vfmul.vv v8, v28, v16\n\t"
-        "vfmsub.vv v8, v28, v20\n\t"
-        "vfmul.vf v12, v28, %[half]\n\t"
-        "vfnmsac.vv v28, v12, v8, v0.t\n\t"
-        :
-        : [max_vl] "r"(~0UL),
-          [eps] "f"(epsilon),
-          [recip] "f"(reciprocal_ncols),
-          [one] "f"(f_one),
-          [half] "f"(half)
-        : "v0", "v1", "v2", "v3",
-          "v8", "v9", "v10", "v11",
-          "v12", "v13", "v14", "v15",
-          "v16", "v17", "v18", "v19",
-          "v20", "v21", "v22", "v23",
-          "v28", "v29", "v30", "v31",
-          "vl", "vtype", "frm", "fflags"
-      );
+          // RMS normalization computation
+          "vsetvli zero, %[max_vl], e32, m4, tu, ma\n\t"
+          "vfmv.v.f v0, %[eps]\n\t"
+          "vfmadd.vf v16, %[recip], v0\n\t"
+          "vfmv.v.f v20, %[one]\n\t"
+          "vfrsqrt7.v v28, v16\n\t"
+          "vfmul.vv v8, v28, v16\n\t"
+          "vmfeq.vv v0, v8, v8\n\t"
+          "vfmsub.vv v8, v28, v20\n\t"
+          "vfmul.vf v12, v28, %[half]\n\t"
+          "vfnmsac.vv v28, v12, v8, v0.t\n\t"
+          "vfmul.vv v8, v28, v16\n\t"
+          "vfmsub.vv v8, v28, v20\n\t"
+          "vfmul.vf v12, v28, %[half]\n\t"
+          "vfnmsac.vv v28, v12, v8, v0.t\n\t"
 
-      // Store rsqrt values with stride
-      __asm__ volatile(
-        "vsetvli zero, %[vl_m4], e32, m4, ta, ma\n\t"
-        "vsse32.v v28, (%[optr]), %[stride]\n\t"
-        :
-        : [vl_m4] "r"(reg_vl_m4),
-          [optr] "r"(optr),
-          [stride] "r"(ncols*sizeof(float))
-        : "vl", "vtype", "memory"
-      );
+          // Store rsqrt values with stride
+          "vsetvli zero, %[vl_m4], e32, m4, ta, ma\n\t"
+          "vsse32.v v28, (%[optr]), %[stride]\n\t"
 
+          :
+          : [max_vl] "r"(~0UL), [eps] "f"(epsilon),
+            [recip] "f"(reciprocal_ncols), [one] "f"(f_one), [half] "f"(half),
+            [vl_m4] "r"(vl_rsqrt), [optr] "r"(optr),
+            [stride] "r"(ncols * sizeof(float))
+          : "v0", "v1", "v2", "v3", "v8", "v9", "v10", "v11", "v12", "v13",
+            "v14", "v15", "v16", "v17", "v18", "v19", "v20", "v21", "v22",
+            "v23", "v28", "v29", "v30", "v31", "vl", "vtype", "memory", "frm",
+            "fflags");
       /* ========== Normalize and scale ========== */
-      if(scale) {
-        for (size_t i = 0, row_offset = 0; i < reg_vl_m4; i+=3, row_offset += 3*ncols) {
+      if (scale) {
+        for (size_t i = 0, row_offset = 0; i < vl_rsqrt;
+             i += 3, row_offset += 3 * ncols) {
           float rms_1 = *(optr + row_offset);
           float rms_2;
-          if(i < (reg_vl_m4-1)) rms_2 = *(optr + row_offset + ncols);
+          if (i < (vl_rsqrt - 1))
+            rms_2 = *(optr + row_offset + ncols);
           float rms_3;
-          if(i < (reg_vl_m4-2)) rms_3 = *(optr + row_offset + 2*ncols);
+          if (i < (vl_rsqrt - 2))
+            rms_3 = *(optr + row_offset + 2 * ncols);
 
-          for (size_t avl = ncols, vl = 0, col_offset = 0; avl > 0; avl -= vl, col_offset += vl) {
-            // Process row 1
+          for (size_t avl = ncols, vl = 0, col_offset = 0; avl > 0;
+               avl -= vl, col_offset += vl) {
             __asm__ volatile(
-              "vsetvli %[vl_out], %[avl_in], e32, m8, ta, ma\n\t"
-              "vle32.v v8, (%[in_ptr])\n\t"
-              "vfmul.vf v8, v8, %[rms1]\n\t"
-              "vle32.v v0, (%[scale_ptr])\n\t"
-              "vfmul.vv v8, v8, v0\n\t"
-              "vse32.v v8, (%[out_ptr])\n\t"
-              : [vl_out] "=&r"(vl)
-              : [avl_in] "r"(avl),
-                [in_ptr] "r"(iptr_norm + row_offset + col_offset),
-                [scale_ptr] "r"(scale + col_offset),
-                [out_ptr] "r"(optr + row_offset + col_offset),
-                [rms1] "f"(rms_1)
-              : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-                "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15",
-                "vl", "vtype", "memory", "frm", "fflags"
-            );
+                // Process row 1
+                "vsetvli %[vl_out], %[avl_in], e32, m8, ta, ma\n\t"
+                "vle32.v v8, (%[in_ptr1])\n\t"
+                "vfmul.vf v8, v8, %[rms1]\n\t"
+                "vle32.v v0, (%[scale_ptr])\n\t"
+                "vfmul.vv v8, v8, v0\n\t"
+                "vse32.v v8, (%[out_ptr1])\n\t"
 
-            if(i >= (reg_vl_m4-1)) continue;
+                // Check if i >= (vl_rsqrt-1), skip row 2 and 3 if true
+                "sub t0, %[vl_rsqrt], %[i_val]\n\t" // t0 = vl_rsqrt - i
+                "li t1, 1\n\t"
+                "ble t0, t1, 2f\n\t" // if (vl_rsqrt - i <= 1) goto done (i >=
+                                     // vl_rsqrt-1)
 
-            // Process row 2
-            __asm__ volatile(
-              "vle32.v v16, (%[in_ptr])\n\t"
-              "vfmul.vf v16, v16, %[rms2]\n\t"
-              "vfmul.vv v16, v16, v0\n\t"
-              "vse32.v v16, (%[out_ptr])\n\t"
-              :
-              : [in_ptr] "r"(iptr_norm + row_offset + col_offset + ncols),
-                [out_ptr] "r"(optr + row_offset + col_offset + ncols),
-                [rms2] "f"(rms_2)
-              : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-                "v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23",
-                "memory", "frm", "fflags"
-            );
+                // Process row 2
+                "vle32.v v16, (%[in_ptr2])\n\t"
+                "vfmul.vf v16, v16, %[rms2]\n\t"
+                "vfmul.vv v16, v16, v0\n\t"
+                "vse32.v v16, (%[out_ptr2])\n\t"
 
-            if(i >= (reg_vl_m4-2)) continue;
+                // Check if i >= (vl_rsqrt-2), skip row 3 if true
+                "li t1, 2\n\t"
+                "ble t0, t1, 2f\n\t" // if (vl_rsqrt - i <= 2) goto done (i >=
+                                     // vl_rsqrt-2)
 
-            // Process row 3
-            __asm__ volatile(
-              "vle32.v v24, (%[in_ptr])\n\t"
-              "vfmul.vf v24, v24, %[rms3]\n\t"
-              "vfmul.vv v24, v24, v0\n\t"
-              "vse32.v v24, (%[out_ptr])\n\t"
-              :
-              : [in_ptr] "r"(iptr_norm + row_offset + col_offset + ncols*2),
-                [out_ptr] "r"(optr + row_offset + col_offset + ncols*2),
-                [rms3] "f"(rms_3)
-              : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-                "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
-                "memory", "frm", "fflags"
-            );
+                // Process row 3
+                "vle32.v v24, (%[in_ptr3])\n\t"
+                "vfmul.vf v24, v24, %[rms3]\n\t"
+                "vfmul.vv v24, v24, v0\n\t"
+                "vse32.v v24, (%[out_ptr3])\n\t"
+
+                "2:\n\t" // done
+
+                : [vl_out] "=&r"(vl)
+                : [avl_in] "r"(avl), [i_val] "r"(i), [vl_rsqrt] "r"(vl_rsqrt),
+                  [in_ptr1] "r"(iptr_norm + row_offset + col_offset),
+                  [in_ptr2] "r"(iptr_norm + row_offset + col_offset + ncols),
+                  [in_ptr3] "r"(iptr_norm + row_offset + col_offset +
+                                ncols * 2),
+                  [scale_ptr] "r"(scale + col_offset),
+                  [out_ptr1] "r"(optr + row_offset + col_offset),
+                  [out_ptr2] "r"(optr + row_offset + col_offset + ncols),
+                  [out_ptr3] "r"(optr + row_offset + col_offset + ncols * 2),
+                  [rms1] "f"(rms_1), [rms2] "f"(rms_2), [rms3] "f"(rms_3)
+                : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9",
+                  "v10", "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18",
+                  "v19", "v20", "v21", "v22", "v23", "v24", "v25", "v26", "v27",
+                  "v28", "v29", "v30", "v31", "t0", "t1", "vl", "vtype",
+                  "memory", "frm", "fflags");
           }
         }
       } else {
-        for (size_t i = 0, row_offset = 0; i < reg_vl_m4; i+=3, row_offset += 3*ncols) {
+        for (size_t i = 0, row_offset = 0; i < vl_rsqrt;
+             i += 3, row_offset += 3 * ncols) {
           float rms_1 = *(optr + row_offset);
           float rms_2;
-          if(i < (reg_vl_m4-1)) rms_2 = *(optr + row_offset + ncols);
+          if (i < (vl_rsqrt - 1))
+            rms_2 = *(optr + row_offset + ncols);
           float rms_3;
-          if(i < (reg_vl_m4-2)) rms_3 = *(optr + row_offset + 2*ncols);
+          if (i < (vl_rsqrt - 2))
+            rms_3 = *(optr + row_offset + 2 * ncols);
 
-          for (size_t avl = ncols, vl = 0, col_offset = 0; avl > 0; avl -= vl, col_offset += vl) {
-            // Process row 1
+          for (size_t avl = ncols, vl = 0, col_offset = 0; avl > 0;
+               avl -= vl, col_offset += vl) {
+            // Process rows 1-3 in single asm block
             __asm__ volatile(
-              "vsetvli %[vl_out], %[avl_in], e32, m8, ta, ma\n\t"
-              "vle32.v v8, (%[in_ptr])\n\t"
-              "vfmul.vf v8, v8, %[rms1]\n\t"
-              "vse32.v v8, (%[out_ptr])\n\t"
-              : [vl_out] "=&r"(vl)
-              : [avl_in] "r"(avl),
-                [in_ptr] "r"(iptr_norm + row_offset + col_offset),
-                [out_ptr] "r"(optr + row_offset + col_offset),
-                [rms1] "f"(rms_1)
-              : "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15",
-                "vl", "vtype", "memory", "frm", "fflags"
-            );
+                // Process row 1
+                "vsetvli %[vl_out], %[avl_in], e32, m8, ta, ma\n\t"
+                "vle32.v v8, (%[in_ptr1])\n\t"
+                "vfmul.vf v8, v8, %[rms1]\n\t"
+                "vse32.v v8, (%[out_ptr1])\n\t"
 
-            if(i >= (reg_vl_m4-1)) continue;
+                // Check if i >= (vl_rsqrt-1), skip row 2 and 3 if true
+                "sub t0, %[vl_rsqrt], %[i_val]\n\t" // t0 = vl_rsqrt - i
+                "li t1, 1\n\t"
+                "ble t0, t1, 2f\n\t" // if (vl_rsqrt - i <= 1) goto done
 
-            // Process row 2
-            __asm__ volatile(
-              "vle32.v v16, (%[in_ptr])\n\t"
-              "vfmul.vf v16, v16, %[rms2]\n\t"
-              "vse32.v v16, (%[out_ptr])\n\t"
-              :
-              : [in_ptr] "r"(iptr_norm + row_offset + col_offset + ncols),
-                [out_ptr] "r"(optr + row_offset + col_offset + ncols),
-                [rms2] "f"(rms_2)
-              : "v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23",
-                "memory", "frm", "fflags"
-            );
+                // Process row 2
+                "vle32.v v16, (%[in_ptr2])\n\t"
+                "vfmul.vf v16, v16, %[rms2]\n\t"
+                "vse32.v v16, (%[out_ptr2])\n\t"
 
-            if(i >= (reg_vl_m4-2)) continue;
+                // Check if i >= (vl_rsqrt-2), skip row 3 if true
+                "li t1, 2\n\t"
+                "ble t0, t1, 2f\n\t" // if (vl_rsqrt - i <= 2) goto done
 
-            // Process row 3
-            __asm__ volatile(
-              "vle32.v v24, (%[in_ptr])\n\t"
-              "vfmul.vf v24, v24, %[rms3]\n\t"
-              "vse32.v v24, (%[out_ptr])\n\t"
-              :
-              : [in_ptr] "r"(iptr_norm + row_offset + col_offset + ncols*2),
-                [out_ptr] "r"(optr + row_offset + col_offset + ncols*2),
-                [rms3] "f"(rms_3)
-              : "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
-                "memory", "frm", "fflags"
-            );
+                // Process row 3
+                "vle32.v v24, (%[in_ptr3])\n\t"
+                "vfmul.vf v24, v24, %[rms3]\n\t"
+                "vse32.v v24, (%[out_ptr3])\n\t"
+
+                "2:\n\t" // done
+
+                : [vl_out] "=&r"(vl)
+                : [avl_in] "r"(avl), [i_val] "r"(i), [vl_rsqrt] "r"(vl_rsqrt),
+                  [in_ptr1] "r"(iptr_norm + row_offset + col_offset),
+                  [in_ptr2] "r"(iptr_norm + row_offset + col_offset + ncols),
+                  [in_ptr3] "r"(iptr_norm + row_offset + col_offset +
+                                ncols * 2),
+                  [out_ptr1] "r"(optr + row_offset + col_offset),
+                  [out_ptr2] "r"(optr + row_offset + col_offset + ncols),
+                  [out_ptr3] "r"(optr + row_offset + col_offset + ncols * 2),
+                  [rms1] "f"(rms_1), [rms2] "f"(rms_2), [rms3] "f"(rms_3)
+                : "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15", "v16",
+                  "v17", "v18", "v19", "v20", "v21", "v22", "v23", "v24", "v25",
+                  "v26", "v27", "v28", "v29", "v30", "v31", "t0", "t1", "vl",
+                  "vtype", "memory", "frm", "fflags");
           }
         }
-
-
       }
 
-      iptr_norm += reg_vl_m4 * ncols;
-      optr += reg_vl_m4 * ncols;
+      iptr_norm += vl_rsqrt * ncols;
+      optr += vl_rsqrt * ncols;
     }
   }
 }
 
-SKL_FUNC_PRIVATE void skl_rmsnorm_rem_f32_zve32f(const float *input, const float *scale, float *output,
-                      size_t nrows, size_t ncols, float reciprocal_ncols,
-                      float epsilon) {
+SKL_FUNC_PRIVATE void
+skl_rmsnorm_rem_f32_zve32f(const float *input, const float *scale,
+                           float *output, size_t nrows, size_t ncols,
+                           float reciprocal_ncols, float epsilon) {
   float *iptr = (float *)input;
   float *iptr2 = iptr + ncols;
   float *iptr_norm = (float *)input;
@@ -442,195 +393,156 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rem_f32_zve32f(const float *input, const float
   size_t remaining_rows = nrows;
 
   // Initial setup
-  __asm__ volatile(
-    "vsetvli zero, %[max_vl], e32, m8, tu, ma\n\t"
-    "vmv.v.i v8, 0\n\t"
-    :
-    : [max_vl] "r"(~0UL)
-    : "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15",
-      "vl", "vtype"
-  );
+  __asm__ volatile("vsetvli zero, %[max_vl], e32, m8, tu, ma\n\t"
+                   "vmv.v.i v8, 0\n\t"
+                   :
+                   : [max_vl] "r"(~0UL)
+                   : "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15", "vl",
+                     "vtype");
 
   while (remaining_rows >= 2) {
-    /* ========== 2 Rows Square Sum ========== */
-    // Register allocation:
-    // v0[m8]: row 1 accumulator
-    // v24[m8]: row 2 accumulator
-    // v8[m8]: temp for loads
-    // v17, v18: reduction results
-    __asm__ volatile(
-      "vsetvli zero, %[max_vl], e32, m8, tu, ma\n\t"
-      "vmv.v.i v0, 0\n\t"
-      "vmv.v.i v24, 0\n\t"
-      :
-      : [max_vl] "r"(~0UL)
-      : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-        "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
-        "vl", "vtype"
-    );
+    float rsqrt1, rsqrt2;
 
-    size_t avl = ncols;
-    while (avl) {
-      size_t vl;
-      __asm__ volatile(
-        "vsetvli %[vl_out], %[avl_in], e32, m8, tu, ma\n\t"
+    __asm__ volatile(
+        // Initialize accumulators (m8)
+        "vsetvli zero, %[max_vl], e32, m8, tu, ma\n\t"
+        "vmv.v.i v0, 0\n\t"
+        "vmv.v.i v24, 0\n\t"
+
+        // Setup loop
+        "mv t0, %[avl_init]\n\t" // t0 = avl
+
+        "1:\n\t"          // loop_start
+        "beqz t0, 2f\n\t" // if (avl == 0) goto loop_end
+
+        // Process one vector length
+        "vsetvli t3, t0, e32, m8, tu, ma\n\t" // t3 = vl
         "vle32.v v8, (%[ptr1])\n\t"
         "vfmacc.vv v0, v8, v8\n\t"
         "vle32.v v8, (%[ptr2])\n\t"
         "vfmacc.vv v24, v8, v8\n\t"
-        : [vl_out] "=&r"(vl)
-        : [avl_in] "r"(avl),
-          [ptr1] "r"(iptr),
-          [ptr2] "r"(iptr2)
-        : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-          "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15",
-          "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
-          "vl", "vtype", "memory"
-      );
-      avl -= vl;
-      iptr += vl;
-      iptr2 += vl;
-    }
 
-    // Tree reduction m8->m1
-    __asm__ volatile(
-      "vsetvli zero, %[max_vl], e32, m1, tu, ma\n\t"
-      "vfadd.vv v0, v0, v1\n\t"
-      "vfadd.vv v24, v24, v25\n\t"
-      "vfadd.vv v2, v2, v3\n\t"
-      "vfadd.vv v26, v26, v27\n\t"
-      "vfadd.vv v4, v4, v5\n\t"
-      "vfadd.vv v28, v28, v29\n\t"
-      "vfadd.vv v6, v6, v7\n\t"
-      "vfadd.vv v30, v30, v31\n\t"
-      "vmv.v.i v8, 0\n\t"
-      "vfadd.vv v0, v0, v2\n\t"
-      "vfadd.vv v24, v24, v26\n\t"
-      "vfadd.vv v4, v4, v6\n\t"
-      "vfadd.vv v28, v28, v30\n\t"
-      "vfadd.vv v0, v0, v4\n\t"
-      "vfadd.vv v24, v24, v28\n\t"
-      :
-      : [max_vl] "r"(~0UL)
-      : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-        "v8", "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
-        "vl", "vtype"
-    );
+        // Update pointers and counter
+        "sub t0, t0, t3\n\t"           // avl -= vl
+        "slli t4, t3, 2\n\t"           // t4 = vl * 4 (sizeof(float))
+        "add %[ptr1], %[ptr1], t4\n\t" // iptr += vl
+        "add %[ptr2], %[ptr2], t4\n\t" // iptr2 += vl
+        "j 1b\n\t"                     // goto loop_start
 
-    iptr += ncols;
-    iptr2 += ncols;
+        "2:\n\t" // loop_end
+
+        // Tree reduction: m8 -> m1
+        "vsetvli zero, %[max_vl], e32, m1, tu, ma\n\t"
+        "vfadd.vv v0, v0, v1\n\t"
+        "vfadd.vv v24, v24, v25\n\t"
+        "vfadd.vv v2, v2, v3\n\t"
+        "vfadd.vv v26, v26, v27\n\t"
+        "vfadd.vv v4, v4, v5\n\t"
+        "vfadd.vv v28, v28, v29\n\t"
+        "vfadd.vv v6, v6, v7\n\t"
+        "vfadd.vv v30, v30, v31\n\t"
+        "vmv.v.i v8, 0\n\t"
+        "vfadd.vv v0, v0, v2\n\t"
+        "vfadd.vv v24, v24, v26\n\t"
+        "vfadd.vv v4, v4, v6\n\t"
+        "vfadd.vv v28, v28, v30\n\t"
+        "vfadd.vv v0, v0, v4\n\t"
+        "vfadd.vv v24, v24, v28\n\t"
+
+        // Pointer update (iptr += ncols; iptr2 += ncols;)
+        "slli t4, %[avl_init], 2\n\t"  // t4 = ncols * 4
+        "add %[ptr1], %[ptr1], t4\n\t" // iptr += ncols
+        "add %[ptr2], %[ptr2], t4\n\t" // iptr2 += ncols
+
+        // Horizontal reduction
+        "vfredusum.vs v17, v0, v8\n\t"
+        "vfredusum.vs v18, v24, v8\n\t"
+
+        // Calculate mean and prepare for rsqrt
+        "vfmv.v.f v1, %[eps]\n\t"
+        "vsetvli zero, %[vl2], e32, m1, tu, ma\n\t"
+        "vslideup.vx v17, v18, %[one_idx]\n\t"
+        "vfmadd.vf v17, %[recip], v1\n\t"
+        "vfmv.v.f v9, %[f_one]\n\t"
+        "vfrsqrt7.v v11, v17\n\t"
+        "vfmul.vv v13, v11, v17\n\t"
+        "vmfeq.vv v0, v13, v13\n\t"
+        "vfmsub.vv v13, v11, v9\n\t"
+        "vfmul.vf v14, v11, %[half]\n\t"
+        "vfnmsac.vv v11, v14, v13, v0.t\n\t"
+        "vfmul.vv v15, v11, v17\n\t"
+        "vfmsub.vv v15, v11, v9\n\t"
+        "vfmul.vf v16, v11, %[half]\n\t"
+        "vfnmsac.vv v11, v16, v15, v0.t\n\t"
+
+        // Extract rsqrt values
+        "vfmv.f.s %[rs1], v11\n\t"
+        "vfslide1down.vf v11, v11, %[zero]\n\t"
+        "vfmv.f.s %[rs2], v11\n\t"
+
+        : [ptr1] "+&r"(iptr),  // Read-Write
+          [ptr2] "+&r"(iptr2), // Read-Write
+          [rs1] "=&f"(rsqrt1), // Output
+          [rs2] "=&f"(rsqrt2)  // Output
+        : [max_vl] "r"(~0UL), [avl_init] "r"(ncols), [eps] "f"(epsilon),
+          [vl2] "r"(2UL), [one_idx] "r"(1UL), [recip] "f"(reciprocal_ncols),
+          [f_one] "f"(f_one), [half] "f"(half), [zero] "f"(0.0f)
+        : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
+          "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v24", "v25",
+          "v26", "v27", "v28", "v29", "v30", "v31", "t0", "t3", "t4", "vl",
+          "vtype", "memory", "frm", "fflags");
+
     remaining_rows -= 2;
 
-    // Horizontal reduction
-    __asm__ volatile(
-      "vfredusum.vs v17, v0, v8\n\t"
-      "vfredusum.vs v18, v24, v8\n\t"
-      :
-      :
-      : "v17", "v18"
-    );
-
-    /* ========== Calculate mean and prepare for rsqrt ========== */
-    // Register allocation:
-    // v17[m1]: contains [sum1, ?, ?, ...] -> [mean1, mean2, ...]
-    // v1[m1]: epsilon vector
-    // v9[m1]: ones vector
-    // v11[m1]: rsqrt approximation -> final rsqrt
-    float rsqrt1, rsqrt2;
-
-    __asm__ volatile(
-      "vfmv.v.f v1, %[eps]\n\t"
-      "vsetvli zero, %[vl2], e32, m1, tu, ma\n\t"
-      "vslideup.vx v17, v18, %[one_idx]\n\t"
-      "vfmadd.vf v17, %[recip], v1\n\t"
-      "vfmv.v.f v9, %[f_one]\n\t"
-      "vfrsqrt7.v v11, v17\n\t"
-      "vfmul.vv v13, v11, v17\n\t"
-      "vmfeq.vv v0, v13, v13\n\t"
-      "vfmsub.vv v13, v11, v9\n\t"
-      "vfmul.vf v14, v11, %[half]\n\t"
-      "vfnmsac.vv v11, v14, v13, v0.t\n\t"
-      "vfmul.vv v15, v11, v17\n\t"
-      "vfmsub.vv v15, v11, v9\n\t"
-      "vfmul.vf v16, v11, %[half]\n\t"
-      "vfnmsac.vv v11, v16, v15, v0.t\n\t"
-      :
-      : [eps] "f"(epsilon),
-        [vl2] "r"(2UL),
-        [one_idx] "r"(1UL),
-        [recip] "f"(reciprocal_ncols),
-        [f_one] "f"(f_one),
-        [half] "f"(half)
-      : "v0", "v1", "v9", "v11", "v13", "v14", "v15", "v16", "v17", "v18",
-        "vl", "vtype", "frm", "fflags"
-    );
-
-    // Extract rsqrt values
-    __asm__ volatile(
-      "vfmv.f.s %[rs1], v11\n\t"
-      "vfslide1down.vf v11, v11, %[zero]\n\t"
-      "vfmv.f.s %[rs2], v11\n\t"
-      : [rs1] "=&f"(rsqrt1),
-        [rs2] "=&f"(rsqrt2)
-      : [zero] "f"(0.0f)
-      : "v11"
-    );
-
     /* ========== Normalize and scale both rows ========== */
-    if(scale) {
-      for (size_t avl = ncols, vl = 0, col_offset = 0; avl > 0; avl -= vl, col_offset += vl) {
+    if (scale) {
+      for (size_t avl = ncols, vl = 0, col_offset = 0; avl > 0;
+           avl -= vl, col_offset += vl) {
         __asm__ volatile(
-          "vsetvli %[vl_out], %[avl_in], e32, m8, ta, ma\n\t"
-          // Row 1
-          "vle32.v v8, (%[in1])\n\t"
-          "vfmul.vf v8, v8, %[rs1]\n\t"
-          "vle32.v v0, (%[scale_ptr])\n\t"
-          "vfmul.vv v8, v8, v0\n\t"
-          "vse32.v v8, (%[out1])\n\t"
-          // Row 2
-          "vle32.v v16, (%[in2])\n\t"
-          "vfmul.vf v16, v16, %[rs2]\n\t"
-          "vfmul.vv v16, v16, v0\n\t"
-          "vse32.v v16, (%[out2])\n\t"
-          : [vl_out] "=&r"(vl)
-          : [avl_in] "r"(avl),
-            [in1] "r"(iptr_norm + col_offset),
-            [in2] "r"(iptr2_norm + col_offset),
-            [scale_ptr] "r"(scale + col_offset),
-            [out1] "r"(optr + col_offset),
-            [out2] "r"(optr2 + col_offset),
-            [rs1] "f"(rsqrt1),
-            [rs2] "f"(rsqrt2)
-          : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-            "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15",
-            "v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23",
-            "vl", "vtype", "memory", "frm", "fflags"
-        );
+            "vsetvli %[vl_out], %[avl_in], e32, m8, ta, ma\n\t"
+            // Row 1
+            "vle32.v v8, (%[in1])\n\t"
+            "vfmul.vf v8, v8, %[rs1]\n\t"
+            "vle32.v v0, (%[scale_ptr])\n\t"
+            "vfmul.vv v8, v8, v0\n\t"
+            "vse32.v v8, (%[out1])\n\t"
+            // Row 2
+            "vle32.v v16, (%[in2])\n\t"
+            "vfmul.vf v16, v16, %[rs2]\n\t"
+            "vfmul.vv v16, v16, v0\n\t"
+            "vse32.v v16, (%[out2])\n\t"
+            : [vl_out] "=&r"(vl)
+            : [avl_in] "r"(avl), [in1] "r"(iptr_norm + col_offset),
+              [in2] "r"(iptr2_norm + col_offset),
+              [scale_ptr] "r"(scale + col_offset),
+              [out1] "r"(optr + col_offset), [out2] "r"(optr2 + col_offset),
+              [rs1] "f"(rsqrt1), [rs2] "f"(rsqrt2)
+            : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
+              "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19",
+              "v20", "v21", "v22", "v23", "vl", "vtype", "memory", "frm",
+              "fflags");
       }
     } else {
-      for (size_t avl = ncols, vl = 0, col_offset = 0; avl > 0; avl -= vl, col_offset += vl) {
+      for (size_t avl = ncols, vl = 0, col_offset = 0; avl > 0;
+           avl -= vl, col_offset += vl) {
         __asm__ volatile(
-          "vsetvli %[vl_out], %[avl_in], e32, m8, ta, ma\n\t"
-          // Row 1
-          "vle32.v v8, (%[in1])\n\t"
-          "vfmul.vf v8, v8, %[rs1]\n\t"
-          "vse32.v v8, (%[out1])\n\t"
-          // Row 2
-          "vle32.v v16, (%[in2])\n\t"
-          "vfmul.vf v16, v16, %[rs2]\n\t"
-          "vse32.v v16, (%[out2])\n\t"
-          : [vl_out] "=&r"(vl)
-          : [avl_in] "r"(avl),
-            [in1] "r"(iptr_norm + col_offset),
-            [in2] "r"(iptr2_norm + col_offset),
-            [out1] "r"(optr + col_offset),
-            [out2] "r"(optr2 + col_offset),
-            [rs1] "f"(rsqrt1),
-            [rs2] "f"(rsqrt2)
-          : "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15",
-            "v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23",
-            "vl", "vtype", "memory", "frm", "fflags"
-        );
+            "vsetvli %[vl_out], %[avl_in], e32, m8, ta, ma\n\t"
+            // Row 1
+            "vle32.v v8, (%[in1])\n\t"
+            "vfmul.vf v8, v8, %[rs1]\n\t"
+            "vse32.v v8, (%[out1])\n\t"
+            // Row 2
+            "vle32.v v16, (%[in2])\n\t"
+            "vfmul.vf v16, v16, %[rs2]\n\t"
+            "vse32.v v16, (%[out2])\n\t"
+            : [vl_out] "=&r"(vl)
+            : [avl_in] "r"(avl), [in1] "r"(iptr_norm + col_offset),
+              [in2] "r"(iptr2_norm + col_offset), [out1] "r"(optr + col_offset),
+              [out2] "r"(optr2 + col_offset), [rs1] "f"(rsqrt1),
+              [rs2] "f"(rsqrt2)
+            : "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15", "v16",
+              "v17", "v18", "v19", "v20", "v21", "v22", "v23", "vl", "vtype",
+              "memory", "frm", "fflags");
       }
     }
 
@@ -642,117 +554,103 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rem_f32_zve32f(const float *input, const float
 
   /* ========== Handle remaining single row ========== */
   if (remaining_rows) {
-    __asm__ volatile(
-      "vsetvli zero, %[max_vl], e32, m8, tu, ma\n\t"
-      "vmv.v.i v0, 0\n\t"
-      :
-      : [max_vl] "r"(~0UL)
-      : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-        "vl", "vtype"
-    );
+    float rsqrt;
 
-    size_t avl = ncols;
-    while (avl) {
-      size_t vl;
-      __asm__ volatile(
-        "vsetvli %[vl_out], %[avl_in], e32, m8, tu, ma\n\t"
+    __asm__ volatile(
+        // Initialize accumulator (m8)
+        "vsetvli zero, %[max_vl], e32, m8, tu, ma\n\t"
+        "vmv.v.i v0, 0\n\t"
+
+        // Setup loop
+        "mv t0, %[avl_init]\n\t" // t0 = avl
+
+        "1:\n\t"          // loop_start
+        "beqz t0, 2f\n\t" // if (avl == 0) goto loop_end
+
+        // Process one vector length
+        "vsetvli t3, t0, e32, m8, tu, ma\n\t" // t3 = vl
         "vle32.v v8, (%[ptr])\n\t"
         "vfmacc.vv v0, v8, v8\n\t"
-        : [vl_out] "=&r"(vl)
-        : [avl_in] "r"(avl),
-          [ptr] "r"(iptr)
-        : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-          "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15",
-          "vl", "vtype", "memory"
-      );
-      avl -= vl;
-      iptr += vl;
-    }
 
-    // Tree reduction
-    __asm__ volatile(
-      "vsetvli zero, %[max_vl], e32, m1, tu, ma\n\t"
-      "vfadd.vv v0, v0, v1\n\t"
-      "vfadd.vv v4, v4, v5\n\t"
-      "vfadd.vv v2, v2, v3\n\t"
-      "vfadd.vv v6, v6, v7\n\t"
-      "vmv.v.i v8, 0\n\t"
-      "vfadd.vv v0, v0, v2\n\t"
-      "vfadd.vv v4, v4, v6\n\t"
-      "vfadd.vv v0, v0, v4\n\t"
-      :
-      : [max_vl] "r"(~0UL)
-      : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8",
-        "vl", "vtype"
-    );
+        // Update pointer and counter
+        "sub t0, t0, t3\n\t"         // avl -= vl
+        "slli t4, t3, 2\n\t"         // t4 = vl * 4 (sizeof(float))
+        "add %[ptr], %[ptr], t4\n\t" // iptr += vl
+        "j 1b\n\t"                   // goto loop_start
 
-    float rsqrt;
-    __asm__ volatile(
-      "vfredusum.vs v17, v0, v8\n\t"
-      "vfmv.v.f v1, %[eps]\n\t"
-      "vfmadd.vf v17, %[recip], v1\n\t"
-      "vfmv.v.f v9, %[f_one]\n\t"
-      "vfrsqrt7.v v11, v17\n\t"
-      "vfmul.vv v13, v11, v17\n\t"
-      "vmfeq.vv v0, v13, v13\n\t"
-      "vfmsub.vv v13, v11, v9\n\t"
-      "vfmul.vf v14, v11, %[half]\n\t"
-      "vfnmsac.vv v11, v14, v13, v0.t\n\t"
-      "vfmul.vv v15, v11, v17\n\t"
-      "vfmsub.vv v15, v11, v9\n\t"
-      "vfmul.vf v16, v11, %[half]\n\t"
-      "vfnmsac.vv v11, v16, v15, v0.t\n\t"
-      "vfmv.f.s %[rs], v11\n\t"
-      : [rs] "=&f"(rsqrt)
-      : [eps] "f"(epsilon),
-        [recip] "f"(reciprocal_ncols),
-        [f_one] "f"(f_one),
-        [half] "f"(half)
-      : "v0", "v1", "v9", "v11", "v13", "v14", "v15", "v16", "v17",
-        "frm", "fflags"
-    );
+        "2:\n\t" // loop_end
 
+        // Tree reduction: m8 -> m1
+        "vsetvli zero, %[max_vl], e32, m1, tu, ma\n\t"
+        "vfadd.vv v0, v0, v1\n\t"
+        "vfadd.vv v4, v4, v5\n\t"
+        "vfadd.vv v2, v2, v3\n\t"
+        "vfadd.vv v6, v6, v7\n\t"
+        "vmv.v.i v8, 0\n\t"
+        "vfadd.vv v0, v0, v2\n\t"
+        "vfadd.vv v4, v4, v6\n\t"
+        "vfadd.vv v0, v0, v4\n\t"
+
+        // Horizontal reduction and rsqrt computation
+        "vfredusum.vs v17, v0, v8\n\t"
+        "vfmv.v.f v1, %[eps]\n\t"
+        "vfmadd.vf v17, %[recip], v1\n\t"
+        "vfmv.v.f v9, %[f_one]\n\t"
+        "vfrsqrt7.v v11, v17\n\t"
+        "vfmul.vv v13, v11, v17\n\t"
+        "vmfeq.vv v0, v13, v13\n\t"
+        "vfmsub.vv v13, v11, v9\n\t"
+        "vfmul.vf v14, v11, %[half]\n\t"
+        "vfnmsac.vv v11, v14, v13, v0.t\n\t"
+        "vfmul.vv v15, v11, v17\n\t"
+        "vfmsub.vv v15, v11, v9\n\t"
+        "vfmul.vf v16, v11, %[half]\n\t"
+        "vfnmsac.vv v11, v16, v15, v0.t\n\t"
+        "vfmv.f.s %[rs], v11\n\t"
+
+        : [ptr] "+&r"(iptr), // Read-Write
+          [rs] "=&f"(rsqrt)  // Output
+        : [max_vl] "r"(~0UL), [avl_init] "r"(ncols), [eps] "f"(epsilon),
+          [recip] "f"(reciprocal_ncols), [f_one] "f"(f_one), [half] "f"(half)
+        : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
+          "v11", "v12", "v13", "v14", "v15", "v16", "v17", "t0", "t3", "t4",
+          "vl", "vtype", "memory", "frm", "fflags");
     // Normalize
-    if(scale) {
-      for (size_t avl = ncols, vl = 0, col_offset = 0; avl > 0; avl -= vl, col_offset += vl) {
+    if (scale) {
+      for (size_t avl = ncols, vl = 0, col_offset = 0; avl > 0;
+           avl -= vl, col_offset += vl) {
         __asm__ volatile(
-          "vsetvli %[vl_out], %[avl_in], e32, m8, ta, ma\n\t"
-          "vle32.v v8, (%[in_ptr])\n\t"
-          "vfmul.vf v8, v8, %[rs]\n\t"
-          "vle32.v v0, (%[scale_ptr])\n\t"
-          "vfmul.vv v8, v8, v0\n\t"
-          "vse32.v v8, (%[out_ptr])\n\t"
-          : [vl_out] "=&r"(vl)
-          : [avl_in] "r"(avl),
-            [in_ptr] "r"(iptr_norm + col_offset),
-            [scale_ptr] "r"(scale + col_offset),
-            [out_ptr] "r"(optr + col_offset),
-            [rs] "f"(rsqrt)
-          : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-            "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15",
-            "vl", "vtype", "memory", "frm", "fflags"
-        );
+            "vsetvli %[vl_out], %[avl_in], e32, m8, ta, ma\n\t"
+            "vle32.v v8, (%[in_ptr])\n\t"
+            "vfmul.vf v8, v8, %[rs]\n\t"
+            "vle32.v v0, (%[scale_ptr])\n\t"
+            "vfmul.vv v8, v8, v0\n\t"
+            "vse32.v v8, (%[out_ptr])\n\t"
+            : [vl_out] "=&r"(vl)
+            : [avl_in] "r"(avl), [in_ptr] "r"(iptr_norm + col_offset),
+              [scale_ptr] "r"(scale + col_offset),
+              [out_ptr] "r"(optr + col_offset), [rs] "f"(rsqrt)
+            : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
+              "v11", "v12", "v13", "v14", "v15", "vl", "vtype", "memory", "frm",
+              "fflags");
       }
     } else {
-      for (size_t avl = ncols, vl = 0, col_offset = 0; avl > 0; avl -= vl, col_offset += vl) {
+      for (size_t avl = ncols, vl = 0, col_offset = 0; avl > 0;
+           avl -= vl, col_offset += vl) {
         __asm__ volatile(
-          "vsetvli %[vl_out], %[avl_in], e32, m8, ta, ma\n\t"
-          "vle32.v v8, (%[in_ptr])\n\t"
-          "vfmul.vf v8, v8, %[rs]\n\t"
-          "vse32.v v8, (%[out_ptr])\n\t"
-          : [vl_out] "=&r"(vl)
-          : [avl_in] "r"(avl),
-            [in_ptr] "r"(iptr_norm + col_offset),
-            [out_ptr] "r"(optr + col_offset),
-            [rs] "f"(rsqrt)
-          : "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15",
-            "vl", "vtype", "memory", "frm", "fflags"
-        );
+            "vsetvli %[vl_out], %[avl_in], e32, m8, ta, ma\n\t"
+            "vle32.v v8, (%[in_ptr])\n\t"
+            "vfmul.vf v8, v8, %[rs]\n\t"
+            "vse32.v v8, (%[out_ptr])\n\t"
+            : [vl_out] "=&r"(vl)
+            : [avl_in] "r"(avl), [in_ptr] "r"(iptr_norm + col_offset),
+              [out_ptr] "r"(optr + col_offset), [rs] "f"(rsqrt)
+            : "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15", "vl",
+              "vtype", "memory", "frm", "fflags");
       }
     }
   }
 }
-
 
 SKL_FUNC void skl_rmsnorm_f32_zve32f(float *pDst, const float *pSrc,
                                      const float *pWeight, size_t rsc,
@@ -760,21 +658,20 @@ SKL_FUNC void skl_rmsnorm_f32_zve32f(float *pDst, const float *pSrc,
   size_t nrows = n / rsc;
   float reciprocal_ncols = 1.0f / (float)rsc;
 
-  size_t nrows_remains = nrows - (nrows % 4);  
+  size_t nrows_remains = nrows - (nrows % 4);
   const float *ipt = pSrc;
   float *opt = pDst;
 
-  if(nrows_remains > 0) {
-    skl_rmsnorm_rows_f32_zve32f(ipt, pWeight, opt, nrows_remains, rsc, reciprocal_ncols,
-                                epsilon);
+  if (nrows_remains > 0) {
+    skl_rmsnorm_rows_f32_zve32f(ipt, pWeight, opt, nrows_remains, rsc,
+                                reciprocal_ncols, epsilon);
 
-    ipt = pSrc + nrows_remains*rsc;
-    opt = pDst + nrows_remains*rsc;
+    ipt = pSrc + nrows_remains * rsc;
+    opt = pDst + nrows_remains * rsc;
   }
 
-  if((nrows % 4) > 0)
-  {
-      skl_rmsnorm_rem_f32_zve32f(ipt, pWeight, opt, (nrows % 4), rsc, reciprocal_ncols,
-                          epsilon);
+  if ((nrows % 4) > 0) {
+    skl_rmsnorm_rem_f32_zve32f(ipt, pWeight, opt, (nrows % 4), rsc,
+                               reciprocal_ncols, epsilon);
   }
 }
