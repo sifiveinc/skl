@@ -68,7 +68,7 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rows_f32_zve32f(const float *input, const floa
             "vfmacc.vv v0, v8, v8\n\t"
             "vle32.v v8, (%[ptr2])\n\t"
             "vfmacc.vv v24, v8, v8\n\t"
-            : [vl_out] "=r"(vl)
+            : [vl_out] "=&r"(vl)
             : [avl_in] "r"(avl),
               [ptr1] "r"(iptr),
               [ptr2] "r"(iptr2)
@@ -141,7 +141,7 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rows_f32_zve32f(const float *input, const floa
             "vfmacc.vv v0, v8, v8\n\t"
             "vle32.v v8, (%[ptr2])\n\t"
             "vfmacc.vv v24, v8, v8\n\t"
-            : [vl_out] "=r"(vl)
+            : [vl_out] "=&r"(vl)
             : [avl_in] "r"(avl),
               [ptr1] "r"(iptr),
               [ptr2] "r"(iptr2)
@@ -316,7 +316,7 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rows_f32_zve32f(const float *input, const floa
               "vle32.v v0, (%[scale_ptr])\n\t"
               "vfmul.vv v8, v8, v0\n\t"
               "vse32.v v8, (%[out_ptr])\n\t"
-              : [vl_out] "=r"(vl)
+              : [vl_out] "=&r"(vl)
               : [avl_in] "r"(avl),
                 [in_ptr] "r"(iptr_norm + row_offset + col_offset),
                 [scale_ptr] "r"(scale + col_offset),
@@ -377,7 +377,7 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rows_f32_zve32f(const float *input, const floa
               "vle32.v v8, (%[in_ptr])\n\t"
               "vfmul.vf v8, v8, %[rms1]\n\t"
               "vse32.v v8, (%[out_ptr])\n\t"
-              : [vl_out] "=r"(vl)
+              : [vl_out] "=&r"(vl)
               : [avl_in] "r"(avl),
                 [in_ptr] "r"(iptr_norm + row_offset + col_offset),
                 [out_ptr] "r"(optr + row_offset + col_offset),
@@ -478,7 +478,7 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rem_f32_zve32f(const float *input, const float
         "vfmacc.vv v0, v8, v8\n\t"
         "vle32.v v8, (%[ptr2])\n\t"
         "vfmacc.vv v24, v8, v8\n\t"
-        : [vl_out] "=r"(vl)
+        : [vl_out] "=&r"(vl)
         : [avl_in] "r"(avl),
           [ptr1] "r"(iptr),
           [ptr2] "r"(iptr2)
@@ -570,8 +570,8 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rem_f32_zve32f(const float *input, const float
       "vfmv.f.s %[rs1], v11\n\t"
       "vfslide1down.vf v11, v11, %[zero]\n\t"
       "vfmv.f.s %[rs2], v11\n\t"
-      : [rs1] "=f"(rsqrt1),
-        [rs2] "=f"(rsqrt2)
+      : [rs1] "=&f"(rsqrt1),
+        [rs2] "=&f"(rsqrt2)
       : [zero] "f"(0.0f)
       : "v11"
     );
@@ -592,7 +592,7 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rem_f32_zve32f(const float *input, const float
           "vfmul.vf v16, v16, %[rs2]\n\t"
           "vfmul.vv v16, v16, v0\n\t"
           "vse32.v v16, (%[out2])\n\t"
-          : [vl_out] "=r"(vl)
+          : [vl_out] "=&r"(vl)
           : [avl_in] "r"(avl),
             [in1] "r"(iptr_norm + col_offset),
             [in2] "r"(iptr2_norm + col_offset),
@@ -619,7 +619,7 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rem_f32_zve32f(const float *input, const float
           "vle32.v v16, (%[in2])\n\t"
           "vfmul.vf v16, v16, %[rs2]\n\t"
           "vse32.v v16, (%[out2])\n\t"
-          : [vl_out] "=r"(vl)
+          : [vl_out] "=&r"(vl)
           : [avl_in] "r"(avl),
             [in1] "r"(iptr_norm + col_offset),
             [in2] "r"(iptr2_norm + col_offset),
@@ -658,7 +658,7 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rem_f32_zve32f(const float *input, const float
         "vsetvli %[vl_out], %[avl_in], e32, m8, tu, ma\n\t"
         "vle32.v v8, (%[ptr])\n\t"
         "vfmacc.vv v0, v8, v8\n\t"
-        : [vl_out] "=r"(vl)
+        : [vl_out] "=&r"(vl)
         : [avl_in] "r"(avl),
           [ptr] "r"(iptr)
         : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
@@ -703,7 +703,7 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rem_f32_zve32f(const float *input, const float
       "vfmul.vf v16, v11, %[half]\n\t"
       "vfnmsac.vv v11, v16, v15, v0.t\n\t"
       "vfmv.f.s %[rs], v11\n\t"
-      : [rs] "=f"(rsqrt)
+      : [rs] "=&f"(rsqrt)
       : [eps] "f"(epsilon),
         [recip] "f"(reciprocal_ncols),
         [f_one] "f"(f_one),
@@ -722,7 +722,7 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rem_f32_zve32f(const float *input, const float
           "vle32.v v0, (%[scale_ptr])\n\t"
           "vfmul.vv v8, v8, v0\n\t"
           "vse32.v v8, (%[out_ptr])\n\t"
-          : [vl_out] "=r"(vl)
+          : [vl_out] "=&r"(vl)
           : [avl_in] "r"(avl),
             [in_ptr] "r"(iptr_norm + col_offset),
             [scale_ptr] "r"(scale + col_offset),
@@ -740,7 +740,7 @@ SKL_FUNC_PRIVATE void skl_rmsnorm_rem_f32_zve32f(const float *input, const float
           "vle32.v v8, (%[in_ptr])\n\t"
           "vfmul.vf v8, v8, %[rs]\n\t"
           "vse32.v v8, (%[out_ptr])\n\t"
-          : [vl_out] "=r"(vl)
+          : [vl_out] "=&r"(vl)
           : [avl_in] "r"(avl),
             [in_ptr] "r"(iptr_norm + col_offset),
             [out_ptr] "r"(optr + col_offset),
