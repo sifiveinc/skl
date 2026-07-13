@@ -6,6 +6,79 @@ An alternate approach for GEMM kernels using SiFive's Xsfmm extension is to leav
 This document describes an API for post-GEMM kernels that allows them to be "fused" in this way to the Xsfmm GEMM kernels.
 It is assumed that readers are familiar with [SKL's packed GEMM API](../packed-gemm.md) and SiFive's Xsfmm extension.
 
+## Inner Loop Functions
+We first describe the Xsfmm GEMM inner loop functions, which accumulate a partial matrix product `A * B` into the current tile state for a specific matrix register tiling, and return this result in matrix registers.
+The number of available tiles in the tile state determines the possible tilings.
+For example, when `TEW` = 32, there are four available tiles (`mt0`, `mt4`, `mt8`, and `mt12`), which can support 1 x 1, 1 x 2, 1 x 3, 1 x 4, 2 x 1, 3 x 1, 4 x 1, and 2 x 2 tilings.
+When `TEW = 8`, there are 16 tiles (`mt0` to `mt15`), which can support tilings of shape `m1` x `n1`, where `m1 * n1 <= 16`.
+SKL's underlying GEMM implementation combines these tilings to handle problems of any size.
+
+SKL provides an inner loop function for each `m1` x `n1` tiling with `m1 <= n1`.
+If `m1 > n1`, the `n1` x `m1` inner loop function can be used if combined with transposition; more details are given in [Applying a Tiling to `C`](#applying-a-tiling-to-c).
+These functions have the following API:
+```
+SKL_FUNC_PRIVATE void
+skl_gemm_inner_loop_m1xn1_<type>rcptex1c_<type>rcp1xte_<type>_<isa>(
+    size_t m, size_t n, size_t k, const <type> *a, size_t rsa1, size_t csa1,
+    const <type> *b, size_t rsb1, size_t csb1) SKL_XSFMM_INOUT;
+```
+Since the inner loop functions use Xsfmm instructions to compute `A * B`, they assume `A` is packed into `ETE` x 1 column-major blocks and `B` into 1 x `ETE` row-major blocks.
+`rsa1` and `csa1` denote the inter-block row and column strides for `A`, and `rsb1` and `csb1` are the corresponding strides for `B`.
+`m`, `n`, and `k` denote the problem dimensions, and it is the caller's responsibility to ensure that `m <= m1 * ETE` and `n <= n1 * ETE`.
+If `m` or `n` is not a multiple of `ETE`, the function will only compute partial tiles along the bottom or right edges, as illustrated below for a 2 x 2 tiling. 
+```
+ ┌─────────────n──────────────┐
+┌┌────────────────┬───────────┬────┐┐
+││                │           │    ││
+││                │           │    ││
+││      mt0       │      mt4  │    │ETE
+││                │           │    ││
+m│                │           │    ││
+│├────────────────┼───────────┼────┤┤
+││                │           │    ││
+││                │           │    ││
+││      mt8       │      mt12 │    │ETE
+└├────────────────┼───────────┘    ││
+ │                │                ││
+ └────────────────┴────────────────┘┘
+ └──────ETE───────┴──────ETE───────┘
+```
+
+Other functions which initialize the tile state for or consume the output of an inner loop function must know the tile register allocation it uses.
+The inner loop functions obey the following allocation scheme: if `m1 == n1`, tiles are arranged by increasing index in row-major order; otherwise, if `m1 < n1`, tiles are arranged by increasing index in column-major order.
+Some examples are given below:
+
+`TEW` = 32
+```
+1 x 1     1 x 4
+mt0       mt0 mt4 mt8 mt12
+
+2 x 2
+mt0  mt4
+mt8 mt12
+```
+`TEW` = 8
+```
+1 x 16
+mt0 mt1 mt2 ... mt14 m15
+
+2 x 2       2 x 5
+mt0 mt1     mt0 mt2 mt4 mt6 mt8
+mt2 mt3     mt1 mt3 mt5 mt7 mt9
+
+
+3 x 3           3 x 4
+mt0 mt1 mt2     mt0 mt3 mt6  mt9
+mt3 mt4 mt5     mt1 mt4 mt7 mt10
+mt6 mt7 mt8     mt2 mt5 mt8 mt11
+
+4 x 4
+ mt0  mt1  mt2  mt3
+ mt4  mt5  mt6  mt7
+ mt8  mt9 mt10 mt11
+mt12 mt13 mt14 mt15
+```
+
 ## The Fused Kernel API
 Fused kernels perform an elementwise operation on a single tile in the Xsfmm tile state and a single block of `C`.
 Their API is
@@ -206,60 +279,6 @@ n│                │           │    │
  └────────────────┴────────────────┘
 ```
 So, if `tss` has a column pattern, then the application function transposes this region of the tile state, applies the kernel to each subtile, and then stores them to the leading `m` x `n` portion of `C`.
-
-## Inner Loop Functions
-The Xsfmm GEMM inner loop functions accumulate a matrix product `A * B` into the current tile state and pass it directly to a fused kernel.
-The number of available tiles in the tile state determines the possible tilings of the `C` matrix.
-When `TEW` = 32, there are four available tiles (`mt0`, `mt4`, `mt8`, and `mt12`), which can support 1 x 1, 1 x 2, 1 x 3, 1 x 4, 2 x 1, 3 x 1, 4 x 1, and 2 x 2 tilings of `C`.
-When `TEW = 8`, there are 16 tiles (`mt0` to `mt15`), which can support tilings of shape `m1` x `n1`, where `m1 * n1 <= 16`.
-SKL provides an inner loop function for each `m1` x `n1` tiling with `m1 <= n1`.
-If `m1 > n1`, the `n1` x `m1` inner loop function can be used if combined with transposition; more details are given in [Applying a Tiling to `C`](#applying-a-tiling-to-c).
-
-Since the inner loop functions use Xsfmm instructions to compute `A * B`, they assume `A` is packed into `ETE` x 1 column-major blocks and `B` into 1 x `ETE` row-major blocks.
-The inner loop functions have the following API:
-```
-SKL_XSFMM_INOUT
-SKL_FUNC_PRIVATE void
-skl_gemm_inner_loop_m1xn1_<type>rcptex1c_<type>rcp1xte_<type>_<isa>(
-    size_t m, size_t n, size_t k, const <type> *a, size_t rsa1, size_t csa1,
-    const <type> *b, size_t rsb1, size_t csb1);
-```
-As with the fused kernel application functions, these functions will compute partial tiles if `m` or `n` is not a multiple of `ETE`.
-
-Since the fused kernels act directly on the tile state, they must be aware of which tiles each inner loop function writes its output to.
-The inner loop functions obey the following tile allocation scheme: if `m1 == n1`, tiles are arranged by increasing index in row-major order; otherwise, if `m1 < n1`, tiles are arranged by increasing index in column-major order.
-Below are some examples of the tile allocation scheme:
-
-`TEW` = 32
-```
-1 x 1     1 x 4
-mt0       mt0 mt4 mt8 mt12
-
-2 x 2
-mt0  mt4
-mt8 mt12
-```
-`TEW` = 8
-```
-1 x 16
-mt0 mt1 mt2 ... mt14 m15
-
-2 x 2       2 x 5
-mt0 mt1     mt0 mt2 mt4 mt6 mt8
-mt2 mt3     mt1 mt3 mt5 mt7 mt9
-
-
-3 x 3           3 x 4
-mt0 mt1 mt2     mt0 mt3 mt6  mt9
-mt3 mt4 mt5     mt1 mt4 mt7 mt10
-mt6 mt7 mt8     mt2 mt5 mt8 mt11
-
-4 x 4
- mt0  mt1  mt2  mt3
- mt4  mt5  mt6  mt7
- mt8  mt9 mt10 mt11
-mt12 mt13 mt14 mt15
-```
 
 ## Tile State Initialization
 Before accumulating a matrix product into the tile state, the tile state must be initialized either by zeroing it out or loading a matrix in from memory.
