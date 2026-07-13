@@ -13,7 +13,7 @@
 #endif
 
 /**
- * @brief Test cases for the skl_gemm_f16_f16_f16_zvfh_x390 kernel.
+ * @brief Test cases for the skl_gemm_f16_f16_f16_zvfh kernel.
  *
  * This test uses the gemm_f16rcprc_f16rcprc_f16rcprc harness with the following
  * restrictions on the input parameters:
@@ -90,7 +90,7 @@ gemm_f16rcprc_f16rcprc_f16rcprc_t tests[] = {
 };
 // clang-format on
 
-static skl_test_suite_t suite = {.name = "skl_gemm_f16_f16_f16_zvfh_x390",
+static skl_test_suite_t suite = {.name = "skl_gemm_f16_f16_f16_zvfh",
                                  .num_tests = sizeof(tests) / sizeof(tests[0]),
                                  .test_size =
                                      sizeof(gemm_f16rcprc_f16rcprc_f16rcprc_t),
