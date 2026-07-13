@@ -31,7 +31,7 @@ extern "C" {
  * @param c - Pointer to matrix C.
  * @param rsc - Row stride of matrix C in elements.
  *
- * Computes `C = alpha * A * B + beta * C` for FP32 row-major matrices.
+ * Computes `C = alpha * A * B + beta * C` for FP16 row-major matrices.
  *
  * Functionally equivalent to calling:
  * ```
