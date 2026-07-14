@@ -20,7 +20,7 @@ These functions have the following API:
 SKL_FUNC_PRIVATE void
 skl_gemm_inner_loop_m1xn1_<type>rcptex1c_<type>rcp1xte_<type>_<isa>(
     size_t m, size_t n, size_t k, const <type> *a, size_t rsa1, size_t csa1,
-    const <type> *b, size_t rsb1, size_t csb1) SKL_XSFMM_INOUT;
+    const <type> *b, size_t rsb1, size_t csb1) __riscv_inout("xsfmm");
 ```
 Since the inner loop functions use Xsfmm instructions to compute `A * B`, they assume `A` is packed into `ETE` x 1 column-major blocks and `B` into 1 x `ETE` row-major blocks.
 `rsa1` and `csa1` denote the inter-block row and column strides for `A`, and `rsb1` and `csb1` are the corresponding strides for `B`.
@@ -80,13 +80,15 @@ mt12 mt13 mt14 mt15
 ```
 
 ## The Fused Kernel API
-Fused kernels perform an elementwise operation on a single tile in the Xsfmm tile state and a single block of `C`.
-Their API is
+Fused kernels operate on a single tile in the Xsfmm tile state and a single block of `C`.
+Once a fused kernel has been implemented, the output of any inner loop function can be processed by applying it to each tile of the output.
+Thus, this single-tile API avoids the need for kernel authors to know how each inner loop function arranges data in matrix registers.
+
+The API for fused kernels is
 ```
-SKL_XSFMM_IN
 void kernel(size_t tm, size_t tn, size_t tss, <type> *c, size_t rsc0,
             size_t csc0, size_t rsc1, size_t csc1, size_t row1, size_t col1,
-            void *params);
+            void *params) __riscv_in("xsfmm");
 ```
 where
 - `tss` is the tile subset specifier for the first row (column) of the subtile to be operated on
@@ -97,8 +99,10 @@ where
 - `params` points to a struct containing any other parameters the kernel needs.
 
 Let `tss[i, j]` denote the `j`th entry of the row or column specified by `tss + i`, and let `c_block = c + row1 * rsc1 + col1 * csc1`.
-Then `tss[i, j]` should correspond to `c_block[i * rsc0 + j * csc0]` under the kernel's elementwise operation.
+Then `tss[i, j]` should correspond to `c_block[i * rsc0 + j * csc0]` under the kernel's operation.
 Note that if `tss` has a column pattern, then the operation is effectively applied to the *transpose* of the subtile.
+
+The fused kernel will be called once for each block of `C`, and there is no guaranteed order in which the blocks of `C` are computed.
 
 ### Examples
 We give some examples below of fused kernels for the `float` type.
@@ -112,10 +116,10 @@ typedef struct {
   float beta;
 } skl_gemm_alpha_beta_scaling_params_f32_f32_t;
 
-SKL_XSFMM_IN
 void skl_gemm_alpha_beta_scaling_f32_f32rcptexterc_xsfmmbase(
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
-    size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
+    size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params)
+    __riscv_in("xsfmm") {
   skl_gemm_alpha_beta_scaling_params_f32_f32_t *params_cast =
       (skl_gemm_alpha_beta_scaling_params_f32_f32_t *)params;
   float alpha = params_cast->alpha;
@@ -128,6 +132,30 @@ void skl_gemm_alpha_beta_scaling_f32_f32rcptexterc_xsfmmbase(
           alpha * tss[i, j] + beta * c_block[i * rsc0 + j * csc0];
 }
 ```
+This kernel is already provided by SKL.
+In the actual code, `sf.vtmv.v.t` instructions are used in the inner loop to move rows or columns of the tile state to the vector register file.
+An unoptimized implementation of this kernel in inline assembly might look like: 
+```
+  __asm__ volatile(
+      "sf.vsettnt x0, %[tn], e32, w1\n"
+
+      "0:\n"
+      "sf.vtmv.v.t v0, %[tss]\n"
+      "add %[tss], %[tss], %[kRowInc]\n"
+      "vlse32.v v16, (%[c]), %[csc0]\n"
+      "vfmul.vf v16, v16, %[beta]\n"
+      "vfmacc.vf v16, %[alpha], v0\n"
+      "vsse32.v v16, (%[c]), %[csc0]\n"
+      "add %[c], %[c], %[rsc0]\n"
+      "addi %[i], %[i], -1\n"
+      "bnez %[i], 0b"
+      : [tss] "+&r"(tss), [c] "+&r"(c), [i] "+&r"(i)
+      : [alpha] "f"(alpha), [beta] "f"(beta), [kRowInc] "rI"(kRowInc),
+	[rsc0] "r"(rsc0 * sizeof(float)), [csc0] "r"(csc0 * sizeof(float)),
+	[tn] "r"(tn)
+      : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v16", "v17", "v18",
+	"v19", "v20", "v21", "v22", "v23", "vtype", "vl", "memory");
+```
 
 #### Adding a bias
 The following kernel can be used to compute `C = A * B + bias`, where `bias` is a row vector that is added to each row of `A * B`:
@@ -136,10 +164,10 @@ typedef struct {
   float *bias;
 } skl_gemm_add_bias_params_f32_f32_t;
 
-SKL_XSFMM_IN
 void skl_gemm_add_bias_f32_f32rcptexterc_xsfmmbase(
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
-    size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
+    size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params)
+    __riscv_in("xsfmm") {
   skl_gemm_add_bias_params_f32_f32_t *params_cast =
       (skl_gemm_add_bias_params_f32_f32_t *)params;
   float *bias = params_cast->bias;
@@ -160,10 +188,10 @@ typedef struct {
   float *max;
 } skl_gemm_matrix_max_params_f32_f32_t;
 
-SKL_XSFMM_IN
-void skl_gemm_matrix_max_f32_f32rcptexterc_xsfmmbase(
+void skl_gemm_matrix_max_f32_f32rcptexterc_xsfmmbase( 
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
-    size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
+    size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params)
+    __riscv_in("xsfmm") {
   skl_gemm_matrix_max_params_f32_f32_t *params_cast =
       (skl_gemm_matrix_max_params_f32_f32_t *)params;
   float *max = params_cast->max;
@@ -184,14 +212,15 @@ SKL provides (private) functions that apply a fused kernel to multiple tiles:
 typedef void (*skl_gemm_fused_kernel_<type>_<type>_t)(
     size_t tm, size_t tn, size_t tss, <type> *c, size_t rsc0, size_t csc0,
     size_t rsc1, size_t csc1, size_t row1, size_t col1,
-    void *params) SKL_XSFMM_IN;
+    void *params) __riscv_in("xsfmm");
 
-SKL_XSFMM_IN
+
 SKL_FUNC_PRIVATE
 void skl_gemm_apply_fused_<type>_<type>rcptexterc_<isa>(
     size_t m, size_t n, size_t tss, size_t rstss, size_t cstss, <type> *c,
     size_t rsc0, size_t csc0, size_t rsc1, size_t csc1, size_t row1,
-    size_t col1, skl_gemm_fused_kernel_<type>_<type>_t kernel, void *params);
+    size_t col1, skl_gemm_fused_kernel_<type>_<type>_t kernel, void *params)
+    __riscv_in("xsfmm");
 ```
 `tss`, `rstss`, and `cstss` determine a tile layout analogous to the packed layout for matrices.
 The tile specifier of `tss` indicates the upper leftmost tile, while `rstss` and `cstss` are the row and column strides for the tile index.
@@ -285,21 +314,20 @@ Before accumulating a matrix product into the tile state, the tile state must be
 
 SKL provides the following (private) functions for zeroing out a portion of the tile state:
 ```
-SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
 void skl_gemm_tile_zero_<type>_<type>_xsfmmbase(size_t m, size_t n, size_t tss,
-                                                size_t rstss, size_t cstss);
+                                                size_t rstss, size_t cstss)
+                                                __riscv_out("xsfmm");
 ```
 These functions zero out the leading `m` x `n` portion of the tile layout determined by `tss`, `rstss`, and `cstss`.
 Unlike the fused kernel application functions, these ones ignore the pattern and index of `tss` and only uses its tile specifier.
 
 SKL provides the following (private) functions for loading a packed matrix into the tile state:
 ```
-SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
 void skl_gemm_tile_load_<type>rcptexterc_<type>_xsfmmbase(
     size_t m, size_t n, const <type> *c, size_t rsc0, size_t csc0, size_t rsc1,
-    size_t csc1, size_t tss, size_t rstss, size_t cstss);
+    size_t csc1, size_t tss, size_t rstss, size_t cstss) __riscv_out("xsfmm");
 ```
 These functions load the leading `m` x `n` portion of `C` block-by-block into the tile layout determined by `tss`, `rstss`, and `cstss`.
 The following pseudocode illustrates their operation:
