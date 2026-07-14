@@ -15,7 +15,7 @@ SKL's underlying GEMM implementation combines these tilings to handle problems o
 
 SKL provides an inner loop function for each `m1` x `n1` tiling with `m1 <= n1`.
 If `m1 > n1`, the `n1` x `m1` inner loop function can be used by swapping `A` and `B` to compute `B^T * A^T`.
-This requires that fused kernels be able to operate on the transpose of a tile; more details are given in [Applying a Tiling to `C`](#applying-a-tiling-to-c).
+The fused kernel must then operate on the transpose of each tile of the result; more details are given in [Applying a Tiling to `C`](#applying-a-tiling-to-c).
 
 The inner loop functions have the following API:
 ```
@@ -47,7 +47,7 @@ m│                │           │    ││
 ```
 
 Other functions which initialize the tile state for or consume the output of an inner loop function must know the tile register allocation it uses.
-The inner loop functions obey the following allocation scheme: if `m1 == n1`, tiles are arranged by increasing index in row-major order; otherwise, if `m1 < n1`, tiles are arranged by increasing index in column-major order.
+The inner loop functions use the following allocation scheme: if `m1 == n1`, tiles are arranged by increasing index in row-major order; otherwise, if `m1 < n1`, tiles are arranged by increasing index in column-major order.
 Some examples are given below:
 
 `TEW` = 32
@@ -84,7 +84,7 @@ mt12 mt13 mt14 mt15
 ## The Fused Kernel API
 Fused kernels operate on a single tile in the Xsfmm tile state and a single block of `C`.
 Once a fused kernel has been implemented, the output of any inner loop function can be processed by applying it to each tile of the output.
-Thus, this single-tile API avoids the need for kernel authors to know how each inner loop function arranges data in matrix registers.
+This single-tile API avoids the need for kernel authors to know how each inner loop function arranges data in matrix registers.
 
 The API for fused kernels is
 ```
@@ -103,9 +103,8 @@ where
 Let `tss[i, j]` denote the `j`th entry of the row or column specified by `tss + i`, and let `c_block = c + row1 * rsc1 + col1 * csc1`.
 Then `tss[i, j]` should correspond to `c_block[i * rsc0 + j * csc0]` under the kernel's operation.
 Note that if `tss` has a column pattern, then the operation is effectively applied to the *transpose* of the subtile.
-This can be used when applying a fused kernel after an inner loop function computes `B^T * A^T` instead of `A * B`.
-
-The fused kernel will be called once for each block of `C`, and there is no guaranteed order in which the blocks of `C` are computed.
+This column pattern case can be used when applying a fused kernel after an inner loop function computes `B^T * A^T`.
+Fused kernels will be called once for each block of `C`, and there is no guaranteed order in which the blocks of `C` are computed.
 
 ### Examples
 We give some examples below of fused kernels for the `float` type.
@@ -139,25 +138,30 @@ This kernel is already provided by SKL.
 In actual code, `sf.vtmv.v.t` instructions are used in the inner loop to move rows or columns of the tile state to the vector register file.
 An unoptimized implementation of this kernel in inline assembly might look like: 
 ```
-  __asm__ volatile(
-      "sf.vsettnt x0, %[tn], e32, w1\n"
+if (tm == 0 || tn == 0) {
+  return;
+}
 
-      "0:\n"
-      "sf.vtmv.v.t v0, %[tss]\n"
-      "add %[tss], %[tss], %[kRowInc]\n"
-      "vlse32.v v16, (%[c]), %[csc0]\n"
-      "vfmul.vf v16, v16, %[beta]\n"
-      "vfmacc.vf v16, %[alpha], v0\n"
-      "vsse32.v v16, (%[c]), %[csc0]\n"
-      "add %[c], %[c], %[rsc0]\n"
-      "addi %[i], %[i], -1\n"
-      "bnez %[i], 0b"
-      : [tss] "+&r"(tss), [c] "+&r"(c), [i] "+&r"(i)
-      : [alpha] "f"(alpha), [beta] "f"(beta), [kRowInc] "rI"(kRowInc),
-	[rsc0] "r"(rsc0 * sizeof(float)), [csc0] "r"(csc0 * sizeof(float)),
-	[tn] "r"(tn)
-      : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v16", "v17", "v18",
-	"v19", "v20", "v21", "v22", "v23", "vtype", "vl", "memory");
+const size_t kRowInc = 1;
+__asm__ volatile(
+    "sf.vsettnt x0, %[tn], e32, w1\n"
+
+    "0:\n"
+    "sf.vtmv.v.t v0, %[tss]\n"
+    "add %[tss], %[tss], %[kRowInc]\n"
+    "vlse32.v v16, (%[c]), %[csc0]\n"
+    "vfmul.vf v16, v16, %[beta]\n"
+    "vfmacc.vf v16, %[alpha], v0\n"
+    "vsse32.v v16, (%[c]), %[csc0]\n"
+    "add %[c], %[c], %[rsc0]\n"
+    "addi %[i], %[i], -1\n"
+    "bnez %[i], 0b"
+    : [tss] "+&r"(tss), [c] "+&r"(c), [i] "+&r"(i)
+    : [alpha] "f"(alpha), [beta] "f"(beta), [kRowInc] "rI"(kRowInc),
+      [rsc0] "r"(rsc0 * sizeof(float)), [csc0] "r"(csc0 * sizeof(float)),
+      [tn] "r"(tn)
+    : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v16", "v17", "v18",
+      "v19", "v20", "v21", "v22", "v23", "vtype", "vl", "memory");
 ```
 
 #### Adding a bias
@@ -259,16 +263,21 @@ m│                │           │    ││
 ```
 The pseudocode below illustrates the application functions' operation:
 ```
+const size_t kShiftTile = 27;
+rstss <<= kShiftTile;
+cstss <<= kShiftTile;
+
 size_t m1 = (m + ETE - 1) / ETE; // ceil(m / ETE)
 size_t n1 = (n + ETE - 1) / ETE; // ceil(n / ETE)
+
 size_t m_avl = m;
 for (size_t i1 = 0; i1 < m1; ++i1) {
   size_t tm = m_avl > ETE ? ETE : m_avl;
   size_t n_avl = n;
   for (size_t j1 = 0; j1 < n1; ++j1) {
     size_t tn = n_avl > ETE ? ETE : n_avl;
-    kernel(tm, tn, tss + i1 * (rstss << 27) + j1 * (cstss << 27), c, rsc0, csc0,
-           rsc1, csc1, row1 + i1, col1 + j1, params);
+    kernel(tm, tn, tss + i1 * rstss + j1 * cstss, c, rsc0, csc0, rsc1, csc1,
+           row1 + i1, col1 + j1, params);
     n_avl -= tn;
   }
   m_avl -= tm;
@@ -335,15 +344,20 @@ void skl_gemm_tile_load_<type>rcptexterc_<type>_xsfmmbase(
 These functions load the leading `m` x `n` portion of `C` block-by-block into the tile layout determined by `tss`, `rstss`, and `cstss`.
 The following pseudocode illustrates their operation:
 ```
+const size_t kShiftTile = 27;
+rstss <<= kShiftTile;
+cstss <<= kShiftTile;
+
 size_t m1 = (m + ETE - 1) / ETE; // ceil(m / ETE)
 size_t n1 = (n + ETE - 1) / ETE; // ceil(n / ETE)
+
 size_t m_avl = m;
 for (size_t i1 = 0; i1 < m1; ++i1) {
   size_t tm = m_avl > ETE ? ETE : m_avl;
   size_t n_avl = n;
   for (size_t j1 = 0; j1 < n1; ++j1) {
     const <type> *c_block = c + i1 * rsc1 + j1 * csc1;
-    size_t tss_tile = tss + i1 * (rstss << 27) + j1 * (cstss << 27);
+    size_t tss_tile = tss + i1 * rstss + j1 * cstss;
     size_t tn = n_avl > ETE ? ETE : n_avl;
     for (size_t i0 = 0; i0 < tm; ++i0) {
       for (size_t j0 = 0; j0 < tn; ++j0)
