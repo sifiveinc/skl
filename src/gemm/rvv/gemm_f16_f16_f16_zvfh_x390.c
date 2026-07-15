@@ -473,7 +473,7 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm2x12_f16_f16_f16_zvfh_x390(
             [a_addr4] "+&r"(a_addr4),
             [a_addr5] "+&r"(a_addr5),
             [a_addr6] "+&r"(a_addr6),
-            [a_addr7] "+&r"(a_addr7)
+            [a_addr7] "+r"(a_addr7)
           : [jj_vl] "r"(jj_vl),
             [b_load] "r"(b + jj)
           : "vtype", "vl", "memory"
@@ -598,7 +598,7 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm2x12_f16_f16_f16_zvfh_x390(
               [a_addr4] "+&r"(a_addr4),
               [a_addr5] "+&r"(a_addr5),
               [a_addr6] "+&r"(a_addr6),
-              [a_addr7] "+&r"(a_addr7),
+              [a_addr7] "+r"(a_addr7),
 
               [b_addr0] "+&r"(b_addr0),
               [b_addr1] "+&r"(b_addr1),
@@ -1007,7 +1007,7 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm2x12_f16_f16_f16_zvfh_x390(
                 [a_addr4] "+&r"(a_addr4),
                 [a_addr5] "+&r"(a_addr5),
                 [a_addr6] "+&r"(a_addr6),
-                [a_addr7] "+&r"(a_addr7),
+                [a_addr7] "+r"(a_addr7),
 
                 [b_addr0] "+&r"(b_addr0),
                 [b_addr1] "+&r"(b_addr1),
