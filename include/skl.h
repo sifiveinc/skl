@@ -33,6 +33,7 @@
 #endif
 
 #if defined(__riscv_zve64d)
+#include "gemm/rvv/gemm_f64_f64_f64_zve64d.h"
 #include "gemm/rvv/gemm_f64_f64_f64_zve64d_x390.h"
 #endif
 
