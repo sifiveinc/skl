@@ -122,7 +122,8 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
   __asm__ volatile(
       "sf.vsettnt x0, x0, e32, w1\n"
 
-      "bgeu %[dst], %[dst_store_load_end], 1f\n"
+      "bgeu %[dst], %[dst_store_load_end], 2f\n"
+      "beq %[tn_load], %[n0], 1f\n"
       "0:\n"
       "sf.vsettn x0, %[tn_load]\n"
       "sf.vlte32 %[tss_load], (%[src])\n"
@@ -133,9 +134,21 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
       "add %[tss_store], %[tss_store], %[kRowInc]\n"
       "add %[dst], %[dst], %[rsdst]\n"
       "bltu %[dst], %[dst_store_load_end], 0b\n"
+      "j 2f\n"
 
       "1:\n"
-      "bgeu %[dst], %[dst_pad_load_end], 2f\n"
+      "sf.vsettn x0, %[tn_load]\n"
+      "0:\n"
+      "sf.vlte32 %[tss_load], (%[src])\n"
+      "add %[tss_load], %[tss_load], %[kRowInc]\n"
+      "add %[src], %[src], %[rssrc]\n"
+      "sf.vste32 %[tss_store], (%[dst])\n"
+      "add %[tss_store], %[tss_store], %[kRowInc]\n"
+      "add %[dst], %[dst], %[rsdst]\n"
+      "bltu %[dst], %[dst_store_load_end], 0b\n"
+
+      "2:\n"
+      "bgeu %[dst], %[dst_pad_load_end], 3f\n"
       "0:\n"
       "sf.vsettn x0, %[tn_load]\n"
       "sf.vlte32 %[tss_load], (%[src])\n"
@@ -146,8 +159,8 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
       "add %[dst], %[dst], %[rsdst]\n"
       "bltu %[dst], %[dst_pad_load_end], 0b\n"
 
-      "2:\n"
-      "bgeu %[dst], %[dst_store_end], 3f\n"
+      "3:\n"
+      "bgeu %[dst], %[dst_store_end], 4f\n"
       "sf.vsettn x0, %[n0]\n"
       "0:\n"
       "sf.vste32 %[tss_store], (%[dst])\n"
@@ -155,16 +168,16 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
       "add %[dst], %[dst], %[rsdst]\n"
       "bltu %[dst], %[dst_store_end], 0b\n"
 
-      "3:\n"
-      "bgeu %[dst], %[dst_pad_end], 4f\n"
+      "4:\n"
+      "bgeu %[dst], %[dst_pad_end], 5f\n"
       "sf.vsettn x0, %[n0]\n"
       "0:\n"
       "vse32.v %[pad_vec], (%[dst])\n"
       "add %[dst], %[dst], %[rsdst]\n"
       "bltu %[dst], %[dst_pad_end], 0b\n"
 
-      "4:\n"
-      "bgeu %[src], %[src_end], 5f\n"
+      "5:\n"
+      "bgeu %[src], %[src_end], 6f\n"
       "sf.vsettn x0, %[tn_load]\n"
       "0:\n"
       "sf.vlte32 %[tss_load], (%[src])\n"
@@ -172,7 +185,7 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
       "add %[src], %[src], %[rssrc]\n"
       "bltu %[src], %[src_end], 0b\n"
 
-      "5:\n"
+      "6:\n"
       : [tss_store] "+&r"(tss_store), [tss_load] "+&r"(tss_load),
         [dst] "+&r"(dst), [src] "+&r"(src)
       : [dst_store_load_end] "r"(dst_store_load_end),
