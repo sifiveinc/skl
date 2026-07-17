@@ -12,14 +12,17 @@
 
 #include "skl-common.h"
 
-typedef void (*skl_gemm_fused_kernel_f32_f32rcptexterc_xsfmmbase_t)(
-    size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
-    size_t rsc1, size_t csc1, size_t row1, size_t col1,
-    void *params) SKL_XSFMM_IN;
+typedef void (*skl_gemm_tile_zero_f32_f32_xsfmmbase_t)(size_t tm,
+                                                       size_t tn) SKL_XSFMM_OUT;
 
 typedef void (*skl_gemm_inner_loop_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f_t)(
     size_t m, size_t n, size_t k, const float *a, size_t rsa1, size_t csa1,
     const float *b, size_t rsb1, size_t csb1) SKL_XSFMM_INOUT;
+
+typedef void (*skl_gemm_fused_kernel_f32_f32rcptexterc_xsfmmbase_t)(
+    size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
+    size_t rsc1, size_t csc1, size_t row1, size_t col1,
+    void *params) SKL_XSFMM_IN;
 
 /* params type for the alpha/beta scaling kernel */
 typedef struct {
@@ -27,9 +30,9 @@ typedef struct {
   float beta;
 } skl_gemm_alpha_beta_scaling_params_f32_f32rcptexterc_xsfmmbase_t;
 
-SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
-void skl_gemm_tile_zero_mt0_f32_f32_xsfmmbase(size_t tm, size_t tn) {
+void skl_gemm_tile_zero_mt0_f32_f32_xsfmmbase(size_t tm,
+                                              size_t tn) SKL_XSFMM_OUT {
   __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
                    "sf.vsettm x0, %[tm]\n"
                    "sf.vtzero.t mt0\n"
@@ -38,9 +41,9 @@ void skl_gemm_tile_zero_mt0_f32_f32_xsfmmbase(size_t tm, size_t tn) {
                    : "vtype", "vl");
 }
 
-SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
-void skl_gemm_tile_zero_mt4_f32_f32_xsfmmbase(size_t tm, size_t tn) {
+void skl_gemm_tile_zero_mt4_f32_f32_xsfmmbase(size_t tm,
+                                              size_t tn) SKL_XSFMM_OUT {
   __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
                    "sf.vsettm x0, %[tm]\n"
                    "sf.vtzero.t mt4\n"
@@ -49,9 +52,9 @@ void skl_gemm_tile_zero_mt4_f32_f32_xsfmmbase(size_t tm, size_t tn) {
                    : "vtype", "vl");
 }
 
-SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
-void skl_gemm_tile_zero_mt8_f32_f32_xsfmmbase(size_t tm, size_t tn) {
+void skl_gemm_tile_zero_mt8_f32_f32_xsfmmbase(size_t tm,
+                                              size_t tn) SKL_XSFMM_OUT {
   __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
                    "sf.vsettm x0, %[tm]\n"
                    "sf.vtzero.t mt8\n"
@@ -60,9 +63,9 @@ void skl_gemm_tile_zero_mt8_f32_f32_xsfmmbase(size_t tm, size_t tn) {
                    : "vtype", "vl");
 }
 
-SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
-void skl_gemm_tile_zero_mt12_f32_f32_xsfmmbase(size_t tm, size_t tn) {
+void skl_gemm_tile_zero_mt12_f32_f32_xsfmmbase(size_t tm,
+                                               size_t tn) SKL_XSFMM_OUT {
   __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
                    "sf.vsettm x0, %[tm]\n"
                    "sf.vtzero.t mt12\n"
@@ -75,19 +78,19 @@ void skl_gemm_tile_zero_mt12_f32_f32_xsfmmbase(size_t tm, size_t tn) {
  *  - tss: tile subset specifier for first tile (pattern, index ignored)
  *  - rstss, cstss: tile index strides
  */
-SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
 void skl_gemm_tile_zero_f32_f32_xsfmmbase(size_t m, size_t n, size_t tss,
-                                          size_t rstss, size_t cstss) {
+                                          size_t rstss,
+                                          size_t cstss) SKL_XSFMM_OUT {
   if (m == 0 || n == 0) {
     return;
   }
 
-  void (*tile_zero_functions[])(size_t, size_t) = {
-      skl_gemm_tile_zero_mt0_f32_f32_xsfmmbase,
-      skl_gemm_tile_zero_mt4_f32_f32_xsfmmbase,
-      skl_gemm_tile_zero_mt8_f32_f32_xsfmmbase,
-      skl_gemm_tile_zero_mt12_f32_f32_xsfmmbase,
+  skl_gemm_tile_zero_f32_f32_xsfmmbase_t tile_zero_functions[] = {
+      &skl_gemm_tile_zero_mt0_f32_f32_xsfmmbase,
+      &skl_gemm_tile_zero_mt4_f32_f32_xsfmmbase,
+      &skl_gemm_tile_zero_mt8_f32_f32_xsfmmbase,
+      &skl_gemm_tile_zero_mt12_f32_f32_xsfmmbase,
   };
 
   const size_t kShiftTile = 27;
@@ -113,11 +116,10 @@ void skl_gemm_tile_zero_f32_f32_xsfmmbase(size_t m, size_t n, size_t tss,
 }
 
 /* Load the leading m x n portion of packed matrix C into the tile state. */
-SKL_XSFMM_OUT
 SKL_FUNC_PRIVATE
 void skl_gemm_tile_load_f32rcptexterc_f32_xsfmmbase(
     size_t m, size_t n, const float *c, size_t rsc0, size_t csc0, size_t rsc1,
-    size_t csc1, size_t tss, size_t rstss, size_t cstss) {
+    size_t csc1, size_t tss, size_t rstss, size_t cstss) SKL_XSFMM_OUT {
   if (m == 0 || n == 0) {
     return;
   }
@@ -183,13 +185,12 @@ void skl_gemm_tile_load_f32rcptexterc_f32_xsfmmbase(
 /* Apply a fused kernel to the leading m x n portion of the tile state and
  * packed matrix C.
  */
-SKL_XSFMM_IN
 SKL_FUNC_PRIVATE
 void skl_gemm_apply_fused_f32_f32rcptexterc_xsfmmbase(
     size_t m, size_t n, size_t tss, size_t rstss, size_t cstss, float *c,
     size_t rsc0, size_t csc0, size_t rsc1, size_t csc1, size_t row1,
     size_t col1, skl_gemm_fused_kernel_f32_f32rcptexterc_xsfmmbase_t kernel,
-    void *params) {
+    void *params) SKL_XSFMM_IN {
   if (m == 0 || n == 0) {
     return;
   }
@@ -223,11 +224,10 @@ void skl_gemm_apply_fused_f32_f32rcptexterc_xsfmmbase(
  *
  * This is a general implementation that will work on all Xsfmm machines.
  */
-SKL_XSFMM_IN
 SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m8_f32_f32rc_xsfmmbase(
     size_t tm, size_t tn, float alpha, size_t tss, float beta,
     float *c, // NOLINT(readability-non-const-parameter)
-    size_t rsc0, size_t csc0) {
+    size_t rsc0, size_t csc0) SKL_XSFMM_IN {
   if (tm == 0 || tn == 0) {
     return;
   }
@@ -289,10 +289,9 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m8_f32_f32rc_xsfmmbase(
  * scaling loop by a factor of 8 and software pipelining the tile row transfers
  * to overlap their latency with the scaling computation.
  */
-SKL_XSFMM_IN
 SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m2_f32_f32_xsfmmbase(
     size_t tm, size_t tn, float alpha, size_t tss, float beta, float *c,
-    size_t rsc0) {
+    size_t rsc0) SKL_XSFMM_IN {
   if (tm == 0 || tn == 0) {
     return;
   }
@@ -600,11 +599,11 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m2_f32_f32_xsfmmbase(
  *
  * This kernel dispatches to the optimized m2 version when possible.
  */
-SKL_XSFMM_IN
 SKL_FUNC_PRIVATE
 void skl_gemm_alpha_beta_scaling_f32_f32rcptexterc_xsfmmbase(
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
-    size_t rsc1, size_t csc1, size_t row1, size_t col1, void *params) {
+    size_t rsc1, size_t csc1, size_t row1, size_t col1,
+    void *params) SKL_XSFMM_IN {
   skl_gemm_alpha_beta_scaling_params_f32_f32rcptexterc_xsfmmbase_t
       *params_cast =
           (skl_gemm_alpha_beta_scaling_params_f32_f32rcptexterc_xsfmmbase_t *)
@@ -628,12 +627,11 @@ void skl_gemm_alpha_beta_scaling_f32_f32rcptexterc_xsfmmbase(
 /* Computes an m x n x k matrix product A * B for packed A and B.
  * m and n must be <= ETE.
  */
-SKL_XSFMM_INOUT
 SKL_FUNC_PRIVATE void
 skl_gemm_inner_loop_1x1_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
     size_t m, size_t n, size_t k, const float *a,
     __attribute__((unused)) size_t rsa1, size_t csa1, const float *b,
-    size_t rsb1, __attribute__((unused)) size_t csb1) {
+    size_t rsb1, __attribute__((unused)) size_t csb1) SKL_XSFMM_INOUT {
   if (m == 0 || n == 0) {
     return;
   }
@@ -669,12 +667,11 @@ skl_gemm_inner_loop_1x1_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
 }
 
 /* m <= ETE, n <= 2 * ETE. */
-SKL_XSFMM_INOUT
 SKL_FUNC_PRIVATE void
 skl_gemm_inner_loop_1x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
     size_t m, size_t n, size_t k, const float *a,
     __attribute__((unused)) size_t rsa1, size_t csa1, const float *b,
-    size_t rsb1, size_t csb1) {
+    size_t rsb1, size_t csb1) SKL_XSFMM_INOUT {
   if (m == 0 || n == 0) {
     return;
   }
@@ -745,12 +742,11 @@ skl_gemm_inner_loop_1x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
 }
 
 /* m <= ETE, n <= 3 * ETE. */
-SKL_XSFMM_INOUT
 SKL_FUNC_PRIVATE void
 skl_gemm_inner_loop_1x3_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
     size_t m, size_t n, size_t k, const float *a,
     __attribute__((unused)) size_t rsa1, size_t csa1, const float *b,
-    size_t rsb1, size_t csb1) {
+    size_t rsb1, size_t csb1) SKL_XSFMM_INOUT {
   if (m == 0 || n == 0) {
     return;
   }
@@ -840,12 +836,11 @@ skl_gemm_inner_loop_1x3_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
 }
 
 /* m <= ETE, n <= 4 * ETE. */
-SKL_XSFMM_INOUT
 SKL_FUNC_PRIVATE void
 skl_gemm_inner_loop_1x4_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
     size_t m, size_t n, size_t k, const float *a,
     __attribute__((unused)) size_t rsa1, size_t csa1, const float *b,
-    size_t rsb1, size_t csb1) {
+    size_t rsb1, size_t csb1) SKL_XSFMM_INOUT {
   if (m == 0 || n == 0) {
     return;
   }
@@ -951,11 +946,10 @@ skl_gemm_inner_loop_1x4_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
 }
 
 /* m <= 2 * ETE, n <= 2 * ETE. */
-SKL_XSFMM_INOUT
 SKL_FUNC_PRIVATE void
 skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
     size_t m, size_t n, size_t k, const float *a, size_t rsa1, size_t csa1,
-    const float *b, size_t rsb1, size_t csb1) {
+    const float *b, size_t rsb1, size_t csb1) SKL_XSFMM_INOUT {
   if (m == 0 || n == 0) {
     return;
   }
@@ -1066,7 +1060,6 @@ skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
  * This function will compute partial blocks of C if m or n is not multiple of
  * ETE. If m1 > n1, then the n1 x m1 inner loop function should be called.
  */
-SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void
 skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
     size_t m1, size_t n1,
@@ -1074,7 +1067,8 @@ skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
     size_t m, size_t n, size_t k, const float *a, size_t rsa1, size_t csa1,
     const float *b, size_t rsb1, size_t csb1, float *c, size_t rsc0,
     size_t csc0, size_t rsc1, size_t csc1, size_t row1, size_t col1, bool accum,
-    skl_gemm_fused_kernel_f32_f32rcptexterc_xsfmmbase_t kernel, void *params) {
+    skl_gemm_fused_kernel_f32_f32rcptexterc_xsfmmbase_t kernel,
+    void *params) SKL_XSFMM_NEW {
   if (m == 0 || n == 0) {
     return;
   }
