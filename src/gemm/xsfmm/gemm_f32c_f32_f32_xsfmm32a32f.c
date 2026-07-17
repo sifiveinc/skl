@@ -604,6 +604,15 @@ void skl_gemm_alpha_beta_scaling_f32_f32_f32rcptexterc_xsfmmbase(
     size_t tm, size_t tn, size_t tss, float *c, size_t rsc0, size_t csc0,
     size_t rsc1, size_t csc1, size_t row1, size_t col1,
     void *params) SKL_XSFMM_IN {
+  // Check that tss specifies the first row or column of a tile (bits 23:0)
+  if (rsc0 == 1 && csc0 != 1 && ((tss & (size_t)0xFFFFFF) == 0)) {
+    // Toggle the pattern (bit 24)
+    skl_gemm_alpha_beta_scaling_f32_f32_f32rcptexterc_xsfmmbase(
+        tn, tm, tss ^ ((size_t)1 << 24), c, csc0, rsc0, rsc1, csc1, row1, col1,
+        params);
+    return;
+  }
+
   skl_gemm_alpha_beta_scaling_params_f32_f32_f32rcptexterc_xsfmmbase_t
       *params_cast =
           (skl_gemm_alpha_beta_scaling_params_f32_f32_f32rcptexterc_xsfmmbase_t

@@ -149,6 +149,8 @@ gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
     {TEST, .m1 = 7, .n1 = 7, .k1 = 15, .alpha = 2.f, .beta = 3.f},
 
     {TEST, .m1 = 7, .n1 = 7, .k1 = 15, .alpha = 2.f, .beta = 3.f, .csc0 = 2},
+    {TEST, .m1 = 7, .n1 = 7, .k1 = 15, .alpha = 2.f, .beta = 3.f, .rsc0 = 1,
+           .csc0 = __riscv_min_xsfmm_te},
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on
