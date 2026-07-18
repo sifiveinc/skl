@@ -15,17 +15,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifdef __riscv_xsfmmbase
-/**
- * @brief Get the effective tile edge length.
- */
-static inline size_t skl_get_ete_xsfmmbase(void) {
-  size_t ete = 0;
-  __asm__ volatile("sf.vsettnt %0, x0, e8, w1" : "=r"(ete) : : "vtype", "vl");
-  return ete;
-}
-#endif
-
 /**
  * @brief Print out the matrix dimensions and strides for a pack test.
  *
