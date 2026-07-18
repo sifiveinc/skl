@@ -19,11 +19,9 @@
  *
  * Tiles may have padding, so marked as INOUT.
  */
-SKL_XSFMM_INOUT
-SKL_FUNC_PRIVATE void skl_pack_tile_load_e32_e32_xsfmmbase(size_t tm, size_t tn,
-                                                           const uint32_t *src,
-                                                           size_t rs,
-                                                           size_t tss) {
+SKL_FUNC_PRIVATE void
+skl_pack_tile_load_e32_e32_xsfmmbase(size_t tm, size_t tn, const uint32_t *src,
+                                     size_t rs, size_t tss) SKL_XSFMM_INOUT {
   if (tm == 0 || tn == 0) {
     return;
   }
@@ -50,11 +48,10 @@ SKL_FUNC_PRIVATE void skl_pack_tile_load_e32_e32_xsfmmbase(size_t tm, size_t tn,
  *  - m0 and n0 must be <= ETE.
  *  - tm must be <= m0. If tm < m0, the bottom rows of the output are padded.
  */
-SKL_XSFMM_IN
 SKL_FUNC_PRIVATE void skl_pack_tile_store_pad_bottom_e32_e32_xsfmmbase(
     size_t tm, size_t tss, size_t m0, size_t n0,
     uint32_t *dst, // NOLINT(readability-non-const-parameter)
-    size_t rs, uint32_t pad) {
+    size_t rs, uint32_t pad) SKL_XSFMM_IN {
   if (m0 == 0 || n0 == 0) {
     return;
   }
@@ -99,12 +96,11 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_pad_bottom_e32_e32_xsfmmbase(
  * This kernel overlaps store and load execution for improved performance over
  * storing tss_store first and then loading src.
  */
-SKL_XSFMM_INOUT
 SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
     size_t tm_store, size_t tss_store, size_t m0, size_t n0,
     uint32_t *dst, // NOLINT(readability-non-const-parameter)
     size_t rsdst, size_t tm_load, size_t tn_load, const uint32_t *src,
-    size_t rssrc, size_t tss_load, uint32_t pad) {
+    size_t rssrc, size_t tss_load, uint32_t pad) SKL_XSFMM_INOUT {
   if ((m0 == 0 || n0 == 0) && (tm_load == 0 || tn_load == 0)) {
     return;
   }
@@ -202,10 +198,9 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
 /* Set the entries of the tm x tn tile specified by tss to pad.
  * Tiles may have loaded data, so marked as INOUT.
  */
-SKL_XSFMM_INOUT
-SKL_FUNC_PRIVATE void skl_pack_tile_set_e32_xsfmmbase(size_t tm, size_t tn,
-                                                      size_t tss,
-                                                      uint32_t pad) {
+SKL_FUNC_PRIVATE void
+skl_pack_tile_set_e32_xsfmmbase(size_t tm, size_t tn, size_t tss,
+                                uint32_t pad) SKL_XSFMM_INOUT {
   if (tm == 0 || tn == 0) {
     return;
   }
@@ -230,11 +225,10 @@ SKL_FUNC_PRIVATE void skl_pack_tile_set_e32_xsfmmbase(size_t tm, size_t tn,
 /* Pack src into ETE x ETE column-major blocks. pad_right and pad_bottom
  * determine whether right and bottom padding are written.
  */
-SKL_XSFMM_NEW
 SKL_FUNC_PRIVATE void skl_pack_padding_optional_e32_e32rcptextec_xsfmmbase(
     size_t m, size_t n, const uint32_t *src, size_t rs, uint32_t *dst,
     size_t cs0, size_t rs1, size_t cs1, bool pad_right, bool pad_bottom,
-    uint32_t pad) {
+    uint32_t pad) SKL_XSFMM_NEW {
   if (m == 0 || n == 0) {
     return;
   }
@@ -355,8 +349,6 @@ SKL_FUNC void skl_pack_e32_e32rcptex1c_xsfmmbase(size_t m, size_t n,
 
   skl_pack_padding_optional_e32_e32rcptextec_xsfmmbase(
       m, n, src, rs, dst, cs1, rs1, ete * cs1, false, true, pad);
-
-  __asm__ volatile("sf.vtdiscard");
 }
 
 SKL_FUNC void skl_transpose_e32_xsfmmbase(size_t m, size_t n,
@@ -375,6 +367,4 @@ SKL_FUNC void skl_transpose_e32_xsfmmbase(size_t m, size_t n,
 
   skl_pack_padding_optional_e32_e32rcptextec_xsfmmbase(
       m, n, a, rsa, at, rsat, ete, ete * rsat, false, false, 0);
-
-  __asm__ volatile("sf.vtdiscard");
 }
