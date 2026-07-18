@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: MIT
 
 #include "pack/pack_e32rc_e32rcprc.h"
-#include "pack/skl_test_pack.h"
 #include "skl-test-driver.h"
 #include "skl.h"
 
@@ -48,44 +47,49 @@ static void execute(skl_test_t *t);
 pack_e32rc_e32rcprc_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
   // Benchmark tests
-  {BENCH, .m = 256, .n = 256},
+  {BENCH, .m = (size_t)4 * __riscv_min_xsfmm_te, .n = (size_t)4 * __riscv_min_xsfmm_te},
 #endif
 
 #ifdef SKL_ENABLE_TESTS
   // Verification tests
-  /* Test different {r,c}s1, set in main */
-  {TEST, .m = 192, .n = 256},
-  {TEST, .m = 192, .n = 256},
-  {TEST, .m = 192, .n = 256},
-  {TEST, .m = 191, .n = 255},
-  {TEST, .m = 191, .n = 255},
-  {TEST, .m = 191, .n = 255},
+  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te, .n = (size_t)1 * __riscv_min_xsfmm_te},
+  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te, .n = (size_t)2 * __riscv_min_xsfmm_te},
+  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te, .n = (size_t)3 * __riscv_min_xsfmm_te},
+  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te, .n = (size_t)4 * __riscv_min_xsfmm_te},
+  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te, .n = (size_t)1 * __riscv_min_xsfmm_te},
+  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te, .n = (size_t)2 * __riscv_min_xsfmm_te},
+  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te, .n = (size_t)3 * __riscv_min_xsfmm_te},
+  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te, .n = (size_t)4 * __riscv_min_xsfmm_te},
+  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te, .n = (size_t)1 * __riscv_min_xsfmm_te},
+  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te, .n = (size_t)2 * __riscv_min_xsfmm_te},
+  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te, .n = (size_t)3 * __riscv_min_xsfmm_te},
+  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te, .n = (size_t)4 * __riscv_min_xsfmm_te},
 
-  {TEST, .m =  64, .n =  64},
-  {TEST, .m =  64, .n = 128},
-  {TEST, .m =  64, .n = 192},
-  {TEST, .m =  64, .n = 256},
-  {TEST, .m = 128, .n =  64},
-  {TEST, .m = 128, .n = 128},
-  {TEST, .m = 128, .n = 192},
-  {TEST, .m = 128, .n = 256},
-  {TEST, .m = 192, .n =  64},
-  {TEST, .m = 192, .n = 128},
-  {TEST, .m = 192, .n = 192},
-  {TEST, .m = 192, .n = 256},
+  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te - 1, .n = (size_t)1 * __riscv_min_xsfmm_te - 1},
+  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te - 1, .n = (size_t)2 * __riscv_min_xsfmm_te - 1},
+  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te - 1, .n = (size_t)3 * __riscv_min_xsfmm_te - 1},
+  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te - 1, .n = (size_t)4 * __riscv_min_xsfmm_te - 1},
+  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te - 1, .n = (size_t)1 * __riscv_min_xsfmm_te - 1},
+  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te - 1, .n = (size_t)2 * __riscv_min_xsfmm_te - 1},
+  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te - 1, .n = (size_t)3 * __riscv_min_xsfmm_te - 1},
+  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te - 1, .n = (size_t)4 * __riscv_min_xsfmm_te - 1},
+  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te - 1, .n = (size_t)1 * __riscv_min_xsfmm_te - 1},
+  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te - 1, .n = (size_t)2 * __riscv_min_xsfmm_te - 1},
+  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te - 1, .n = (size_t)3 * __riscv_min_xsfmm_te - 1},
+  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te - 1, .n = (size_t)4 * __riscv_min_xsfmm_te - 1},
 
-  {TEST, .m =  63, .n =  63},
-  {TEST, .m =  63, .n = 127},
-  {TEST, .m =  63, .n = 191},
-  {TEST, .m =  63, .n = 255},
-  {TEST, .m = 127, .n =  63},
-  {TEST, .m = 127, .n = 127},
-  {TEST, .m = 127, .n = 191},
-  {TEST, .m = 127, .n = 255},
-  {TEST, .m = 191, .n =  63},
-  {TEST, .m = 191, .n = 127},
-  {TEST, .m = 191, .n = 191},
-  {TEST, .m = 191, .n = 255},
+  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te, .n = (size_t)4 * __riscv_min_xsfmm_te,
+   .cs1 = __riscv_min_xsfmm_te + 1, .rs1 = (size_t)4 * __riscv_min_xsfmm_te * (__riscv_min_xsfmm_te + 1)},
+  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te, .n = (size_t)4 * __riscv_min_xsfmm_te,
+   .rs1 = __riscv_min_xsfmm_te, .cs1 = (size_t)3 * __riscv_min_xsfmm_te},
+  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te, .n = (size_t)4 * __riscv_min_xsfmm_te,
+   .rs1 = __riscv_min_xsfmm_te + 1, .cs1 = (size_t)3 * (__riscv_min_xsfmm_te + 1)},
+  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te - 1, .n = (size_t)4 * __riscv_min_xsfmm_te - 1,
+   .cs1 = __riscv_min_xsfmm_te + 1, .rs1 = (size_t)4 * __riscv_min_xsfmm_te * (__riscv_min_xsfmm_te + 1)},
+  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te - 1, .n = (size_t)4 * __riscv_min_xsfmm_te - 1,
+   .rs1 = __riscv_min_xsfmm_te, .cs1 = (size_t)3 * __riscv_min_xsfmm_te},
+  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te - 1, .n = (size_t)4 * __riscv_min_xsfmm_te - 1,
+   .rs1 = __riscv_min_xsfmm_te + 1, .cs1 = (size_t)3 * (__riscv_min_xsfmm_te + 1)},
 #endif
 };
 // clang-format on
@@ -93,9 +97,8 @@ pack_e32rc_e32rcprc_t tests[] = {
 static void init(skl_test_t *t) {
   const pack_e32rc_e32rcprc_t *h = (pack_e32rc_e32rcprc_t *)t->harness;
 
-  size_t ete = skl_get_ete_xsfmmbase();
   SKL_TEST_REQUIRE(t, init_status, h->cs == 1);
-  SKL_TEST_REQUIRE(t, init_status, h->m0 == ete);
+  SKL_TEST_REQUIRE(t, init_status, h->m0 == __riscv_min_xsfmm_te);
   SKL_TEST_REQUIRE(t, init_status, h->n0 == 1);
   SKL_TEST_REQUIRE(t, init_status, h->rs0 == 1); // Note: column-major
 
@@ -115,12 +118,11 @@ static void execute(skl_test_t *t) {
 }
 
 int main(void) {
-  size_t ete = skl_get_ete_xsfmmbase();
   for (size_t i = 0; i < suite.num_tests; ++i) {
     tests[i].rs = tests[i].rs ? tests[i].rs : tests[i].n;
     tests[i].cs = 1;
 
-    tests[i].m0 = ete;
+    tests[i].m0 = __riscv_min_xsfmm_te;
     tests[i].n0 = 1;
 
     tests[i].rs0 = 1;
@@ -128,26 +130,6 @@ int main(void) {
     tests[i].cs1 = tests[i].cs1 ? tests[i].cs1 : tests[i].m0 * tests[i].n0;
     tests[i].rs1 = tests[i].rs1 ? tests[i].rs1 : tests[i].n * tests[i].cs1;
   }
-
-#ifdef SKL_ENABLE_TESTS
-  tests[0].cs1 = ete + 1;
-  tests[0].rs1 = tests[0].n * tests[0].cs1;
-
-  tests[1].rs1 = ete;
-  tests[1].cs1 = (tests[1].m + ete - 1) / ete * tests[1].rs1;
-
-  tests[2].rs1 = ete + 1;
-  tests[2].cs1 = (tests[2].m + ete - 1) / ete * tests[2].rs1;
-
-  tests[3].cs1 = ete + 1;
-  tests[3].rs1 = (tests[3].n + 1) * tests[3].cs1;
-
-  tests[4].rs1 = ete;
-  tests[4].cs1 = (tests[4].m + ete - 1) / ete * tests[4].rs1;
-
-  tests[5].rs1 = ete + 1;
-  tests[5].cs1 = (tests[5].m + ete - 1) / ete * tests[5].rs1;
-#endif
 
   return skl_test_driver_run_suite(&suite);
 }
