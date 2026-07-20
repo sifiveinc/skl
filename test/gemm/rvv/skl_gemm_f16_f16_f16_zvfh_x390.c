@@ -64,7 +64,11 @@ gemm_f16rcprc_f16rcprc_f16rcprc_t tests[] = {
     {TEST, .m1 = 17,  .n1 = 17,  .k1 = 17, .alpha = (_Float16) 2.f},
 
     /* Skinny matrices (one dimension = 1) */
-    {TEST, .m1 = 1,   .n1 = 33,  .k1 = 31, .alpha = (_Float16) 2.f},
+    {TEST, .m1 = 1,   .n1 = 512, .k1 = 15, .alpha = (_Float16) 2.f},
+    {TEST, .m1 = 1,   .n1 = 512, .k1 = 16, .alpha = (_Float16) 2.f},
+    {TEST, .m1 = 1,   .n1 = 512, .k1 = 17, .alpha = (_Float16) 2.f},
+    {TEST, .m1 = 1,   .n1 = 512, .k1 = 31, .alpha = (_Float16) 2.f},
+    {TEST, .m1 = 1,   .n1 = 768, .k1 = 31, .alpha = (_Float16) 2.f},
     {TEST, .m1 = 33,  .n1 = 1,   .k1 = 31, .alpha = (_Float16) 2.f},
 
     /* k=0 edge case (C = beta*C, no A*B contribution) */
@@ -72,6 +76,10 @@ gemm_f16rcprc_f16rcprc_f16rcprc_t tests[] = {
     {TEST, .m1 = 16,  .n1 = 16,  .k1 = 0,  .alpha = (_Float16) 2.f,  .beta = (_Float16) 3.f},
 
     /* Vector length boundary tests (multiples of 4, 8, 16, 32) */
+    {TEST, .m1 = 16,  .n1 = 64,  .k1 = 18, .alpha = (_Float16) 2.f},
+    {TEST, .m1 = 16,  .n1 = 128, .k1 = 16, .alpha = (_Float16) 2.f},
+    {TEST, .m1 = 16,  .n1 = 128, .k1 = 17, .alpha = (_Float16) 2.f},
+    {TEST, .m1 = 16,  .n1 = 128, .k1 = 18, .alpha = (_Float16) 2.f},
     {TEST, .m1 = 16,  .n1 = 256, .k1 = 16, .alpha = (_Float16) 2.f},
     {TEST, .m1 = 32,  .n1 = 512, .k1 = 32, .alpha = (_Float16) 2.f},
 
