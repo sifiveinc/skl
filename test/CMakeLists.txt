@@ -186,6 +186,13 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_gemm_i8_i8_i32_zve32x
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/rvv/skl_gemm_i8_i8_i32_zve32x.c
+  "zve32x"
+  ""
+)
+skl_add_test(
   skl_gemm_i8_i8_i32_zve32x_x390
   gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
   gemm/rvv/skl_gemm_i8_i8_i32_zve32x_x390.c
