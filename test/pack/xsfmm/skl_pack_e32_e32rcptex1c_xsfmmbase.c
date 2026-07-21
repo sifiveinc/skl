@@ -47,49 +47,49 @@ static void execute(skl_test_t *t);
 pack_e32rc_e32rcprc_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
   // Benchmark tests
-  {BENCH, .m = (size_t)4 * __riscv_min_xsfmm_te, .n = (size_t)4 * __riscv_min_xsfmm_te},
+  {BENCH, .m = (size_t)4 * SKL_XSFMM_TE, .n = (size_t)4 * SKL_XSFMM_TE},
 #endif
 
 #ifdef SKL_ENABLE_TESTS
   // Verification tests
-  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te, .n = (size_t)1 * __riscv_min_xsfmm_te},
-  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te, .n = (size_t)2 * __riscv_min_xsfmm_te},
-  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te, .n = (size_t)3 * __riscv_min_xsfmm_te},
-  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te, .n = (size_t)4 * __riscv_min_xsfmm_te},
-  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te, .n = (size_t)1 * __riscv_min_xsfmm_te},
-  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te, .n = (size_t)2 * __riscv_min_xsfmm_te},
-  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te, .n = (size_t)3 * __riscv_min_xsfmm_te},
-  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te, .n = (size_t)4 * __riscv_min_xsfmm_te},
-  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te, .n = (size_t)1 * __riscv_min_xsfmm_te},
-  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te, .n = (size_t)2 * __riscv_min_xsfmm_te},
-  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te, .n = (size_t)3 * __riscv_min_xsfmm_te},
-  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te, .n = (size_t)4 * __riscv_min_xsfmm_te},
+  {TEST, .m = (size_t)1 * SKL_XSFMM_TE, .n = (size_t)1 * SKL_XSFMM_TE},
+  {TEST, .m = (size_t)1 * SKL_XSFMM_TE, .n = (size_t)2 * SKL_XSFMM_TE},
+  {TEST, .m = (size_t)1 * SKL_XSFMM_TE, .n = (size_t)3 * SKL_XSFMM_TE},
+  {TEST, .m = (size_t)1 * SKL_XSFMM_TE, .n = (size_t)4 * SKL_XSFMM_TE},
+  {TEST, .m = (size_t)2 * SKL_XSFMM_TE, .n = (size_t)1 * SKL_XSFMM_TE},
+  {TEST, .m = (size_t)2 * SKL_XSFMM_TE, .n = (size_t)2 * SKL_XSFMM_TE},
+  {TEST, .m = (size_t)2 * SKL_XSFMM_TE, .n = (size_t)3 * SKL_XSFMM_TE},
+  {TEST, .m = (size_t)2 * SKL_XSFMM_TE, .n = (size_t)4 * SKL_XSFMM_TE},
+  {TEST, .m = (size_t)3 * SKL_XSFMM_TE, .n = (size_t)1 * SKL_XSFMM_TE},
+  {TEST, .m = (size_t)3 * SKL_XSFMM_TE, .n = (size_t)2 * SKL_XSFMM_TE},
+  {TEST, .m = (size_t)3 * SKL_XSFMM_TE, .n = (size_t)3 * SKL_XSFMM_TE},
+  {TEST, .m = (size_t)3 * SKL_XSFMM_TE, .n = (size_t)4 * SKL_XSFMM_TE},
 
-  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te - 1, .n = (size_t)1 * __riscv_min_xsfmm_te - 1},
-  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te - 1, .n = (size_t)2 * __riscv_min_xsfmm_te - 1},
-  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te - 1, .n = (size_t)3 * __riscv_min_xsfmm_te - 1},
-  {TEST, .m = (size_t)1 * __riscv_min_xsfmm_te - 1, .n = (size_t)4 * __riscv_min_xsfmm_te - 1},
-  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te - 1, .n = (size_t)1 * __riscv_min_xsfmm_te - 1},
-  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te - 1, .n = (size_t)2 * __riscv_min_xsfmm_te - 1},
-  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te - 1, .n = (size_t)3 * __riscv_min_xsfmm_te - 1},
-  {TEST, .m = (size_t)2 * __riscv_min_xsfmm_te - 1, .n = (size_t)4 * __riscv_min_xsfmm_te - 1},
-  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te - 1, .n = (size_t)1 * __riscv_min_xsfmm_te - 1},
-  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te - 1, .n = (size_t)2 * __riscv_min_xsfmm_te - 1},
-  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te - 1, .n = (size_t)3 * __riscv_min_xsfmm_te - 1},
-  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te - 1, .n = (size_t)4 * __riscv_min_xsfmm_te - 1},
+  {TEST, .m = (size_t)1 * SKL_XSFMM_TE - 1, .n = (size_t)1 * SKL_XSFMM_TE - 1},
+  {TEST, .m = (size_t)1 * SKL_XSFMM_TE - 1, .n = (size_t)2 * SKL_XSFMM_TE - 1},
+  {TEST, .m = (size_t)1 * SKL_XSFMM_TE - 1, .n = (size_t)3 * SKL_XSFMM_TE - 1},
+  {TEST, .m = (size_t)1 * SKL_XSFMM_TE - 1, .n = (size_t)4 * SKL_XSFMM_TE - 1},
+  {TEST, .m = (size_t)2 * SKL_XSFMM_TE - 1, .n = (size_t)1 * SKL_XSFMM_TE - 1},
+  {TEST, .m = (size_t)2 * SKL_XSFMM_TE - 1, .n = (size_t)2 * SKL_XSFMM_TE - 1},
+  {TEST, .m = (size_t)2 * SKL_XSFMM_TE - 1, .n = (size_t)3 * SKL_XSFMM_TE - 1},
+  {TEST, .m = (size_t)2 * SKL_XSFMM_TE - 1, .n = (size_t)4 * SKL_XSFMM_TE - 1},
+  {TEST, .m = (size_t)3 * SKL_XSFMM_TE - 1, .n = (size_t)1 * SKL_XSFMM_TE - 1},
+  {TEST, .m = (size_t)3 * SKL_XSFMM_TE - 1, .n = (size_t)2 * SKL_XSFMM_TE - 1},
+  {TEST, .m = (size_t)3 * SKL_XSFMM_TE - 1, .n = (size_t)3 * SKL_XSFMM_TE - 1},
+  {TEST, .m = (size_t)3 * SKL_XSFMM_TE - 1, .n = (size_t)4 * SKL_XSFMM_TE - 1},
 
-  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te, .n = (size_t)4 * __riscv_min_xsfmm_te,
-   .cs1 = __riscv_min_xsfmm_te + 1, .rs1 = (size_t)4 * __riscv_min_xsfmm_te * (__riscv_min_xsfmm_te + 1)},
-  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te, .n = (size_t)4 * __riscv_min_xsfmm_te,
-   .rs1 = __riscv_min_xsfmm_te, .cs1 = (size_t)3 * __riscv_min_xsfmm_te},
-  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te, .n = (size_t)4 * __riscv_min_xsfmm_te,
-   .rs1 = __riscv_min_xsfmm_te + 1, .cs1 = (size_t)3 * (__riscv_min_xsfmm_te + 1)},
-  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te - 1, .n = (size_t)4 * __riscv_min_xsfmm_te - 1,
-   .cs1 = __riscv_min_xsfmm_te + 1, .rs1 = (size_t)4 * __riscv_min_xsfmm_te * (__riscv_min_xsfmm_te + 1)},
-  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te - 1, .n = (size_t)4 * __riscv_min_xsfmm_te - 1,
-   .rs1 = __riscv_min_xsfmm_te, .cs1 = (size_t)3 * __riscv_min_xsfmm_te},
-  {TEST, .m = (size_t)3 * __riscv_min_xsfmm_te - 1, .n = (size_t)4 * __riscv_min_xsfmm_te - 1,
-   .rs1 = __riscv_min_xsfmm_te + 1, .cs1 = (size_t)3 * (__riscv_min_xsfmm_te + 1)},
+  {TEST, .m = (size_t)3 * SKL_XSFMM_TE, .n = (size_t)4 * SKL_XSFMM_TE,
+   .cs1 = SKL_XSFMM_TE + 1, .rs1 = (size_t)4 * SKL_XSFMM_TE * (SKL_XSFMM_TE + 1)},
+  {TEST, .m = (size_t)3 * SKL_XSFMM_TE, .n = (size_t)4 * SKL_XSFMM_TE,
+   .rs1 = SKL_XSFMM_TE, .cs1 = (size_t)3 * SKL_XSFMM_TE},
+  {TEST, .m = (size_t)3 * SKL_XSFMM_TE, .n = (size_t)4 * SKL_XSFMM_TE,
+   .rs1 = SKL_XSFMM_TE + 1, .cs1 = (size_t)3 * (SKL_XSFMM_TE + 1)},
+  {TEST, .m = (size_t)3 * SKL_XSFMM_TE - 1, .n = (size_t)4 * SKL_XSFMM_TE - 1,
+   .cs1 = SKL_XSFMM_TE + 1, .rs1 = (size_t)4 * SKL_XSFMM_TE * (SKL_XSFMM_TE + 1)},
+  {TEST, .m = (size_t)3 * SKL_XSFMM_TE - 1, .n = (size_t)4 * SKL_XSFMM_TE - 1,
+   .rs1 = SKL_XSFMM_TE, .cs1 = (size_t)3 * SKL_XSFMM_TE},
+  {TEST, .m = (size_t)3 * SKL_XSFMM_TE - 1, .n = (size_t)4 * SKL_XSFMM_TE - 1,
+   .rs1 = SKL_XSFMM_TE + 1, .cs1 = (size_t)3 * (SKL_XSFMM_TE + 1)},
 #endif
 };
 // clang-format on
@@ -98,7 +98,7 @@ static void init(skl_test_t *t) {
   const pack_e32rc_e32rcprc_t *h = (pack_e32rc_e32rcprc_t *)t->harness;
 
   SKL_TEST_REQUIRE(t, init_status, h->cs == 1);
-  SKL_TEST_REQUIRE(t, init_status, h->m0 == __riscv_min_xsfmm_te);
+  SKL_TEST_REQUIRE(t, init_status, h->m0 == SKL_XSFMM_TE);
   SKL_TEST_REQUIRE(t, init_status, h->n0 == 1);
   SKL_TEST_REQUIRE(t, init_status, h->rs0 == 1); // Note: column-major
 
@@ -122,7 +122,7 @@ int main(void) {
     tests[i].rs = tests[i].rs ? tests[i].rs : tests[i].n;
     tests[i].cs = 1;
 
-    tests[i].m0 = __riscv_min_xsfmm_te;
+    tests[i].m0 = SKL_XSFMM_TE;
     tests[i].n0 = 1;
 
     tests[i].rs0 = 1;
