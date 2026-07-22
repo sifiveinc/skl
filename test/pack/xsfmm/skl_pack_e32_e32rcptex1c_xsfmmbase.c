@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "pack/pack_e32rc_e32rcprc.h"
+#include "pack/skl_test_pack.h"
 #include "skl-test-driver.h"
 #include "skl.h"
 
