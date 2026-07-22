@@ -19,8 +19,8 @@ extern "C" {
 #endif
 
 /**
- * @brief TE x 1 matrix packing for 32-bit matrices using SiFive's Xsfmm matrix
- * engine.
+ * @brief TE x 1 matrix packing kernel for 32-bit matrices using SiFive's Xsfmm
+ * matrix engine.
  *
  * @param m - Num. rows in input matrix.
  * @param n - Num. columns in input matrix.
