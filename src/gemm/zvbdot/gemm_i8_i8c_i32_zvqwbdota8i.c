@@ -56,129 +56,122 @@ SKL_FUNC_PRIVATE void skl_gemm_a1b0_vlen512_15x16_i8_i8c_i32_zvqwbdota8i(
     const int8_t *b0 = b;
     __asm__ volatile(
         "vsetvli %[vl], %[avl], e8alt, m1, ta, ma\n"
-        "vle8.v %[bvec0], %[b0]\n"
+        "vle8.v v0, %[b0]\n"
         "add %[b0], %[b0], %[csb]\n"
-        "vle8.v %[bvec1], %[b0]\n"
+        "vle8.v v1, %[b0]\n"
         "add %[b0], %[b0], %[csb]\n"
-        "vle8.v %[bvec2], %[b0]\n"
+        "vle8.v v2, %[b0]\n"
         "add %[b0], %[b0], %[csb]\n"
-        "vle8.v %[bvec3], %[b0]\n"
+        "vle8.v v3, %[b0]\n"
         "add %[b0], %[b0], %[csb]\n"
-        "vle8.v %[bvec4], %[b0]\n"
+        "vle8.v v4, %[b0]\n"
         "add %[b0], %[b0], %[csb]\n"
-        "vle8.v %[bvec5], %[b0]\n"
+        "vle8.v v5, %[b0]\n"
         "add %[b0], %[b0], %[csb]\n"
-        "vle8.v %[bvec6], %[b0]\n"
+        "vle8.v v6, %[b0]\n"
         "add %[b0], %[b0], %[csb]\n"
-        "vle8.v %[bvec7], %[b0]\n"
+        "vle8.v v7, %[b0]\n"
         "add %[b0], %[b0], %[csb]\n"
-        "vle8.v %[bvec8], %[b0]\n"
+        "vle8.v v8, %[b0]\n"
         "add %[b0], %[b0], %[csb]\n"
-        "vle8.v %[bvec9], %[b0]\n"
+        "vle8.v v9, %[b0]\n"
         "add %[b0], %[b0], %[csb]\n"
-        "vle8.v %[bvec10], %[b0]\n"
+        "vle8.v v10, %[b0]\n"
         "add %[b0], %[b0], %[csb]\n"
-        "vle8.v %[bvec11], %[b0]\n"
+        "vle8.v v11, %[b0]\n"
         "add %[b0], %[b0], %[csb]\n"
-        "vle8.v %[bvec12], %[b0]\n"
+        "vle8.v v12, %[b0]\n"
         "add %[b0], %[b0], %[csb]\n"
-        "vle8.v %[bvec13], %[b0]\n"
+        "vle8.v v13, %[b0]\n"
         "add %[b0], %[b0], %[csb]\n"
-        "vle8.v %[bvec14], %[b0]\n"
+        "vle8.v v14, %[b0]\n"
         "add %[b0], %[b0], %[csb]\n"
-        "vle8.v %[bvec15], %[b0]\n"
+        "vle8.v v15, %[b0]\n"
 
         "vle8.v %[avec], %[a0]\n"
         "add %[a0], %[a0], %[rsa]\n"
-        "vqwbdotas.vv %[cvec0], %[bvec0], %[avec], 0\n"
-        "vqwbdotas.vv %[cvec0], %[bvec8], %[avec], 8\n"
+        "vqwbdotas.vv %[cvec0], v0, %[avec], 0\n"
+        "vqwbdotas.vv %[cvec0], v8, %[avec], 8\n"
 
         "vle8.v %[avec], %[a0]\n"
         "add %[a0], %[a0], %[rsa]\n"
-        "vqwbdotas.vv %[cvec1], %[bvec0], %[avec], 0\n"
-        "vqwbdotas.vv %[cvec1], %[bvec8], %[avec], 8\n"
+        "vqwbdotas.vv %[cvec1], v0, %[avec], 0\n"
+        "vqwbdotas.vv %[cvec1], v8, %[avec], 8\n"
 
         "vle8.v %[avec], %[a0]\n"
         "add %[a0], %[a0], %[rsa]\n"
-        "vqwbdotas.vv %[cvec2], %[bvec0], %[avec], 0\n"
-        "vqwbdotas.vv %[cvec2], %[bvec8], %[avec], 8\n"
+        "vqwbdotas.vv %[cvec2], v0, %[avec], 0\n"
+        "vqwbdotas.vv %[cvec2], v8, %[avec], 8\n"
 
         "vle8.v %[avec], %[a0]\n"
         "add %[a0], %[a0], %[rsa]\n"
-        "vqwbdotas.vv %[cvec3], %[bvec0], %[avec], 0\n"
-        "vqwbdotas.vv %[cvec3], %[bvec8], %[avec], 8\n"
+        "vqwbdotas.vv %[cvec3], v0, %[avec], 0\n"
+        "vqwbdotas.vv %[cvec3], v8, %[avec], 8\n"
 
         "vle8.v %[avec], %[a0]\n"
         "add %[a0], %[a0], %[rsa]\n"
-        "vqwbdotas.vv %[cvec4], %[bvec0], %[avec], 0\n"
-        "vqwbdotas.vv %[cvec4], %[bvec8], %[avec], 8\n"
+        "vqwbdotas.vv %[cvec4], v0, %[avec], 0\n"
+        "vqwbdotas.vv %[cvec4], v8, %[avec], 8\n"
 
         "vle8.v %[avec], %[a0]\n"
         "add %[a0], %[a0], %[rsa]\n"
-        "vqwbdotas.vv %[cvec5], %[bvec0], %[avec], 0\n"
-        "vqwbdotas.vv %[cvec5], %[bvec8], %[avec], 8\n"
+        "vqwbdotas.vv %[cvec5], v0, %[avec], 0\n"
+        "vqwbdotas.vv %[cvec5], v8, %[avec], 8\n"
 
         "vle8.v %[avec], %[a0]\n"
         "add %[a0], %[a0], %[rsa]\n"
-        "vqwbdotas.vv %[cvec6], %[bvec0], %[avec], 0\n"
-        "vqwbdotas.vv %[cvec6], %[bvec8], %[avec], 8\n"
+        "vqwbdotas.vv %[cvec6], v0, %[avec], 0\n"
+        "vqwbdotas.vv %[cvec6], v8, %[avec], 8\n"
 
         "vle8.v %[avec], %[a0]\n"
         "add %[a0], %[a0], %[rsa]\n"
-        "vqwbdotas.vv %[cvec7], %[bvec0], %[avec], 0\n"
-        "vqwbdotas.vv %[cvec7], %[bvec8], %[avec], 8\n"
+        "vqwbdotas.vv %[cvec7], v0, %[avec], 0\n"
+        "vqwbdotas.vv %[cvec7], v8, %[avec], 8\n"
 
         "vle8.v %[avec], %[a0]\n"
         "add %[a0], %[a0], %[rsa]\n"
-        "vqwbdotas.vv %[cvec8], %[bvec0], %[avec], 0\n"
-        "vqwbdotas.vv %[cvec8], %[bvec8], %[avec], 8\n"
+        "vqwbdotas.vv %[cvec8], v0, %[avec], 0\n"
+        "vqwbdotas.vv %[cvec8], v8, %[avec], 8\n"
 
         "vle8.v %[avec], %[a0]\n"
         "add %[a0], %[a0], %[rsa]\n"
-        "vqwbdotas.vv %[cvec9], %[bvec0], %[avec], 0\n"
-        "vqwbdotas.vv %[cvec9], %[bvec8], %[avec], 8\n"
+        "vqwbdotas.vv %[cvec9], v0, %[avec], 0\n"
+        "vqwbdotas.vv %[cvec9], v8, %[avec], 8\n"
 
         "vle8.v %[avec], %[a0]\n"
         "add %[a0], %[a0], %[rsa]\n"
-        "vqwbdotas.vv %[cvec10], %[bvec0], %[avec], 0\n"
-        "vqwbdotas.vv %[cvec10], %[bvec8], %[avec], 8\n"
+        "vqwbdotas.vv %[cvec10], v0, %[avec], 0\n"
+        "vqwbdotas.vv %[cvec10], v8, %[avec], 8\n"
 
         "vle8.v %[avec], %[a0]\n"
         "add %[a0], %[a0], %[rsa]\n"
-        "vqwbdotas.vv %[cvec11], %[bvec0], %[avec], 0\n"
-        "vqwbdotas.vv %[cvec11], %[bvec8], %[avec], 8\n"
+        "vqwbdotas.vv %[cvec11], v0, %[avec], 0\n"
+        "vqwbdotas.vv %[cvec11], v8, %[avec], 8\n"
 
         "vle8.v %[avec], %[a0]\n"
         "add %[a0], %[a0], %[rsa]\n"
-        "vqwbdotas.vv %[cvec12], %[bvec0], %[avec], 0\n"
-        "vqwbdotas.vv %[cvec12], %[bvec8], %[avec], 8\n"
+        "vqwbdotas.vv %[cvec12], v0, %[avec], 0\n"
+        "vqwbdotas.vv %[cvec12], v8, %[avec], 8\n"
 
         "vle8.v %[avec], %[a0]\n"
         "add %[a0], %[a0], %[rsa]\n"
-        "vqwbdotas.vv %[cvec13], %[bvec0], %[avec], 0\n"
-        "vqwbdotas.vv %[cvec13], %[bvec8], %[avec], 8\n"
+        "vqwbdotas.vv %[cvec13], v0, %[avec], 0\n"
+        "vqwbdotas.vv %[cvec13], v8, %[avec], 8\n"
 
         "vle8.v %[avec], %[a0]\n"
         "add %[a0], %[a0], %[rsa]\n"
-        "vqwbdotas.vv %[cvec14], %[bvec0], %[avec], 0\n"
-        "vqwbdotas.vv %[cvec14], %[bvec8], %[avec], 8\n"
-
-        : [bvec0] "=&vr"(bvec0), [bvec1] "=&vr"(bvec1), [bvec2] "=&vr"(bvec2),
-          [bvec3] "=&vr"(bvec3), [bvec4] "=&vr"(bvec4), [bvec5] "=&vr"(bvec5),
-          [bvec6] "=&vr"(bvec6), [bvec7] "=&vr"(bvec7), [bvec8] "=&vr"(bvec8),
-          [bvec9] "=&vr"(bvec9), [bvec10] "=&vr"(bvec10),
-          [bvec11] "=&vr"(bvec11), [bvec12] "=&vr"(bvec12),
-          [bvec13] "=&vr"(bvec13), [bvec14] "=&vr"(bvec14),
-          [bvec15] "=&vr"(bvec15), [avec] "=&vr"(avec), [cvec0] "+&vr"(cvec0),
-          [cvec1] "+&vr"(cvec1), [cvec2] "+&vr"(cvec2), [cvec3] "+&vr"(cvec3),
-          [cvec4] "+&vr"(cvec4), [cvec5] "+&vr"(cvec5), [cvec6] "+&vr"(cvec6),
-          [cvec7] "+&vr"(cvec7), [cvec8] "+&vr"(cvec8), [cvec9] "+&vr"(cvec9),
-          [cvec10] "+&vr"(cvec10), [cvec11] "+&vr"(cvec11),
-          [cvec12] "+&vr"(cvec12), [cvec13] "+&vr"(cvec13),
-          [cvec14] "+&vr"(cvec14), [vl] "=&r"(vl), [avl] "+&r"(avl),
-          [a0] "+&r"(a0), [a1] "+&r"(a1), [b0] "+&r"(b0)
-        : [rsa] "rI"(rsa * sizeof(int8_t)), [rsb] "rI"(rsb * sizeof(int8_t))
-        : "vl", "vtype", "memory");
+        "vqwbdotas.vv %[cvec14], v0, %[avec], 0\n"
+        "vqwbdotas.vv %[cvec14], v8, %[avec], 8\n"
+        : [avec] "=&vr"(avec), [cvec0] "+&vr"(cvec0), [cvec1] "+&vr"(cvec1),
+          [cvec2] "+&vr"(cvec2), [cvec3] "+&vr"(cvec3), [cvec4] "+&vr"(cvec4),
+          [cvec5] "+&vr"(cvec5), [cvec6] "+&vr"(cvec6), [cvec7] "+&vr"(cvec7),
+          [cvec8] "+&vr"(cvec8), [cvec9] "+&vr"(cvec9), [cvec10] "+&vr"(cvec10),
+          [cvec11] "+&vr"(cvec11), [cvec12] "+&vr"(cvec12),
+          [cvec13] "+&vr"(cvec13), [cvec14] "+&vr"(cvec14),
+          [a0] "+&r"(a0), [b0] "+&r"(b0), [vl] "=&r"(vl)
+        : [rsa] "rI"(rsa * sizeof(int8_t)), [rsb] "rI"(rsb * sizeof(int8_t)), [avl] "r"(avl), 
+        : "vl", "vtype", "memory", "v0", "v1", "v2", "v3", "v4", "v5", "v6",
+          "v7", "v8", "v9", "v10", "v11", "v12", "v13", "v14", "v15");
     a += vl;
     b += vl;
     avl -= vl;
