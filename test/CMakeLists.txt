@@ -661,3 +661,10 @@ skl_add_test(
   "zve32x"
   ""
 )
+skl_add_test(
+  skl_unpack_e8rcprc_e8rc_zve32x
+  pack/unpack_e8rcprc_e8rc.c
+  pack/rvv/skl_unpack_e8rcprc_e8rc_zve32x.c
+  "zve32x"
+  ""
+)
