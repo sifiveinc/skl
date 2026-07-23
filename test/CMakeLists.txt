@@ -277,6 +277,13 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_gemm_f16_f16_f32_zvfh
+  gemm/gemm_f16rcprc_f16rcprc_f32rcprc.c
+  gemm/rvv/skl_gemm_f16_f16_f32_zvfh.c
+  "zvfh"
+  ""
+)
+skl_add_test(
   skl_gemm_f16_f16_f32_zvfh_x390
   gemm/gemm_f16rcprc_f16rcprc_f32rcprc.c
   gemm/rvv/skl_gemm_f16_f16_f32_zvfh_x390.c
