@@ -1076,7 +1076,7 @@ skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
  * ETE. If m1 > n1, then the n1 x m1 inner loop function should be called.
  */
 SKL_FUNC_PRIVATE void
-skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
+skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32_f32rcptexterc_xsfmm32a32f(
     size_t m1, size_t n1,
     skl_gemm_inner_loop_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f_t inner_loop,
     size_t m, size_t n, size_t k, const float *a, size_t rsa1, size_t csa1,
@@ -1134,13 +1134,13 @@ skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
   __asm__ volatile("sf.vtdiscard");
 }
 
-#define SKL_GEMM_TILE(M1, N1, M1XN1, M, N, ROW1, COL1)                         \
-  do {                                                                         \
-    skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(    \
-        M1, N1,                                                                \
-        skl_gemm_inner_loop_##M1XN1##_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f,  \
-        M, N, k, a + (ROW1) * rsa1, rsa1, csa1, b + (COL1) * csb1, rsb1, csb1, \
-        c, rsc0, csc0, rsc1, csc1, ROW1, COL1, accum, kernel, params);         \
+#define SKL_GEMM_TILE(M1, N1, M1XN1, M, N, ROW1, COL1)                          \
+  do {                                                                          \
+    skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32_f32rcptexterc_xsfmm32a32f( \
+        M1, N1,                                                                 \
+        skl_gemm_inner_loop_##M1XN1##_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f,   \
+        M, N, k, a + (ROW1) * rsa1, rsa1, csa1, b + (COL1) * csb1, rsb1, csb1,  \
+        c, rsc0, csc0, rsc1, csc1, ROW1, COL1, accum, kernel, params);          \
   } while (0)
 
 /* Computes A * B (accum == false) or C + A * B (accum == true) and applies a
