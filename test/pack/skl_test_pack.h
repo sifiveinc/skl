@@ -15,6 +15,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#if defined(__riscv_min_xsfmm_te)
+#define SKL_XSFMM_TE __riscv_min_xsfmm_te
+#endif
+
 /**
  * @brief Print out the matrix dimensions and strides for a pack test.
  *
