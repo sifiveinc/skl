@@ -178,35 +178,35 @@ SKL_FUNC_PRIVATE void skl_gemm_a1b0_vlen512_15x16_i8_i8c_i32_zvqwbdota8i(
   }
 
   // write result back to C tile
-  __riscv_vse32_v_i32m4(c, vec0, n);
+  __riscv_vse32_v_i32m4(c, vec0, 16);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, vec1, n);
+  __riscv_vse32_v_i32m4(c, vec1, 16);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, vec2, n);
+  __riscv_vse32_v_i32m4(c, vec2, 16);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, vec3, n);
+  __riscv_vse32_v_i32m4(c, vec3, 16);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, vec4, n);
+  __riscv_vse32_v_i32m4(c, vec4, 16);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, vec5, n);
+  __riscv_vse32_v_i32m4(c, vec5, 16);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, vec6, n);
+  __riscv_vse32_v_i32m4(c, vec6, 16);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, vec7, n);
+  __riscv_vse32_v_i32m4(c, vec7, 16);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, vec8, n);
+  __riscv_vse32_v_i32m4(c, vec8, 16);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, vec9, n);
+  __riscv_vse32_v_i32m4(c, vec9, 16);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, vec10, n);
+  __riscv_vse32_v_i32m4(c, vec10, 16);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, vec11, n);
+  __riscv_vse32_v_i32m4(c, vec11, 16);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, vec12, n);
+  __riscv_vse32_v_i32m4(c, vec12, 16);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, vec13, n);
+  __riscv_vse32_v_i32m4(c, vec13, 16);
   c += rsc;
-  __riscv_vse32_v_i32m4(c, vec14, n);
+  __riscv_vse32_v_i32m4(c, vec14, 16);
 }
 
 // a is 4-byte aligned and rsa1 and csa1 are multiples of 4
