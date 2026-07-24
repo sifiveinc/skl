@@ -12,6 +12,7 @@
  */
 
 #if defined(__riscv_zve32x)
+#include "gemm/rvv/gemm_i8_i8_i32_zve32x.h"
 #include "gemm/rvv/gemm_i8_i8_i32_zve32x_x390.h"
 #endif
 
