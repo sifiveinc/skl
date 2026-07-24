@@ -97,8 +97,8 @@ skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f32_f32_f32_internal_zve32f(
             in_y += (int32_t)dilation_height_factor;
           }
 
-          post_process_output_func(v_output_f32, vl, output_activation_min,
-                                   output_activation_max);
+          v_output_f32 = post_process_output_func(
+              v_output_f32, vl, output_activation_min, output_activation_max);
           __riscv_vse32_v_f32m4(output_ptr, v_output_f32, vl);
 
           output_ptr += output_col_stride;
@@ -162,8 +162,8 @@ skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f32_f32_f32_internal_zve32f(
               in_y += (int32_t)dilation_height_factor;
             }
 
-            post_process_output_func(v_output_f32, vl, output_activation_min,
-                                     output_activation_max);
+            v_output_f32 = post_process_output_func(
+                v_output_f32, vl, output_activation_min, output_activation_max);
             __riscv_vse32_v_f32m4(output_ptr, v_output_f32, vl);
 
             output_ptr += output_col_stride;
@@ -231,8 +231,9 @@ skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f32_f32_f32_internal_zve32f(
                 in_y += (int32_t)dilation_height_factor;
               }
 
-              post_process_output_func(v_output_f32, vl, output_activation_min,
-                                       output_activation_max);
+              v_output_f32 = post_process_output_func(v_output_f32, vl,
+                                                      output_activation_min,
+                                                      output_activation_max);
               __riscv_vsse32_v_f32m4(output_ptr, (ptrdiff_t)float_data_stride,
                                      v_output_f32, vl);
 

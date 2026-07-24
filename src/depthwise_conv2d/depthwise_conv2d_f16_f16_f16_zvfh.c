@@ -97,8 +97,8 @@ skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f16_f16_f16_internal_zvfh(
             in_y += (int32_t)dilation_height_factor;
           }
 
-          post_process_output_func(v_output_f16, vl, output_activation_min,
-                                   output_activation_max);
+          v_output_f16 = post_process_output_func(
+              v_output_f16, vl, output_activation_min, output_activation_max);
           __riscv_vse16_v_f16m4(output_ptr, v_output_f16, vl);
 
           output_ptr += output_col_stride;
@@ -162,8 +162,8 @@ skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f16_f16_f16_internal_zvfh(
               in_y += (int32_t)dilation_height_factor;
             }
 
-            post_process_output_func(v_output_f16, vl, output_activation_min,
-                                     output_activation_max);
+            v_output_f16 = post_process_output_func(
+                v_output_f16, vl, output_activation_min, output_activation_max);
             __riscv_vse16_v_f16m4(output_ptr, v_output_f16, vl);
 
             output_ptr += output_col_stride;
@@ -231,8 +231,9 @@ skl_depthwise_conv2d_vc_fnxn_sn_dn_mn_in_hwc_f16_f16_f16_internal_zvfh(
                 in_y += (int32_t)dilation_height_factor;
               }
 
-              post_process_output_func(v_output_f16, vl, output_activation_min,
-                                       output_activation_max);
+              v_output_f16 = post_process_output_func(v_output_f16, vl,
+                                                      output_activation_min,
+                                                      output_activation_max);
               __riscv_vsse16_v_f16m4(output_ptr, (ptrdiff_t)float16_data_stride,
                                      v_output_f16, vl);
 
