@@ -298,16 +298,16 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_f16c_f16_f32_xsfmm32a16f
+  skl_gemm_f16c_f16_f32_xsfmm32a16f
   gemm/gemm_f16rcprc_f16rcprc_f32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_f16c_f16_f32_xsfmm32a16f.c
+  gemm/xsfmm/skl_gemm_f16c_f16_f32_xsfmm32a16f.c
   "xsfmm32a16f"
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_f16ptex1c_f16cp1xte_f32rcptexte_xsfmm32a16f
+  skl_gemm_f16rcptex1c_f16rcp1xte_f32rcptexterc_xsfmm32a16f
   gemm/gemm_f16rcprc_f16rcprc_f32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_f16ptex1c_f16cp1xte_f32rcptexte_xsfmm32a16f.c
+  gemm/xsfmm/skl_gemm_f16rcptex1c_f16rcp1xte_f32rcptexterc_xsfmm32a16f.c
   "xsfmm32a16f"
   ""
 )
