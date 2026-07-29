@@ -92,11 +92,11 @@ gemm_f16rcprc_f16rcprc_f32rcprc_t tests[] = {
 };
 // clang-format on
 
-static skl_test_suite_t suite = {
-    .name = "skl_gemm_f16c_f16_f32_xsfmm32a16f",
-    .num_tests = sizeof(tests) / sizeof(tests[0]),
-    .test_size = sizeof(gemm_f16rcprc_f16rcprc_f32rcprc_t),
-    .tests = tests};
+static skl_test_suite_t suite = {.name = "skl_gemm_f16c_f16_f32_xsfmm32a16f",
+                                 .num_tests = sizeof(tests) / sizeof(tests[0]),
+                                 .test_size =
+                                     sizeof(gemm_f16rcprc_f16rcprc_f32rcprc_t),
+                                 .tests = tests};
 
 static void init(skl_test_t *t) {
   const gemm_f16rcprc_f16rcprc_f32rcprc_t *h =
@@ -116,9 +116,9 @@ static void execute(skl_test_t *t) {
   const gemm_f16rcprc_f16rcprc_f32rcprc_t *h =
       (gemm_f16rcprc_f16rcprc_f32rcprc_t *)t->harness;
 
-  skl_gemm_f16c_f16_f32_xsfmm32a16f(
-      h->m1, h->n1, h->k1, h->alpha, h->a_pack.data, h->csa1, h->b_pack.data, h->rsb1,
-      h->beta, h->c_pack.data, h->rsc1);
+  skl_gemm_f16c_f16_f32_xsfmm32a16f(h->m1, h->n1, h->k1, h->alpha,
+                                    h->a_pack.data, h->csa1, h->b_pack.data,
+                                    h->rsb1, h->beta, h->c_pack.data, h->rsc1);
 }
 
 int main(void) {

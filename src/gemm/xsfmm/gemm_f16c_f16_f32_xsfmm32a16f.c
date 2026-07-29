@@ -1431,8 +1431,8 @@ skl_gemm_inner_loop_2x2_f16rcptex1c_f16rcp1xte_f32_xsfmm32a16f(
           [a1_1] "+&r"(a1_1), [b0_0] "+&r"(b0_0), [b0_1] "+&r"(b0_1),
           [b1_0] "+&r"(b1_0), [b1_1] "+&r"(b1_1), [k] "+&r"(k)
         : [csa1] "r"(2 * csa1 * sizeof(_Float16)),
-          [rsb1] "r"(2 * rsb1 * sizeof(_Float16)), [tm0] "r"(tm0), [tm1] "r"(tm1),
-          [tn0] "r"(tn0), [tn1] "r"(tn1), [i4] "r"(4)
+          [rsb1] "r"(2 * rsb1 * sizeof(_Float16)), [tm0] "r"(tm0),
+          [tm1] "r"(tm1), [tn0] "r"(tn0), [tn1] "r"(tn1), [i4] "r"(4)
         : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
           "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20",
           "v21", "v22", "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30",
