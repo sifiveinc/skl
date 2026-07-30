@@ -1326,9 +1326,45 @@ skl_gemm_inner_loop_2x2_f16rcptex1c_f16rcp1xte_f32_xsfmm32a16f(
         "add %[b0_1], %[b0_1], %[rsb1]\n"
 
         "sf.vsettn x0, %[tn1]\n"
-        "bltu %[k], %[i4], 1f\n"
+        "bltu %[k], %[i4], 2f\n"
+
+        "bne %[tm0], %[tm1], 1f\n"
+        "bne %[tn0], %[tn1], 1f\n"
+        "bne %[tm0], %[tn0], 1f\n"
 
         "0:\n"
+        "addi %[k], %[k], -2\n"
+        "vle16.v v24, (%[b1_0])\n"
+        "add %[b1_0], %[b1_0], %[rsb1]\n"
+        "vle16.v v28, (%[b1_1])\n"
+        "add %[b1_1], %[b1_1], %[rsb1]\n"
+
+        "sf.mm.f.f mt0, v0, v16\n"
+
+        "vle16.v v8, (%[a1_0])\n"
+        "add %[a1_0], %[a1_0], %[csa1]\n"
+        "vle16.v v12, (%[a1_1])\n"
+        "add %[a1_1], %[a1_1], %[csa1]\n"
+
+        "sf.mm.f.f mt4, v0, v24\n"
+
+        "vle16.v v0, (%[a0_0])\n"
+        "add %[a0_0], %[a0_0], %[csa1]\n"
+        "vle16.v v4, (%[a0_1])\n"
+        "add %[a0_1], %[a0_1], %[csa1]\n"
+
+        "sf.mm.f.f mt8, v8, v16\n"
+
+        "vle16.v v16, (%[b0_0])\n"
+        "add %[b0_0], %[b0_0], %[rsb1]\n"
+        "vle16.v v20, (%[b0_1])\n"
+        "add %[b0_1], %[b0_1], %[rsb1]\n"
+
+        "sf.mm.f.f mt12, v8, v24\n"
+        "bgeu %[k], %[i4], 0b\n"
+        "j 2f\n"
+
+        "1:\n"
         "addi %[k], %[k], -2\n"
         "vle16.v v24, (%[b1_0])\n"
         "add %[b1_0], %[b1_0], %[rsb1]\n"
@@ -1365,9 +1401,9 @@ skl_gemm_inner_loop_2x2_f16rcptex1c_f16rcp1xte_f32_xsfmm32a16f(
 
         "sf.vsettn x0, %[tn1]\n"
         "sf.mm.f.f mt12, v8, v24\n"
-        "bgeu %[k], %[i4], 0b\n"
+        "bgeu %[k], %[i4], 1b\n"
 
-        "1:\n"
+        "2:\n"
         "addi %[k], %[k], -2\n"
         "vle16.v v24, (%[b1_0])\n"
         "add %[b1_0], %[b1_0], %[rsb1]\n"
@@ -1385,7 +1421,7 @@ skl_gemm_inner_loop_2x2_f16rcptex1c_f16rcp1xte_f32_xsfmm32a16f(
         "sf.vsettn x0, %[tn1]\n"
         "sf.mm.f.f mt4, v0, v24\n"
 
-        "beqz %[k], 2f\n"
+        "beqz %[k], 3f\n"
 
         // k % 2 == 1
         "sf.vsettn x0, %[tm0]\n"
@@ -1417,16 +1453,16 @@ skl_gemm_inner_loop_2x2_f16rcptex1c_f16rcp1xte_f32_xsfmm32a16f(
         "sf.mm.f.f mt8, v8, v16\n"
         "sf.vsettn x0, %[tn1]\n"
         "sf.mm.f.f mt12, v8, v24\n"
-        "j 3f\n"
+        "j 4f\n"
 
-        "2:\n" // k % 2 == 0
+        "3:\n" // k % 2 == 0
         "sf.vsettm x0, %[tm1]\n"
         "sf.vsettn x0, %[tn0]\n"
         "sf.mm.f.f mt8, v8, v16\n"
         "sf.vsettn x0, %[tn1]\n"
         "sf.mm.f.f mt12, v8, v24\n"
 
-        "3:\n"
+        "4:\n"
         : [a0_0] "+&r"(a0_0), [a0_1] "+&r"(a0_1), [a1_0] "+&r"(a1_0),
           [a1_1] "+&r"(a1_1), [b0_0] "+&r"(b0_0), [b0_1] "+&r"(b0_1),
           [b1_0] "+&r"(b1_0), [b1_1] "+&r"(b1_1), [k] "+&r"(k)
