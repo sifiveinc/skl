@@ -21,8 +21,6 @@
  *  - Matrix A is column-major (rsa1 == 1)
  *  - Matrix B is row-major (csb1 == 1)
  *  - Matrix C is row-major (csc1 == 1)
- *
- * The kernel computes C = alpha * A * B + beta * C.
  */
 
 #define TEST                                                                   \
@@ -117,9 +115,6 @@ static void execute(skl_test_t *t) {
   const gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
-  // Call the kernel with the appropriate parameters
-  // The kernel signature is: (m, n, k, a, csa, b, rsb, c, rsc, accum)
-  // where accum = (beta != 0)
   skl_gemm_f32c_f32_f32_xsfmm32a32f(h->m1, h->n1, h->k1, h->alpha,
                                     h->a_pack.data, h->csa1, h->b_pack.data,
                                     h->rsb1, h->beta, h->c_pack.data, h->rsc1);
