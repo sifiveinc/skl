@@ -993,11 +993,39 @@ skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
                    "vle32.v v0, (%[a0])\n"
                    "add %[a0], %[a0], %[csa1]\n"
 
-                   "bltu %[k], %[i2], 1f\n"
+                   "sf.vsettn x0, %[tn1]\n"
+                   "bltu %[k], %[i2], 2f\n"
+
+                   "bne %[tm0], %[tm1], 1f\n"
+                   "bne %[tn0], %[tn1], 1f\n"
+                   "bne %[tm0], %[tn0], 1f\n"
 
                    "0:\n"
                    "addi %[k], %[k], -1\n"
-                   "sf.vsettn x0, %[tn1]\n"
+                   "vle32.v v24, (%[b1])\n"
+                   "add %[b1], %[b1], %[rsb1]\n"
+
+                   "sf.mm.f.f mt0, v0, v16\n"
+
+                   "vle32.v v8, (%[a1])\n"
+                   "add %[a1], %[a1], %[csa1]\n"
+
+                   "sf.mm.f.f mt4, v0, v24\n"
+
+                   "vle32.v v0, (%[a0])\n"
+                   "add %[a0], %[a0], %[csa1]\n"
+
+                   "sf.mm.f.f mt8, v8, v16\n"
+
+                   "vle32.v v16, (%[b0])\n"
+                   "add %[b0], %[b0], %[rsb1]\n"
+
+                   "sf.mm.f.f mt12, v8, v24\n"
+                   "bgeu %[k], %[i2], 0b\n"
+                   "j 2f\n"
+
+                   "1:\n"
+                   "addi %[k], %[k], -1\n"
                    "vle32.v v24, (%[b1])\n"
                    "add %[b1], %[b1], %[rsb1]\n"
 
@@ -1025,10 +1053,9 @@ skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
 
                    "sf.vsettn x0, %[tn1]\n"
                    "sf.mm.f.f mt12, v8, v24\n"
-                   "bgeu %[k], %[i2], 0b\n"
+                   "bgeu %[k], %[i2], 1b\n"
 
-                   "1:\n"
-                   "sf.vsettn x0, %[tn1]\n"
+                   "2:\n"
                    "vle32.v v24, (%[b1])\n"
 
                    "sf.vsettm x0, %[tm0]\n"
@@ -1046,7 +1073,7 @@ skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
                    "sf.vsettn x0, %[tn1]\n"
                    "sf.mm.f.f mt12, v8, v24\n"
 
-                   "2:\n"
+                   "3:\n"
                    : [a0] "+&r"(a0), [a1] "+&r"(a1), [b0] "+&r"(b0),
                      [b1] "+&r"(b1), [k] "+&r"(k)
                    : [csa1] "r"(csa1 * sizeof(float)),
