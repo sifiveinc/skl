@@ -79,8 +79,8 @@ void skl_gemm_f16c_f16_f32_xsfmm32a16f(size_t m, size_t n, size_t k,
  * @param rsc1 - Row stride between blocks of C in elements.
  * @param csc1 - Column stride between blocks of C in elements.
  *
- * Computes `C = alpha * A * B + beta * C` for packed float16 matrix A, packed
- * float16 matrix B, and packed float32 matrix C.
+ * Computes `C = alpha * A * B + beta * C` for packed float16 matrices A and B,
+ * and packed float32 matrix C.
  *
  * Equivalent to calling:
  * ```
