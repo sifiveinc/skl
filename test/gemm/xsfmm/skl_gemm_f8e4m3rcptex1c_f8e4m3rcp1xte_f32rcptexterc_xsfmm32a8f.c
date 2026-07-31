@@ -251,8 +251,8 @@ static void execute(skl_test_t *t) {
 
   skl_gemm_f8e4m3rcptex1c_f8e4m3rcp1xte_f32rcptexterc_xsfmm32a8f(
       h->m1, h->n1, h->k1 * h->k0, h->alpha, h->a_pack.data, h->rsa1, h->csa1,
-      h->b_pack.data, h->rsb1, h->csb1, h->beta, h->c_pack.data, h->rsc0, h->csc0,
-      h->rsc1, h->csc1);
+      h->b_pack.data, h->rsb1, h->csb1, h->beta, h->c_pack.data, h->rsc0,
+      h->csc0, h->rsc1, h->csc1);
 }
 
 int main(void) {
