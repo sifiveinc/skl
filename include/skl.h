@@ -43,7 +43,7 @@
 #endif
 
 #if defined(__riscv_xsfmm32a8i)
-#include "gemm/xsfmm/gemm_a1b01_i8c_i8_i32_xsfmm32a8i.h"
+#include "gemm/xsfmm/gemm_i8c_i8_i32_xsfmm32a8i.h"
 #endif
 
 #if defined(__riscv_xsfmm32a16f)
