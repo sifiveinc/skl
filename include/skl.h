@@ -48,7 +48,7 @@
 
 #if defined(__riscv_xsfmm32a16f)
 #include "gemm/xsfmm/gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f.h"
-#include "gemm/xsfmm/gemm_a1b01_f16c_f16_f32_xsfmm32a16f.h"
+#include "gemm/xsfmm/gemm_f16c_f16_f32_xsfmm32a16f.h"
 #endif
 
 #if defined(__riscv_xsfmm32a32f)
