@@ -263,9 +263,9 @@
  * Pack Kernels
  */
 #if defined(__riscv_zve32x)
-#include "pack/skl_pack_e16_zve32x.h"
-#include "pack/skl_pack_e32_zve32x.h"
-#include "pack/skl_pack_e8_zve32x.h"
+#include "pack/pack_e16_zve32x.h"
+#include "pack/pack_e32_zve32x.h"
+#include "pack/pack_e8_zve32x.h"
 #endif
 
 // IWYU pragma: end_exports
