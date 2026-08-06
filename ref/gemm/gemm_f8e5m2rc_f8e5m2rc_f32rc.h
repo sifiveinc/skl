@@ -13,8 +13,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Reference OFP8 E5M2 matrix-matrix multiplication with float32
- * accumulator.
+ * @brief Reference quad-widening OFP8 E5M2 GEMM.
  *
  * @param m - Number of rows in matrices A and C.
  * @param n - Number of columns in matrices B and C.
@@ -32,8 +31,8 @@ extern "C" {
  * @param csc - Column stride of matrix C in elements.
  *
  * Computes `C = alpha * A * B + beta * C` for matrices A, B, and C.
- * This generic GEMM function defines the semantics of all optimized OFP8 E5M2
- * GEMM kernels with FP32 accumulators in SKL.
+ * This generic GEMM function defines the semantics of all optimized
+ * quad-widening OFP8 E5M2 GEMM kernels in SKL.
  *
  * The entries of A and B are 8-bit floating point numbers in E5M2 format,
  * type-punned as 8-bit unsigned integers.

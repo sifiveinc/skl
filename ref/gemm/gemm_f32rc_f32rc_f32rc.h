@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Reference float32 matrix-matrix multiplication (SGEMM).
+ * @brief Reference float32 GEMM (SGEMM).
  *
  * @param m - Number of rows in matrices A and C.
  * @param n - Number of columns in matrices B and C.
@@ -31,8 +31,8 @@ extern "C" {
  * @param csc - Column stride of matrix C in elements.
  *
  * Computes `C = alpha * A * B + beta * C` for matrices A, B, and C.
- * This generic GEMM function defines the semantics of all optimized FP32 GEMM
- * kernels in SKL.
+ * This generic GEMM function defines the semantics of all optimized float32
+ * GEMM kernels in SKL.
  *
  * Matrices may be in row-major or column-major order, depending on the strides.
  * For row-major matrices, the column stride is 1, and the row stride is the
