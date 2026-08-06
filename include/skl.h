@@ -64,9 +64,9 @@
  */
 
 #if defined(__riscv_xsfmmbase)
-#include "transpose/transpose_e16_xsfmmbase.h"
-#include "transpose/transpose_e32_xsfmmbase.h"
-#include "transpose/transpose_e8_xsfmmbase.h"
+#include "pack/pack_e16_xsfmmbase.h"
+#include "pack/pack_e32_xsfmmbase.h"
+#include "pack/pack_e8_xsfmmbase.h"
 #endif
 
 /*

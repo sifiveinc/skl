@@ -3,9 +3,9 @@
 // See LICENSE file in the project root for full license information.
 // SPDX-License-Identifier: MIT
 
+#include "pack/transpose_e32.h"
 #include "skl-test-driver.h"
 #include "skl.h"
-#include "transpose/transpose_e16.h"
 
 #include <stddef.h>
 
@@ -16,33 +16,33 @@
 /**
  * @brief Test cases for transpose with Zve32x extension.
  *
- * This test uses the transpose_e16 harness.
+ * This test uses the transpose_e32 harness.
  */
 
 #define TEST                                                                   \
-  TRANSPOSE_E16_DEFAULTS, .steps = {                                           \
-                              .init = transpose_e16_init,                      \
+  TRANSPOSE_E32_DEFAULTS, .steps = {                                           \
+                              .init = transpose_e32_init,                      \
                               .warmup = NULL,                                  \
                               .execute = execute,                              \
-                              .verify = transpose_e16_verify,                  \
-                              .report = transpose_e16_test_report,             \
-                              .cleanup = transpose_e16_cleanup,                \
+                              .verify = transpose_e32_verify,                  \
+                              .report = transpose_e32_test_report,             \
+                              .cleanup = transpose_e32_cleanup,                \
   }
 
 #define BENCH                                                                  \
-  TRANSPOSE_E16_DEFAULTS, .steps = {                                           \
-                              .init = transpose_e16_init,                      \
+  TRANSPOSE_E32_DEFAULTS, .steps = {                                           \
+                              .init = transpose_e32_init,                      \
                               .warmup = execute,                               \
                               .execute = execute,                              \
                               .verify = NULL,                                  \
-                              .report = transpose_e16_benchmark_report,        \
-                              .cleanup = transpose_e16_cleanup,                \
+                              .report = transpose_e32_benchmark_report,        \
+                              .cleanup = transpose_e32_cleanup,                \
   }
 
 static void execute(skl_test_t *t);
 
 // clang-format off
-transpose_e16_t tests[] = {
+transpose_e32_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
   // Benchmark tests
   {BENCH, .m = 128, .n = 128},
@@ -89,15 +89,15 @@ transpose_e16_t tests[] = {
 };
 // clang-format on
 
-static skl_test_suite_t suite = {.name = "skl_transpose_e16_zve32x",
+static skl_test_suite_t suite = {.name = "skl_transpose_e32_zve32x",
                                  .num_tests = sizeof(tests) / sizeof(tests[0]),
-                                 .test_size = sizeof(transpose_e16_t),
+                                 .test_size = sizeof(transpose_e32_t),
                                  .tests = tests};
 
 static void execute(skl_test_t *t) {
-  const transpose_e16_t *h = (transpose_e16_t *)t->harness;
+  const transpose_e32_t *h = (transpose_e32_t *)t->harness;
 
-  skl_transpose_e16_zve32x(h->m, h->n, h->a.data, h->rsa, h->at.data, h->rsat);
+  skl_transpose_e32_zve32x(h->m, h->n, h->a.data, h->rsa, h->at.data, h->rsat);
 }
 
 int main(void) {

@@ -642,43 +642,43 @@ skl_add_test(
 )
 skl_add_test(
   skl_transpose_e16_xsfmmbase
-  transpose/transpose_e16.c
-  transpose/xsfmmbase/skl_transpose_e16_xsfmmbase.c
+  pack/transpose_e16.c
+  pack/xsfmm/skl_transpose_e16_xsfmmbase.c
   "xsfmmbase"
   ""
 )
 skl_add_test(
   skl_transpose_e16_zve32x
-  transpose/transpose_e16.c
-  transpose/rvv/skl_transpose_e16_zve32x.c
+  pack/transpose_e16.c
+  pack/rvv/skl_transpose_e16_zve32x.c
   "zve32x"
   ""
 )
 skl_add_test(
   skl_transpose_e32_xsfmmbase
-  transpose/transpose_e32.c
-  transpose/xsfmmbase/skl_transpose_e32_xsfmmbase.c
+  pack/transpose_e32.c
+  pack/xsfmm/skl_transpose_e32_xsfmmbase.c
   "xsfmmbase"
   ""
 )
 skl_add_test(
   skl_transpose_e32_zve32x
-  transpose/transpose_e32.c
-  transpose/rvv/skl_transpose_e32_zve32x.c
+  pack/transpose_e32.c
+  pack/rvv/skl_transpose_e32_zve32x.c
   "zve32x"
   ""
 )
 skl_add_test(
   skl_transpose_e8_xsfmmbase
-  transpose/transpose_e8.c
-  transpose/xsfmmbase/skl_transpose_e8_xsfmmbase.c
+  pack/transpose_e8.c
+  pack/xsfmm/skl_transpose_e8_xsfmmbase.c
   "xsfmmbase"
   ""
 )
 skl_add_test(
   skl_transpose_e8_zve32x
-  transpose/transpose_e8.c
-  transpose/rvv/skl_transpose_e8_zve32x.c
+  pack/transpose_e8.c
+  pack/rvv/skl_transpose_e8_zve32x.c
   "zve32x"
   ""
 )
