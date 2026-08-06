@@ -21,11 +21,11 @@
 /src/gemm/xsfmm @myeh01
 /src/gemm/xsfvqdotq @france5289 @myeh01 @peichialin
 /src/logistic @hdelassus @ebavier
-/src/pack/rvv @Harlen126
+/src/pack @Harlen126
 /src/silu @hdelassus
 /src/softmax @ebavier
-/src/transpose/rvv @Aaron-Hutchinson @Harlen126 @peichialin
-/src/transpose/xsfmm @myeh01
+/src/transpose @Aaron-Hutchinson @Harlen126 @peichialin
+/src/transpose/*xsfmm* @myeh01
 
 /test/cvt @Harlen126
 /test/depthwise_conv2d @peichialin

@@ -64,9 +64,9 @@
  */
 
 #if defined(__riscv_xsfmmbase)
-#include "transpose/xsfmm/transpose_e16_xsfmmbase.h"
-#include "transpose/xsfmm/transpose_e32_xsfmmbase.h"
-#include "transpose/xsfmm/transpose_e8_xsfmmbase.h"
+#include "transpose/transpose_e16_xsfmmbase.h"
+#include "transpose/transpose_e32_xsfmmbase.h"
+#include "transpose/transpose_e8_xsfmmbase.h"
 #endif
 
 /*
@@ -263,9 +263,9 @@
  * Pack Kernels
  */
 #if defined(__riscv_zve32x)
-#include "pack/rvv/skl_pack_e16_zve32x.h"
-#include "pack/rvv/skl_pack_e32_zve32x.h"
-#include "pack/rvv/skl_pack_e8_zve32x.h"
+#include "pack/skl_pack_e16_zve32x.h"
+#include "pack/skl_pack_e32_zve32x.h"
+#include "pack/skl_pack_e8_zve32x.h"
 #endif
 
 // IWYU pragma: end_exports

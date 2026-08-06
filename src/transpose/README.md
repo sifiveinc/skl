@@ -7,8 +7,6 @@
 >                              0 /*rs1, don't care*/, 0 /*cs1, don't care*/,
 >                              0 /*pad, don't care*/);
 > ```
-> - **RVV implementations:** [`../pack/rvv/`](../pack/rvv/)
-> - **Xsfmm implementations:** [`../pack/xsfmm/`](../pack/xsfmm/)
 
 The `../pack/` directory contains optimized kernels for matrix transpose operations.
 Matrix transpose is a fundamental linear algebra operation that converts an M×N matrix to an N×M matrix by swapping rows and columns.

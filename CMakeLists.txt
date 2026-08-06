@@ -146,9 +146,9 @@ add_skl_src(src/logistic/logistic_f32_xsfvfexp32e.c "xsfvfexp32e")
 add_skl_src(src/logistic/logistic_f32_xsfvfexpa.c "xsfvfexpa")
 add_skl_src(src/logistic/logistic_f32_zve32f.c "zve32f")
 
-add_skl_src(src/pack/rvv/skl_pack_e16_zve32x.c "zve32x")
-add_skl_src(src/pack/rvv/skl_pack_e32_zve32x.c "zve32x")
-add_skl_src(src/pack/rvv/skl_pack_e8_zve32x.c "zve32x")
+add_skl_src(src/pack/skl_pack_e16_zve32x.c "zve32x")
+add_skl_src(src/pack/skl_pack_e32_zve32x.c "zve32x")
+add_skl_src(src/pack/skl_pack_e8_zve32x.c "zve32x")
 
 add_skl_src(src/silu/silu_f16_xsfvfexp16e.c "xsfvfexp16e")
 add_skl_src(src/silu/silu_f16_xsfvfexpa_zvfh.c "xsfvfexpa;zvfh")
@@ -172,9 +172,9 @@ add_skl_src(src/softmax/softmax_f32_xsfvfexp32e.c "xsfvfexp32e")
 add_skl_src(src/softmax/softmax_f32_xsfvfexpa.c "xsfvfexpa")
 add_skl_src(src/softmax/softmax_f32_zve32f.c "zve32f")
 
-add_skl_src(src/transpose/xsfmm/transpose_e16_xsfmmbase.c "xsfmmbase")
-add_skl_src(src/transpose/xsfmm/transpose_e32_xsfmmbase.c "xsfmmbase")
-add_skl_src(src/transpose/xsfmm/transpose_e8_xsfmmbase.c "xsfmmbase")
+add_skl_src(src/transpose/transpose_e16_xsfmmbase.c "xsfmmbase")
+add_skl_src(src/transpose/transpose_e32_xsfmmbase.c "xsfmmbase")
+add_skl_src(src/transpose/transpose_e8_xsfmmbase.c "xsfmmbase")
 
 # Optionally build library tests
 
