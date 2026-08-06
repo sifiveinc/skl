@@ -5,7 +5,7 @@
 
 /**
  * @brief Test and benchmark for widening f16 packed GEMM:
- *   C_pack = alpha * A_pack * B_pack + beta * C_pack.
+ *   C = alpha * A * B + beta * C.
  *
  * This test uses a table-driven approach where test configurations are defined
  * in the `tests` array. Each test specifies:
@@ -17,11 +17,11 @@
  *  - The GEMM kernel function to test
  *
  * Matrix layouts:
- *  - A_pack is packed m1 x k1 with block size m0 x k0 and strides rsa0, csa0,
+ *  - A is packed m1 x k1 with block size m0 x k0 and strides rsa0, csa0,
  *    rsa1, csa1
- *  - B_pack is packed k1 x n1 with block size k0 x n0 and strides rsb0, csb0,
+ *  - B is packed k1 x n1 with block size k0 x n0 and strides rsb0, csb0,
  *    rsb1, csb1
- *  - C_pack is packed m1 x n1 with block size m0 x n0 and strides rsc0, csc0,
+ *  - C is packed m1 x n1 with block size m0 x n0 and strides rsc0, csc0,
  *    rsc1, csc1
  */
 
@@ -46,10 +46,10 @@ typedef struct {
   float beta;
   size_t rsc0, csc0, rsc1, csc1;
 
-  // Buffer generation settings for A_pack, B_pack, C_pack
-  SKL_TEST_BUFFER(_Float16) a_pack;
-  SKL_TEST_BUFFER(_Float16) b_pack;
-  SKL_TEST_BUFFER(float) c_pack;
+  // Buffer generation settings for A, B, C
+  SKL_TEST_BUFFER(_Float16) a;
+  SKL_TEST_BUFFER(_Float16) b;
+  SKL_TEST_BUFFER(float) c;
 
   // Derived parameters & buffers (private to the test harness)
   struct {
@@ -66,10 +66,10 @@ void gemm_f16rcprc_f16rcprc_f32rcprc_benchmark_report(skl_test_t *t);
 void gemm_f16rcprc_f16rcprc_f32rcprc_cleanup(skl_test_t *t);
 
 #define GEMM_F16RCPRC_F16RCPRC_F32RCPRC_DEFAULTS                               \
-  .a_pack = {.min = (_Float16)-1.0f,                                           \
-             .max = (_Float16)1.0f,                                            \
-             .mode = SKL_TEST_RANDOM},                                         \
-  .b_pack = {.min = (_Float16)-1.0f,                                           \
-             .max = (_Float16)1.0f,                                            \
-             .mode = SKL_TEST_RANDOM},                                         \
-  .c_pack = {.min = -1.0f, .max = 1.0f, .mode = SKL_TEST_RANDOM}
+  .a = {.min = (_Float16)-1.0f,                                                \
+        .max = (_Float16)1.0f,                                                 \
+        .mode = SKL_TEST_RANDOM},                                              \
+  .b = {.min = (_Float16)-1.0f,                                                \
+        .max = (_Float16)1.0f,                                                 \
+        .mode = SKL_TEST_RANDOM},                                              \
+  .c = {.min = -1.0f, .max = 1.0f, .mode = SKL_TEST_RANDOM}

@@ -114,9 +114,9 @@ static void execute(skl_test_t *t) {
   const gemm_bf16rcprc_bf16rcprc_f32rcprc_t *h =
       (gemm_bf16rcprc_bf16rcprc_f32rcprc_t *)t->harness;
 
-  skl_gemm_bf16_bf16_f32_zvfbfwma(h->m1, h->n1, h->k1, h->alpha, h->a_pack.data,
-                                  h->rsa1, h->b_pack.data, h->rsb1, h->beta,
-                                  h->c_pack.data, h->rsc1);
+  skl_gemm_bf16_bf16_f32_zvfbfwma(h->m1, h->n1, h->k1, h->alpha, h->a.data,
+                                  h->rsa1, h->b.data, h->rsb1, h->beta,
+                                  h->c.data, h->rsc1);
 }
 
 int main(void) {

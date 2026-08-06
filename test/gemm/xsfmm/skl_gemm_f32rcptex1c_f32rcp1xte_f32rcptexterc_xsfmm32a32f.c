@@ -19,10 +19,10 @@
  * This test uses the gemm_f32rcprc_f32rcprc_f32rcprc harness with the following
  * restrictions on the input parameters:
  *  - The block dimensions are m0 = TE, n0 = TE, and k0 = 1
- *  - Matrix A_pack has column-major blocks (rsa0 == 1)
- *  - Matrix B_pack has row-major blocks (csb0 == 1)
+ *  - Matrix A has column-major blocks (rsa0 == 1)
+ *  - Matrix B has row-major blocks (csb0 == 1)
  *
- * The kernel computes C_pack = alpha * A_pack * B_pack + beta * C_pack.
+ * The kernel computes C = alpha * A * B + beta * C.
  */
 
 #define TEST                                                                   \
@@ -180,12 +180,12 @@ static void execute(skl_test_t *t) {
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
   // Call the kernel with the appropriate parameters
-  // The kernel signature is: (m1, n1, k, alpha, a_pack, rsa1, csa1, b_pack,
-  // rsb1, csb1, beta, c_pack, rsc0, rsc1, csc1)
+  // The kernel signature is: (m1, n1, k, alpha, a, rsa1, csa1, b,
+  // rsb1, csb1, beta, c, rsc0, rsc1, csc1)
   skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
-      h->m1, h->n1, h->k1 * h->k0, h->alpha, h->a_pack.data, h->rsa1, h->csa1,
-      h->b_pack.data, h->rsb1, h->csb1, h->beta, h->c_pack.data, h->rsc0,
-      h->csc0, h->rsc1, h->csc1);
+      h->m1, h->n1, h->k1 * h->k0, h->alpha, h->a.data, h->rsa1, h->csa1,
+      h->b.data, h->rsb1, h->csb1, h->beta, h->c.data, h->rsc0, h->csc0,
+      h->rsc1, h->csc1);
 }
 
 int main(void) {

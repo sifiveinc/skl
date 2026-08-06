@@ -125,8 +125,8 @@ static void execute(skl_test_t *t) {
   // The kernel signature is: (m, n, k, a, csa, b, rsb, c, rsc, accum)
   // where accum = (beta != 0)
   skl_gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f(
-      h->m1, h->n1, h->k1, h->a_pack.data, h->csa1, h->b_pack.data, h->rsb1,
-      h->c_pack.data, h->rsc1, h->beta != 0.f);
+      h->m1, h->n1, h->k1, h->a.data, h->csa1, h->b.data, h->rsb1, h->c.data,
+      h->rsc1, h->beta != 0.f);
 }
 
 int main(void) {

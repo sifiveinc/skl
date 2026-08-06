@@ -4,8 +4,7 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * @brief Test and benchmark for packed GEMM: C_pack = alpha * A_pack * B_pack +
- * beta * C_pack.
+ * @brief Test and benchmark for packed GEMM: C = alpha * A * B + beta * C.
  *
  * This test uses a table-driven approach where test configurations are defined
  * in the `tests` array. Each test specifies:
@@ -17,11 +16,11 @@
  *  - The GEMM kernel function to test
  *
  * Matrix layouts:
- *  - A_pack is packed m1 x k1 with block size m0 x k0 and strides rsa0, csa0,
+ *  - A is packed m1 x k1 with block size m0 x k0 and strides rsa0, csa0,
  *    rsa1, csa1
- *  - B_pack is packed k1 x n1 with block size k0 x n0 and strides rsb0, csb0,
+ *  - B is packed k1 x n1 with block size k0 x n0 and strides rsb0, csb0,
  *    rsb1, csb1
- *  - C_pack is packed m1 x n1 with block size m0 x n0 and strides rsc0, csc0,
+ *  - C is packed m1 x n1 with block size m0 x n0 and strides rsc0, csc0,
  *    rsc1, csc1
  */
 
@@ -47,13 +46,13 @@ typedef struct {
   float beta;
   size_t rsc0, csc0, rsc1, csc1;
 
-  // OFP8 type for A_pack and B_pack
+  // OFP8 type for A and B
   gemm_ofp8_type_t input_type;
 
-  // Buffer generation settings for A_pack, B_pack, C_pack
-  SKL_TEST_BUFFER(uint8_t) a_pack;
-  SKL_TEST_BUFFER(uint8_t) b_pack;
-  SKL_TEST_BUFFER(float) c_pack;
+  // Buffer generation settings for A, B, C
+  SKL_TEST_BUFFER(uint8_t) a;
+  SKL_TEST_BUFFER(uint8_t) b;
+  SKL_TEST_BUFFER(float) c;
 
   // Derived parameters & buffers (private to the test harness)
   struct {
@@ -72,15 +71,13 @@ void gemm_f8rcprc_f8rcprc_f32rcprc_cleanup(skl_test_t *t);
 // The min value for E4M3 is 2^-6, represented by 0.0001.000.
 // The max value for E4M3 is 1.75 * 2^8, represented by 0.1111.110.
 #define GEMM_F8E4M3RCPRC_F8E4M3RCPRC_F32RCPRC_DEFAULTS                         \
-  .input_type = F8E4M3,                                                        \
-  .a_pack = {.min = 8, .max = 126, .mode = SKL_TEST_RANDOM},                   \
-  .b_pack = {.min = 8, .max = 126, .mode = SKL_TEST_RANDOM},                   \
-  .c_pack = {.min = 8, .max = 126, .mode = SKL_TEST_RANDOM}
+  .input_type = F8E4M3, .a = {.min = 8, .max = 126, .mode = SKL_TEST_RANDOM},  \
+  .b = {.min = 8, .max = 126, .mode = SKL_TEST_RANDOM},                        \
+  .c = {.min = 8, .max = 126, .mode = SKL_TEST_RANDOM}
 
 // The min value for E5M2 is 2^-14, represented by 0.00001.00.
 // The max value for E5M2 is 1.75 * 2^15, represented by 0.11110.11.
 #define GEMM_F8E5M2RCPRC_F8E5M2RCPRC_F32RCPRC_DEFAULTS                         \
-  .input_type = F8E5M2,                                                        \
-  .a_pack = {.min = 4, .max = 123, .mode = SKL_TEST_RANDOM},                   \
-  .b_pack = {.min = 4, .max = 123, .mode = SKL_TEST_RANDOM},                   \
-  .c_pack = {.min = 4, .max = 123, .mode = SKL_TEST_RANDOM}
+  .input_type = F8E5M2, .a = {.min = 4, .max = 123, .mode = SKL_TEST_RANDOM},  \
+  .b = {.min = 4, .max = 123, .mode = SKL_TEST_RANDOM},                        \
+  .c = {.min = 4, .max = 123, .mode = SKL_TEST_RANDOM}

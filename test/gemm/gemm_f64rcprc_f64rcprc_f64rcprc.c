@@ -51,42 +51,39 @@ void gemm_f64rcprc_f64rcprc_f64rcprc_init(skl_test_t *t) {
   }
 
   if (m1 == 0 || k1 == 0) {
-    h->a_pack.len = 0;
+    h->a.len = 0;
   } else {
-    h->a_pack.len = (m1 - 1) * rsa1 + (k1 - 1) * csa1 + (m0 - 1) * rsa0 +
-                    (k0 - 1) * csa0 + 1;
+    h->a.len = (m1 - 1) * rsa1 + (k1 - 1) * csa1 + (m0 - 1) * rsa0 +
+               (k0 - 1) * csa0 + 1;
   }
 
   if (k1 == 0 || n1 == 0) {
-    h->b_pack.len = 0;
+    h->b.len = 0;
   } else {
-    h->b_pack.len = (k1 - 1) * rsb1 + (n1 - 1) * csb1 + (k0 - 1) * rsb0 +
-                    (n0 - 1) * csb0 + 1;
+    h->b.len = (k1 - 1) * rsb1 + (n1 - 1) * csb1 + (k0 - 1) * rsb0 +
+               (n0 - 1) * csb0 + 1;
   }
 
   if (m1 == 0 || n1 == 0) {
-    h->c_pack.len = 0;
+    h->c.len = 0;
   } else {
-    h->c_pack.len = (m1 - 1) * rsc1 + (n1 - 1) * csc1 + (m0 - 1) * rsc0 +
-                    (n0 - 1) * csc0 + 1;
+    h->c.len = (m1 - 1) * rsc1 + (n1 - 1) * csc1 + (m0 - 1) * rsc0 +
+               (n0 - 1) * csc0 + 1;
   }
 
   // Allocate buffers
-  SKL_TEST_BUF_CREATE(t, double, &h->a_pack);
-  SKL_TEST_BUF_CREATE(t, double, &h->b_pack);
-  SKL_TEST_BUF_CREATE(t, double, &h->c_pack);
+  SKL_TEST_BUF_CREATE(t, double, &h->a);
+  SKL_TEST_BUF_CREATE(t, double, &h->b);
+  SKL_TEST_BUF_CREATE(t, double, &h->c);
   if (h->steps.verify) {
     h->ctx.a_wide =
-        h->a_pack.len ? malloc(h->a_pack.len * sizeof(*(h->ctx.a_wide))) : NULL;
+        h->a.len ? malloc(h->a.len * sizeof(*(h->ctx.a_wide))) : NULL;
     h->ctx.b_wide =
-        h->b_pack.len ? malloc(h->b_pack.len * sizeof(*(h->ctx.b_wide))) : NULL;
-    h->ctx.ref_c =
-        h->c_pack.len ? malloc(h->c_pack.len * sizeof(*(h->ctx.ref_c))) : NULL;
-    h->ctx.bound =
-        h->c_pack.len ? malloc(h->c_pack.len * sizeof(*(h->ctx.bound))) : NULL;
-    if (h->c_pack.len) {
-      memcpy(h->ctx.ref_c, h->c_pack.data,
-             h->c_pack.len * sizeof(*(h->c_pack.data)));
+        h->b.len ? malloc(h->b.len * sizeof(*(h->ctx.b_wide))) : NULL;
+    h->ctx.ref_c = h->c.len ? malloc(h->c.len * sizeof(*(h->ctx.ref_c))) : NULL;
+    h->ctx.bound = h->c.len ? malloc(h->c.len * sizeof(*(h->ctx.bound))) : NULL;
+    if (h->c.len) {
+      memcpy(h->ctx.ref_c, h->c.data, h->c.len * sizeof(*(h->c.data)));
     }
   }
 }
@@ -96,19 +93,19 @@ void gemm_f64rcprc_f64rcprc_f64rcprc_init(skl_test_t *t) {
 // it doesn't correspond to any skl library function.
 static void skl_gemm_f128rcprc_f128rcprc_f128rcprc_ref(
     size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
-    long double alpha, const long double *a_pack, size_t rsa0, size_t csa0,
-    size_t rsa1, size_t csa1, const long double *b_pack, size_t rsb0,
-    size_t csb0, size_t rsb1, size_t csb1, long double beta,
-    long double *c_pack, size_t rsc0, size_t csc0, size_t rsc1, size_t csc1) {
+    long double alpha, const long double *a, size_t rsa0, size_t csa0,
+    size_t rsa1, size_t csa1, const long double *b, size_t rsb0, size_t csb0,
+    size_t rsb1, size_t csb1, long double beta, long double *c, size_t rsc0,
+    size_t csc0, size_t rsc1, size_t csc1) {
   for (size_t ii1 = 0; ii1 < m1; ++ii1) {
     for (size_t jj1 = 0; jj1 < n1; ++jj1) {
-      long double *cp_block = c_pack + ii1 * rsc1 + jj1 * csc1;
+      long double *cp_block = c + ii1 * rsc1 + jj1 * csc1;
       for (size_t ii0 = 0; ii0 < m0; ++ii0) {
         for (size_t jj0 = 0; jj0 < n0; ++jj0) {
           long double acc = 0;
           for (size_t kk1 = 0; kk1 < k1; ++kk1) {
-            const long double *ap_block = a_pack + ii1 * rsa1 + kk1 * csa1;
-            const long double *bp_block = b_pack + kk1 * rsb1 + jj1 * csb1;
+            const long double *ap_block = a + ii1 * rsa1 + kk1 * csa1;
+            const long double *bp_block = b + kk1 * rsb1 + jj1 * csb1;
             for (size_t kk0 = 0; kk0 < k0; ++kk0) {
               long double a_val = ap_block[ii0 * rsa0 + kk0 * csa0];
               long double b_val = bp_block[kk0 * rsb0 + jj0 * csb0];
@@ -147,12 +144,12 @@ void gemm_f64rcprc_f64rcprc_f64rcprc_verify(skl_test_t *t) {
   size_t csc1 = h->csc1;
   double alpha = h->alpha;
   double beta = h->beta;
-  double *a_pack = h->a_pack.data;
-  double *b_pack = h->b_pack.data;
-  double *c_pack = h->c_pack.data;
-  size_t a_pack_len = h->a_pack.len;
-  size_t b_pack_len = h->b_pack.len;
-  size_t c_pack_len = h->c_pack.len;
+  double *a = h->a.data;
+  double *b = h->b.data;
+  double *c = h->c.data;
+  size_t a_len = h->a.len;
+  size_t b_len = h->b.len;
+  size_t c_len = h->c.len;
   long double *a_wide = h->ctx.a_wide;
   long double *b_wide = h->ctx.b_wide;
   double *ref_c = h->ctx.ref_c;
@@ -178,13 +175,13 @@ void gemm_f64rcprc_f64rcprc_f64rcprc_verify(skl_test_t *t) {
   // skl_test_init) which are needed for the |beta| * |C| term in the error
   // bound.
   //
-  for (size_t i = 0; i < a_pack_len; ++i) {
-    a_wide[i] = fabsl(a_pack[i]);
+  for (size_t i = 0; i < a_len; ++i) {
+    a_wide[i] = fabsl(a[i]);
   }
-  for (size_t i = 0; i < b_pack_len; ++i) {
-    b_wide[i] = fabsl(b_pack[i]);
+  for (size_t i = 0; i < b_len; ++i) {
+    b_wide[i] = fabsl(b[i]);
   }
-  for (size_t i = 0; i < c_pack_len; ++i) {
+  for (size_t i = 0; i < c_len; ++i) {
     bound[i] = fabsl(ref_c[i]);
   }
   const int P = 53; // 52 bits of mantissa for float64 accumulator
@@ -201,8 +198,8 @@ void gemm_f64rcprc_f64rcprc_f64rcprc_verify(skl_test_t *t) {
 
   // Compute the reference result using h->ctx.ref_c
   skl_gemm_f64rcprc_f64rcprc_f64rcprc_ref(
-      m0, n0, k0, m1, n1, k1, alpha, a_pack, rsa0, csa0, rsa1, csa1, b_pack,
-      rsb0, csb0, rsb1, csb1, beta, ref_c, rsc0, csc0, rsc1, csc1);
+      m0, n0, k0, m1, n1, k1, alpha, a, rsa0, csa0, rsa1, csa1, b, rsb0, csb0,
+      rsb1, csb1, beta, ref_c, rsc0, csc0, rsc1, csc1);
 
   /* Compare the reference and test outputs. */
   for (size_t i1 = 0; i1 < m1; ++i1) {
@@ -210,13 +207,13 @@ void gemm_f64rcprc_f64rcprc_f64rcprc_verify(skl_test_t *t) {
       for (size_t i0 = 0; i0 < m0; ++i0) {
         for (size_t j0 = 0; j0 < n0; ++j0) {
           size_t idx = i1 * rsc1 + j1 * csc1 + i0 * rsc0 + j0 * csc0;
-          if (fabsl((long double)c_pack[idx] - (long double)ref_c[idx]) >
+          if (fabsl((long double)c[idx] - (long double)ref_c[idx]) >
               bound[idx]) {
             SKL_TEST_LOG(
                 t, SKL_TEST_LOG_ERROR,
                 "result [%zu, %zu, %zu, %zu] (%.10f) != reference (%.10f) "
                 "[bound = %.8Le]\n",
-                i1, j1, i0, j0, c_pack[idx], ref_c[idx], bound[idx]);
+                i1, j1, i0, j0, c[idx], ref_c[idx], bound[idx]);
             t->status.verify_status = SKL_TEST_FAIL;
             return;
           }
@@ -226,9 +223,8 @@ void gemm_f64rcprc_f64rcprc_f64rcprc_verify(skl_test_t *t) {
   }
 
   /* Check for clobbered elements. */
-  skl_test_check_matrix_clobbered_rcprc(t, sizeof(*c_pack), c_pack_len, m0, n0,
-                                        m1, n1, c_pack, ref_c, rsc0, csc0, rsc1,
-                                        csc1);
+  skl_test_check_matrix_clobbered_rcprc(t, sizeof(*c), c_len, m0, n0, m1, n1, c,
+                                        ref_c, rsc0, csc0, rsc1, csc1);
 }
 
 void gemm_f64rcprc_f64rcprc_f64rcprc_test_report(skl_test_t *t) {
@@ -258,9 +254,9 @@ void gemm_f64rcprc_f64rcprc_f64rcprc_cleanup(skl_test_t *t) {
       (gemm_f64rcprc_f64rcprc_f64rcprc_t *)t->harness;
 
   // Free buffers
-  SKL_TEST_BUF_FREE(t, &h->a_pack);
-  SKL_TEST_BUF_FREE(t, &h->b_pack);
-  SKL_TEST_BUF_FREE(t, &h->c_pack);
+  SKL_TEST_BUF_FREE(t, &h->a);
+  SKL_TEST_BUF_FREE(t, &h->b);
+  SKL_TEST_BUF_FREE(t, &h->c);
   if (h->steps.verify) {
     free(h->ctx.a_wide);
     free(h->ctx.b_wide);
