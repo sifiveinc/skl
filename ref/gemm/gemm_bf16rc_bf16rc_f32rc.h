@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include "skl-common.h"
 #include <stddef.h>
 
 #if defined(__cplusplus)

@@ -3,7 +3,8 @@
 // See LICENSE file in the project root for full license information.
 // SPDX-License-Identifier: MIT
 
-#include "skl-common.h"
+#pragma once
+
 #include <stddef.h>
 
 #if defined(__cplusplus)
