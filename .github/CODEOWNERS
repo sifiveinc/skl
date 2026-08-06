@@ -8,8 +8,7 @@
 /ref/cvt @Harlen126
 /ref/depthwise_conv2d @peichialin
 /ref/gemm @Aaron-Hutchinson @myeh01
-/ref/logistic @hdelassus
-/ref/silu @hdelassus
+/ref/sigmoid @hdelassus
 /ref/softmax @ebavier
 /ref/transpose @Aaron-Hutchinson @Harlen126 @myeh01
 
@@ -20,9 +19,8 @@
 /src/gemm/rvv @Aaron-Hutchinson
 /src/gemm/xsfmm @myeh01
 /src/gemm/xsfvqdotq @france5289 @myeh01 @peichialin
-/src/logistic @hdelassus @ebavier
 /src/pack/rvv @Harlen126
-/src/silu @hdelassus
+/src/sigmoid @hdelassus @ebavier
 /src/softmax @ebavier
 /src/transpose/rvv @Aaron-Hutchinson @Harlen126 @peichialin
 /src/transpose/xsfmm @myeh01
@@ -33,7 +31,7 @@
 /test/gelu @ebavier
 /test/gemm @Aaron-Hutchinson @france5289 @myeh01 @peichialin
 /test/pack @Harlen126 @myeh01
-/test/silu @hdelassus
+/test/sigmoid @hdelassus
 /test/softmax @ebavier
 /test/transpose @Aaron-Hutchinson @Harlen126 @myeh01
 
