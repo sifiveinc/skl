@@ -13,8 +13,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Reference OFP8 E5M2 packed matrix-matrix multiplication with float32
- * accumulator.
+ * @brief Reference packed quad-widening OFP8 E5M2 GEMM.
  *
  * @param m0 - Number of rows in each block of matrices A and C.
  * @param n0 - Number of columns in each block of matrices B and C.
@@ -41,8 +40,8 @@ extern "C" {
  * @param csc1 - Column stride between blocks of C in elements.
  *
  * Computes `C = alpha * A * B + beta * C` for packed matrices A, B, and C.
- * This generic GEMM function defines the semantics of all optimized OFP8 E5M2
- * packed GEMM kernels with FP32 accumulators in SKL.
+ * This generic GEMM function defines the semantics of all optimized packed
+ * quad-widening OFP8 E5M2 GEMM kernels in SKL.
  *
  * The entries of A and B are 8-bit floating point numbers in E5M2 format,
  * type-punned as 8-bit unsigned integers.

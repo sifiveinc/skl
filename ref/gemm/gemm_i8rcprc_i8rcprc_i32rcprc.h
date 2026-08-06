@@ -12,8 +12,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Reference int8 packed matrix-matrix multiplication with int32
- * accumulator.
+ * @brief Reference packed quad-widening int8 GEMM.
  *
  * @param m0 - Number of rows in each block of matrices A and C.
  * @param n0 - Number of columns in each block of matrices B and C.
@@ -40,8 +39,8 @@ extern "C" {
  * @param csc1 - Column stride between blocks of C in elements.
  *
  * Computes `C = alpha * A * B + beta * C` for packed matrices A, B, and C.
- * This generic GEMM function defines the semantics of all optimized int8 packed
- * GEMM kernels with int32 accumulators in SKL.
+ * This generic GEMM function defines the semantics of all optimized packed
+ * quad-widening int8 GEMM kernels in SKL.
  *
  * @note
  * This function is for API documentation purposes only, and should not be used

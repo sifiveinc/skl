@@ -11,8 +11,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Reference float16 packed matrix-matrix multiplication with float32
- * accumulator.
+ * @brief Reference packed widening float16 GEMM.
  *
  * @param m0 - Number of rows in each block of matrices A and C.
  * @param n0 - Number of columns in each block of matrices B and C.
@@ -39,8 +38,8 @@ extern "C" {
  * @param csc1 - Column stride between blocks of C in elements.
  *
  * Computes `C = alpha * A * B + beta * C` for packed matrices A, B, and C.
- * This generic GEMM function defines the semantics of all optimized FP16 packed
- * GEMM kernels with FP32 accumulators in SKL.
+ * This generic GEMM function defines the semantics of all optimized packed
+ * widening float16 GEMM kernels in SKL.
  *
  * @note
  * This function is for API documentation purposes only, and should not be used
