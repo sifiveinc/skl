@@ -69,11 +69,11 @@ void skl_gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f(size_t m, size_t n, size_t k,
  * @param m1 - Number of rows in A and C as block matrices.
  * @param n1 - Number of columns in B and C as block matrices.
  * @param k - Number of columns in A and rows in B (inner dimension).
- * @param a_pack - Pointer to matrix A.
+ * @param a - Pointer to matrix A.
  * @param rsa1 - Row stride between blocks of A in elements.
- * @param b_pack - Pointer to matrix B.
+ * @param b - Pointer to matrix B.
  * @param csb1 - Column stride between blocks of B in elements.
- * @param c_pack - Pointer to matrix C.
+ * @param c - Pointer to matrix C.
  * @param rsc1 - Row stride between blocks of C in elements.
  * @param csc1 - Column stride between blocks of C in elements.
  * @param accum - Determines if output matrix is incremented or overwritten.
@@ -87,16 +87,16 @@ void skl_gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f(size_t m, size_t n, size_t k,
  * skl_gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc_ref(
  *     TE, TE, 1, m1, n1, k,     // m0, n0, k0, m1, n1, k1
  *     1,                        // alpha
- *     a_pack, 1, 0, rsa1, TE,   // a_pack, rsa0, csa0, rsa1, csa1
- *     b_pack, 0, 1, TE, csb1,   // b_pack, rsb0, csb0, rsb1, csb1
+ *     a, 1, 0, rsa1, TE,   // a, rsa0, csa0, rsa1, csa1
+ *     b, 0, 1, TE, csb1,   // b, rsb0, csb0, rsb1, csb1
  *     accum ? 1 : 0,            // beta
- *     c_pack, TE, 1, rsc1, csc1 // c_pack, rsc0, csc0, rsc1, csc1
+ *     c, TE, 1, rsc1, csc1 // c, rsc0, csc0, rsc1, csc1
  * );
  * ```
  */
 void skl_gemm_a1b01_f8e5m2ptex1c_f8e5m2cp1xte_f32rcptexte_xsfmm32a8f(
-    size_t m1, size_t n1, size_t k, const uint8_t *a_pack, size_t rsa1,
-    const uint8_t *b_pack, size_t csb1, float *c_pack, size_t rsc1, size_t csc1,
+    size_t m1, size_t n1, size_t k, const uint8_t *a, size_t rsa1,
+    const uint8_t *b, size_t csb1, float *c, size_t rsc1, size_t csc1,
     bool accum);
 
 #if defined(__cplusplus)

@@ -1307,8 +1307,8 @@ SKL_FUNC void skl_gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f(
 
 SKL_XSFMM_NEW
 SKL_FUNC void skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f(
-    size_t m1, size_t n1, size_t k, const __bf16 *a_pack, size_t rsa1,
-    const __bf16 *b_pack, size_t csb1, float *c_pack, size_t rsc1, size_t csc1,
+    size_t m1, size_t n1, size_t k, const __bf16 *a, size_t rsa1,
+    const __bf16 *b, size_t csb1, float *c, size_t rsc1, size_t csc1,
     bool accum) {
   if (m1 == 0 || n1 == 0) {
     return;
@@ -1325,16 +1325,16 @@ SKL_FUNC void skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f(
     size_t j = 0;
     for (; j + 2 <= n1; j += 2) {
       skl_gemm_2tn2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
-          ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete, csb1,
-          c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
+          ete, k, a + i * rsa1, ete, rsa1, b + j * csb1, ete, csb1,
+          c + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
       skl_gemm_2tn2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
-          ete, k, a_pack + (i + 2) * rsa1, ete, rsa1, b_pack + j * csb1, ete,
-          csb1, c_pack + (i + 2) * rsc1 + j * csc1, ete, rsc1, csc1, accum);
+          ete, k, a + (i + 2) * rsa1, ete, rsa1, b + j * csb1, ete, csb1,
+          c + (i + 2) * rsc1 + j * csc1, ete, rsc1, csc1, accum);
     }
     if (j < n1) {
       skl_gemm_4tm1tn_a1b01_bf16pc_bf16_f32rcp_xsfmm32a16f(
-          ete, ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
-          c_pack + i * rsc1 + j * csc1, ete, rsc1, accum);
+          ete, ete, k, a + i * rsa1, ete, rsa1, b + j * csb1, ete,
+          c + i * rsc1 + j * csc1, ete, rsc1, accum);
     }
   }
 
@@ -1342,13 +1342,13 @@ SKL_FUNC void skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f(
     size_t j = 0;
     for (; j + 2 <= n1; j += 2) {
       skl_gemm_2tn2tn_a1b01_bf16pc_bf16cp_f32rcp_xsfmm32a16f(
-          ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete, csb1,
-          c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
+          ete, k, a + i * rsa1, ete, rsa1, b + j * csb1, ete, csb1,
+          c + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
     }
     if (j < n1) {
       skl_gemm_2tm1tn_a1b01_bf16pc_bf16_f32rcp_xsfmm32a16f(
-          ete, ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
-          c_pack + i * rsc1 + j * csc1, ete, rsc1, accum);
+          ete, ete, k, a + i * rsa1, ete, rsa1, b + j * csb1, ete,
+          c + i * rsc1 + j * csc1, ete, rsc1, accum);
     }
     i += 2;
   }
@@ -1357,24 +1357,24 @@ SKL_FUNC void skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f(
     size_t j = 0;
     for (; j + 4 <= n1; j += 4) {
       skl_gemm_1tm4tn_a1b01_bf16c_bf16cp_f32rcp_xsfmm32a16f(
-          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete, csb1,
-          c_pack + i * rsc1 + j * csc1, ete, csc1, accum);
+          ete, ete, k, a + i * rsa1, ete, b + j * csb1, ete, csb1,
+          c + i * rsc1 + j * csc1, ete, csc1, accum);
     }
     switch (n1 - j) {
     case 3:
       skl_gemm_1tm3tn_a1b01_bf16c_bf16cp_f32rcp_xsfmm32a16f(
-          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete, csb1,
-          c_pack + i * rsc1 + j * csc1, ete, csc1, accum);
+          ete, ete, k, a + i * rsa1, ete, b + j * csb1, ete, csb1,
+          c + i * rsc1 + j * csc1, ete, csc1, accum);
       break;
     case 2:
       skl_gemm_1tm2tn_a1b01_bf16c_bf16cp_f32rcp_xsfmm32a16f(
-          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete, csb1,
-          c_pack + i * rsc1 + j * csc1, ete, csc1, accum);
+          ete, ete, k, a + i * rsa1, ete, b + j * csb1, ete, csb1,
+          c + i * rsc1 + j * csc1, ete, csc1, accum);
       break;
     case 1:
       skl_gemm_1tm1tn_a1b01_bf16c_bf16_f32_xsfmm32a16f(
-          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete,
-          c_pack + i * rsc1 + j * csc1, ete, accum);
+          ete, ete, k, a + i * rsa1, ete, b + j * csb1, ete,
+          c + i * rsc1 + j * csc1, ete, accum);
       break;
     default:
       break;

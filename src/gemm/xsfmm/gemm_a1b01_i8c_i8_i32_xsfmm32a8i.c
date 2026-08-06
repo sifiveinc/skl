@@ -2415,9 +2415,9 @@ SKL_FUNC void skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i(size_t m, size_t n, size_t k,
 
 SKL_XSFMM_NEW
 SKL_FUNC void skl_gemm_a1b01_i8ptex1c_i8cp1xte_i32rcptexte_xsfmm32a8i(
-    size_t m1, size_t n1, size_t k, const int8_t *a_pack, size_t rsa1,
-    const int8_t *b_pack, size_t csb1, int32_t *c_pack, size_t rsc1,
-    size_t csc1, bool accum) {
+    size_t m1, size_t n1, size_t k, const int8_t *a, size_t rsa1,
+    const int8_t *b, size_t csb1, int32_t *c, size_t rsc1, size_t csc1,
+    bool accum) {
   if (m1 == 0 || n1 == 0) {
     return;
   }
@@ -2430,16 +2430,16 @@ SKL_FUNC void skl_gemm_a1b01_i8ptex1c_i8cp1xte_i32rcptexte_xsfmm32a8i(
     size_t j = 0;
     for (; j + 2 <= n1; j += 2) {
       skl_gemm_2tn2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
-          ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete, csb1,
-          c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
+          ete, k, a + i * rsa1, ete, rsa1, b + j * csb1, ete, csb1,
+          c + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
       skl_gemm_2tn2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
-          ete, k, a_pack + (i + 2) * rsa1, ete, rsa1, b_pack + j * csb1, ete,
-          csb1, c_pack + (i + 2) * rsc1 + j * csc1, ete, rsc1, csc1, accum);
+          ete, k, a + (i + 2) * rsa1, ete, rsa1, b + j * csb1, ete, csb1,
+          c + (i + 2) * rsc1 + j * csc1, ete, rsc1, csc1, accum);
     }
     if (j < n1) {
       skl_gemm_4tm1tn_a1b01_i8pc_i8_i32rcp_xsfmm32a8i(
-          ete, ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
-          c_pack + i * rsc1 + j * csc1, ete, rsc1, accum);
+          ete, ete, k, a + i * rsa1, ete, rsa1, b + j * csb1, ete,
+          c + i * rsc1 + j * csc1, ete, rsc1, accum);
     }
   }
 
@@ -2447,13 +2447,13 @@ SKL_FUNC void skl_gemm_a1b01_i8ptex1c_i8cp1xte_i32rcptexte_xsfmm32a8i(
     size_t j = 0;
     for (; j + 2 <= n1; j += 2) {
       skl_gemm_2tn2tn_a1b01_i8pc_i8cp_i32rcp_xsfmm32a8i(
-          ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete, csb1,
-          c_pack + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
+          ete, k, a + i * rsa1, ete, rsa1, b + j * csb1, ete, csb1,
+          c + i * rsc1 + j * csc1, ete, rsc1, csc1, accum);
     }
     if (j < n1) {
       skl_gemm_2tm1tn_a1b01_i8pc_i8_i32rcp_xsfmm32a8i(
-          ete, ete, k, a_pack + i * rsa1, ete, rsa1, b_pack + j * csb1, ete,
-          c_pack + i * rsc1 + j * csc1, ete, rsc1, accum);
+          ete, ete, k, a + i * rsa1, ete, rsa1, b + j * csb1, ete,
+          c + i * rsc1 + j * csc1, ete, rsc1, accum);
     }
     i += 2;
   }
@@ -2462,24 +2462,24 @@ SKL_FUNC void skl_gemm_a1b01_i8ptex1c_i8cp1xte_i32rcptexte_xsfmm32a8i(
     size_t j = 0;
     for (; j + 4 <= n1; j += 4) {
       skl_gemm_1tm4tn_a1b01_i8c_i8cp_i32rcp_xsfmm32a8i(
-          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete, csb1,
-          c_pack + i * rsc1 + j * csc1, ete, csc1, accum);
+          ete, ete, k, a + i * rsa1, ete, b + j * csb1, ete, csb1,
+          c + i * rsc1 + j * csc1, ete, csc1, accum);
     }
     switch (n1 - j) {
     case 3:
       skl_gemm_1tm3tn_a1b01_i8c_i8cp_i32rcp_xsfmm32a8i(
-          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete, csb1,
-          c_pack + i * rsc1 + j * csc1, ete, csc1, accum);
+          ete, ete, k, a + i * rsa1, ete, b + j * csb1, ete, csb1,
+          c + i * rsc1 + j * csc1, ete, csc1, accum);
       break;
     case 2:
       skl_gemm_1tm2tn_a1b01_i8c_i8cp_i32rcp_xsfmm32a8i(
-          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete, csb1,
-          c_pack + i * rsc1 + j * csc1, ete, csc1, accum);
+          ete, ete, k, a + i * rsa1, ete, b + j * csb1, ete, csb1,
+          c + i * rsc1 + j * csc1, ete, csc1, accum);
       break;
     case 1:
       skl_gemm_1tm1tn_a1b01_i8c_i8_i32_xsfmm32a8i(
-          ete, ete, k, a_pack + i * rsa1, ete, b_pack + j * csb1, ete,
-          c_pack + i * rsc1 + j * csc1, ete, accum);
+          ete, ete, k, a + i * rsa1, ete, b + j * csb1, ete,
+          c + i * rsc1 + j * csc1, ete, accum);
       break;
     default:
       break;

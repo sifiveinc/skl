@@ -1,4 +1,4 @@
-# Xsfmm Fused Kernel API
+#Xsfmm Fused Kernel API
 In applications, users might want to perform an operation such as alpha/beta scaling, adding a bias, applying an activation function, etc. after computing a matrix product.
 The simplest approach is to have distinct GEMM and post-GEMM kernels.
 The former compute a GEMM and store the result to memory, while the latter operate on matrices in memory.
@@ -364,7 +364,7 @@ for (size_t i1 = 0; i1 < m1; ++i1) {
   size_t tm = m_avl > ETE ? ETE : m_avl;
   size_t n_avl = n;
   for (size_t j1 = 0; j1 < n1; ++j1) {
-    const <type> *c_block = c + i1 * rsc1 + j1 * csc1;
+    const<type> *c_block = c + i1 * rsc1 + j1 * csc1;
     size_t tss_tile = tss + i1 * rstss + j1 * cstss;
     size_t tn = n_avl > ETE ? ETE : n_avl;
     for (size_t i0 = 0; i0 < tm; ++i0) {
