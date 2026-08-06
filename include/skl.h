@@ -38,8 +38,8 @@
 #endif
 
 #if defined(__riscv_xsfmm32a8f)
-#include "gemm/xsfmm/gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.h"
 #include "gemm/xsfmm/gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f.h"
+#include "gemm/xsfmm/gemm_f8e4m3c_f8e4m3_f32_xsfmm32a8f.h"
 #endif
 
 #if defined(__riscv_xsfmm32a8i)
