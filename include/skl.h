@@ -38,8 +38,8 @@
 #endif
 
 #if defined(__riscv_xsfmm32a8f)
-#include "gemm/xsfmm/gemm_a1b01_f8e4m3c_f8e4m3_f32_xsfmm32a8f.h"
 #include "gemm/xsfmm/gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f.h"
+#include "gemm/xsfmm/gemm_f8e4m3c_f8e4m3_f32_xsfmm32a8f.h"
 #endif
 
 #if defined(__riscv_xsfmm32a8i)
@@ -48,7 +48,7 @@
 
 #if defined(__riscv_xsfmm32a16f)
 #include "gemm/xsfmm/gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f.h"
-#include "gemm/xsfmm/gemm_a1b01_f16c_f16_f32_xsfmm32a16f.h"
+#include "gemm/xsfmm/gemm_f16c_f16_f32_xsfmm32a16f.h"
 #endif
 
 #if defined(__riscv_xsfmm32a32f)
@@ -64,9 +64,9 @@
  */
 
 #if defined(__riscv_xsfmmbase)
-#include "transpose/xsfmm/transpose_e16_xsfmmbase.h"
-#include "transpose/xsfmm/transpose_e32_xsfmmbase.h"
-#include "transpose/xsfmm/transpose_e8_xsfmmbase.h"
+#include "transpose/transpose_e16_xsfmmbase.h"
+#include "transpose/transpose_e32_xsfmmbase.h"
+#include "transpose/transpose_e8_xsfmmbase.h"
 #endif
 
 /*
@@ -242,9 +242,9 @@
  * Pack Kernels
  */
 #if defined(__riscv_zve32x)
-#include "pack/rvv/skl_pack_e16_zve32x.h"
-#include "pack/rvv/skl_pack_e32_zve32x.h"
-#include "pack/rvv/skl_pack_e8_zve32x.h"
+#include "pack/pack_e16_zve32x.h"
+#include "pack/pack_e32_zve32x.h"
+#include "pack/pack_e8_zve32x.h"
 #endif
 
 // IWYU pragma: end_exports
