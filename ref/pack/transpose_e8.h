@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "skl-common.h"
 #include <stddef.h>
 #include <stdint.h>
 
