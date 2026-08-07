@@ -25,13 +25,11 @@ SKL_FUNC void skl_sigmoid_f16_xsfvfexp16e(_Float16 *out, _Float16 beta,
   const vfloat16m8_t one = __riscv_vfmv_v_f_f16m8(1, vlmax);
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e16m8(n - i);
-    /* 0. Load and scale by beta */
+    /* 0. Load */
     vfloat16m8_t vx = __riscv_vle16_v_f16m8(x + i, vl);
-    if (beta != 1)
-      vx = __riscv_vfmul_vf_f16m8(vx, beta, vl);
 
     /* 1. Approximate exp(-|beta x|) */
-    vfloat16m8_t ex = __riscv_vfmul_vf_f16m8(vx, -0.5f16, vl);
+    vfloat16m8_t ex = __riscv_vfmul_vf_f16m8(vx, -0.5f16 * beta, vl);
     ex = __riscv_vfsgnj_vf_f16m8(ex, -0.5f16, vl);
     ex = __riscv_sf_vfexp_v_f16m8(ex, vl);
     ex = __riscv_vfmul_vv_f16m8(ex, ex, vl);
