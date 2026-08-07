@@ -5,9 +5,7 @@
 
 #include "skl-common.h"
 #include <math.h>
-#include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
 
 /**
  * Exponential function approximation on a vector of f32 floating-point values
