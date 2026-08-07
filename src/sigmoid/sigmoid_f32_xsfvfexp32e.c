@@ -25,15 +25,13 @@ SKL_FUNC void skl_sigmoid_f32_xsfvfexp32e(float *out, float beta,
   const vfloat32m8_t one = __riscv_vfmv_v_f_f32m8(1, vlmax);
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e32m8(n - i);
-    /* 0. Load and scale by beta */
+    /* 0. Load */
     vfloat32m8_t vx = __riscv_vle32_v_f32m8(x + i, vl);
-    if (beta != 1)
-      vx = __riscv_vfmul_vf_f32m8(vx, beta, vl);
 
     /* 1. Approximate exp(-|beta x|). Halve the argument to stay in range,
      *    then square to recover the full exponential. Keeping the sign
      *    negative saves a scalar register. */
-    vfloat32m8_t ex = __riscv_vfmul_vf_f32m8(vx, -0.5f, vl);
+    vfloat32m8_t ex = __riscv_vfmul_vf_f32m8(vx, -0.5f * beta, vl);
     ex = __riscv_vfsgnj_vf_f32m8(ex, -0.5f, vl);
     ex = __riscv_sf_vfexp_v_f32m8(ex, vl);
     ex = __riscv_vfmul_vv_f32m8(ex, ex, vl);
