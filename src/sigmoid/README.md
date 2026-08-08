@@ -19,15 +19,6 @@ The `x`, `y`, and `up` parameters are pointers to input arrays; when `x` is `NUL
 `y` and `up` are optional: when non-`NULL` they are applied elementwise.
 This makes it possible to fuse SiLU (`y == x`, `beta == 1`, `up == NULL`), GLU (`y != x`, `up == NULL`) and SwiGLU (via `up`/`delta`) into a single kernel.
 
-## Kernel Naming Convention
-
-The kernel names follow the pattern: `skl_sigmoid_<type>_<isa>`
-
-where:
-
-- `<type>`: denotes the type of the input and output arrays.
-- `<isa>`: denotes the instruction set architecture extension(s) the kernel requires.
-
 ## Constraints
 
 - Input and output arrays may overlap only for in-place computation.
@@ -36,6 +27,7 @@ where:
 ## Kernel List
 
 - FP32 APIs
+
 ```c
 void skl_sigmoid_f32_zve32f(float *out, float beta, const float *x, const float *y, const float *up, float delta, size_t n);
 void skl_sigmoid_f32_xsfvfexpa(float *out, float beta, const float *x, const float *y, const float *up, float delta, size_t n);
