@@ -33,9 +33,6 @@ extern "C" {
  *   if (up) out *= (up + delta)
  * where
  *   logistic(z) = 1 / (1 + e^(-z))
- *
- * @note
- * The result for beta * x == -infty is NaN.
  */
 void skl_sigmoid_f16_zvfh(_Float16 *out, _Float16 beta, const _Float16 *x,
                           const _Float16 *y, const _Float16 *up, _Float16 delta,

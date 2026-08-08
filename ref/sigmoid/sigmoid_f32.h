@@ -31,7 +31,8 @@ extern "C" {
  *   logistic(z) = 1 / (1 + e^(-z))
  *
  * @note
- * The result for beta * x == -infty is NaN.
+ * This function is for API documentation purposes only, and should not be used
+ * for performance applications.
  */
 void skl_sigmoid_f32_ref(float *out, float beta, const float *x, const float *y,
                          const float *up, float delta, size_t n);

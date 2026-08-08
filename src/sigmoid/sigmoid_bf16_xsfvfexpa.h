@@ -33,9 +33,6 @@ extern "C" {
  *   if (up) out *= (up + delta)
  * where
  *   logistic(z) = 1 / (1 + e^(-z))
- *
- * @note
- * The result for beta * x == -infty is NaN.
  */
 void skl_sigmoid_bf16_xsfvfexpa(__bf16 *out, __bf16 beta, const __bf16 *x,
                                 const __bf16 *y, const __bf16 *up, __bf16 delta,

@@ -31,9 +31,6 @@ extern "C" {
  *   logistic(z) = 1 / (1 + e^(-z))
  *
  * @note
- * The result for beta * x == -infty is NaN.
- *
- * @note
  * This function is for API documentation purposes only, and should not be used
  * for performance applications.
  */
