@@ -9,9 +9,9 @@
 /ref/depthwise_conv2d @peichialin
 /ref/gemm @Aaron-Hutchinson @myeh01
 /ref/logistic @hdelassus
+/ref/pack @Aaron-Hutchinson @Harlen126 @myeh01
 /ref/silu @hdelassus
 /ref/softmax @ebavier
-/ref/pack @Aaron-Hutchinson @Harlen126 @myeh01
 
 /src/cvt @Harlen126
 /src/depthwise_conv2d @peichialin
@@ -24,6 +24,7 @@
 /src/pack @Aaron-Hutchinson @Harlen126 @myeh01 @peichialin
 /src/silu @hdelassus
 /src/softmax @ebavier
+/src/transpose @Aaron-Hutchinson @Harlen126 @peichialin
 
 /test/cvt @Harlen126
 /test/depthwise_conv2d @peichialin
