@@ -29,39 +29,40 @@ SKL_FUNC void skl_sigmoid_f32_xsfvfexpa(float *out, float beta, const float *x,
     if (beta != 1)
       vx = __riscv_vfmul_vf_f32m8(vx, beta, vl);
 
-    /* Approximate exp(-|beta x|) */
+    /* 1. Approximate exp(-|beta x|) */
     const vfloat32m8_t e =
         skl_leftexp_xsfvfexpa_f32m8(__riscv_vfsgnj_vf_f32m8(vx, -1, vl), vl);
 
-    /* Approximate 1 / (1 + exp(-|beta x|)) */
+    /* 2. Approximate 1 / (1 + exp(-|beta x|)) */
     const vfloat32m8_t d = __riscv_vfadd_vf_f32m8(e, 1, vl);
     // Since we know that e is in [0;1] and d is in [1;2], we can skip the usual
     // scaling and refinement checks that are required in `div`.
     vfloat32m8_t r = __riscv_vfrec7_v_f32m8(d, vl);
-    /* Refine r */
+    /* 3. Refine r */
     const vfloat32m8_t one = __riscv_vfmv_v_f_f32m8(1, vl);
     vfloat32m8_t t = __riscv_vfnmsac_vv_f32m8(one, d, r, vl); // 1 - d * r
     r = __riscv_vfmadd_vv_f32m8(r, t, r, vl);    // r + r * (1 - d * r)
     t = __riscv_vfnmsac_vv_f32m8(one, d, r, vl); // 1 - d * r
     r = __riscv_vfmadd_vv_f32m8(r, t, r, vl);    // r + r * (1 - d * r)
 
-    /* Calculate quotient */
+    /* 4. Calculate quotient */
     const vbool4_t m = __riscv_vmflt_vf_f32m8_b4(vx, 0, vl);
     vfloat32m8_t res = __riscv_vfmul_vv_f32m8_mu(m, r, r, e, vl);
 
-    /* Optionally multiply by y */
+    /* 5. Optionally multiply by y */
     if (y) {
       const vfloat32m8_t vy = __riscv_vle32_v_f32m8(y + i, vl);
       res = __riscv_vfmul_vv_f32m8(res, vy, vl);
     }
 
-    /* Optionally multiply by (up + delta) */
+    /* 6. Optionally multiply by (up + delta) */
     if (up) {
       vfloat32m8_t vu = __riscv_vle32_v_f32m8(up + i, vl);
       vu = __riscv_vfadd_vf_f32m8(vu, delta, vl);
       res = __riscv_vfmul_vv_f32m8(res, vu, vl);
     }
 
+    /* 7. Store */
     __riscv_vse32_v_f32m8(out + i, res, vl);
   }
 }
