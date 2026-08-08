@@ -83,6 +83,3 @@ void skl_swiglu_f16_ref(_Float16 *out, const _Float16 *gate, const _Float16 *up,
 #ifdef __cplusplus
 } // extern "C"
 #endif
-#ifdef __cplusplus
-} // extern "C"
-#endif

@@ -81,6 +81,3 @@ void skl_swiglu_bf16_ref(__bf16 *out, const __bf16 *gate, const __bf16 *up,
 #ifdef __cplusplus
 } // extern "C"
 #endif
-#ifdef __cplusplus
-} // extern "C"
-#endif
