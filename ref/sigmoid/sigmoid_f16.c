@@ -17,7 +17,7 @@ SKL_FUNC void skl_sigmoid_f16_ref(_Float16 *out, _Float16 beta,
   for (size_t i = 0; i < n; i++) {
     float o;
     float a = x[i];
-    /* Sigmoid */
+    /* Logistic */
     float b = beta * a;
     if (b >= 0)
       o = 1 / (1 + expf(-b));

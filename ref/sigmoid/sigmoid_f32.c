@@ -21,7 +21,7 @@ SKL_FUNC void skl_sigmoid_f32_ref(float *out, float beta, const float *x,
 
   for (size_t i = 0; i < n; i++) {
     double a = x[i];
-    /* Sigmoid */
+    /* Logistic */
     double b = beta * a;
     double e = exp(copysign(b, -1));
     double o = 1 + e;
