@@ -15,23 +15,16 @@ SKL_FUNC void skl_sigmoid_f16_ref(_Float16 *out, _Float16 beta,
     return;
 
   for (size_t i = 0; i < n; i++) {
-    float o;
-    float a = x[i];
     /* Logistic */
-    float b = beta * a;
-    if (b >= 0)
-      o = 1 / (1 + expf(-b));
-    else {
-      float e = expf(b);
-      o = e / (1 + e);
-    }
+    const float a = x[i];
+    float o = 1.f / (1.f + expf(-beta * a));
     /* Linear unit */
     if (y)
       o *= y[i];
     /* Gate */
-    if (up) {
+    if (up)
       o *= (up[i] + delta);
-    }
+
     out[i] = (_Float16)o;
   }
 }

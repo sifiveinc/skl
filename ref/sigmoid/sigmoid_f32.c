@@ -20,16 +20,9 @@ SKL_FUNC void skl_sigmoid_f32_ref(float *out, float beta, const float *x,
     return;
 
   for (size_t i = 0; i < n; i++) {
-    double a = x[i];
     /* Logistic */
-    double b = beta * a;
-    double e = exp(copysign(b, -1));
-    double o = 1 + e;
-    if (b >= 0)
-      o = 1 / o;
-    else
-      o = e / o;
-
+    const double a = x[i];
+    double o = 1. / (1. + exp(-beta * a));
     /* Linear unit */
     if (y)
       o *= y[i];
