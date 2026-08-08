@@ -44,8 +44,8 @@ SKL_FUNC void skl_sigmoid_f16_zvfh(_Float16 *out, _Float16 beta,
     const vfloat16m8_t v = __riscv_vfmul_vf_f16m8(nx, r_ln2, vl);
     const int8_t offset = -11;
     const vint8m4_t voffset = __riscv_vlse8_v_i8m4(&offset, 0, vl);
-    const vint8m4_t q = __riscv_vfncvt_x_f_w_i8m4_mu(nn, voffset, v, vl);
-    const vfloat16m8_t z = __riscv_vfwcvt_f_x_v_f16m8(q, vl);
+    const vint8m4_t zi = __riscv_vfncvt_x_f_w_i8m4_mu(nn, voffset, v, vl);
+    const vfloat16m8_t z = __riscv_vfwcvt_f_x_v_f16m8(zi, vl);
 
     const _Float16 l2h = 0x1.63p-1f16;   // round(log(2), HP, RN);
     const _Float16 l2l = -0x1.bdp-13f16; // round(log(2) - ln2h, HP, RN);
@@ -60,11 +60,11 @@ SKL_FUNC void skl_sigmoid_f16_zvfh(_Float16 *out, _Float16 beta,
     u = __riscv_vfmadd_vv_f16m8(u, s, c01, vl);
     u = __riscv_vfmadd_vv_f16m8(u, s, c01, vl);
 
-    /* 5. Reconstruction: compute e = u*2^(q+11) */
+    /* 5. Reconstruction: compute e = u*2^(z+11) */
     vint16m8_t j = __riscv_vreinterpret_v_f16m8_i16m8(u);
     const int8_t exp_ = 11 << 3;
     vint8m4_t vexp = __riscv_vlse8_v_i8m4(&exp_, 0, vl);
-    vexp = __riscv_vmadd_vx_i8m4(q, 1 << 3, vexp, vl);
+    vexp = __riscv_vmadd_vx_i8m4(zi, 1 << 3, vexp, vl);
     j = __riscv_vwmaccus_vx_i16m8(j, 1 << 7, vexp, vl);
     vfloat16m8_t e = __riscv_vreinterpret_v_i16m8_f16m8(j);
 
@@ -79,23 +79,23 @@ SKL_FUNC void skl_sigmoid_f16_zvfh(_Float16 *out, _Float16 beta,
     r = __riscv_vfmadd_vv_f16m8(r, t, r, vl); // r + r * (1 - x * r)
 
     /* 8. Calculate quotient */
-    vfloat16m8_t res = __riscv_vfmul_vv_f16m8_mu(neg, r, r, ex, vl);
+    vfloat16m8_t q = __riscv_vfmul_vv_f16m8_mu(neg, r, r, ex, vl);
 
     /* 9. Optionally multiply by y */
     if (y) {
       const vfloat16m8_t vy = __riscv_vle16_v_f16m8(y + i, vl);
-      res = __riscv_vfmul_vv_f16m8(res, vy, vl);
+      q = __riscv_vfmul_vv_f16m8(q, vy, vl);
     }
 
     /* 10. Optionally multiply by (up + delta) */
     if (up) {
       vfloat16m8_t vu = __riscv_vle16_v_f16m8(up + i, vl);
       vu = __riscv_vfadd_vf_f16m8(vu, delta, vl);
-      res = __riscv_vfmul_vv_f16m8(res, vu, vl);
+      q = __riscv_vfmul_vv_f16m8(q, vu, vl);
     }
 
     /* 11. Store */
-    __riscv_vse16_v_f16m8(out + i, res, vl);
+    __riscv_vse16_v_f16m8(out + i, q, vl);
   }
 }
 

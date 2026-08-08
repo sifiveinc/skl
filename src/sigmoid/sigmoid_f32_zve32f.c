@@ -37,8 +37,8 @@ SKL_FUNC void skl_sigmoid_f32_zve32f(float *out, float beta, const float *x,
     const float C1 = 0x1.62e4p-1f;    /* round(log(2), 24-8, RN) */
     const float C2 = 0x1.7f7d1cp-20f; /* ln2 - C1 */
     const vfloat32m8_t v = __riscv_vfmul_vf_f32m8(vx, R, vl);
-    const vint16m4_t q = __riscv_vfncvt_x_f_w_i16m4(v, vl);
-    const vfloat32m8_t z = __riscv_vfwcvt_f_x_v_f32m8(q, vl);
+    const vint16m4_t zi = __riscv_vfncvt_x_f_w_i16m4(v, vl);
+    const vfloat32m8_t z = __riscv_vfwcvt_f_x_v_f32m8(zi, vl);
     vfloat32m8_t s =
         __riscv_vfnmsac_vf_f32m8(vx, C1, z, vl); /* s = x - C1 * z */
     const vfloat32m8_t c5 = __riscv_vfmv_v_f_f32m8(0x1.123bccp-7f, vl);
@@ -57,11 +57,11 @@ SKL_FUNC void skl_sigmoid_f32_zve32f(float *out, float beta, const float *x,
     u = __riscv_vfmadd_vv_f32m8(u, s, c01, vl);
     u = __riscv_vfmadd_vv_f32m8(u, s, c01, vl);
 
-    /* 4. Reconstruct e ~ u*2^(q+24) */
+    /* 4. Reconstruct e ~ u*2^(z+24) */
     vint32m8_t k = __riscv_vreinterpret_v_f32m8_i32m8(u);
     const int16_t exp_ = 24 << 8;
     vint16m4_t vexp = __riscv_vlse16_v_i16m4(&exp_, 0, vl);
-    vexp = __riscv_vmadd_vx_i16m4(q, 1 << 8, vexp, vl);
+    vexp = __riscv_vmadd_vx_i16m4(zi, 1 << 8, vexp, vl);
     k = __riscv_vwmaccus_vx_i32m8(k, 1 << 15, vexp, vl);
     vfloat32m8_t e = __riscv_vreinterpret_v_i32m8_f32m8(k);
 
@@ -78,23 +78,23 @@ SKL_FUNC void skl_sigmoid_f32_zve32f(float *out, float beta, const float *x,
     r = __riscv_vfmadd_vv_f32m8(r, t, r, vl);    /* r + r * (1 - x * r) */
 
     /* 7. Calculate quotient */
-    vfloat32m8_t res = __riscv_vfmul_vv_f32m8_mu(m, r, r, e, vl);
+    vfloat32m8_t q = __riscv_vfmul_vv_f32m8_mu(m, r, r, e, vl);
 
     /* 8. Optionally multiply by y */
     if (y) {
       const vfloat32m8_t vy = __riscv_vle32_v_f32m8(y + i, vl);
-      res = __riscv_vfmul_vv_f32m8(res, vy, vl);
+      q = __riscv_vfmul_vv_f32m8(q, vy, vl);
     }
 
     /* 9. Optionally multiply by (up + delta) */
     if (up) {
       vfloat32m8_t vu = __riscv_vle32_v_f32m8(up + i, vl);
       vu = __riscv_vfadd_vf_f32m8(vu, delta, vl);
-      res = __riscv_vfmul_vv_f32m8(res, vu, vl);
+      q = __riscv_vfmul_vv_f32m8(q, vu, vl);
     }
 
     /* 10. Store */
-    __riscv_vse32_v_f32m8(out + i, res, vl);
+    __riscv_vse32_v_f32m8(out + i, q, vl);
   }
 }
 

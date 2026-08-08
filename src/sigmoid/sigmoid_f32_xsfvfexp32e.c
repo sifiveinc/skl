@@ -46,23 +46,23 @@ SKL_FUNC void skl_sigmoid_f32_xsfvfexp32e(float *out, float beta,
 
     /* 3. Calculate quotient */
     const vbool4_t m = __riscv_vmflt_vf_f32m8_b4(vx, 0, vl);
-    vfloat32m8_t res = __riscv_vfmul_vv_f32m8_mu(m, r, r, ex, vl);
+    vfloat32m8_t q = __riscv_vfmul_vv_f32m8_mu(m, r, r, ex, vl);
 
     /* 4. Optionally multiply by y */
     if (y) {
       const vfloat32m8_t vy = __riscv_vle32_v_f32m8(y + i, vl);
-      res = __riscv_vfmul_vv_f32m8(res, vy, vl);
+      q = __riscv_vfmul_vv_f32m8(q, vy, vl);
     }
 
     /* 5. Optionally multiply by (up + delta) */
     if (up) {
       vfloat32m8_t vu = __riscv_vle32_v_f32m8(up + i, vl);
       vu = __riscv_vfadd_vf_f32m8(vu, delta, vl);
-      res = __riscv_vfmul_vv_f32m8(res, vu, vl);
+      q = __riscv_vfmul_vv_f32m8(q, vu, vl);
     }
 
     /* 6. Store */
-    __riscv_vse32_v_f32m8(out + i, res, vl);
+    __riscv_vse32_v_f32m8(out + i, q, vl);
   }
 }
 
