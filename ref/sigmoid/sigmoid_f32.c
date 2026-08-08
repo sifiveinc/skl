@@ -7,12 +7,6 @@
 #include <math.h>
 #include <stddef.h>
 
-/**
- * Exponential function approximation on a vector of f32 floating-point values
- * with a 1-ULP error bound in [-inf; 0].
- *
- * @note NaNs are not propagated.
- */
 SKL_FUNC void skl_sigmoid_f32_ref(float *out, float beta, const float *x,
                                   const float *y, const float *up, float delta,
                                   size_t n) {
