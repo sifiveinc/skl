@@ -71,8 +71,8 @@ SKL_FUNC void skl_sigmoid_bf16_xsfvfexpa(__bf16 *out, __bf16 beta,
     vfloat32m8_t d = __riscv_vfadd_vf_f32m8(e, 0x1p-8f, vl);
     vfloat32m8_t r = __riscv_vfrec7_v_f32m8(d, vl);
     /* 5. Reconstruct */
-    vfloat32m8_t nn = __riscv_vfmerge_vfm_f32m8(e, 0x1p-8f, m, vl);
-    vfloat32m8_t q = __riscv_vfmul_vv_f32m8(nn, r, vl);
+    vfloat32m8_t o = __riscv_vfmerge_vfm_f32m8(e, 0x1p-8f, m, vl);
+    vfloat32m8_t q = __riscv_vfmul_vv_f32m8(o, r, vl);
     /* 6. Optionally multiply by y */
     if (y) {
       vint16m4_t yi = __riscv_vle16_v_i16m4((int16_t *)y + i, vl);

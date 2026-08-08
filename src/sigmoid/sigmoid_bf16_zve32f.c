@@ -49,12 +49,12 @@ SKL_FUNC void skl_sigmoid_bf16_zve32f(__bf16 *out, __bf16 beta, const __bf16 *x,
   size_t vl;
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e16m4(n - i);
-    vint16m4_t vx = __riscv_vle16_v_i16m4((int16_t *)x + i, vl);
+    vint16m4_t xi = __riscv_vle16_v_i16m4((int16_t *)x + i, vl);
     /* 0. Observe, Orient, Clamp, & Convert */
-    vbool4_t m = __riscv_vmslt_vx_i16m4_b4(vx, 0, vl);
-    vx = __riscv_vor_vx_i16m4(vx, (int16_t)0x8000, vl);  /* copysign(x,-1) */
-    vx = __riscv_vmin_vx_i16m4(vx, (int16_t)0xc2ba, vl); /* fmax(x,-0x1.74p6) */
-    vfloat32m8_t a = skl_sigmoid_bf16_zve32f_vfwcvt_f_x_v_f32m8(vx, vl);
+    vbool4_t m = __riscv_vmslt_vx_i16m4_b4(xi, 0, vl);
+    xi = __riscv_vor_vx_i16m4(xi, (int16_t)0x8000, vl);  /* copysign(x,-1) */
+    xi = __riscv_vmin_vx_i16m4(xi, (int16_t)0xc2ba, vl); /* fmax(x,-0x1.74p6) */
+    vfloat32m8_t a = skl_sigmoid_bf16_zve32f_vfwcvt_f_x_v_f32m8(xi, vl);
     /* 1. Scale by beta */
     if (beta != 1)
       a = __riscv_vfmul_vf_f32m8(a, (float)beta, vl);
@@ -79,8 +79,8 @@ SKL_FUNC void skl_sigmoid_bf16_zve32f(__bf16 *out, __bf16 beta, const __bf16 *x,
     vfloat32m8_t d = __riscv_vfadd_vv_f32m8(f, u, vl);
     vfloat32m8_t r = __riscv_vfrec7_v_f32m8(d, vl);
     /* 6. Reconstruct */
-    vfloat32m8_t nn = __riscv_vmerge_vvm_f32m8(f, u, m, vl);
-    vfloat32m8_t q = __riscv_vfmul_vv_f32m8(nn, r, vl);
+    vfloat32m8_t o = __riscv_vmerge_vvm_f32m8(f, u, m, vl);
+    vfloat32m8_t q = __riscv_vfmul_vv_f32m8(o, r, vl);
     /* 7. Optionally multiply by y */
     if (y) {
       vint16m4_t yi = __riscv_vle16_v_i16m4((int16_t *)y + i, vl);

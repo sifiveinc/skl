@@ -1,6 +1,6 @@
 # Sigmoid Kernels
 
-The sigmoid (logistic) function is a widely-used activation function primitive in large language models (LLMs), computer vision, and stable diffusion neural networks.
+Sigmoid functions are widely-used activation function primitives in large language models (LLMs), computer vision, and stable diffusion neural networks.
 SKL's sigmoid computes the logistic function with an optional scaling factor `beta` and optional fused elementwise multiplications:
 
 ```
