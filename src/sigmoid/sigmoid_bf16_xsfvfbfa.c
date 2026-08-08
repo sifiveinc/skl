@@ -56,7 +56,6 @@ SKL_FUNC void skl_sigmoid_bf16_xsfvfbfa(__bf16 *out, __bf16 beta,
     /* 5. Reconstruct */
     vbfloat16m8_t o = __riscv_vmerge_vvm_bf16m8(f, u, m, vl);
     vbfloat16m8_t q = __riscv_vfmul_vv_bf16m8(o, r, vl);
-    vbfloat16m8_t q = __riscv_vfmul_vv_bf16m8(nn, r, vl);
     /* 6. Optionally multiply by y */
     if (y) {
       vbfloat16m8_t vy = __riscv_vle16_v_bf16m8(y + i, vl);
