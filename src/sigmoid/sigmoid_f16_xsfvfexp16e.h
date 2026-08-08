@@ -28,11 +28,11 @@ extern "C" {
  * @param n - Number of elements to process.
  *
  * Computes, elementwise:
- *   out = sigmoid(beta * x)
+ *   out = logistic(beta * x)
  *   if (y)  out *= y
  *   if (up) out *= (up + delta)
  * where
- *   sigmoid(z) = 1 / (1 + e^(-z))
+ *   logistic(z) = 1 / (1 + e^(-z))
  *
  * @note
  * The result for beta * x == -infty is NaN.
@@ -42,21 +42,21 @@ void skl_sigmoid_f16_xsfvfexp16e(_Float16 *out, _Float16 beta,
                                  const _Float16 *up, _Float16 delta, size_t n);
 
 /**
- * @brief xsfvfexp16e-based FP16 logistic: out = sigmoid(x).
+ * @brief xsfvfexp16e-based FP16 logistic: out = logistic(x).
  *
  * Convenience wrapper around skl_sigmoid_f16_xsfvfexp16e.
  */
 void skl_logistic_f16_xsfvfexp16e(_Float16 *out, const _Float16 *x, size_t n);
 
 /**
- * @brief xsfvfexp16e-based FP16 SiLU: out = x * sigmoid(x).
+ * @brief xsfvfexp16e-based FP16 SiLU: out = x * logistic(x).
  *
  * Convenience wrapper around skl_sigmoid_f16_xsfvfexp16e.
  */
 void skl_silu_f16_xsfvfexp16e(_Float16 *out, const _Float16 *x, size_t n);
 
 /**
- * @brief xsfvfexp16e-based FP16 Swish: out = x * sigmoid(beta * x).
+ * @brief xsfvfexp16e-based FP16 Swish: out = x * logistic(beta * x).
  *
  * Swish generalizes SiLU with an arbitrary beta (SiLU fixes beta = 1).
  * Convenience wrapper around skl_sigmoid_f16_xsfvfexp16e.
@@ -65,7 +65,7 @@ void skl_swish_f16_xsfvfexp16e(_Float16 *out, _Float16 beta, const _Float16 *x,
                                size_t n);
 
 /**
- * @brief xsfvfexp16e-based FP16 GLU: out = x * sigmoid(y).
+ * @brief xsfvfexp16e-based FP16 GLU: out = x * logistic(y).
  *
  * Convenience wrapper around skl_sigmoid_f16_xsfvfexp16e.
  */

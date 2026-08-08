@@ -28,11 +28,11 @@ extern "C" {
  * @param n - Number of elements to process.
  *
  * Computes, elementwise:
- *   out = sigmoid(beta * x)
+ *   out = logistic(beta * x)
  *   if (y)  out *= y
  *   if (up) out *= (up + delta)
  * where
- *   sigmoid(z) = 1 / (1 + e^(-z))
+ *   logistic(z) = 1 / (1 + e^(-z))
  *
  * @note
  * The result for beta * x == -infty is NaN.
@@ -42,21 +42,21 @@ void skl_sigmoid_f32_xsfvfexp32e(float *out, float beta, const float *x,
                                  size_t n);
 
 /**
- * @brief xsfvfexp32e-based FP32 logistic: out = sigmoid(x).
+ * @brief xsfvfexp32e-based FP32 logistic: out = logistic(x).
  *
  * Convenience wrapper around skl_sigmoid_f32_xsfvfexp32e.
  */
 void skl_logistic_f32_xsfvfexp32e(float *out, const float *x, size_t n);
 
 /**
- * @brief xsfvfexp32e-based FP32 SiLU: out = x * sigmoid(x).
+ * @brief xsfvfexp32e-based FP32 SiLU: out = x * logistic(x).
  *
  * Convenience wrapper around skl_sigmoid_f32_xsfvfexp32e.
  */
 void skl_silu_f32_xsfvfexp32e(float *out, const float *x, size_t n);
 
 /**
- * @brief xsfvfexp32e-based FP32 Swish: out = x * sigmoid(beta * x).
+ * @brief xsfvfexp32e-based FP32 Swish: out = x * logistic(beta * x).
  *
  * Swish generalizes SiLU with an arbitrary beta (SiLU fixes beta = 1).
  * Convenience wrapper around skl_sigmoid_f32_xsfvfexp32e.
@@ -65,7 +65,7 @@ void skl_swish_f32_xsfvfexp32e(float *out, float beta, const float *x,
                                size_t n);
 
 /**
- * @brief xsfvfexp32e-based FP32 GLU: out = x * sigmoid(y).
+ * @brief xsfvfexp32e-based FP32 GLU: out = x * logistic(y).
  *
  * Convenience wrapper around skl_sigmoid_f32_xsfvfexp32e.
  */

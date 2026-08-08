@@ -72,10 +72,10 @@ They follow the pattern `skl_<op>_<type>_<isa>` and are defined in terms of the 
 
 | Wrapper | Computes | In terms of `skl_sigmoid` |
 | --- | --- | --- |
-| `skl_logistic_<type>_<isa>(out, x, n)` | `sigmoid(x)` | `sigmoid(out, 1, x, NULL, NULL, 0, n)` |
-| `skl_silu_<type>_<isa>(out, x, n)` | `x * sigmoid(x)` | `sigmoid(out, 1, x, x, NULL, 0, n)` |
-| `skl_swish_<type>_<isa>(out, beta, x, n)` | `x * sigmoid(beta * x)` | `sigmoid(out, beta, x, x, NULL, 0, n)` |
-| `skl_glu_<type>_<isa>(out, x, y, n)` | `x * sigmoid(y)` | `sigmoid(out, 1, y, x, NULL, 0, n)` |
+| `skl_logistic_<type>_<isa>(out, x, n)` | `logistic(x)` | `sigmoid(out, 1, x, NULL, NULL, 0, n)` |
+| `skl_silu_<type>_<isa>(out, x, n)` | `x * logistic(x)` | `sigmoid(out, 1, x, x, NULL, 0, n)` |
+| `skl_swish_<type>_<isa>(out, beta, x, n)` | `x * logistic(beta * x)` | `sigmoid(out, beta, x, x, NULL, 0, n)` |
+| `skl_glu_<type>_<isa>(out, x, y, n)` | `x * logistic(y)` | `sigmoid(out, 1, y, x, NULL, 0, n)` |
 | `skl_swiglu_<type>_<isa>(out, gate, up, delta, n)` | `silu(gate) * (up + delta)` | `sigmoid(out, 1, gate, gate, up, delta, n)` |
 
 These wrappers are available for every `<type>_<isa>` combination listed above.
