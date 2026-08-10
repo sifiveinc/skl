@@ -55,7 +55,6 @@ void skl_sigmoid_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *out, __bf16 beta, const __b
 ## Notes
 
 - If `x` is `NULL`, the kernel computes nothing.
-- For `beta * x = -∞`, implementations return NaN.
 
 ## Wrapper APIs
 
