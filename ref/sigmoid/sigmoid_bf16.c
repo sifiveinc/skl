@@ -15,11 +15,8 @@ SKL_FUNC void skl_sigmoid_bf16_ref(__bf16 *out, __bf16 beta, const __bf16 *x,
 
   for (size_t i = 0; i < n; i++) {
     /* Logistic */
-    const float a = x[i];
-    const float b = copysignf(beta * a, -1.f);
-    const float e = expf(b);
-    const float d = 1.f + e;
-    float o = (a < 0.f) ? e / d : 1.f / d;
+    const double a = x[i];
+    double o = 1. / (1. + exp(-beta * a));
     /* Linear unit */
     if (y)
       o *= y[i];
