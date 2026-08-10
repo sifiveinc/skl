@@ -44,12 +44,12 @@ void softmax_f32_execute(skl_test_t *t) {
   fn(h->ctx.s, h->a.data, h->beta, h->n);
 }
 
-typedef void (*skl_softmax_2d_f32_t)(float *, size_t, const float *, size_t,
-                                     const float, size_t, size_t);
+typedef void (*skl_softmax_f32r_t)(float *, size_t, const float *, size_t,
+                                   const float, size_t, size_t);
 
-void softmax_2d_f32_execute(skl_test_t *t) {
+void softmax_f32r_execute(skl_test_t *t) {
   const softmax_f32_t *h = (softmax_f32_t *)t->harness;
-  skl_softmax_2d_f32_t fn = (skl_softmax_2d_f32_t)(h->func);
+  skl_softmax_f32r_t fn = (skl_softmax_f32r_t)(h->func);
   fn(h->ctx.s, h->rss, h->a.data, h->rsa, h->beta, h->m, h->n);
 }
 

@@ -8,21 +8,21 @@
 #include "softmax/softmax_f32.h"
 
 /**
- * @brief Test cases for 2D Softmax with Xsfvfexpa extension
+ * @brief Test cases for 2D Softmax with Xsfvfexp32e extension
  */
 
 // clang-format off
 softmax_f32_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
-  VARIANT_2D_BENCHMARKS(xsfvfexpa),
+  VARIANT_2D_BENCHMARKS(xsfvfexp32e),
 #endif
 #ifdef SKL_ENABLE_TESTS
-  VARIANT_2D_TESTS(xsfvfexpa),
+  VARIANT_2D_TESTS(xsfvfexp32e),
 #endif
 };
 // clang-format on
 
-static skl_test_suite_t suite = {.name = "skl_softmax_2d_f32_xsfvfexpa",
+static skl_test_suite_t suite = {.name = "skl_softmax_f32r_xsfvfexp32e",
                                  .num_tests = sizeof(tests) / sizeof(tests[0]),
                                  .test_size = sizeof(softmax_f32_t),
                                  .tests = tests};
