@@ -52,12 +52,21 @@ SKL_FUNC void skl_sigmoid_bf16_xsfvfexp32e(__bf16 *out, __bf16 beta,
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e16m4(n - i);
     vint16m4_t vx = __riscv_vle16_v_i16m4((int16_t *)x + i, vl);
+    vfloat32m8_t a;
+    vbool4_t m;
     /* 0. Observe, Orient, Convert, & Squash */
-    vbool4_t m = __riscv_vmslt_vx_i16m4_b4(vx, 0, vl);
-    vx = __riscv_vor_vx_i16m4(vx, (int16_t)0x8000, vl); /* copysign(x,-1) */
-    /* 1. Widen, scale by beta and halve */
-    vfloat32m8_t a = skl_sigmoid_bf16_xsfvfexp32e_vfwcvt_f_x_v_f32m8(vx, vl);
-    a = __riscv_vfmul_vf_f32m8(a, (float)beta * 0.5f, vl);
+    if (beta != 1) {
+      a = skl_sigmoid_bf16_xsfvfexp32e_vfwcvt_f_x_v_f32m8(vx, vl);
+      a = __riscv_vfmul_vf_f32m8(a, (float)beta * 0.5f, vl);
+      m = __riscv_vmflt_vf_f32m8_b4(a, 0, vl);
+      a = __riscv_vfsgnj_vf_f32m8(a, -0x1.74p6f, vl);
+      a = __riscv_vfmax_vf_f32m8(a, -0x1.74p6f, vl);
+    } else {
+      m = __riscv_vmslt_vx_i16m4_b4(vx, 0, vl);
+      vx = __riscv_vor_vx_i16m4(vx, (int16_t)0x8000, vl); /* copysign(x,-1) */
+      a = skl_sigmoid_bf16_xsfvfexp32e_vfwcvt_f_x_v_f32m8(vx, vl);
+      a = __riscv_vfmul_vf_f32m8(a, 0.5f, vl);
+    }
     /* 2. Exponentiate */
     vfloat32m8_t f = __riscv_sf_vfexp_v_f32m8(a, vl);
     vfloat32m8_t e = __riscv_vfmul_vv_f32m8(f, f, vl);
