@@ -134,6 +134,7 @@ add_skl_src(src/gemm/xsfmm/gemm_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c "xsfmm32a8f")
 add_skl_src(src/gemm/xsfmm/gemm_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c "xsfmm32a8f")
 add_skl_src(src/gemm/xsfmm/gemm_i8c_i8_i32_xsfmm32a8i.c "xsfmm32a8i")
 add_skl_src(src/gemm/xsfvqdotq/gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq.c "xsfvqdotq")
+add_skl_src(src/gemm/xsfvqdotq/gemm_i8rcp1x4_i8p4x1c_i32_zvdot4a8i.c "zvdot4a8i")
 
 add_skl_src(src/logistic/logistic_bf16_xsfvfbfa.c "xsfvfbfa")
 add_skl_src(src/logistic/logistic_bf16_xsfvfbfexp16e_xsfvfbfa.c "xsfvfbfexp16e;xsfvfbfa")
