@@ -207,16 +207,16 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i
+  skl_gemm_i8c_i8_i32_xsfmm32a8i
   gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_i8c_i8_i32_xsfmm32a8i.c
+  gemm/xsfmm/skl_gemm_i8c_i8_i32_xsfmm32a8i.c
   "xsfmm32a8i"
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_i8ptex1c_i8cp1xte_i32rcptexte_xsfmm32a8i
+  skl_gemm_i8rcptex1c_i8rcp1xte_i32rcptexterc_xsfmm32a8i
   gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_i8ptex1c_i8cp1xte_i32rcptexte_xsfmm32a8i.c
+  gemm/xsfmm/skl_gemm_i8rcptex1c_i8rcp1xte_i32rcptexterc_xsfmm32a8i.c
   "xsfmm32a8i"
   ""
 )
@@ -235,16 +235,16 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f
+  skl_gemm_f8e5m2c_f8e5m2_f32_xsfmm32a8f
   gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c
+  gemm/xsfmm/skl_gemm_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c
   "xsfmm32a8f"
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_f8e5m2ptex1c_f8e5m2cp1xte_f32rcptexte_xsfmm32a8f
+  skl_gemm_f8e5m2rcptex1c_f8e5m2rcp1xte_f32rcptexterc_xsfmm32a8f
   gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_f8e5m2ptex1c_f8e5m2cp1xte_f32rcptexte_xsfmm32a8f.c
+  gemm/xsfmm/skl_gemm_f8e5m2rcptex1c_f8e5m2rcp1xte_f32rcptexterc_xsfmm32a8f.c
   "xsfmm32a8f"
   ""
 )
@@ -263,16 +263,16 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f
+  skl_gemm_bf16c_bf16_f32_xsfmm32a16f
   gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_bf16c_bf16_f32_xsfmm32a16f.c
+  gemm/xsfmm/skl_gemm_bf16c_bf16_f32_xsfmm32a16f.c
   "xsfmm32a16f"
   ""
 )
 skl_add_test(
-  skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f
+  skl_gemm_bf16rcptex1c_bf16rcp1xte_f32rcptexterc_xsfmm32a16f
   gemm/gemm_bf16rcprc_bf16rcprc_f32rcprc.c
-  gemm/xsfmm/skl_gemm_a1b01_bf16ptex1c_bf16cp1xte_f32rcptexte_xsfmm32a16f.c
+  gemm/xsfmm/skl_gemm_bf16rcptex1c_bf16rcp1xte_f32rcptexterc_xsfmm32a16f.c
   "xsfmm32a16f"
   ""
 )
@@ -607,43 +607,43 @@ skl_add_test(
 )
 skl_add_test(
   skl_transpose_e16_xsfmmbase
-  transpose/transpose_e16.c
-  transpose/xsfmmbase/skl_transpose_e16_xsfmmbase.c
+  pack/transpose_e16.c
+  pack/xsfmm/skl_transpose_e16_xsfmmbase.c
   "xsfmmbase"
   ""
 )
 skl_add_test(
   skl_transpose_e16_zve32x
-  transpose/transpose_e16.c
-  transpose/rvv/skl_transpose_e16_zve32x.c
+  pack/transpose_e16.c
+  pack/rvv/skl_transpose_e16_zve32x.c
   "zve32x"
   ""
 )
 skl_add_test(
   skl_transpose_e32_xsfmmbase
-  transpose/transpose_e32.c
-  transpose/xsfmmbase/skl_transpose_e32_xsfmmbase.c
+  pack/transpose_e32.c
+  pack/xsfmm/skl_transpose_e32_xsfmmbase.c
   "xsfmmbase"
   ""
 )
 skl_add_test(
   skl_transpose_e32_zve32x
-  transpose/transpose_e32.c
-  transpose/rvv/skl_transpose_e32_zve32x.c
+  pack/transpose_e32.c
+  pack/rvv/skl_transpose_e32_zve32x.c
   "zve32x"
   ""
 )
 skl_add_test(
   skl_transpose_e8_xsfmmbase
-  transpose/transpose_e8.c
-  transpose/xsfmmbase/skl_transpose_e8_xsfmmbase.c
+  pack/transpose_e8.c
+  pack/xsfmm/skl_transpose_e8_xsfmmbase.c
   "xsfmmbase"
   ""
 )
 skl_add_test(
   skl_transpose_e8_zve32x
-  transpose/transpose_e8.c
-  transpose/rvv/skl_transpose_e8_zve32x.c
+  pack/transpose_e8.c
+  pack/rvv/skl_transpose_e8_zve32x.c
   "zve32x"
   ""
 )

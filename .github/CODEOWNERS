@@ -8,9 +8,14 @@
 /ref/cvt @Harlen126
 /ref/depthwise_conv2d @peichialin
 /ref/gemm @Aaron-Hutchinson @myeh01
+<<<<<<< HEAD
 /ref/sigmoid @hdelassus
+=======
+/ref/logistic @hdelassus
+/ref/pack @Aaron-Hutchinson @Harlen126 @myeh01
+/ref/silu @hdelassus
+>>>>>>> origin/main
 /ref/softmax @ebavier
-/ref/transpose @Aaron-Hutchinson @Harlen126 @myeh01
 
 /src/cvt @Harlen126
 /src/depthwise_conv2d @peichialin
@@ -19,20 +24,23 @@
 /src/gemm/rvv @Aaron-Hutchinson
 /src/gemm/xsfmm @myeh01
 /src/gemm/xsfvqdotq @france5289 @myeh01 @peichialin
-/src/pack @Harlen126
+/src/pack @Aaron-Hutchinson @Harlen126 @myeh01 @peichialin
 /src/sigmoid @hdelassus @ebavier
 /src/softmax @ebavier
 /src/transpose @Aaron-Hutchinson @Harlen126 @peichialin
-/src/transpose/*xsfmm* @myeh01
 
 /test/cvt @Harlen126
 /test/depthwise_conv2d @peichialin
 /test/exp @ebavier
 /test/gelu @ebavier
 /test/gemm @Aaron-Hutchinson @france5289 @myeh01 @peichialin
+<<<<<<< HEAD
 /test/pack @Harlen126 @myeh01
 /test/sigmoid @hdelassus
+=======
+/test/pack @Aaron-Hutchinson @Harlen126 @myeh01
+/test/silu @hdelassus
+>>>>>>> origin/main
 /test/softmax @ebavier
-/test/transpose @Aaron-Hutchinson @Harlen126 @myeh01
 
 /CMakeLists.txt @Aaron-Hutchinson

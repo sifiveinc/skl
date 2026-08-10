@@ -3,9 +3,9 @@
 // See LICENSE file in the project root for full license information.
 // SPDX-License-Identifier: MIT
 
+#include "pack/transpose_e8.h"
 #include "skl-test-driver.h"
 #include "skl.h"
-#include "transpose/transpose_e8.h"
 
 #include <stddef.h>
 

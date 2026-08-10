@@ -30,14 +30,6 @@
 #include "ref/gemm/gemm_i8rcprc_i8rcprc_i32rcprc.h"
 
 /*
- * Transpose Kernels
- */
-
-#include "ref/transpose/transpose_e16.h"
-#include "ref/transpose/transpose_e32.h"
-#include "ref/transpose/transpose_e8.h"
-
-/*
  * Exponential Function Kernels
  */
 
@@ -90,6 +82,9 @@
 #include "ref/pack/pack_e16rc_e16rcprc.h"
 #include "ref/pack/pack_e32rc_e32rcprc.h"
 #include "ref/pack/pack_e8rc_e8rcprc.h"
+#include "ref/pack/transpose_e16.h"
+#include "ref/pack/transpose_e32.h"
+#include "ref/pack/transpose_e8.h"
 #include "ref/pack/unpack_e8rcprc_e8rc.h"
 
 // IWYU pragma: end_exports
