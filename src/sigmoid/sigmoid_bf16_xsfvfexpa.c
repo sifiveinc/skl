@@ -51,42 +51,49 @@ SKL_FUNC void skl_sigmoid_bf16_xsfvfexpa(__bf16 *out, __bf16 beta,
   size_t vl;
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e16m4(n - i);
-    vint16m4_t vx = __riscv_vle16_v_i16m4((int16_t *)x + i, vl);
+    vint16m4_t vi = __riscv_vle16_v_i16m4((int16_t *)x + i, vl);
+    vfloat32m8_t a;
+    vbool4_t m;
     /* 0. Observe, Orient, Clamp, & Convert */
-    vbool4_t m = __riscv_vmslt_vx_i16m4_b4(vx, 0, vl);
-    vx = __riscv_vor_vx_i16m4(vx, (int16_t)0x8000, vl);  /* copysign(x,-1) */
-    vx = __riscv_vmin_vx_i16m4(vx, (int16_t)0xc2ba, vl); /* fmax(x,-0x1.74p6) */
-    vfloat32m8_t a = skl_sigmoid_bf16_xsfvfexpa_vfwcvt_f_x_v_f32m8(vx, vl);
-    /* 1. Scale by beta */
-    if (beta != 1)
+    if (beta != 1) {
+      a = skl_sigmoid_bf16_xsfvfexpa_vfwcvt_f_x_v_f32m8(vi, vl);
       a = __riscv_vfmul_vf_f32m8(a, (float)beta, vl);
-    /* 2. Reduce x ~ (k + j/64) ln2 */
+      m = __riscv_vmflt_vf_f32m8_b4(a, 0, vl);
+      a = __riscv_vfsgnj_vf_f32m8(a, -0x1.74p6f, vl);
+      a = __riscv_vfmax_vf_f32m8(a, -0x1.74p6f, vl);
+    } else {
+      m = __riscv_vmslt_vx_i16m4_b4(vi, 0, vl);
+      vi = __riscv_vor_vx_i16m4(vi, (int16_t)0x8000, vl);  /* copysign(x,-1) */
+      vi = __riscv_vmin_vx_i16m4(vi, (int16_t)0xc2ba, vl); /* fmax(x,-0x1.74p6) */
+      a = skl_sigmoid_bf16_xsfvfexpa_vfwcvt_f_x_v_f32m8(vi, vl);
+    }
+    /* 1. Reduce x ~ (k + j/64) ln2 */
     const float R = -0x1.715476p0f; /* -1/ln2 */
     const float O = 0x1.003b80p17f; /* 2^(24-6-1)+127-8 */
     vfloat32m8_t Q = __riscv_vfmv_v_f_f32m8(O, vl);
     vfloat32m8_t v = __riscv_vfmadd_vf_f32m8(a, R, Q, vl);
-    /* 3. Approximate 2⁸exp(v) */
+    /* 2. Approximate 2⁸exp(v) */
     vfloat32m8_t e = __riscv_sf_vfexpa_v_f32m8(v, vl);
-    /* 4. Reciprocate denominator */
+    /* 3. Reciprocate denominator */
     vfloat32m8_t d = __riscv_vfadd_vf_f32m8(e, 0x1p-8f, vl);
     vfloat32m8_t r = __riscv_vfrec7_v_f32m8(d, vl);
-    /* 5. Reconstruct */
+    /* 4. Reconstruct */
     vfloat32m8_t o = __riscv_vfmerge_vfm_f32m8(e, 0x1p-8f, m, vl);
     vfloat32m8_t q = __riscv_vfmul_vv_f32m8(o, r, vl);
-    /* 6. Optionally multiply by y */
+    /* 5. Optionally multiply by y */
     if (y) {
       vint16m4_t yi = __riscv_vle16_v_i16m4((int16_t *)y + i, vl);
       vfloat32m8_t yf = skl_sigmoid_bf16_xsfvfexpa_vfwcvt_f_x_v_f32m8(yi, vl);
       q = __riscv_vfmul_vv_f32m8(q, yf, vl);
     }
-    /* 7. Optionally multiply by (up + delta) */
+    /* 6. Optionally multiply by (up + delta) */
     if (up) {
       vint16m4_t ui = __riscv_vle16_v_i16m4((int16_t *)up + i, vl);
       vfloat32m8_t uf = skl_sigmoid_bf16_xsfvfexpa_vfwcvt_f_x_v_f32m8(ui, vl);
       uf = __riscv_vfadd_vf_f32m8(uf, (float)delta, vl);
       q = __riscv_vfmul_vv_f32m8(q, uf, vl);
     }
-    /* 8. Narrow & Store */
+    /* 7. Narrow & Store */
     vint16m4_t b = skl_sigmoid_bf16_xsfvfexpa_vfncvt_x_f_w_bf16m4(q, vl);
     __riscv_vse16_v_i16m4((int16_t *)out + i, b, vl);
   }
