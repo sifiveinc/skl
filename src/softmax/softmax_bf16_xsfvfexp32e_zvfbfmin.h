@@ -19,20 +19,20 @@ extern "C" {
  * @brief Vector BFloat16 softmax function using the Xsfvfexp32e and
  * Zvfbfmin extensions.
  *
- * @param pDst - Array of output elements.
- * @param pSrc - Array of input elements.
- * @param beta - Scaling factor for exponential function arguments.
- * @param n - Number of elements to process.
+ * @param[out] dst - Array of output elements.
+ * @param[in] src - Array of input elements.
+ * @param[in] beta - Scaling factor for exponential function arguments.
+ * @param[in] n - Number of elements to process.
  *
  * Computes the softmax function equivalent to calling:
  * ```
- * skl_softmax_bf16_ref(pDst, pSrc, beta, n);
+ * skl_softmax_bf16_ref(dst, src, beta, n);
  * ```
  *
  * This function uses the SiFive vector floating-point exponential
  * function instruction to compute the e^x part of softmax.
  */
-void skl_softmax_bf16_xsfvfexp32e_zvfbfmin(__bf16 *pDst, const __bf16 *pSrc,
+void skl_softmax_bf16_xsfvfexp32e_zvfbfmin(__bf16 *dst, const __bf16 *src,
                                            __bf16 beta, size_t n);
 
 #if defined(__cplusplus)

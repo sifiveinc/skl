@@ -16,11 +16,11 @@ extern "C" {
 #include <stddef.h>
 
 /**
- * @brief Fast vector FP32 GELU function.
+ * @brief Fast vector F32 GELU function.
  *
- * @param dst - Array of output elements.
- * @param src - Array of input elements.
- * @param n - Number of elements to process.
+ * @param[out] dst - Array of output elements.
+ * @param[in] src - Array of input elements.
+ * @param[in] n - Number of elements to process.
  *
  * Computes the GELU activation function with the following error
  * tolerances:
@@ -40,11 +40,11 @@ extern "C" {
 void skl_gelu_p9_f32_zve32f(float *dst, const float *src, size_t n);
 
 /**
- * @brief Vector FP32 GELU function.
+ * @brief Vector F32 GELU function.
  *
- * @param dst - Array of output elements.
- * @param src - Array of input elements.
- * @param n - Number of elements to process.
+ * @param[out] dst - Array of output elements.
+ * @param[in] src - Array of input elements.
+ * @param[in] n - Number of elements to process.
  *
  * Computes the GELU activation function with the following error
  * tolerances:
@@ -64,11 +64,11 @@ void skl_gelu_p9_f32_zve32f(float *dst, const float *src, size_t n);
 void skl_gelu_p13_f32_zve32f(float *dst, const float *src, size_t n);
 
 /**
- * @brief Vector FP32 GELU function.
+ * @brief Vector F32 GELU function.
  *
- * @param dst - Array of output elements.
- * @param src - Array of input elements.
- * @param n - Number of elements to process.
+ * @param[out] dst - Array of output elements.
+ * @param[in] src - Array of input elements.
+ * @param[in] n - Number of elements to process.
  *
  * Computes the GELU activation function with the following error
  * tolerances:
@@ -87,11 +87,11 @@ void skl_gelu_p13_f32_zve32f(float *dst, const float *src, size_t n);
 void skl_gelu_p17_f32_zve32f(float *dst, const float *src, size_t n);
 
 /**
- * @brief Accurate vector FP32 GELU function.
+ * @brief Accurate vector F32 GELU function.
  *
- * @param dst - Array of output elements.
- * @param src - Array of input elements.
- * @param n - Number of elements to process.
+ * @param[out] dst - Array of output elements.
+ * @param[in] src - Array of input elements.
+ * @param[in] n - Number of elements to process.
  *
  * Computes the GELU activation function with the following error
  * tolerances:

@@ -12,15 +12,15 @@
 #include <sifive_vector.h>
 #include <stddef.h>
 
-SKL_FUNC void skl_softmax_bf16_xsfvfexpa_xsfvfbfa(__bf16 *pDst,
-                                                  const __bf16 *pSrc,
+SKL_FUNC void skl_softmax_bf16_xsfvfexpa_xsfvfbfa(__bf16 *dst,
+                                                  const __bf16 *src,
                                                   const __bf16 beta,
                                                   const size_t n) {
   size_t vl = __riscv_vsetvl_e16m4(n);
-  vbfloat16m4_t vmax = __riscv_vle16_v_bf16m4(pSrc, vl);
+  vbfloat16m4_t vmax = __riscv_vle16_v_bf16m4(src, vl);
   for (size_t i = vl; i < n; i += vl) {
     vl = __riscv_vsetvl_e16m4(n - i);
-    vbfloat16m4_t vx = __riscv_vle16_v_bf16m4(pSrc + i, vl);
+    vbfloat16m4_t vx = __riscv_vle16_v_bf16m4(src + i, vl);
     vmax = __riscv_vfmax_vv_bf16m4_tu(vmax, vmax, vx, vl);
   }
   vfloat32m8_t vMAX = __riscv_vfwcvt_f_f_v_bf16m4_f32m8(vmax, vl);
@@ -32,7 +32,7 @@ SKL_FUNC void skl_softmax_bf16_xsfvfexpa_xsfvfbfa(__bf16 *pDst,
   vbfloat16m8_t vsum = __riscv_vfmv_v_f_bf16m8(0, n);
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e16m8(n - i);
-    vbfloat16m8_t vx = __riscv_vle16_v_bf16m8(pSrc + i, vl);
+    vbfloat16m8_t vx = __riscv_vle16_v_bf16m8(src + i, vl);
     /* 0. Clamp and Scale */
     const float LB = -0x1.6p6f; /* round_down(-126.5 * log(2)) */
     vx = __riscv_vfsub_vf_bf16m8(vx, max, vl);
@@ -58,7 +58,7 @@ SKL_FUNC void skl_softmax_bf16_xsfvfexpa_xsfvfbfa(__bf16 *pDst,
     vy = __riscv_vset_v_bf16m4_bf16m8(vy, 1, vy1);
     /* 3. Accumulate & Store */
     vsum = __riscv_vfadd_vv_bf16m8_tu(vsum, vsum, vy, vl);
-    __riscv_vse16_v_bf16m8(pDst + i, vy, vl);
+    __riscv_vse16_v_bf16m8(dst + i, vy, vl);
   }
   size_t vln = __riscv_vsetvl_e16m8(n);
   size_t vl0 = __riscv_vsetvl_e16m4(n >= vlmax4 ? vlmax4 : n);
@@ -75,8 +75,8 @@ SKL_FUNC void skl_softmax_bf16_xsfvfexpa_xsfvfbfa(__bf16 *pDst,
 
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e16m8(n - i);
-    vbfloat16m8_t vx = __riscv_vle16_v_bf16m8(pDst + i, vl);
+    vbfloat16m8_t vx = __riscv_vle16_v_bf16m8(dst + i, vl);
     vx = __riscv_vfmul_vf_bf16m8(vx, recip_sum, vl);
-    __riscv_vse16_v_bf16m8(pDst + i, vx, vl);
+    __riscv_vse16_v_bf16m8(dst + i, vx, vl);
   }
 }

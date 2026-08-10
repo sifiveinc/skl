@@ -12,13 +12,13 @@
 #include <sifive_vector.h>
 #include <stddef.h>
 
-SKL_FUNC void skl_softmax_bf16_xsfvfbfa(__bf16 *pDst, const __bf16 *pSrc,
+SKL_FUNC void skl_softmax_bf16_xsfvfbfa(__bf16 *dst, const __bf16 *src,
                                         const __bf16 beta, const size_t n) {
   size_t vl = __riscv_vsetvl_e32m4(n);
-  vbfloat16m4_t vmax = __riscv_vle16_v_bf16m4(pSrc, vl);
+  vbfloat16m4_t vmax = __riscv_vle16_v_bf16m4(src, vl);
   for (size_t i = vl; i < n; i += vl) {
     vl = __riscv_vsetvl_e16m4(n - i);
-    vbfloat16m4_t vx = __riscv_vle16_v_bf16m4(pSrc + i, vl);
+    vbfloat16m4_t vx = __riscv_vle16_v_bf16m4(src + i, vl);
     vmax = __riscv_vfmax_vv_bf16m4_tu(vmax, vmax, vx, vl);
   }
   /* Xsfvfbfa does not have bf16 reductions, so reduce in f32 */
@@ -30,7 +30,7 @@ SKL_FUNC void skl_softmax_bf16_xsfvfbfa(__bf16 *pDst, const __bf16 *pSrc,
   vbfloat16m8_t vsum = __riscv_vfmv_v_f_bf16m8(0, n);
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e16m8(n - i);
-    vbfloat16m8_t vx = __riscv_vle16_v_bf16m8(pSrc + i, vl);
+    vbfloat16m8_t vx = __riscv_vle16_v_bf16m8(src + i, vl);
     vx = __riscv_vfsub_vf_bf16m8(vx, max, vl);
     if (beta != (__bf16)1.0)
       vx = __riscv_vfmul_vf_bf16m8(vx, beta, vl);
@@ -55,7 +55,7 @@ SKL_FUNC void skl_softmax_bf16_xsfvfbfa(__bf16 *pDst, const __bf16 *pSrc,
     u = __riscv_vreinterpret_v_i16m8_bf16m8(t);
     /* 4. Accumulate & Store */
     vsum = __riscv_vfadd_vv_bf16m8_tu(vsum, vsum, u, vl);
-    __riscv_vse16_v_bf16m8(pDst + i, u, vl);
+    __riscv_vse16_v_bf16m8(dst + i, u, vl);
   }
   size_t vlmax4 = __riscv_vsetvlmax_e16m4();
   size_t vln = __riscv_vsetvl_e16m8(n);
@@ -73,8 +73,8 @@ SKL_FUNC void skl_softmax_bf16_xsfvfbfa(__bf16 *pDst, const __bf16 *pSrc,
 
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e16m8(n - i);
-    vbfloat16m8_t vx = __riscv_vle16_v_bf16m8(pDst + i, vl);
+    vbfloat16m8_t vx = __riscv_vle16_v_bf16m8(dst + i, vl);
     vx = __riscv_vfmul_vf_bf16m8(vx, recip_sum, vl);
-    __riscv_vse16_v_bf16m8(pDst + i, vx, vl);
+    __riscv_vse16_v_bf16m8(dst + i, vx, vl);
   }
 }
