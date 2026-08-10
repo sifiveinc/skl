@@ -3,18 +3,18 @@
 // See LICENSE file in the project root for full license information.
 // SPDX-License-Identifier: MIT
 
+#include "pack/transpose_e32.h"
 #include "skl-test-driver.h"
 #include "skl.h"
-#include "transpose/transpose_e32.h"
 
 #include <stddef.h>
 
-#if !defined(__riscv_zve32x)
-#error "This file requires the Zve32x extension."
+#if !defined(__riscv_xsfmmbase)
+#error "This file requires the Xsfmmbase extension."
 #endif
 
 /**
- * @brief Test cases for transpose with Zve32x extension.
+ * @brief Test cases for transpose with Xsfmmbase extension.
  *
  * This test uses the transpose_e32 harness.
  */
@@ -45,7 +45,7 @@ static void execute(skl_test_t *t);
 transpose_e32_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
   // Benchmark tests
-  {BENCH, .m = 128, .n = 128},
+  {BENCH, .m = 64, .n = 128},
 #endif
 
 #ifdef SKL_ENABLE_TESTS
@@ -76,20 +76,20 @@ transpose_e32_t tests[] = {
   {TEST, .m = 257, .n = 256},
 
   /* Wide/tall matrices */
-  {TEST, .m =   1, .n = 128},
-  {TEST, .m =   2, .n = 128},
-  {TEST, .m = 128, .n =   1},
-  {TEST, .m = 128, .n =   2},
+  {TEST, .m =   1, .n =  64},
+  {TEST, .m =   2, .n =  64},
+  {TEST, .m =  64, .n =   1},
+  {TEST, .m =  64, .n =   2},
 
   /* Nontrivial leading dimensions */
-  {TEST, .m = 128, .n = 128, .rsa = 256, .rsat = 256},
-  {TEST, .m = 256, .n = 128, .rsa = 256, .rsat = 256},
-  {TEST, .m = 128, .n = 256, .rsa = 256, .rsat = 256},
+  {TEST, .m =  64, .n =  64, .rsa = 128, .rsat = 128},
+  {TEST, .m = 128, .n =  64, .rsa = 128, .rsat = 128},
+  {TEST, .m =  64, .n = 128, .rsa = 128, .rsat = 128},
 #endif
 };
 // clang-format on
 
-static skl_test_suite_t suite = {.name = "skl_transpose_e32_zve32x",
+static skl_test_suite_t suite = {.name = "skl_transpose_e32_xsfmmbase",
                                  .num_tests = sizeof(tests) / sizeof(tests[0]),
                                  .test_size = sizeof(transpose_e32_t),
                                  .tests = tests};
@@ -97,7 +97,8 @@ static skl_test_suite_t suite = {.name = "skl_transpose_e32_zve32x",
 static void execute(skl_test_t *t) {
   const transpose_e32_t *h = (transpose_e32_t *)t->harness;
 
-  skl_transpose_e32_zve32x(h->m, h->n, h->a.data, h->rsa, h->at.data, h->rsat);
+  skl_transpose_e32_xsfmmbase(h->m, h->n, h->a.data, h->rsa, h->at.data,
+                              h->rsat);
 }
 
 int main(void) {

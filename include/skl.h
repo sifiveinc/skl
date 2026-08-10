@@ -60,16 +60,6 @@
 #endif
 
 /*
- * Transpose Kernels
- */
-
-#if defined(__riscv_xsfmmbase)
-#include "transpose/transpose_e16_xsfmmbase.h"
-#include "transpose/transpose_e32_xsfmmbase.h"
-#include "transpose/transpose_e8_xsfmmbase.h"
-#endif
-
-/*
  * Exponential Function Kernels
  */
 
@@ -266,6 +256,12 @@
 #include "pack/pack_e16_zve32x.h"
 #include "pack/pack_e32_zve32x.h"
 #include "pack/pack_e8_zve32x.h"
+#endif
+
+#if defined(__riscv_xsfmmbase)
+#include "pack/pack_e16_xsfmmbase.h"
+#include "pack/pack_e32_xsfmmbase.h"
+#include "pack/pack_e8_xsfmmbase.h"
 #endif
 
 // IWYU pragma: end_exports
