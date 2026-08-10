@@ -8,13 +8,8 @@
 /ref/cvt @Harlen126
 /ref/depthwise_conv2d @peichialin
 /ref/gemm @Aaron-Hutchinson @myeh01
-<<<<<<< HEAD
-/ref/sigmoid @hdelassus
-=======
-/ref/logistic @hdelassus
 /ref/pack @Aaron-Hutchinson @Harlen126 @myeh01
-/ref/silu @hdelassus
->>>>>>> origin/main
+/ref/sigmoid @hdelassus @ebavier
 /ref/softmax @ebavier
 
 /src/cvt @Harlen126
