@@ -30,7 +30,6 @@ extern "C" {
  */
 void skl_softmax_f32_zve32f(float *dst, const float *src, float beta, size_t n);
 
-
 /**
  * @brief F32 2D stable softmax, reducing rows.
  *
