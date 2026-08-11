@@ -17,9 +17,9 @@
 /src/depthwise_conv2d @peichialin
 /src/exp @ebavier
 /src/gelu @ebavier
-/src/gemm/rvv @Aaron-Hutchinson
-/src/gemm/xsfmm @myeh01
-/src/gemm/xsfvqdotq @france5289 @myeh01 @peichialin
+/src/gemm/*zv* @Aaron-Hutchinson
+/src/gemm/*xsfmm* @myeh01
+/src/gemm/*xsfvqdotq* @france5289 @myeh01 @peichialin
 /src/logistic @hdelassus @ebavier
 /src/pack @Aaron-Hutchinson @Harlen126 @myeh01 @peichialin
 /src/silu @hdelassus
