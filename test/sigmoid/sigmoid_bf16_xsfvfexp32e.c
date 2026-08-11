@@ -38,7 +38,7 @@
 #define SWIGLU_DELTA (__bf16)0.5
 
 static void test_swish_b1_bf16_xsfvfexp32e(__bf16 *out, const __bf16 *in,
-                                        size_t n) {
+                                           size_t n) {
   skl_swish_bf16_xsfvfexp32e(out, SWISH_BETA_ONE, in, n);
 }
 
@@ -47,7 +47,7 @@ static void ref_swish_b1_bf16(__bf16 *out, const __bf16 *in, size_t n) {
 }
 
 static void test_swish_bp_bf16_xsfvfexp32e(__bf16 *out, const __bf16 *in,
-                                        size_t n) {
+                                           size_t n) {
   skl_swish_bf16_xsfvfexp32e(out, SWISH_BETA_POS, in, n);
 }
 
@@ -56,7 +56,7 @@ static void ref_swish_bp_bf16(__bf16 *out, const __bf16 *in, size_t n) {
 }
 
 static void test_swish_bn_bf16_xsfvfexp32e(__bf16 *out, const __bf16 *in,
-                                        size_t n) {
+                                           size_t n) {
   skl_swish_bf16_xsfvfexp32e(out, SWISH_BETA_NEG, in, n);
 }
 
