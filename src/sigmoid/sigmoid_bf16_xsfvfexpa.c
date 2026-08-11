@@ -63,8 +63,9 @@ SKL_FUNC void skl_sigmoid_bf16_xsfvfexpa(__bf16 *out, __bf16 beta,
       a = __riscv_vfmax_vf_f32m8(a, -0x1.74p6f, vl);
     } else {
       m = __riscv_vmslt_vx_i16m4_b4(xi, 0, vl);
-      xi = __riscv_vor_vx_i16m4(xi, (int16_t)0x8000, vl);  /* copysign(x,-1) */
-      xi = __riscv_vmin_vx_i16m4(xi, (int16_t)0xc2ba, vl); /* fmax(x,-0x1.74p6) */
+      xi = __riscv_vor_vx_i16m4(xi, (int16_t)0x8000, vl); /* copysign(x,-1) */
+      xi = __riscv_vmin_vx_i16m4(xi, (int16_t)0xc2ba,
+                                 vl); /* fmax(x,-0x1.74p6) */
       a = skl_sigmoid_bf16_xsfvfexpa_vfwcvt_f_x_v_f32m8(xi, vl);
     }
     /* 1. Reduce x ~ (k + j/64) ln2 */

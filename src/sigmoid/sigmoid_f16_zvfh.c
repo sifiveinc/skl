@@ -37,7 +37,7 @@ SKL_FUNC void skl_sigmoid_f16_zvfh(_Float16 *out, _Float16 beta,
     vx = __riscv_vfmax_vf_f16m8(vx, -0x1.158p4f16, vl);
 
     /* 2. Reduce x ~ z ln2 + s */
-    const _Float16 R = 0x1.714p0f16; /* 1/ln2 */
+    const _Float16 R = 0x1.714p0f16;    /* 1/ln2 */
     const _Float16 C1 = 0x1.63p-1f16;   /* ln2 */
     const _Float16 C2 = -0x1.bdp-13f16; /* ln2 - C1 */
     const vfloat16m8_t v = __riscv_vfmul_vf_f16m8(vx, R, vl);
