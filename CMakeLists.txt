@@ -118,6 +118,7 @@ add_skl_src(src/gelu/gelu_f32_zve32f.c "zve32f")
 
 add_skl_src(src/gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma.c "zvfbfwma")
 add_skl_src(src/gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma_x390.c "zvfbfwma")
+add_skl_src(src/gemm/rvv/gemm_f16_f16_f16_zvfh.c "zvfh")
 add_skl_src(src/gemm/rvv/gemm_f16_f16_f16_zvfh_x390.c "zvfh")
 add_skl_src(src/gemm/rvv/gemm_f16_f16_f32_zvfh.c "zvfh")
 add_skl_src(src/gemm/rvv/gemm_f16_f16_f32_zvfh_x390.c "zvfh")
