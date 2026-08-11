@@ -28,16 +28,14 @@ SKL_FUNC void skl_sigmoid_f32_xsfvfexp32e(float *out, float beta,
     /* 0. Load */
     vfloat32m8_t vx = __riscv_vle32_v_f32m8(x + i, vl);
 
-    /* 1. Approximate exp(-|beta x|). Halve the argument to stay in range,
-     *    then square to recover the full exponential. Keeping the sign
-     *    negative saves a scalar register. */
-    vfloat32m8_t ex = __riscv_vfmul_vf_f32m8(vx, -0.5f * beta, vl);
-    ex = __riscv_vfsgnj_vf_f32m8(ex, -0.5f, vl);
-    ex = __riscv_sf_vfexp_v_f32m8(ex, vl);
-    ex = __riscv_vfmul_vv_f32m8(ex, ex, vl);
+    /* 1. Exponentiate. */
+    vfloat32m8_t e = __riscv_vfmul_vf_f32m8(vx, -0.5f * beta, vl);
+    e = __riscv_vfsgnj_vf_f32m8(e, -0.5f, vl);
+    e = __riscv_sf_vfexp_v_f32m8(e, vl);
+    e = __riscv_vfmul_vv_f32m8(e, e, vl);
 
-    /* 2. Approximate 1 / (1 + exp(-|beta x|)) */
-    const vfloat32m8_t d = __riscv_vfadd_vf_f32m8(ex, 1, vl);
+    /* 2. Reciprocate denominator */
+    const vfloat32m8_t d = __riscv_vfadd_vf_f32m8(e, 1, vl);
     vfloat32m8_t r = __riscv_vfrec7_v_f32m8(d, vl);
     vfloat32m8_t t = __riscv_vfnmsub_vv_f32m8(d, r, one, vl); /* 1 - d * r */
     r = __riscv_vfmadd_vv_f32m8(r, t, r, vl); /* r + r * (1 - d * r) */
@@ -46,7 +44,7 @@ SKL_FUNC void skl_sigmoid_f32_xsfvfexp32e(float *out, float beta,
 
     /* 3. Calculate quotient */
     const vbool4_t m = __riscv_vmflt_vf_f32m8_b4(vx, 0, vl);
-    vfloat32m8_t q = __riscv_vfmul_vv_f32m8_mu(m, r, r, ex, vl);
+    vfloat32m8_t q = __riscv_vfmul_vv_f32m8_mu(m, r, r, e, vl);
 
     /* 4. Optionally multiply by y */
     if (y) {

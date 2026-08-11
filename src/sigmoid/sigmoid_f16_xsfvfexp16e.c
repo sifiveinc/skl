@@ -29,20 +29,20 @@ SKL_FUNC void skl_sigmoid_f16_xsfvfexp16e(_Float16 *out, _Float16 beta,
     vfloat16m8_t vx = __riscv_vle16_v_f16m8(x + i, vl);
     const vbool2_t m = __riscv_vmflt_vf_f16m8_b2(vx, 0, vl);
 
-    /* 1. Approximate exp(-|beta x|) */
-    vfloat16m8_t ex = __riscv_vfmul_vf_f16m8(vx, -0.5f16 * beta, vl);
-    ex = __riscv_vfsgnj_vf_f16m8(ex, -0.5f16, vl);
-    ex = __riscv_sf_vfexp_v_f16m8(ex, vl);
-    ex = __riscv_vfmul_vv_f16m8(ex, ex, vl);
+    /* 1. Exponentiate */
+    vfloat16m8_t e = __riscv_vfmul_vf_f16m8(vx, -0.5f16 * beta, vl);
+    e = __riscv_vfsgnj_vf_f16m8(e, -0.5f16, vl);
+    e = __riscv_sf_vfexp_v_f16m8(e, vl);
+    e = __riscv_vfmul_vv_f16m8(e, e, vl);
 
-    /* 2. Approximate 1 / (1 + exp(-|beta x|)) */
-    const vfloat16m8_t d = __riscv_vfadd_vf_f16m8(ex, 1, vl);
+    /* 2. Reciprocate denominator */
+    const vfloat16m8_t d = __riscv_vfadd_vf_f16m8(e, 1, vl);
     vfloat16m8_t r = __riscv_vfrec7_v_f16m8(d, vl);
     vfloat16m8_t t = __riscv_vfnmsub_vv_f16m8(d, r, one, vl); // 1 - x * r
     r = __riscv_vfmadd_vv_f16m8(r, t, r, vl); // r + r * (1 - x * r)
 
     /* 3. Calculate quotient */
-    vfloat16m8_t q = __riscv_vfmul_vv_f16m8_mu(m, r, r, ex, vl);
+    vfloat16m8_t q = __riscv_vfmul_vv_f16m8_mu(m, r, r, e, vl);
 
     /* 4. Optionally multiply by y */
     if (y) {
