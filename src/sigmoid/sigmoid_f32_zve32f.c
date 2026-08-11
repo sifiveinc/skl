@@ -72,10 +72,10 @@ SKL_FUNC void skl_sigmoid_f32_zve32f(float *out, float beta, const float *x,
     const vfloat32m8_t d = __riscv_vfadd_vf_f32m8(e, 1, vl);
     const vfloat32m8_t one = __riscv_vfmv_v_f_f32m8(1, vl);
     vfloat32m8_t r = __riscv_vfrec7_v_f32m8(d, vl);
-    vfloat32m8_t t = __riscv_vfnmsub_vv_f32m8(d, r, one, vl);
+    vfloat32m8_t t = __riscv_vfnmsub_vv_f32m8(d, r, one, vl); /* 1 - d * r */
+    r = __riscv_vfmadd_vv_f32m8(r, t, r, vl); /* r + r * (1 - d * r) */
+    t = __riscv_vfmul_vv_f32m8(t, t, vl);
     r = __riscv_vfmadd_vv_f32m8(r, t, r, vl);
-    t = __riscv_vfnmsub_vv_f32m8(d, r, one, vl); /* 1 - x * r */
-    r = __riscv_vfmadd_vv_f32m8(r, t, r, vl);    /* r + r * (1 - x * r) */
 
     /* 7. Calculate quotient */
     vfloat32m8_t q = __riscv_vfmul_vv_f32m8_mu(m, r, r, e, vl);
