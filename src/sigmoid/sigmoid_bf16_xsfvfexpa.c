@@ -72,9 +72,9 @@ SKL_FUNC void skl_sigmoid_bf16_xsfvfexpa(__bf16 *out, __bf16 beta,
     const float R = -0x1.715476p0f; /* -1/ln2 */
     const float O = 0x1.003b80p17f; /* 2^(24-6-1)+127-8 */
     vfloat32m8_t Q = __riscv_vfmv_v_f_f32m8(O, vl);
-    vfloat32m8_t v = __riscv_vfmadd_vf_f32m8(a, R, Q, vl);
-    /* 2. Approximate 2⁻⁸exp(v) */
-    vfloat32m8_t e = __riscv_sf_vfexpa_v_f32m8(v, vl);
+    vfloat32m8_t s = __riscv_vfmadd_vf_f32m8(a, R, Q, vl);
+    /* 2. Approximate exp(s)/2⁸ */
+    vfloat32m8_t e = __riscv_sf_vfexpa_v_f32m8(s, vl);
     /* 3. Reciprocate denominator */
     vfloat32m8_t d = __riscv_vfadd_vf_f32m8(e, 0x1p-8f, vl);
     vfloat32m8_t r = __riscv_vfrec7_v_f32m8(d, vl);

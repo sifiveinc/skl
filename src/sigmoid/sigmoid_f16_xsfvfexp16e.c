@@ -38,8 +38,8 @@ SKL_FUNC void skl_sigmoid_f16_xsfvfexp16e(_Float16 *out, _Float16 beta,
     /* 2. Reciprocate denominator */
     const vfloat16m8_t d = __riscv_vfadd_vf_f16m8(e, 1, vl);
     vfloat16m8_t r = __riscv_vfrec7_v_f16m8(d, vl);
-    vfloat16m8_t t = __riscv_vfnmsub_vv_f16m8(d, r, one, vl); // 1 - x * r
-    r = __riscv_vfmadd_vv_f16m8(r, t, r, vl); // r + r * (1 - x * r)
+    vfloat16m8_t t = __riscv_vfnmsub_vv_f16m8(d, r, one, vl); /* 1 - d * r */
+    r = __riscv_vfmadd_vv_f16m8(r, t, r, vl); /* r + r * (1 - d * r) */
 
     /* 3. Calculate quotient */
     vfloat16m8_t q = __riscv_vfmul_vv_f16m8_mu(m, r, r, e, vl);
