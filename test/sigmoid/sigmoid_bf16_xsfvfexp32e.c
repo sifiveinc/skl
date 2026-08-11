@@ -28,20 +28,40 @@
 #define SILU_MAX (+6.f)
 #define SWISH_MIN (-40.f)
 #define SWISH_MAX (+6.f)
-#define SWISH_BETA (__bf16)2
+#define SWISH_BETA_POS (__bf16)2
+#define SWISH_BETA_ONE (__bf16)1
+#define SWISH_BETA_NEG (__bf16)-2
 #define GLU_MIN (-40.f)
 #define GLU_MAX (+6.f)
 #define SWIGLU_MIN (-40.f)
 #define SWIGLU_MAX (+6.f)
 #define SWIGLU_DELTA (__bf16)0.5
 
-static void test_swish_bf16_xsfvfexp32e(__bf16 *out, const __bf16 *in,
+static void test_swish_b1_bf16_xsfvfexp32e(__bf16 *out, const __bf16 *in,
                                         size_t n) {
-  skl_swish_bf16_xsfvfexp32e(out, SWISH_BETA, in, n);
+  skl_swish_bf16_xsfvfexp32e(out, SWISH_BETA_ONE, in, n);
 }
 
-static void ref_swish_bf16(__bf16 *out, const __bf16 *in, size_t n) {
-  skl_swish_bf16_ref(out, SWISH_BETA, in, n);
+static void ref_swish_b1_bf16(__bf16 *out, const __bf16 *in, size_t n) {
+  skl_swish_bf16_ref(out, SWISH_BETA_ONE, in, n);
+}
+
+static void test_swish_bp_bf16_xsfvfexp32e(__bf16 *out, const __bf16 *in,
+                                        size_t n) {
+  skl_swish_bf16_xsfvfexp32e(out, SWISH_BETA_POS, in, n);
+}
+
+static void ref_swish_bp_bf16(__bf16 *out, const __bf16 *in, size_t n) {
+  skl_swish_bf16_ref(out, SWISH_BETA_POS, in, n);
+}
+
+static void test_swish_bn_bf16_xsfvfexp32e(__bf16 *out, const __bf16 *in,
+                                        size_t n) {
+  skl_swish_bf16_xsfvfexp32e(out, SWISH_BETA_NEG, in, n);
+}
+
+static void ref_swish_bn_bf16(__bf16 *out, const __bf16 *in, size_t n) {
+  skl_swish_bf16_ref(out, SWISH_BETA_NEG, in, n);
 }
 
 static void test_glu_bf16_xsfvfexp32e(__bf16 *out, const __bf16 *in, size_t n) {
@@ -65,7 +85,8 @@ unary_bf16_t tests[] = {
 #if defined(SKL_ENABLE_BENCHMARKS)
     FUNCTION_BENCHMARKS(skl_logistic_bf16_xsfvfexp32e, -1, 1),
     FUNCTION_BENCHMARKS(skl_silu_bf16_xsfvfexp32e, -1, 1),
-    FUNCTION_BENCHMARKS(test_swish_bf16_xsfvfexp32e, -1, 1),
+    FUNCTION_BENCHMARKS(test_swish_b1_bf16_xsfvfexp32e, -1, 1),
+    FUNCTION_BENCHMARKS(test_swish_bp_bf16_xsfvfexp32e, -1, 1),
     FUNCTION_BENCHMARKS(test_glu_bf16_xsfvfexp32e, -1, 1),
     FUNCTION_BENCHMARKS(test_swiglu_bf16_xsfvfexp32e, -1, 1),
 #endif
@@ -74,7 +95,11 @@ unary_bf16_t tests[] = {
                    LOGISTIC_MIN, LOGISTIC_MAX, 2.0f),
     FUNCTION_TESTS(skl_silu_bf16_xsfvfexp32e, skl_silu_bf16_ref, SILU_MIN,
                    SILU_MAX, 2.0f),
-    FUNCTION_TESTS(test_swish_bf16_xsfvfexp32e, ref_swish_bf16, SWISH_MIN,
+    FUNCTION_TESTS(test_swish_b1_bf16_xsfvfexp32e, ref_swish_b1_bf16, SWISH_MIN,
+                   SWISH_MAX, 2.0f),
+    FUNCTION_TESTS(test_swish_bp_bf16_xsfvfexp32e, ref_swish_bp_bf16, SWISH_MIN,
+                   SWISH_MAX, 2.0f),
+    FUNCTION_TESTS(test_swish_bn_bf16_xsfvfexp32e, ref_swish_bn_bf16, SWISH_MIN,
                    SWISH_MAX, 2.0f),
     FUNCTION_TESTS(test_glu_bf16_xsfvfexp32e, ref_glu_bf16, GLU_MIN, GLU_MAX,
                    2.0f),
