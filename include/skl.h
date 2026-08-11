@@ -17,6 +17,7 @@
 #endif
 
 #if defined(__riscv_zvfh)
+#include "gemm/rvv/gemm_f16_f16_f16_zvfh.h"
 #include "gemm/rvv/gemm_f16_f16_f16_zvfh_x390.h"
 #include "gemm/rvv/gemm_f16_f16_f32_zvfh.h"
 #include "gemm/rvv/gemm_f16_f16_f32_zvfh_x390.h"
