@@ -11,9 +11,7 @@ env:
 
 jobs:
   CI:
-    runs-on:
-      group: linux-runners
-      labels: ubuntu-22.04-x64-2
+    runs-on: ubuntu-22.04
 
     env:
       SKL_TAG: v3.0.0
