@@ -980,83 +980,113 @@ skl_gemm_inner_loop_2x2_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f(
   const float *a1 = a0 + rsa1;
   const float *b0 = b;
   const float *b1 = b0 + csb1;
-  __asm__ volatile("beqz %[k], 2f\n"
+  __asm__ volatile(
+      "beqz %[k], 2f\n"
 
-                   "sf.vsettnt x0, %[tn0], e32, w1\n"
-                   "sf.vsettm x0, %[tm0]\n"
-                   "sf.vsettk x0, %[k]\n"
+      "sf.vsettnt x0, %[tn0], e32, w1\n"
+      "sf.vsettm x0, %[tm0]\n"
+      "sf.vsettk x0, %[k]\n"
 
-                   "vle32.v v16, (%[b0])\n"
-                   "add %[b0], %[b0], %[rsb1]\n"
+      "vle32.v v16, (%[b0])\n"
+      "add %[b0], %[b0], %[rsb1]\n"
 
-                   "sf.vsettn x0, %[tm0]\n"
-                   "vle32.v v0, (%[a0])\n"
-                   "add %[a0], %[a0], %[csa1]\n"
+      "sf.vsettn x0, %[tm0]\n"
+      "vle32.v v0, (%[a0])\n"
+      "add %[a0], %[a0], %[csa1]\n"
 
-                   "bltu %[k], %[i2], 1f\n"
+      "sf.vsettn x0, %[tn1]\n"
+      "bltu %[k], %[i2], 2f\n"
 
-                   "0:\n"
-                   "addi %[k], %[k], -1\n"
-                   "sf.vsettn x0, %[tn1]\n"
-                   "vle32.v v24, (%[b1])\n"
-                   "add %[b1], %[b1], %[rsb1]\n"
+      // dispatch to general inner loop if tm0, tm1, tn0, tn1 are not all equal
+      "bne %[tm0], %[tm1], 1f\n"
+      "bne %[tn0], %[tn1], 1f\n"
+      "bne %[tm0], %[tn0], 1f\n"
 
-                   "sf.vsettm x0, %[tm0]\n"
-                   "sf.vsettn x0, %[tn0]\n"
-                   "sf.mm.f.f mt0, v0, v16\n"
+      // specialized inner loop (tm0 == tm1 == tn0 == tn1)
+      "0:\n"
+      "addi %[k], %[k], -1\n"
+      "vle32.v v24, (%[b1])\n"
+      "add %[b1], %[b1], %[rsb1]\n"
 
-                   "sf.vsettn x0, %[tm1]\n"
-                   "vle32.v v8, (%[a1])\n"
-                   "add %[a1], %[a1], %[csa1]\n"
+      "sf.mm.f.f mt0, v0, v16\n"
 
-                   "sf.vsettn x0, %[tn1]\n"
-                   "sf.mm.f.f mt4, v0, v24\n"
+      "vle32.v v8, (%[a1])\n"
+      "add %[a1], %[a1], %[csa1]\n"
 
-                   "sf.vsettn x0, %[tm0]\n"
-                   "vle32.v v0, (%[a0])\n"
-                   "add %[a0], %[a0], %[csa1]\n"
+      "sf.mm.f.f mt4, v0, v24\n"
 
-                   "sf.vsettm x0, %[tm1]\n"
-                   "sf.vsettn x0, %[tn0]\n"
-                   "sf.mm.f.f mt8, v8, v16\n"
+      "vle32.v v0, (%[a0])\n"
+      "add %[a0], %[a0], %[csa1]\n"
 
-                   "vle32.v v16, (%[b0])\n"
-                   "add %[b0], %[b0], %[rsb1]\n"
+      "sf.mm.f.f mt8, v8, v16\n"
 
-                   "sf.vsettn x0, %[tn1]\n"
-                   "sf.mm.f.f mt12, v8, v24\n"
-                   "bgeu %[k], %[i2], 0b\n"
+      "vle32.v v16, (%[b0])\n"
+      "add %[b0], %[b0], %[rsb1]\n"
 
-                   "1:\n"
-                   "sf.vsettn x0, %[tn1]\n"
-                   "vle32.v v24, (%[b1])\n"
+      "sf.mm.f.f mt12, v8, v24\n"
+      "bgeu %[k], %[i2], 0b\n"
+      "j 2f\n"
 
-                   "sf.vsettm x0, %[tm0]\n"
-                   "sf.vsettn x0, %[tn0]\n"
-                   "sf.mm.f.f mt0, v0, v16\n"
+      // general inner loop
+      "1:\n"
+      "addi %[k], %[k], -1\n"
+      "vle32.v v24, (%[b1])\n"
+      "add %[b1], %[b1], %[rsb1]\n"
 
-                   "sf.vsettn x0, %[tm1]\n"
-                   "vle32.v v8, (%[a1])\n"
+      "sf.vsettm x0, %[tm0]\n"
+      "sf.vsettn x0, %[tn0]\n"
+      "sf.mm.f.f mt0, v0, v16\n"
 
-                   "sf.vsettn x0, %[tn1]\n"
-                   "sf.mm.f.f mt4, v0, v24\n"
-                   "sf.vsettm x0, %[tm1]\n"
-                   "sf.vsettn x0, %[tn0]\n"
-                   "sf.mm.f.f mt8, v8, v16\n"
-                   "sf.vsettn x0, %[tn1]\n"
-                   "sf.mm.f.f mt12, v8, v24\n"
+      "sf.vsettn x0, %[tm1]\n"
+      "vle32.v v8, (%[a1])\n"
+      "add %[a1], %[a1], %[csa1]\n"
 
-                   "2:\n"
-                   : [a0] "+&r"(a0), [a1] "+&r"(a1), [b0] "+&r"(b0),
-                     [b1] "+&r"(b1), [k] "+&r"(k)
-                   : [csa1] "r"(csa1 * sizeof(float)),
-                     [rsb1] "r"(rsb1 * sizeof(float)), [tm0] "r"(tm0),
-                     [tm1] "r"(tm1), [tn0] "r"(tn0), [tn1] "r"(tn1), [i2] "r"(2)
-                   : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9",
-                     "v10", "v11", "v12", "v13", "v14", "v15", "v16", "v17",
-                     "v18", "v19", "v20", "v21", "v22", "v23", "v24", "v25",
-                     "v26", "v27", "v28", "v29", "v30", "v31", "vtype", "vl",
-                     "memory");
+      "sf.vsettn x0, %[tn1]\n"
+      "sf.mm.f.f mt4, v0, v24\n"
+
+      "sf.vsettn x0, %[tm0]\n"
+      "vle32.v v0, (%[a0])\n"
+      "add %[a0], %[a0], %[csa1]\n"
+
+      "sf.vsettm x0, %[tm1]\n"
+      "sf.vsettn x0, %[tn0]\n"
+      "sf.mm.f.f mt8, v8, v16\n"
+
+      "vle32.v v16, (%[b0])\n"
+      "add %[b0], %[b0], %[rsb1]\n"
+
+      "sf.vsettn x0, %[tn1]\n"
+      "sf.mm.f.f mt12, v8, v24\n"
+      "bgeu %[k], %[i2], 1b\n"
+
+      "2:\n"
+      "vle32.v v24, (%[b1])\n"
+
+      "sf.vsettm x0, %[tm0]\n"
+      "sf.vsettn x0, %[tn0]\n"
+      "sf.mm.f.f mt0, v0, v16\n"
+
+      "sf.vsettn x0, %[tm1]\n"
+      "vle32.v v8, (%[a1])\n"
+
+      "sf.vsettn x0, %[tn1]\n"
+      "sf.mm.f.f mt4, v0, v24\n"
+      "sf.vsettm x0, %[tm1]\n"
+      "sf.vsettn x0, %[tn0]\n"
+      "sf.mm.f.f mt8, v8, v16\n"
+      "sf.vsettn x0, %[tn1]\n"
+      "sf.mm.f.f mt12, v8, v24\n"
+
+      "3:\n"
+      : [a0] "+&r"(a0), [a1] "+&r"(a1), [b0] "+&r"(b0), [b1] "+&r"(b1),
+        [k] "+&r"(k)
+      : [csa1] "r"(csa1 * sizeof(float)), [rsb1] "r"(rsb1 * sizeof(float)),
+        [tm0] "r"(tm0), [tm1] "r"(tm1), [tn0] "r"(tn0), [tn1] "r"(tn1),
+        [i2] "r"(2)
+      : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
+        "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20",
+        "v21", "v22", "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30",
+        "v31", "vtype", "vl", "memory");
 }
 
 /* Computes A * B (accum == false) or C + A * B (accum == true) and applies a

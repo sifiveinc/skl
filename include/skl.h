@@ -12,52 +12,52 @@
  */
 
 #if defined(__riscv_zve32x)
-#include "gemm/rvv/gemm_i8_i8_i32_zve32x.h"
-#include "gemm/rvv/gemm_i8_i8_i32_zve32x_x390.h"
+#include "gemm/gemm_i8_i8_i32_zve32x.h"
+#include "gemm/gemm_i8_i8_i32_zve32x_x390.h"
 #endif
 
 #if defined(__riscv_zvfh)
-#include "gemm/rvv/gemm_f16_f16_f16_zvfh.h"
-#include "gemm/rvv/gemm_f16_f16_f16_zvfh_x390.h"
-#include "gemm/rvv/gemm_f16_f16_f32_zvfh.h"
-#include "gemm/rvv/gemm_f16_f16_f32_zvfh_x390.h"
+#include "gemm/gemm_f16_f16_f16_zvfh.h"
+#include "gemm/gemm_f16_f16_f16_zvfh_x390.h"
+#include "gemm/gemm_f16_f16_f32_zvfh.h"
+#include "gemm/gemm_f16_f16_f32_zvfh_x390.h"
 #endif
 
 #if defined(__riscv_zvfbfwma)
-#include "gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma.h"
-#include "gemm/rvv/gemm_bf16_bf16_f32_zvfbfwma_x390.h"
+#include "gemm/gemm_bf16_bf16_f32_zvfbfwma.h"
+#include "gemm/gemm_bf16_bf16_f32_zvfbfwma_x390.h"
 #endif
 
 #if defined(__riscv_zve32f)
-#include "gemm/rvv/gemm_f32_f32_f32_zve32f.h"
-#include "gemm/rvv/gemm_f32_f32_f32_zve32f_x390.h"
+#include "gemm/gemm_f32_f32_f32_zve32f.h"
+#include "gemm/gemm_f32_f32_f32_zve32f_x390.h"
 #endif
 
 #if defined(__riscv_zve64d)
-#include "gemm/rvv/gemm_f64_f64_f64_zve64d.h"
-#include "gemm/rvv/gemm_f64_f64_f64_zve64d_x390.h"
+#include "gemm/gemm_f64_f64_f64_zve64d.h"
+#include "gemm/gemm_f64_f64_f64_zve64d_x390.h"
 #endif
 
 #if defined(__riscv_xsfmm32a8f)
-#include "gemm/xsfmm/gemm_f8e4m3c_f8e4m3_f32_xsfmm32a8f.h"
-#include "gemm/xsfmm/gemm_f8e5m2c_f8e5m2_f32_xsfmm32a8f.h"
+#include "gemm/gemm_f8e4m3c_f8e4m3_f32_xsfmm32a8f.h"
+#include "gemm/gemm_f8e5m2c_f8e5m2_f32_xsfmm32a8f.h"
 #endif
 
 #if defined(__riscv_xsfmm32a8i)
-#include "gemm/xsfmm/gemm_i8c_i8_i32_xsfmm32a8i.h"
+#include "gemm/gemm_i8c_i8_i32_xsfmm32a8i.h"
 #endif
 
 #if defined(__riscv_xsfmm32a16f)
-#include "gemm/xsfmm/gemm_bf16c_bf16_f32_xsfmm32a16f.h"
-#include "gemm/xsfmm/gemm_f16c_f16_f32_xsfmm32a16f.h"
+#include "gemm/gemm_bf16c_bf16_f32_xsfmm32a16f.h"
+#include "gemm/gemm_f16c_f16_f32_xsfmm32a16f.h"
 #endif
 
 #if defined(__riscv_xsfmm32a32f)
-#include "gemm/xsfmm/gemm_f32c_f32_f32_xsfmm32a32f.h"
+#include "gemm/gemm_f32c_f32_f32_xsfmm32a32f.h"
 #endif
 
 #if defined(__riscv_xsfvqdotq)
-#include "gemm/xsfvqdotq/gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq.h"
+#include "gemm/gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq.h"
 #endif
 
 /*

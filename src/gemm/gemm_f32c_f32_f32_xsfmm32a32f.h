@@ -1,4 +1,4 @@
-// Copyright (c) 2026 SiFive, Inc. All rights reserved.
+// Copyright (c) 2025-2026 SiFive, Inc. All rights reserved.
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 // SPDX-License-Identifier: MIT
@@ -16,8 +16,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Xsfmm float32 A * B matrix-matrix multiplication (SGEMM) for
- * column-major A and row-major B.
+ * @brief Xsfmm float32 GEMM.
  *
  * @param m - Number of rows in matrices A and C.
  * @param n - Number of columns in matrices B and C.
@@ -79,7 +78,8 @@ void skl_gemm_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
  * @param rsc1 - Row stride between blocks of C in elements.
  * @param csc1 - Column stride between blocks of C in elements.
  *
- * Computes `C = alpha * A * B + beta * C`.
+ * Computes `C = alpha * A * B + beta * C` for packed float32 matrices A, B, and
+ * C.
  *
  * Equivalent to calling:
  * ```
