@@ -249,4 +249,6 @@ set(CPACK_SOURCE_IGNORE_FILES
   "*.orig$"  # Git mergetool backup files
 )
 set(CPACK_VERBATIM_VARIABLES YES)
-include(CPack)
+if(NOT CPack_CMake_INCLUDED STREQUAL 1)
+  include(CPack)
+endif()
