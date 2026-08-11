@@ -8,7 +8,7 @@
 #endif
 
 /**
- * @brief Consolidated f32 sigmoid-family test cases for zve32f.
+ * @brief Consolidated FP32 sigmoid-family test cases for zve32f.
  *
  * Exercises the logistic, SiLU, Swish, GLU, and SwiGLU kernels through the
  * unary_f32 harness, one entry per API in a single suite.

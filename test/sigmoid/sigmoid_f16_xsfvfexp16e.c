@@ -8,7 +8,7 @@
 #endif
 
 /**
- * @brief Consolidated f16 sigmoid-family test cases for xsfvfexp16e.
+ * @brief Consolidated FP16 sigmoid-family test cases for xsfvfexp16e.
  *
  * Exercises the logistic, SiLU, Swish, GLU, and SwiGLU kernels through the
  * unary_f16 harness, one entry per API in a single suite.
