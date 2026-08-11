@@ -57,10 +57,9 @@ SKL_FUNC void skl_sigmoid_bf16_xsfvfexp32e(__bf16 *out, __bf16 beta,
     /* 0. Observe, Orient, Convert, & Squash */
     if (beta != 1) {
       a = skl_sigmoid_bf16_xsfvfexp32e_vfwcvt_f_x_v_f32m8(vx, vl);
-      a = __riscv_vfmul_vf_f32m8(a, (float)beta * 0.5f, vl);
-      m = __riscv_vmflt_vf_f32m8_b4(a, 0, vl);
-      a = __riscv_vfsgnj_vf_f32m8(a, -0x1.74p6f, vl);
-      a = __riscv_vfmax_vf_f32m8(a, -0x1.74p6f, vl);
+      a = __riscv_vfmul_vf_f32m8(a, (float)beta * -0.5f, vl);
+      m = __riscv_vmfge_vf_f32m8_b4(a, 0, vl);
+      a = __riscv_vfsgnj_vf_f32m8(a, -0.5f, vl);
     } else {
       m = __riscv_vmslt_vx_i16m4_b4(vx, 0, vl);
       vx = __riscv_vor_vx_i16m4(vx, (int16_t)0x8000, vl); /* copysign(x,-1) */
