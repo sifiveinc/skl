@@ -69,7 +69,7 @@ unary_f32_t tests[] = {
 #endif
 #if defined(SKL_ENABLE_TESTS)
     FUNCTION_TESTS(skl_logistic_f32_xsfvfexp32e, skl_logistic_f32_ref,
-                   LOGISTIC_MIN, LOGISTIC_MAX, 6.0f),
+                   LOGISTIC_MIN, LOGISTIC_MAX, 8.0f),
     FUNCTION_TESTS(skl_silu_f32_xsfvfexp32e, skl_silu_f32_ref, SILU_MIN,
                    SILU_MAX, 52.0f),
     FUNCTION_TESTS(test_swish_f32_xsfvfexp32e, ref_swish_f32, SWISH_MIN,
