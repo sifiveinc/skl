@@ -85,7 +85,6 @@ unary_bf16_t tests[] = {
 #if defined(SKL_ENABLE_BENCHMARKS)
     FUNCTION_BENCHMARKS(skl_logistic_bf16_xsfvfexp32e, -1, 1),
     FUNCTION_BENCHMARKS(skl_silu_bf16_xsfvfexp32e, -1, 1),
-    FUNCTION_BENCHMARKS(test_swish_b1_bf16_xsfvfexp32e, -1, 1),
     FUNCTION_BENCHMARKS(test_swish_bp_bf16_xsfvfexp32e, -1, 1),
     FUNCTION_BENCHMARKS(test_glu_bf16_xsfvfexp32e, -1, 1),
     FUNCTION_BENCHMARKS(test_swiglu_bf16_xsfvfexp32e, -1, 1),
