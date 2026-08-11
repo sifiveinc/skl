@@ -59,6 +59,10 @@
 #include "gemm/xsfvqdotq/gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq.h"
 #endif
 
+#if defined(__riscv_zvdot4a8i)
+#include "gemm/xsfvqdotq/gemm_i8rcp1x4_i8p4x1c_i32_zvdot4a8i.h"
+#endif
+
 /*
  * Exponential Function Kernels
  */

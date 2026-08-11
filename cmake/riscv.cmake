@@ -30,6 +30,7 @@ set(SKL_ARCH_EXTENSIONS
   # zvfofp8min0p2
   # zvfofp4min0p1
   # xsfvqdotq
+  # zvdot4a8i0p1
   zvfbfmin
   zvfbfwma
   zihintntl
