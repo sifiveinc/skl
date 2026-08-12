@@ -18,10 +18,10 @@ extern "C" {
 /**
  * @brief F32 softmax function accelerated with Xsfvfexpa.
  *
- * @param[out] dst - Array of output elements.
- * @param[in] src - Array of input elements.
- * @param[in] beta - Scaling factor for exponential function arguments.
- * @param[in] n - Number of elements to process.
+ * @param dst - Array of output elements.
+ * @param src - Array of input elements.
+ * @param beta - Scaling factor for exponential function arguments.
+ * @param n - Number of elements to process.
  *
  * Computes the softmax function equivalent to calling:
  * ```
@@ -37,13 +37,13 @@ void skl_softmax_f32_xsfvfexpa(float *dst, const float *src, float beta,
 /**
  * @brief F32 2D stable softmax, reducing rows.
  *
- * @param[out] s - Pointer to output matrix S.
- * @param[in] rss - Row stride of S (stride between rows) in elements.
- * @param[in] a - Pointer to input matrix A.
- * @param[in] rsa - Row stride of A (stride between rows) in elements.
- * @param[in] beta - Scaling factor for exponential function arguments.
- * @param[in] m - Number of rows in S and A.
- * @param[in] n - Number of columns in S and A.
+ * @param s - Pointer to output matrix S.
+ * @param rss - Row stride of S (stride between rows) in elements.
+ * @param a - Pointer to input matrix A.
+ * @param rsa - Row stride of A (stride between rows) in elements.
+ * @param beta - Scaling factor for exponential function arguments.
+ * @param m - Number of rows in S and A.
+ * @param n - Number of columns in S and A.
  *
  * Both S and A are unit-stride row-major matrices.
  *

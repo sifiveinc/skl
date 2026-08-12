@@ -18,10 +18,10 @@ extern "C" {
 /**
  * @brief Vector F16 softmax function accelerated with Xsfvfexp16e.
  *
- * @param[out] dst - Array of output elements.
- * @param[in] src - Array of input elements.
- * @param[in] beta - Scaling factor for exponential function arguments.
- * @param[in] n - Number of elements to process.
+ * @param dst - Array of output elements.
+ * @param src - Array of input elements.
+ * @param beta - Scaling factor for exponential function arguments.
+ * @param n - Number of elements to process.
  *
  * Computes the softmax function equivalent to calling:
  * ```

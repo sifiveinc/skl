@@ -18,9 +18,9 @@ extern "C" {
 /**
  * @brief Fast vector F32 GELU function.
  *
- * @param[out] dst - Array of output elements.
- * @param[in] src - Array of input elements.
- * @param[in] n - Number of elements to process.
+ * @param dst - Array of output elements.
+ * @param src - Array of input elements.
+ * @param n - Number of elements to process.
  *
  * Computes the GELU activation function with the following error
  * tolerances:
@@ -42,9 +42,9 @@ void skl_gelu_p9_f32_zve32f(float *dst, const float *src, size_t n);
 /**
  * @brief Vector F32 GELU function.
  *
- * @param[out] dst - Array of output elements.
- * @param[in] src - Array of input elements.
- * @param[in] n - Number of elements to process.
+ * @param dst - Array of output elements.
+ * @param src - Array of input elements.
+ * @param n - Number of elements to process.
  *
  * Computes the GELU activation function with the following error
  * tolerances:
@@ -66,9 +66,9 @@ void skl_gelu_p13_f32_zve32f(float *dst, const float *src, size_t n);
 /**
  * @brief Vector F32 GELU function.
  *
- * @param[out] dst - Array of output elements.
- * @param[in] src - Array of input elements.
- * @param[in] n - Number of elements to process.
+ * @param dst - Array of output elements.
+ * @param src - Array of input elements.
+ * @param n - Number of elements to process.
  *
  * Computes the GELU activation function with the following error
  * tolerances:
@@ -89,9 +89,9 @@ void skl_gelu_p17_f32_zve32f(float *dst, const float *src, size_t n);
 /**
  * @brief Accurate vector F32 GELU function.
  *
- * @param[out] dst - Array of output elements.
- * @param[in] src - Array of input elements.
- * @param[in] n - Number of elements to process.
+ * @param dst - Array of output elements.
+ * @param src - Array of input elements.
+ * @param n - Number of elements to process.
  *
  * Computes the GELU activation function with the following error
  * tolerances:
