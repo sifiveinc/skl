@@ -1,7 +1,6 @@
 # GELU Kernels
 
-The Gaussian Error Linear Unit (GELU) activation function, used in
-many transformer models, computes the following:
+The Gaussian Error Linear Unit (GELU) activation function, used in many transformer models, computes the following:
 
 ```
   GELU = x Φ(x)
@@ -11,16 +10,14 @@ many transformer models, computes the following:
 
 ## Constraints
 
-- Input and output arrays may overlap only for in-place computation,
-  that is, when the output array is exactly the input array.
-- For maximum performance, input and output arrays should be naturally
-  aligned.
+- Input and output arrays may overlap only for in-place computation, that is, when the output array is exactly the input array.
+- For maximum performance, input and output arrays should be naturally aligned.
 
 
 ## Kernel List
 
-Four functions are defined, each with different accuracy
-characteristics.  Generally, the faster kernels have less accuracy.
+Four functions are defined, each with different accuracy characteristics.
+Generally, the faster kernels have less accuracy.
 
 ```c
 void skl_gelu_p9_f32_zve32f(float *dst, const float *src, size_t n);
