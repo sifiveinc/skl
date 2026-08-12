@@ -16,6 +16,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#if defined(__riscv_min_xsfmm_te)
+#define SKL_XSFMM_TE ((size_t)__riscv_min_xsfmm_te)
+#endif
+
 #ifdef __riscv_xsfmmbase
 /**
  * @brief Get the effective tile edge length.
