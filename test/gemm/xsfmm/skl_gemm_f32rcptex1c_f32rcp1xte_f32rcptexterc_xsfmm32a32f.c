@@ -149,7 +149,7 @@ gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
 
     {TEST, .m1 = 7, .n1 = 7, .k1 = 15, .alpha = 2.f, .beta = 3.f, .csc0 = 2},
     {TEST, .m1 = 7, .n1 = 7, .k1 = 15, .alpha = 2.f, .beta = 3.f, .rsc0 = 1,
-           .csc0 = __riscv_min_xsfmm_te},
+           .csc0 = SKL_XSFMM_TE},
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on
@@ -164,9 +164,8 @@ static void init(skl_test_t *t) {
   const gemm_f32rcprc_f32rcprc_f32rcprc_t *h =
       (gemm_f32rcprc_f32rcprc_f32rcprc_t *)t->harness;
 
-  size_t ete = skl_get_ete_xsfmmbase();
-  SKL_TEST_REQUIRE(t, init_status, h->m0 == ete);
-  SKL_TEST_REQUIRE(t, init_status, h->n0 == ete);
+  SKL_TEST_REQUIRE(t, init_status, h->m0 == SKL_XSFMM_TE);
+  SKL_TEST_REQUIRE(t, init_status, h->n0 == SKL_XSFMM_TE);
   SKL_TEST_REQUIRE(t, init_status, h->k0 == 1);
   SKL_TEST_REQUIRE(t, init_status, h->rsa0 == 1); // Note: column-major
   SKL_TEST_REQUIRE(t, init_status, h->csb0 == 1);
@@ -186,10 +185,9 @@ static void execute(skl_test_t *t) {
 
 int main(void) {
   // Set default strides: A has column-major blocks, B has row-major blocks
-  size_t ete = skl_get_ete_xsfmmbase();
   for (size_t i = 0; i < suite.num_tests; ++i) {
-    tests[i].m0 = ete;
-    tests[i].n0 = ete;
+    tests[i].m0 = SKL_XSFMM_TE;
+    tests[i].n0 = SKL_XSFMM_TE;
     tests[i].k0 = 1;
 
     tests[i].rsa0 = 1;
