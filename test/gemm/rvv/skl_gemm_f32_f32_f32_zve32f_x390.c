@@ -13,7 +13,7 @@
 #endif
 
 /**
- * @brief Test cases for GEMM with Zve32f extension.
+ * @brief Test cases for the skl_gemm_f32_f32_f32_zve32f_x390 kernel.
  *
  * This test uses the gemm_f32rcprc_f32rcprc_f32rcprc harness with the following
  * restrictions on the input parameters:
@@ -122,17 +122,17 @@ int main(void) {
     tests[i].rsa0 = 1;
     tests[i].csa0 = 1;
     tests[i].rsa1 = tests[i].rsa1 ? tests[i].rsa1 : tests[i].k1;
-    tests[i].csa1 = tests[i].csa1 ? tests[i].csa1 : 1;
+    tests[i].csa1 = 1;
 
     tests[i].rsb0 = 1;
     tests[i].csb0 = 1;
     tests[i].rsb1 = tests[i].rsb1 ? tests[i].rsb1 : tests[i].n1;
-    tests[i].csb1 = tests[i].csb1 ? tests[i].csb1 : 1;
+    tests[i].csb1 = 1;
 
     tests[i].rsc0 = 1;
     tests[i].csc0 = 1;
     tests[i].rsc1 = tests[i].rsc1 ? tests[i].rsc1 : tests[i].n1;
-    tests[i].csc1 = tests[i].csc1 ? tests[i].csc1 : 1;
+    tests[i].csc1 = 1;
   }
 
   return skl_test_driver_run_suite(&suite);

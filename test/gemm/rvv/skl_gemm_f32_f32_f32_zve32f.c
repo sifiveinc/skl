@@ -13,7 +13,7 @@
 #endif
 
 /**
- * @brief Test cases for GEMM with Zve32f extension.
+ * @brief Test cases for the skl_gemm_f32_f32_f32_zve32f kernel.
  *
  * This test uses the gemm_f32rcprc_f32rcprc_f32rcprc harness with the following
  * restrictions on the input parameters:
