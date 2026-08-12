@@ -32,14 +32,14 @@ SKL_FUNC_PRIVATE vint16m4_t skl_softmax_vfncvt_x_f_w_bf16m4(vfloat32m8_t X,
 }
 
 /* Vector BFloat16 1D unit-stride softmax using the Zve32f extension. */
-SKL_FUNC void skl_softmax_bf16_zve32f(__bf16 *pDst, const __bf16 *pSrc,
+SKL_FUNC void skl_softmax_bf16_zve32f(__bf16 *dst, const __bf16 *src,
                                       const __bf16 beta, const size_t n) {
   size_t vl = __riscv_vsetvl_e16m4(n);
-  vint16m4_t vi = __riscv_vle16_v_i16m4((int16_t *)pSrc, vl);
+  vint16m4_t vi = __riscv_vle16_v_i16m4((int16_t *)src, vl);
   vfloat32m8_t vmax = skl_softmax_vfwcvt_f_x_v_f32m8(vi, vl);
   for (size_t i = vl; i < n; i += vl) {
     vl = __riscv_vsetvl_e16m4(n - i);
-    vi = __riscv_vle16_v_i16m4((int16_t *)(pSrc + i), vl);
+    vi = __riscv_vle16_v_i16m4((int16_t *)(src + i), vl);
     vfloat32m8_t va = skl_softmax_vfwcvt_f_x_v_f32m8(vi, vl);
     vmax = __riscv_vfmax_vv_f32m8_tu(vmax, vmax, va, vl);
   }
@@ -50,7 +50,7 @@ SKL_FUNC void skl_softmax_bf16_zve32f(__bf16 *pDst, const __bf16 *pSrc,
   vfloat32m8_t vsum = __riscv_vfmv_v_f_f32m8(0.0f, n);
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e16m4(n - i);
-    vi = __riscv_vle16_v_i16m4((int16_t *)(pSrc + i), vl);
+    vi = __riscv_vle16_v_i16m4((int16_t *)(src + i), vl);
     vfloat32m8_t va = skl_softmax_vfwcvt_f_x_v_f32m8(vi, vl);
     va = __riscv_vfsub_vf_f32m8(va, max, vl);
     if (beta != (__bf16)1.0)
@@ -77,7 +77,7 @@ SKL_FUNC void skl_softmax_bf16_zve32f(__bf16 *pDst, const __bf16 *pSrc,
     u = __riscv_vreinterpret_v_i32m8_f32m8(j);
     /* 4. Narrow & Store */
     vi = skl_softmax_vfncvt_x_f_w_bf16m4(u, vl);
-    __riscv_vse16_v_i16m4((int16_t *)(pDst + i), vi, vl);
+    __riscv_vse16_v_i16m4((int16_t *)(dst + i), vi, vl);
     /* 5. Accumulate */
     vsum = __riscv_vfadd_vv_f32m8_tu(vsum, vsum, u, vl);
   }
@@ -88,10 +88,10 @@ SKL_FUNC void skl_softmax_bf16_zve32f(__bf16 *pDst, const __bf16 *pSrc,
 
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e16m4(n - i);
-    vint16m4_t vi = __riscv_vle16_v_i16m4((int16_t *)(pDst + i), vl);
+    vint16m4_t vi = __riscv_vle16_v_i16m4((int16_t *)(dst + i), vl);
     vfloat32m8_t va = skl_softmax_vfwcvt_f_x_v_f32m8(vi, vl);
     va = __riscv_vfmul_vf_f32m8(va, recip_sum, vl);
     vi = skl_softmax_vfncvt_x_f_w_bf16m4(va, vl);
-    __riscv_vse16_v_i16m4((int16_t *)(pDst + i), vi, vl);
+    __riscv_vse16_v_i16m4((int16_t *)(dst + i), vi, vl);
   }
 }

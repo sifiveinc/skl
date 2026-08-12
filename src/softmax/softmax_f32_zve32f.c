@@ -11,13 +11,13 @@
 #include <riscv_vector.h>
 #include <stddef.h>
 
-SKL_FUNC void skl_softmax_f32_zve32f(float *pDst, const float *pSrc,
+SKL_FUNC void skl_softmax_f32_zve32f(float *dst, const float *src,
                                      const float beta, const size_t n) {
   size_t vl = __riscv_vsetvl_e32m8(n);
-  vfloat32m8_t vmax = __riscv_vle32_v_f32m8(pSrc, vl);
+  vfloat32m8_t vmax = __riscv_vle32_v_f32m8(src, vl);
   for (size_t i = vl; i < n; i += vl) {
     vl = __riscv_vsetvl_e32m8(n - i);
-    vfloat32m8_t vx = __riscv_vle32_v_f32m8(pSrc + i, vl);
+    vfloat32m8_t vx = __riscv_vle32_v_f32m8(src + i, vl);
     vmax = __riscv_vfmax_vv_f32m8_tu(vmax, vmax, vx, vl);
   }
   vfloat32m1_t vfirst = __riscv_vlmul_trunc_v_f32m8_f32m1(vmax);
@@ -30,7 +30,7 @@ SKL_FUNC void skl_softmax_f32_zve32f(float *pDst, const float *pSrc,
   for (size_t i = 0; i < n; i += vl) {
     /* Calculate sum += exp(beta * (x - max)) */
     vl = __riscv_vsetvl_e32m8(n - i);
-    vfloat32m8_t vx = __riscv_vle32_v_f32m8(pSrc + i, vl);
+    vfloat32m8_t vx = __riscv_vle32_v_f32m8(src + i, vl);
     const float c4 = 0x1.573c7ep-5f;
     vfloat32m8_t vp = __riscv_vfmv_v_f_f32m8(c4, vl);
 
@@ -71,7 +71,7 @@ SKL_FUNC void skl_softmax_f32_zve32f(float *pDst, const float *pSrc,
 
     /* Accumulate and Store */
     vsum = __riscv_vfadd_vv_f32m8_tu(vsum, vsum, vy, vl);
-    __riscv_vse32_v_f32m8(pDst + i, vy, vl);
+    __riscv_vse32_v_f32m8(dst + i, vy, vl);
   }
   vfloat32m1_t ssum = __riscv_vfmv_s_f_f32m1(0.0f, n);
   ssum = __riscv_vfredusum_vs_f32m8_f32m1(vsum, ssum, n);
@@ -80,16 +80,16 @@ SKL_FUNC void skl_softmax_f32_zve32f(float *pDst, const float *pSrc,
 
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e32m8(n - i);
-    vfloat32m8_t vx = __riscv_vle32_v_f32m8(pDst + i, vl);
+    vfloat32m8_t vx = __riscv_vle32_v_f32m8(dst + i, vl);
     vx = __riscv_vfmul_vf_f32m8(vx, recip_sum, vl);
-    __riscv_vse32_v_f32m8(pDst + i, vx, vl);
+    __riscv_vse32_v_f32m8(dst + i, vx, vl);
   }
 }
 
-SKL_FUNC void skl_softmax_2d_f32_zve32f(float *s, const size_t rss,
-                                        const float *a, const size_t rsa,
-                                        const float beta, const size_t m,
-                                        const size_t n) {
+SKL_FUNC void skl_softmax_f32r_zve32f(float *s, const size_t rss,
+                                      const float *a, const size_t rsa,
+                                      const float beta, const size_t m,
+                                      const size_t n) {
   for (size_t i = 0; i < m; ++i) {
     skl_softmax_f32_zve32f(s + i * rss, a + i * rsa, beta, n);
   }

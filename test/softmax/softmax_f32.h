@@ -32,7 +32,7 @@ typedef struct {
 
 void softmax_f32_init(skl_test_t *t);
 void softmax_f32_execute(skl_test_t *t);
-void softmax_2d_f32_execute(skl_test_t *t);
+void softmax_f32r_execute(skl_test_t *t);
 void softmax_f32_verify(skl_test_t *t);
 void softmax_f32_report(skl_test_t *t);
 void softmax_f32_cleanup(skl_test_t *t);
@@ -56,9 +56,9 @@ void softmax_f32_cleanup(skl_test_t *t);
   .steps.execute = softmax_f32_execute
 
 #define BASE_2D_PARAMS(VAR)                                                    \
-  .func = (void *)skl_softmax_2d_f32_##VAR,                                    \
-  .name = "skl_softmax_2d_f32_" #VAR,                                          \
-  .steps.execute = softmax_2d_f32_execute
+  .func = (void *)skl_softmax_f32r_##VAR,                                      \
+  .name = "skl_softmax_f32r_" #VAR,                                            \
+  .steps.execute = softmax_f32r_execute
 
 
 #define BETA_BENCHMARKS(...)                                                   \

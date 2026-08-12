@@ -585,30 +585,30 @@ skl_add_test(
   ""
 )
 skl_add_test(
-  skl_softmax_2d_f32_ref
+  skl_softmax_f32r_ref
   softmax/softmax_f32.c
-  softmax/skl_softmax_2d_f32_ref.c
+  softmax/skl_softmax_f32r_ref.c
   ""
   ""
 )
 skl_add_test(
-  skl_softmax_2d_f32_zve32f
+  skl_softmax_f32r_zve32f
   softmax/softmax_f32.c
-  softmax/skl_softmax_2d_f32_zve32f.c
+  softmax/skl_softmax_f32r_zve32f.c
   "zve32f"
   ""
 )
 skl_add_test(
-  skl_softmax_2d_f32_xsfvfexpa
+  skl_softmax_f32r_xsfvfexpa
   softmax/softmax_f32.c
-  softmax/skl_softmax_2d_f32_xsfvfexpa.c
+  softmax/skl_softmax_f32r_xsfvfexpa.c
   "xsfvfexpa"
   ""
 )
 skl_add_test(
-  skl_softmax_2d_f32_xsfvfexp32e
+  skl_softmax_f32r_xsfvfexp32e
   softmax/softmax_f32.c
-  softmax/skl_softmax_2d_f32_xsfvfexp32e.c
+  softmax/skl_softmax_f32r_xsfvfexp32e.c
   "xsfvfexp32e"
   ""
 )

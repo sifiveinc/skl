@@ -16,26 +16,26 @@ extern "C" {
 #endif
 
 /**
- * @brief FP32 softmax function accelerated with Xsfvfexp32e.
+ * @brief F32 softmax function accelerated with Xsfvfexp32e.
  *
- * @param pDst - Array of output elements.
- * @param pSrc - Array of input elements.
+ * @param dst - Array of output elements.
+ * @param src - Array of input elements.
  * @param beta - Scaling factor for exponential function arguments.
  * @param n - Number of elements to process.
  *
  * Computes the softmax function equivalent to calling:
  * ```
- * skl_softmax_f32_ref(pDst, pSrc, beta, n);
+ * skl_softmax_f32_ref(dst, src, beta, n);
  * ```
  *
  * Exploits the SiFive vector floating-point exponential function
  * instruction to compute the e^x part of softmax.
  */
-void skl_softmax_f32_xsfvfexp32e(float *pDst, const float *pSrc, float beta,
+void skl_softmax_f32_xsfvfexp32e(float *dst, const float *src, float beta,
                                  size_t n);
 
 /**
- * @brief FP32 2D stable softmax, reducing rows.
+ * @brief F32 2D stable softmax, reducing rows.
  *
  * @param s - Pointer to output matrix S.
  * @param rss - Row stride of S (stride between rows) in elements.
@@ -52,8 +52,8 @@ void skl_softmax_f32_xsfvfexp32e(float *pDst, const float *pSrc, float beta,
  *
  * @note Input A and output S matrices may only overlap if S == A.
  */
-void skl_softmax_2d_f32_xsfvfexp32e(float *s, size_t rss, const float *a,
-                                    size_t rsa, float beta, size_t m, size_t n);
+void skl_softmax_f32r_xsfvfexp32e(float *s, size_t rss, const float *a,
+                                  size_t rsa, float beta, size_t m, size_t n);
 
 #if defined(__cplusplus)
 } // extern "C"

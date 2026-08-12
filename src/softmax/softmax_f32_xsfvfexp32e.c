@@ -13,13 +13,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
-SKL_FUNC void skl_softmax_f32_xsfvfexp32e(float *pDst, const float *pSrc,
+SKL_FUNC void skl_softmax_f32_xsfvfexp32e(float *dst, const float *src,
                                           const float beta, const size_t n) {
   size_t vl = __riscv_vsetvl_e32m8(n);
-  vfloat32m8_t vmax = __riscv_vle32_v_f32m8(pSrc, vl);
+  vfloat32m8_t vmax = __riscv_vle32_v_f32m8(src, vl);
   for (size_t i = vl; i < n; i += vl) {
     vl = __riscv_vsetvl_e32m8(n - i);
-    vfloat32m8_t vx = __riscv_vle32_v_f32m8(pSrc + i, vl);
+    vfloat32m8_t vx = __riscv_vle32_v_f32m8(src + i, vl);
     vmax = __riscv_vfmax_vv_f32m8_tu(vmax, vmax, vx, vl);
   }
   vfloat32m1_t vfirst = __riscv_vlmul_trunc_v_f32m8_f32m1(vmax);
@@ -29,13 +29,13 @@ SKL_FUNC void skl_softmax_f32_xsfvfexp32e(float *pDst, const float *pSrc,
   vfloat32m8_t vsum = __riscv_vfmv_v_f_f32m8(0.0f, n);
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e32m8(n - i);
-    vfloat32m8_t vx = __riscv_vle32_v_f32m8(pSrc + i, vl);
+    vfloat32m8_t vx = __riscv_vle32_v_f32m8(src + i, vl);
     vx = __riscv_vfsub_vf_f32m8(vx, max, vl);
     if (beta != 1.0f)
       vx = __riscv_vfmul_vf_f32m8(vx, beta, vl);
     vx = __riscv_sf_vfexp_v_f32m8(vx, vl);
     vsum = __riscv_vfadd_vv_f32m8_tu(vsum, vsum, vx, vl);
-    __riscv_vse32_v_f32m8(pDst + i, vx, vl);
+    __riscv_vse32_v_f32m8(dst + i, vx, vl);
   }
   vfloat32m1_t ssum = __riscv_vfmv_s_f_f32m1(0.0f, n);
   ssum = __riscv_vfredusum_vs_f32m8_f32m1(vsum, ssum, n);
@@ -44,9 +44,9 @@ SKL_FUNC void skl_softmax_f32_xsfvfexp32e(float *pDst, const float *pSrc,
 
   for (size_t i = 0; i < n; i += vl) {
     vl = __riscv_vsetvl_e32m8(n - i);
-    vfloat32m8_t vx = __riscv_vle32_v_f32m8(pDst + i, vl);
+    vfloat32m8_t vx = __riscv_vle32_v_f32m8(dst + i, vl);
     vx = __riscv_vfmul_vf_f32m8(vx, recip_sum, vl);
-    __riscv_vse32_v_f32m8(pDst + i, vx, vl);
+    __riscv_vse32_v_f32m8(dst + i, vx, vl);
   }
 }
 
@@ -924,9 +924,9 @@ SKL_FUNC_PRIVATE void skl_softmax_2d_mvec_f32_xsfvfexp32e(float *s, size_t rss,
 }
 
 /* 2D Softmax. */
-SKL_FUNC void skl_softmax_2d_f32_xsfvfexp32e(float *s, size_t rss,
-                                             const float *a, size_t rsa,
-                                             float beta, size_t m, size_t n) {
+SKL_FUNC void skl_softmax_f32r_xsfvfexp32e(float *s, size_t rss, const float *a,
+                                           size_t rsa, float beta, size_t m,
+                                           size_t n) {
   size_t vlm1 = __riscv_vsetvlmax_e32m1();
   if ((n >= 6 * vlm1 && m < vlm1) || n >= 16 * vlm1)
     skl_softmax_2d_nvec_f32_xsfvfexp32e(s, rss, a, rsa, beta, m, n);

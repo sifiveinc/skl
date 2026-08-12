@@ -16,22 +16,22 @@ extern "C" {
 #endif
 
 /**
- * @brief Vector FP16 softmax function accelerated with Xsfvfexpa.
+ * @brief Vector F16 softmax function accelerated with Xsfvfexpa.
  *
- * @param pDst - Array of output elements.
- * @param pSrc - Array of input elements.
+ * @param dst - Array of output elements.
+ * @param src - Array of input elements.
  * @param beta - Scaling factor for exponential function arguments.
  * @param n - Number of elements to process.
  *
  * Computes the softmax function equivalent to calling:
  * ```
- * skl_softmax_f16_ref(pDst, pSrc, beta, n);
+ * skl_softmax_f16_ref(dst, src, beta, n);
  * ```
  *
  * Exploits the SiFive vector floating-point exponential approximation
  * instruction to compute the e^x part of softmax.
  */
-void skl_softmax_f16_xsfvfexpa_zvfh(_Float16 *pDst, const _Float16 *pSrc,
+void skl_softmax_f16_xsfvfexpa_zvfh(_Float16 *dst, const _Float16 *src,
                                     _Float16 beta, size_t n);
 #if defined(__cplusplus)
 } // extern "C"
