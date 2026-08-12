@@ -26,6 +26,8 @@ typedef struct {
   skl_test_steps_t steps;
 
   // Configurable parameters
+  float alpha;               // Parameter for alpha-scaling variants
+  float beta;                // Parameter for beta-scaling variants
   const char *func_name;     // The name of the function to test
   unary_func_f32_t func;     // The function to test
   unary_func_f32_t ref_func; // The reference function

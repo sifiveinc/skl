@@ -44,19 +44,12 @@
 #include "../ref/gelu/gelu_f32.h"
 
 /*
- * Logistic Function Kernels
+ * Sigmoid Function Kernels
  */
 
-#include "ref/logistic/logistic_bf16.h"
-#include "ref/logistic/logistic_f16.h"
-#include "ref/logistic/logistic_f32.h"
-
-/*
- * SiLU Function Kernels
- */
-
-#include "ref/silu/silu_f16.h"
-#include "ref/silu/silu_f32.h"
+#include "ref/sigmoid/sigmoid_bf16.h"
+#include "ref/sigmoid/sigmoid_f16.h"
+#include "ref/sigmoid/sigmoid_f32.h"
 
 /*
  * Conversion Functions
