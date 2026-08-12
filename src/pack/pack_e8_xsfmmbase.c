@@ -12,11 +12,10 @@
 
 #include "skl-common.h"
 
-SKL_XSFMM_NEW
 SKL_FUNC void skl_transpose_e8_xsfmmbase(size_t m, size_t n,
                                          const uint8_t *SKL_RESTRICT a,
                                          size_t rsa, uint8_t *SKL_RESTRICT at,
-                                         size_t rsat) {
+                                         size_t rsat) __riscv_new("xsfmm") {
   if (m == 0 || n == 0) {
     return;
   }
