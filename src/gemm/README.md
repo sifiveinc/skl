@@ -104,20 +104,6 @@ These are separate kernels, and not automatically applied by the GEMM functions 
 
 To the extent possible, their layouts depend only on ISA parameters, not on register tiling decisions or machine-specific parameters such as VLEN or cache sizes.
 
-## File Organization
-
-Due to the large number of targets and data types supported by SKL GEMM kernels, the `skl/src/gemm/` directory is further subdivided by ISA:
-```
-skl/src/gemm/
-├── rvv/
-│   ├── ...
-└── xsfmm/
-    ├── ...
-...
-```
-
-Note that, because of the number of subsets of the "V" extension, all such kernels are placed in a single `rvv/` directory.
-
 ## Implementation Details & Performance Considerations
 
 SKL GEMM kernels do not expose register tiling parameters as part of their public API.
