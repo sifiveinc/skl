@@ -21,14 +21,14 @@ endif()
 
 # Set up clang-tidy
 if(SKL_ENABLE_CLANG_TIDY)
-    find_program(SKL_CLANG_TIDY_EXE NAMES
-        riscv64-unknown-elf-clang-tidy
-        riscv64-unknown-linux-gnu-clang-tidy
-    )
-    set(SKL_CLANG_TIDY_EXE "${SKL_CLANG_TIDY_EXE}" CACHE FILEPATH "Path to clang-tidy")
-    if(SKL_CLANG_TIDY_EXE)
-        set(SKL_CLANG_TIDY_CMD "${SKL_CLANG_TIDY_EXE}" CACHE STRING "clang-tidy command")
-    endif()
+  find_program(SKL_CLANG_TIDY_EXE NAMES
+    riscv64-unknown-elf-clang-tidy
+    riscv64-unknown-linux-gnu-clang-tidy
+  )
+  set(SKL_CLANG_TIDY_EXE "${SKL_CLANG_TIDY_EXE}" CACHE FILEPATH "Path to clang-tidy")
+  if(SKL_CLANG_TIDY_EXE)
+    set(SKL_CLANG_TIDY_CMD "${SKL_CLANG_TIDY_EXE}" CACHE STRING "clang-tidy command")
+  endif()
 endif()
 
 # Build the library itself
@@ -39,9 +39,9 @@ add_library(${SKL_LIBRARY} STATIC)
 
 # Try to compile SKL with a recent standard with GNU extensions.
 set_target_properties(${SKL_LIBRARY}
-    PROPERTIES
-    C_STANDARD 23
-    C_STANDARD_REQUIRED ON
+  PROPERTIES
+  C_STANDARD 23
+  C_STANDARD_REQUIRED ON
 )
 # But do require at least C99.
 target_compile_features(${SKL_LIBRARY} PUBLIC c_std_99)
@@ -53,12 +53,12 @@ if(SKL_CLANG_TIDY_CMD)
 endif()
 
 set(SKL_COMPILE_OPTIONS
-    -Wall
-    -Wextra
-    -Wpedantic
-    -Wimplicit-fallthrough
-    -Werror
-    ${SKL_COMPILE_OPTIONS}
+  -Wall
+  -Wextra
+  -Wpedantic
+  -Wimplicit-fallthrough
+  -Werror
+  ${SKL_COMPILE_OPTIONS}
 )
 
 target_compile_options(${SKL_LIBRARY} PRIVATE ${SKL_COMPILE_OPTIONS})
@@ -237,9 +237,9 @@ install(
 set(CPACK_PACKAGE_VENDOR "SiFive, Inc")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
 set(CPACK_GENERATOR "TGZ;STGZ" CACHE STRING
-    "List of CPack binary generators to use.")
+  "List of CPack binary generators to use.")
 set(CPACK_SOURCE_GENERATOR TGZ CACHE STRING
-    "List of CPack source generators to use.")
+  "List of CPack source generators to use.")
 set(CPACK_SOURCE_IGNORE_FILES
   ".git*"
   build/
