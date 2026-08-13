@@ -37,6 +37,11 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
     PRIVATE ${SKL_COMPILE_OPTIONS} ${SKL_TEST_COMPILE_OPTIONS} ${OPTS}
   )
   target_include_directories(test-${TEST_NAME} PRIVATE .)
+  if(SKL_CLANG_TIDY_CMD)
+    set_target_properties(test-${TEST_NAME} PROPERTIES
+      C_CLANG_TIDY ${SKL_CLANG_TIDY_CMD}
+    )
+  endif()
 
   if(SKL_ENABLE_TESTS)
     target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_TESTS)

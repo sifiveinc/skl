@@ -27,10 +27,8 @@ if(SKL_ENABLE_CLANG_TIDY)
     )
     set(SKL_CLANG_TIDY_EXE "${SKL_CLANG_TIDY_EXE}" CACHE FILEPATH "Path to clang-tidy")
     if(SKL_CLANG_TIDY_EXE)
-        set(CMAKE_C_CLANG_TIDY "${SKL_CLANG_TIDY_EXE}" CACHE STRING "clang-tidy command")
+        set(SKL_CLANG_TIDY_CMD "${SKL_CLANG_TIDY_EXE}" CACHE STRING "clang-tidy command")
     endif()
-else()
-    unset(CMAKE_C_CLANG_TIDY CACHE)
 endif()
 
 # Build the library itself
@@ -47,6 +45,12 @@ set_target_properties(${SKL_LIBRARY}
 )
 # But do require at least C99.
 target_compile_features(${SKL_LIBRARY} PUBLIC c_std_99)
+
+if(SKL_CLANG_TIDY_CMD)
+  set_target_properties(${SKL_LIBRARY} PROPERTIES
+    C_CLANG_TIDY ${SKL_CLANG_TIDY_CMD}
+  )
+endif()
 
 set(SKL_COMPILE_OPTIONS
     -Wall

@@ -52,3 +52,9 @@ add_library(skl-ref
 target_include_directories(skl-ref PUBLIC ../include ..)
 target_compile_options(skl-ref PRIVATE ${SKL_COMPILE_OPTIONS})
 target_link_libraries(skl-ref PUBLIC m)
+
+if(SKL_CLANG_TIDY_CMD)
+  set_target_properties(skl-ref PROPERTIES
+    C_CLANG_TIDY ${SKL_CLANG_TIDY_CMD}
+  )
+endif()
