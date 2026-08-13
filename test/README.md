@@ -30,7 +30,7 @@ This abstraction is implemented in the form of a test driver framework, consisti
 ### Test Harness
 
 A harness encapsulates all of the test logic for a given kernel family, and defines a _test configuration_ structure that is used to parametrize individual test cases.
-For example, the `gemm_f32rc_f32rc_f32rc` [harness](gemm/gemm_f32rc_f32rc_f32rc.h) defines a configuration structure that contains the matrix dimensions, strides, and scaling factors for a GEMM test case:
+For example, the `gemm_f32rc_f32rc_f32rc` [harness](../ref/gemm/gemm_f32rc_f32rc_f32rc.h) defines a configuration structure that contains the matrix dimensions, strides, and scaling factors for a GEMM test case:
 ```c
 typedef struct {
   // Test function pointers for various steps
