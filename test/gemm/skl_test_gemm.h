@@ -50,7 +50,7 @@ static inline size_t skl_get_ete_xsfmmbase(void) {
  *
  * X and Y are packed matrices stored in arrays with len elements of size
  * element_size bytes. The elements of the matrices are indexed by:
- *   i1 * rs1 + j1 * cs1 + i0 * rs0 + j0 * cs0,
+ *     i1 * rs1 + j1 * cs1 + i0 * rs0 + j0 * cs0,
  * for 0 <= i1 < m1, 0 <= j1 < n1, 0 <= i0 < m0, 0 <= j0 < n0. This function
  * checks that the arrays pointed to by X and Y are identical outside of the
  * above indices and updates the verify_status of t.
