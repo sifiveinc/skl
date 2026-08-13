@@ -16,6 +16,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#if defined(__riscv_min_xsfmm_te)
+#define SKL_XSFMM_TE ((size_t)__riscv_min_xsfmm_te)
+#endif
+
 #ifdef __riscv_xsfmmbase
 /**
  * @brief Get the effective tile edge length.
@@ -31,90 +35,87 @@ static inline size_t skl_get_ete_xsfmmbase(void) {
  * @brief Check for clobbered elements in a packed matrix
  *
  * @param t - Test context.
- * @param c_type_size - Size of the elements of C_pack0 and C_pack1 in bytes.
- * @param c_pack_len - Number of elements in the arrays for C_pack0 and C_pack1.
- * @param m0 - Number of rows in each block of C_pack0 and C_pack1.
- * @param n0 - Number of columns in each block of C_pack0 and C_pack1.
- * @param m1 - Number of block-rows in C_pack0 and C_pack1.
- * @param n1 - Number of block-columns in C_pack0 and C_pack1.
- * @param c_pack0 - Pointer to matrix C_pack0.
- * @param c_pack1 - Pointer to matrix C_pack1.
- * @param rsc0 - Row stride within each block of C_pack0 and C_pack1 in
- *               elements.
- * @param csc0 - Column stride within each block of C_pack0 and C_pack1 in
- *               elements.
- * @param rsc1 - Row stride between blocks of C_pack0 and C_pack1 in elements.
- * @param csc1 - Column stride between blocks of C_pack0 and C_pack1 in
- *               elements.
+ * @param element_size - Size of the elements of X and Y in bytes.
+ * @param len - Number of elements in the arrays for X and Y.
+ * @param m0 - Number of rows in each block of X and Y.
+ * @param n0 - Number of columns in each block of X and Y.
+ * @param m1 - Number of block-rows in X and Y.
+ * @param n1 - Number of block-columns in X and Y.
+ * @param x - Pointer to matrix X.
+ * @param y - Pointer to matrix Y.
+ * @param rs0 - Row stride within each block of X and Y in elements.
+ * @param cs0 - Column stride within each block of X and Y in elements.
+ * @param rs1 - Row stride between blocks of X and Y in elements.
+ * @param cs1 - Column stride between blocks of X and Y in elements.
  *
- * C_pack0 and C_pack1 are packed matrices stored in arrays with c_pack_len
- * elements of size c_type_size bytes. The elements of the matrices are indexed
- * by i1 * rsc1 + j1 * csc1 + i0 * rsc0 + j0 * csc0, 0 <= i1 < m1, 0 <= j1 < n1,
- * 0 <= i0 < m0, 0 <= j0 < n0. This function checks that the arrays pointed to
- * by c_pack0 and c_pack1 are identical outside of the above indices and updates
- * the verify_status of t.
+ * X and Y are packed matrices stored in arrays with len elements of size
+ * element_size bytes. The elements of the matrices are indexed by:
+ *     i1 * rs1 + j1 * cs1 + i0 * rs0 + j0 * cs0,
+ * for 0 <= i1 < m1, 0 <= j1 < n1, 0 <= i0 < m0, 0 <= j0 < n0. This function
+ * checks that the arrays pointed to by X and Y are identical outside of the
+ * above indices and updates the verify_status of t.
  */
 static inline void skl_test_check_matrix_clobbered_rcprc(
-    skl_test_t *t, size_t c_type_size, size_t c_pack_len, size_t m0, size_t n0,
-    size_t m1, size_t n1, void *c_pack0, void *c_pack1, size_t rsc0,
-    size_t csc0, size_t rsc1, size_t csc1) {
-  uint8_t *c_pack0_cast = (uint8_t *)c_pack0;
-  uint8_t *c_pack1_cast = (uint8_t *)c_pack1;
-  // When m0 == 1, rsc0 can be arbitrary. We adjust its value in this case to
-  // reflect the length of a row. csc0, rsc1, and csc1 are adjusted similarly.
-  size_t rsc0_adj = m0 == 1 ? (n0 - 1) * csc0 + 1 : rsc0;
-  size_t csc0_adj = n0 == 1 ? (m0 - 1) * rsc0 + 1 : csc0;
-  size_t c_block_min_len = (m0 - 1) * rsc0_adj + (n0 - 1) * csc0_adj + 1;
-  size_t rsc1_adj = m1 == 1 ? (n1 - 1) * csc1 + c_block_min_len : rsc1;
-  size_t csc1_adj = n1 == 1 ? (m1 - 1) * rsc1 + c_block_min_len : csc1;
-  // Each block of C_pack{0,1} lies in an ambient m0_amb x n0_amb row- or
-  // column-major matrix with row and column strides rsc0_amb and csc0_amb.
-  // Let bsc1 be the block stride of C_pack{0,1}, i.e. the distance from one
-  // block to the next in memory, in elements; bsc1 varies from block to block.
-  // Lastly, set layoutc0_row_major to true if blocks of C_pack{0,1} are row
-  // major and false otherwise. Similarly, set layoutc1_row_major to true if
-  // C_pack{0,1} is block-row-major and false otherwise.
+    skl_test_t *t, size_t element_size, size_t len, size_t m0, size_t n0,
+    size_t m1, size_t n1, void *x, void *y, size_t rs0, size_t cs0, size_t rs1,
+    size_t cs1) {
+  uint8_t *x_u8 = (uint8_t *)x;
+  uint8_t *y_u8 = (uint8_t *)y;
+  // When m0 == 1, rs0 can be arbitrary. We adjust its value in this case to
+  // reflect the length of a row. cs0, rs1, and cs1 are adjusted similarly.
+  size_t rs0_adj = m0 == 1 ? (n0 - 1) * cs0 + 1 : rs0;
+  size_t cs0_adj = n0 == 1 ? (m0 - 1) * rs0 + 1 : cs0;
+  size_t block_min_len = (m0 - 1) * rs0_adj + (n0 - 1) * cs0_adj + 1;
+  size_t rs1_adj = m1 == 1 ? (n1 - 1) * cs1 + block_min_len : rs1;
+  size_t cs1_adj = n1 == 1 ? (m1 - 1) * rs1 + block_min_len : cs1;
+  // Each block of X and Y lies in an ambient m0_amb x n0_amb row- or
+  // column-major matrix with row and column strides rs0_amb and cs0_amb.
+  // Let bs1 be the block stride of X and Y, i.e. the distance from one block to
+  // the next in memory, in elements; bs1 varies from block to block.
+  // Lastly, set layout0_row_major to true if blocks of X and Y are row major
+  // and false otherwise. Similarly, set layout1_row_major to true if X and Y
+  // are block-row-major and false otherwise.
   size_t m0_amb = 0;
   size_t n0_amb = 0;
-  size_t rsc0_amb = 0;
-  size_t csc0_amb = 0;
-  size_t bsc1 = 0;
-  bool layoutc0_row_major = rsc0_adj >= csc0_adj;
-  bool layoutc1_row_major = rsc1_adj >= csc1_adj;
-  if (layoutc0_row_major) {
-    rsc0_amb = rsc0_adj;
-    csc0_amb = 1;
+  size_t rs0_amb = 0;
+  size_t cs0_amb = 0;
+  size_t bs1 = 0;
+  bool layout0_row_major = rs0_adj >= cs0_adj;
+  bool layout1_row_major = rs1_adj >= cs1_adj;
+  if (layout0_row_major) {
+    rs0_amb = rs0_adj;
+    cs0_amb = 1;
     m0_amb = m0;
-    n0_amb = rsc0_amb;
+    n0_amb = rs0_amb;
   } else {
-    rsc0_amb = 1;
-    csc0_amb = csc0_adj;
-    m0_amb = csc0_amb;
+    rs0_amb = 1;
+    cs0_amb = cs0_adj;
+    m0_amb = cs0_amb;
     n0_amb = n0;
   }
 
   // Check each block.
   for (size_t i1 = 0; i1 < m1; ++i1) {
     for (size_t j1 = 0; j1 < n1; ++j1) {
-      // Check the first c_block_min_len elements.
+      // Check the first block_min_len elements.
       for (size_t i0 = 0; i0 < m0_amb; ++i0) {
         for (size_t j0 = 0; j0 < n0_amb; ++j0) {
-          if (layoutc0_row_major && j0 % csc0_adj == 0 && j0 < n0 * csc0_adj) {
+          if (layout0_row_major && j0 % cs0_adj == 0 && j0 < n0 * cs0_adj) {
             continue;
           }
-          if (!layoutc0_row_major && i0 % rsc0_adj == 0 && i0 < m0 * rsc0_adj) {
+          if (!layout0_row_major && i0 % rs0_adj == 0 && i0 < m0 * rs0_adj) {
             continue;
           }
-          if (i0 * rsc0_amb + j0 * csc0_amb >= c_block_min_len) {
+          if (i0 * rs0_amb + j0 * cs0_amb >= block_min_len) {
             continue;
           }
 
           size_t idx =
-              i1 * rsc1_adj + j1 * csc1_adj + i0 * rsc0_amb + j0 * csc0_amb;
+              i1 * rs1_adj + j1 * cs1_adj + i0 * rs0_amb + j0 * cs0_amb;
           int64_t element0 = 0;
           int64_t element1 = 0;
-          memcpy(&element0, &(c_pack0_cast[c_type_size * idx]), c_type_size);
-          memcpy(&element1, &(c_pack1_cast[c_type_size * idx]), c_type_size);
+          memcpy(&element0, &(x_u8[element_size * idx]), element_size);
+          memcpy(&element1, &(y_u8[element_size * idx]), element_size);
           if (element0 != element1) {
             SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
                          "element [%zu, %zu, %zu, %zu] clobbered\n", i1, j1, i0,
@@ -126,20 +127,20 @@ static inline void skl_test_check_matrix_clobbered_rcprc(
       }
 
       // Check until the next block.
-      if (layoutc1_row_major) {
-        bsc1 = j1 < n1 - 1 ? csc1_adj : rsc1_adj - (n1 - 1) * csc1_adj;
+      if (layout1_row_major) {
+        bs1 = j1 < n1 - 1 ? cs1_adj : rs1_adj - (n1 - 1) * cs1_adj;
       } else {
-        bsc1 = i1 < m1 - 1 ? rsc1_adj : csc1_adj - (m1 - 1) * rsc1_adj;
+        bs1 = i1 < m1 - 1 ? rs1_adj : cs1_adj - (m1 - 1) * rs1_adj;
       }
       if (i1 == m1 - 1 && j1 == n1 - 1) {
-        bsc1 = c_block_min_len;
+        bs1 = block_min_len;
       }
-      for (size_t i = c_block_min_len; i < bsc1; ++i) {
-        size_t idx = i1 * rsc1_adj + j1 * csc1_adj + i;
+      for (size_t i = block_min_len; i < bs1; ++i) {
+        size_t idx = i1 * rs1_adj + j1 * cs1_adj + i;
         int64_t element0 = 0;
         int64_t element1 = 0;
-        memcpy(&element0, &(c_pack0_cast[c_type_size * idx]), c_type_size);
-        memcpy(&element1, &(c_pack1_cast[c_type_size * idx]), c_type_size);
+        memcpy(&element0, &(x_u8[element_size * idx]), element_size);
+        memcpy(&element1, &(y_u8[element_size * idx]), element_size);
         if (element0 != element1) {
           SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR,
                        "element [%zu, %zu, %zu] clobbered\n", i1, j1, i);
@@ -151,15 +152,14 @@ static inline void skl_test_check_matrix_clobbered_rcprc(
   }
 
   // Check until the end of the array.
-  size_t c_pack_min_len =
-      m1 == 0 || n1 == 0
-          ? 0
-          : (m1 - 1) * rsc1_adj + (n1 - 1) * csc1_adj + c_block_min_len;
-  for (size_t idx = c_pack_min_len; idx < c_pack_len; ++idx) {
+  size_t min_len = m1 == 0 || n1 == 0 ? 0
+                                      : (m1 - 1) * rs1_adj +
+                                            (n1 - 1) * cs1_adj + block_min_len;
+  for (size_t idx = min_len; idx < len; ++idx) {
     int64_t element0 = 0;
     int64_t element1 = 0;
-    memcpy(&element0, &(c_pack0_cast[c_type_size * idx]), c_type_size);
-    memcpy(&element1, &(c_pack1_cast[c_type_size * idx]), c_type_size);
+    memcpy(&element0, &(x_u8[element_size * idx]), element_size);
+    memcpy(&element1, &(y_u8[element_size * idx]), element_size);
     if (element0 != element1) {
       SKL_TEST_LOG(t, SKL_TEST_LOG_ERROR, "element [%zu] clobbered\n", idx);
       t->status.verify_status = SKL_TEST_FAIL;
