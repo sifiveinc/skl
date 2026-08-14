@@ -14,21 +14,21 @@ SKL_FUNC void skl_gemm_f16rcprc_f16rcprc_f16rcprc_ref(
     size_t rsc1, size_t csc1) {
   for (size_t ii1 = 0; ii1 < m1; ++ii1) {
     for (size_t jj1 = 0; jj1 < n1; ++jj1) {
-      _Float16 *cp_block = c + ii1 * rsc1 + jj1 * csc1;
+      _Float16 *c_block = c + ii1 * rsc1 + jj1 * csc1;
       for (size_t ii0 = 0; ii0 < m0; ++ii0) {
         for (size_t jj0 = 0; jj0 < n0; ++jj0) {
           _Float16 acc = 0;
           for (size_t kk1 = 0; kk1 < k1; ++kk1) {
-            const _Float16 *ap_block = a + ii1 * rsa1 + kk1 * csa1;
-            const _Float16 *bp_block = b + kk1 * rsb1 + jj1 * csb1;
+            const _Float16 *a_block = a + ii1 * rsa1 + kk1 * csa1;
+            const _Float16 *b_block = b + kk1 * rsb1 + jj1 * csb1;
             for (size_t kk0 = 0; kk0 < k0; ++kk0) {
-              _Float16 a_val = ap_block[ii0 * rsa0 + kk0 * csa0];
-              _Float16 b_val = bp_block[kk0 * rsb0 + jj0 * csb0];
+              _Float16 a_val = a_block[ii0 * rsa0 + kk0 * csa0];
+              _Float16 b_val = b_block[kk0 * rsb0 + jj0 * csb0];
               acc += a_val * b_val;
             }
           }
-          cp_block[ii0 * rsc0 + jj0 * csc0] =
-              beta * cp_block[ii0 * rsc0 + jj0 * csc0] + alpha * acc;
+          c_block[ii0 * rsc0 + jj0 * csc0] =
+              beta * c_block[ii0 * rsc0 + jj0 * csc0] + alpha * acc;
         }
       }
     }
