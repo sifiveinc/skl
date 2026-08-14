@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include "skl-common.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -14,7 +13,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Reference int8 matrix-matrix multiplication with int32 accumulator.
+ * @brief Reference quad-widening int8 GEMM.
  *
  * @param m - Number of rows in matrices A and C.
  * @param n - Number of columns in matrices B and C.
@@ -32,8 +31,8 @@ extern "C" {
  * @param csc - Column stride of matrix C in elements.
  *
  * Computes `C = alpha * A * B + beta * C` for matrices A, B, and C.
- * This generic GEMM function defines the semantics of all optimized int8 GEMM
- * kernels with int32 accumulators in SKL.
+ * This generic GEMM function defines the semantics of all optimized
+ * quad-widening int8 GEMM kernels in SKL.
  *
  * Matrices may be in row-major or column-major order, depending on the strides.
  * For row-major matrices, the column stride is 1, and the row stride is the

@@ -3,7 +3,8 @@
 // See LICENSE file in the project root for full license information.
 // SPDX-License-Identifier: MIT
 
-#include "skl-common.h"
+#pragma once
+
 #include <stddef.h>
 
 #if defined(__cplusplus)
@@ -11,7 +12,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Reference FP64 packed matrix-matrix multiplication.
+ * @brief Reference packed float64 GEMM.
  *
  * @param m0 - Number of rows in each block of matrices A and C.
  * @param n0 - Number of columns in each block of matrices B and C.
@@ -20,26 +21,26 @@ extern "C" {
  * @param n1 - Number of columns in B and C as block matrices.
  * @param k1 - Number of columns in A and rows in B as block matrices.
  * @param alpha - Scalar multiplier for A * B product.
- * @param a_pack - Pointer to matrix A.
+ * @param a - Pointer to matrix A.
  * @param rsa0 - Row stride within each block of A in elements.
  * @param csa0 - Column stride within each block of A in elements.
  * @param rsa1 - Row stride between blocks of A in elements.
  * @param csa1 - Column stride between blocks of A in elements.
- * @param b_pack - Pointer to matrix B.
+ * @param b - Pointer to matrix B.
  * @param rsb0 - Row stride within each block of B in elements.
  * @param csb0 - Column stride within each block of B in elements.
  * @param rsb1 - Row stride between blocks of B in elements.
  * @param csb1 - Column stride between blocks of B in elements.
  * @param beta - Scalar multiplier for matrix C.
- * @param c_pack - Pointer to matrix C.
+ * @param c - Pointer to matrix C.
  * @param rsc0 - Row stride within each block of C in elements.
  * @param csc0 - Column stride within each block of C in elements.
  * @param rsc1 - Row stride between blocks of C in elements.
  * @param csc1 - Column stride between blocks of C in elements.
  *
  * Computes `C = alpha * A * B + beta * C` for packed matrices A, B, and C.
- * This generic GEMM function defines the semantics of all optimized FP64
- * packed GEMM kernels in SKL.
+ * This generic GEMM function defines the semantics of all optimized packed
+ * float64 GEMM kernels in SKL.
  *
  * @note
  * This function is for API documentation purposes only, and should not be used
@@ -47,10 +48,10 @@ extern "C" {
  */
 void skl_gemm_f64rcprc_f64rcprc_f64rcprc_ref(
     size_t m0, size_t n0, size_t k0, size_t m1, size_t n1, size_t k1,
-    double alpha, const double *a_pack, size_t rsa0, size_t csa0, size_t rsa1,
-    size_t csa1, const double *b_pack, size_t rsb0, size_t csb0, size_t rsb1,
-    size_t csb1, double beta, double *c_pack, size_t rsc0, size_t csc0,
-    size_t rsc1, size_t csc1);
+    double alpha, const double *a, size_t rsa0, size_t csa0, size_t rsa1,
+    size_t csa1, const double *b, size_t rsb0, size_t csb0, size_t rsb1,
+    size_t csb1, double beta, double *c, size_t rsc0, size_t csc0, size_t rsc1,
+    size_t csc1);
 
 #if defined(__cplusplus)
 } // extern "C"

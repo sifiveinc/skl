@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include "skl-common.h"
 #include <stddef.h>
 
 #if defined(__cplusplus)
@@ -13,8 +12,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Reference bfloat16 matrix-matrix multiplication with float32
- * accumulator.
+ * @brief Reference widening bfloat16 GEMM.
  *
  * @param m - Number of rows in matrices A and C.
  * @param n - Number of columns in matrices B and C.
@@ -32,8 +30,8 @@ extern "C" {
  * @param csc - Column stride of matrix C in elements.
  *
  * Computes `C = alpha * A * B + beta * C` for matrices A, B, and C.
- * This generic GEMM function defines the semantics of all optimized BF16 GEMM
- * kernels with FP32 accumulators in SKL.
+ * This generic GEMM function defines the semantics of all optimized widening
+ * bfloat16 GEMM kernels in SKL.
  *
  * Matrices may be in row-major or column-major order, depending on the strides.
  * For row-major matrices, the column stride is 1, and the row stride is the
