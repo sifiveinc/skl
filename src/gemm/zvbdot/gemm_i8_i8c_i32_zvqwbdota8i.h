@@ -5,12 +5,8 @@
 
 #pragma once
 
-#if !defined(__riscv_zve32x)
-#error This source file requires compiler support for the RISC-V Zve32x extension.
-#endif
-
-#if !defined(__riscv_xsfvqdotq)
-#error This source file requires compiler support for the Xsfvqdotq extension.
+#if !defined(__riscv_zvqwbdota8i)
+#error This source file requires compiler support for the Zvqwbdota8i extension.
 #endif
 
 #include <stddef.h>
@@ -67,12 +63,9 @@ extern "C" {
  * padding between the rows so that the row stride is a multiple of 4. Then the
  * kernel can be called by setting rsa1 to the row stride and csa1 = 4.
  */
-void skl_gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(size_t m, size_t n, size_t k1,
-                                             int32_t alpha, const int8_t *a,
-                                             size_t rsa1, size_t csa1,
-                                             const int8_t *b, size_t rsb1,
-                                             int32_t beta, int32_t *c,
-                                             size_t rsc);
+void skl_gemm_a1b0_vlen512_15x16_i8_i8c_i32_zvqwbdota8i(
+    size_t k, const int8_t *a, size_t rsa, const int8_t *b, size_t csb,
+    int32_t *c, size_t rsc);
 
 #if defined(__cplusplus)
 } // extern "C"

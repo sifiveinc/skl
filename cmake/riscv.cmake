@@ -14,14 +14,15 @@ set(SKL_ARCH_EXTENSIONS
   rv64gcv
   zba
   zbb
+  zvl512b
   # xsfmmbase
   # xsfmm32a8f
   # xsfmm32a8i
   # xsfmm32a16f
   # xsfmm32a32f
   # xsfmm64t
-  zfh
-  zvfh
+  # zfh
+  # zvfh
   # xsfvfbfa
   # xsfvfbfexp16e
   # xsfvfexp16e
@@ -30,9 +31,10 @@ set(SKL_ARCH_EXTENSIONS
   # zvfofp8min0p2
   # zvfofp4min0p1
   # xsfvqdotq
-  zvfbfmin
-  zvfbfwma
-  zihintntl
+  # zvfbfmin
+  # zvfbfwma
+  zvqwbdota8i0p2
+  # zihintntl
 )
 
 string(JOIN "_" SKL_ARCH_STR ${SKL_ARCH_EXTENSIONS})
