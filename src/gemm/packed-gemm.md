@@ -123,14 +123,14 @@ for (size_t ii1 = 0; ii1 < m1; ++ii1) {
     for (size_t idx = 0; idx < m0 * n0; ++idx)
       acc[idx] = 0;
     for (size_t kk1 = 0; kk1 < k1; ++kk1) {
-      const <type_a>* ap_block = a + ii1 * rsa1 + kk1 * csa1;
-      const <type_b>* bp_block = b + kk1 * rsb1 + jj1 * csb1;
+      const <type_a>* a_block = a + ii1 * rsa1 + kk1 * csa1;
+      const <type_b>* b_block = b + kk1 * rsb1 + jj1 * csb1;
       // Compute block product (loops usually map to 1 instruction)
       for (size_t ii0 = 0; ii0 < m0; ++ii0) {
         for (size_t jj0 = 0; jj0 < n0; ++jj0) {
           for (size_t kk0 = 0; kk0 < k0; ++kk0) {
-            <type_a> a_val = ap_block[ii0 * rsa0 + kk0 * csa0];
-            <type_b> b_val = bp_block[kk0 * rsb0 + jj0 * csb0];
+            <type_a> a_val = a_block[ii0 * rsa0 + kk0 * csa0];
+            <type_b> b_val = b_block[kk0 * rsb0 + jj0 * csb0];
             acc[ii0 * n0 + jj0] += a_val * b_val;
           }
         }
