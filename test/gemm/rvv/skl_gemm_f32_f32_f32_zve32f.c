@@ -61,6 +61,11 @@ gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
     /* Small odd dimensions for remainder handling */
     {TEST, .m1 = 7,   .n1 = 7,   .k1 = 7,  .alpha = 1.f},
     {TEST, .m1 = 17,  .n1 = 17,  .k1 = 17, .alpha = 1.f},
+    /* Padded leading dimensions */
+    {TEST, .m1 = 7,   .n1 = 17,  .k1 = 13, .alpha = 1.f,  .rsa1 = 14, .rsb1 = 17, .rsc1 = 17},
+    {TEST, .m1 = 7,   .n1 = 17,  .k1 = 13, .alpha = 1.f,  .rsa1 = 13, .rsb1 = 18, .rsc1 = 17},
+    {TEST, .m1 = 7,   .n1 = 17,  .k1 = 13, .alpha = 1.f,  .rsa1 = 13, .rsb1 = 17, .rsc1 = 18},
+    {TEST, .m1 = 7,   .n1 = 17,  .k1 = 13, .alpha = 1.f,  .rsa1 = 14, .rsb1 = 18, .rsc1 = 18},
     /* Skinny matrices (one dimension = 1) */
     {TEST, .m1 = 1,   .n1 = 33,  .k1 = 31, .alpha = 1.f},
     {TEST, .m1 = 33,  .n1 = 1,   .k1 = 31, .alpha = 1.f},
