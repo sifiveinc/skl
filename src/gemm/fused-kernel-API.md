@@ -5,7 +5,7 @@ The former compute a GEMM and store the result to memory, while the latter opera
 An alternate approach for GEMM kernels using SiFive's Xsfmm extension is to leave the matrix product in the tile state and pass it directly to the post-GEMM operator, which avoids storing and reloading the matrix.
 This document describes an API for post-GEMM kernels that allows them to be "fused" in this way to the Xsfmm GEMM kernels.
 Such an API is only possible due to the existence of [C ABI attributes for Xsfmm functions](https://www.sifive.com/document-file/xsfmm-matrix-extensions-specification).
-It is assumed that readers are familiar with [SKL's packed GEMM API](../packed-gemm.md) and SiFive's Xsfmm extension.
+It is assumed that readers are familiar with [SKL's packed GEMM API](packed-gemm.md) and SiFive's Xsfmm extension.
 
 ## Inner Loop Functions
 We first describe the Xsfmm GEMM inner loop functions, which accumulate a partial matrix product `A * B` into the current tile state for a specific matrix register tiling, and return this result in matrix registers.

@@ -120,8 +120,8 @@ Whenever significant deviations from the above assumptions are required, users a
 
 SKL's kernels can also be used individually by copying just a few source files into the target project.
 To use a particular kernel, copy the following three files from the SKL repository into the target project:
-- The kernel's source file (e.g., `src/gemm/rvv/skl_gemm_f32_f32_f32_zve32f_x390.c`)
-- The kernel's declaration header (e.g., `src/gemm/rvv/skl_gemm_f32_f32_f32_zve32f_x390.h`)
+- The kernel's source file (e.g., `src/gemm/gemm_f32_f32_f32_zve32f_x390.c`)
+- The kernel's declaration header (e.g., `src/gemm/gemm_f32_f32_f32_zve32f_x390.h`)
 - The common header `include/skl-common.h`, which must be in the include search path for the kernel's source file.
 
 Indvidual kernel source files should only be added to the build if the target system supports the ISA extensions required by that kernel, and will result in a preprocessor error otherwise.
@@ -134,7 +134,7 @@ SKL kernels can be used as header-only inline functions by defining `SKL_FUNC` a
 ```c
 #define SKL_FUNC static inline
 #define SKL_FUNC_PRIVATE static inline
-#include "src/gemm/rvv/skl_gemm_f32_f32_f32_zve32f.c"
+#include "src/gemm/gemm_f32_f32_f32_zve32f.c"
 ```
 
 C++ projects must wrap includes in `extern "C"` blocks:
@@ -142,7 +142,7 @@ C++ projects must wrap includes in `extern "C"` blocks:
 extern "C" {
 #define SKL_FUNC static inline
 #define SKL_FUNC_PRIVATE static inline
-#include "src/gemm/rvv/skl_gemm_f32_f32_f32_zve32f.c"
+#include "src/gemm/gemm_f32_f32_f32_zve32f.c"
 }
 ```
 
