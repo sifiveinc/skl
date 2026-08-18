@@ -18,13 +18,13 @@ target_compile_options(
   PRIVATE ${SKL_COMPILE_OPTIONS} ${SKL_TEST_COMPILE_OPTIONS}
 )
 
-function(skl_add_test_from_executable TEST_NAME TEST_EXEC)
+function(skl_add_test_from_executable TEST_NAME TEST_EXEC TEST_DIR)
   # Default test registration function for an executable that already exists.
   # Set SKL_CUSTOM_ADD_TEST to override with customized functionality.
   add_test(
     NAME ${TEST_NAME}
     COMMAND ${SKL_TESTER} ${SKL_TESTER_OPTIONS} ${TEST_EXEC}
-    WORKING_DIRECTORY $<TARGET_FILE_DIR:${TEST_EXEC}>
+    WORKING_DIRECTORY ${TEST_DIR}
   )
 endfunction()
 
@@ -45,6 +45,7 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
 
   set(TEST_NAME test-${TEST_NAME})
   set(TEST_EXEC ${TEST_NAME})
+  set(TEST_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
   # Create the test executable
   add_executable(${TEST_EXEC} ${HARNESS_SRC} ${TEST_SRC})
@@ -57,6 +58,7 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
     PRIVATE ${SKL_COMPILE_OPTIONS} ${SKL_TEST_COMPILE_OPTIONS} ${OPTS}
   )
   target_include_directories(${TEST_EXEC} PRIVATE .)
+  set_target_properties(${TEST_EXEC} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TEST_DIR})
   if(SKL_CLANG_TIDY_CMD)
     set_target_properties(${TEST_EXEC} PROPERTIES
       C_CLANG_TIDY ${SKL_CLANG_TIDY_CMD}
@@ -71,7 +73,7 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
   endif()
 
   # Create the test command
-  cmake_language(CALL ${SKL_CUSTOM_ADD_TEST} ${TEST_NAME} ${TEST_EXEC})
+  cmake_language(CALL ${SKL_CUSTOM_ADD_TEST} ${TEST_NAME} ${TEST_EXEC} ${TEST_DIR})
 endfunction()
 
 skl_add_test(
