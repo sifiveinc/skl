@@ -19,14 +19,46 @@ extern "C" {
 #endif
 
 /**
+ * @brief TE x 1 matrix packing kernel for 16-bit matrices using SiFive's Xsfmm
+ * matrix engine.
+ *
+ * @param m - Num. rows in input matrix.
+ * @param n - Num. columns in input matrix.
+ * @param src - Pointer to input matrix.
+ * @param rs - Stride between rows of input matrix.
+ * @param dst - Pointer to packed output matrix.
+ * @param rs1 - Row stride between blocks of output matrix.
+ * @param cs1 - Column stride between blocks of output matrix.
+ * @param pad - Padding value.
+ *
+ * Equivalent to scalar call:
+ * ```
+ * skl_pack_e16rc_e16rcprc_ref(
+ *     m, n,               // m, n,
+ *     src, rs, 1,         // src, rs, cs
+ *     te, 1,              // m0, n0,
+ *     dst, 1, 0, rs1, cs1 // dst, rs0, cs0, rs1, cs1
+ *     pad                 // pad
+ * );
+ * ```
+ *
+ * This function is intended to provide packing functionality for all 16-bit
+ * datatypes by way of type-punning through the input/output array pointers and
+ * of the padding value.
+ */
+void skl_pack_e16_e16rcptex1c_xsfmmbase(size_t m, size_t n, const uint16_t *src,
+                                        size_t rs, uint16_t *dst, size_t rs1,
+                                        size_t cs1, uint16_t pad);
+
+/**
  * @brief Xsfmm matrix transposition for 16-bit matrices.
  *
  * @param m - Number of rows in A and columns in A^T.
  * @param n - Number of columns in A and rows in A^T.
  * @param a - Pointer to input matrix A.
- * @param rsa - Row stride of A (stride between rows) in elements.
+ * @param rsa - Stride between rows of A in elements.
  * @param at - Pointer to output matrix A^T.
- * @param rsat - Row stride of A^T (stride between rows) in elements.
+ * @param rsat - Stride between rows of A^T in elements.
  *
  * Both A and A^T must be row-major.
  *
