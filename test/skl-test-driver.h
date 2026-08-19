@@ -43,6 +43,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "skl-rng.h"
+
 //----- Test definitions -----
 
 // Forward declaration to resolve circular dependency
@@ -404,9 +406,17 @@ SKL_TEST_BUF_RANDOM_IMPL(uint32_t, uint32_t, INT,   PRIu32)
 SKL_TEST_BUF_RANDOM_IMPL(uint64_t, uint64_t, INT,   PRIu64)
 SKL_TEST_BUF_RANDOM_IMPL(_Float16, double,   FLOAT, "f")
 SKL_TEST_BUF_RANDOM_IMPL(__bf16,   double,   FLOAT, "f")
-SKL_TEST_BUF_RANDOM_IMPL(float,    double,   FLOAT, "f")
+// SKL_TEST_BUF_RANDOM_IMPL(float,    double,   FLOAT, "f")
 SKL_TEST_BUF_RANDOM_IMPL(double,   double,   FLOAT, "f")
 // clang-format on
+
+static inline void skl_test_buf_random_float(skl_test_t *t, float *buf,
+                                             size_t len, float min, float max) {
+  SKL_TEST_LOG(t, SKL_TEST_LOG_DEBUG,
+               "  populating with random values in [%f, %f]\n", (float)min,
+               (float)max);
+  rand_f32(buf, len, min, max);
+}
 
 /**
  * @brief Populate a buffer with sequential data.
