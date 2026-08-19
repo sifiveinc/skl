@@ -18,21 +18,22 @@ target_compile_options(
   PRIVATE ${SKL_COMPILE_OPTIONS} ${SKL_TEST_COMPILE_OPTIONS}
 )
 
-function(skl_add_test_from_executable TEST_NAME TEST_EXEC TEST_DIR)
-  # Default test registration function for an executable that already exists.
-  # Set SKL_CUSTOM_ADD_TEST to override with customized functionality.
-  add_test(
-    NAME ${TEST_NAME}
-    COMMAND ${SKL_TESTER} ${SKL_TESTER_OPTIONS} ${TEST_EXEC}
-    WORKING_DIRECTORY ${TEST_DIR}
-  )
-endfunction()
-
-set(SKL_CUSTOM_ADD_TEST "skl_add_test_from_executable" CACHE
-  STRING "Name of the function used to add a test given an executable target."
+set(SKL_ADD_TEST_FUNC "skl_add_test_default" CACHE
+  STRING "Name of the function used to add a SKL test target."
 )
 
 function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
+  # Set SKL_ADD_TEST_FUNC for customized functionality.
+  cmake_language(CALL ${SKL_ADD_TEST_FUNC}
+    ${TEST_NAME}
+    ${HARNESS_SRC}
+    ${TEST_SRC}
+    "${REQUIRED_EXTENSIONS}"
+    "${OPTS}"
+  )
+endfunction()
+
+function(skl_add_test_default TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
   # Build a test executable from the given harness and test file, and add a ctest test for it.
 
   # Only add the test if all extensions in REQUIRED_EXTENSIONS are present.
@@ -73,7 +74,11 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
   endif()
 
   # Create the test command
-  cmake_language(CALL ${SKL_CUSTOM_ADD_TEST} ${TEST_NAME} ${TEST_EXEC} ${TEST_DIR})
+  add_test(
+    NAME ${TEST_NAME}
+    COMMAND ${SKL_TESTER} ${SKL_TESTER_OPTIONS} ${TEST_EXEC}
+    WORKING_DIRECTORY ${TEST_DIR}
+  )
 endfunction()
 
 skl_add_test(
