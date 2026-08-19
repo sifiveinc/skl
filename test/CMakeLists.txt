@@ -45,38 +45,37 @@ function(skl_add_test_default TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS
   endforeach()
 
   set(TEST_NAME test-${TEST_NAME})
-  set(TEST_EXEC ${TEST_NAME})
   set(TEST_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
   # Create the test executable
-  add_executable(${TEST_EXEC} ${HARNESS_SRC} ${TEST_SRC})
+  add_executable(${TEST_NAME} ${HARNESS_SRC} ${TEST_SRC})
   target_link_libraries(
-    ${TEST_EXEC}
+    ${TEST_NAME}
     PRIVATE ${SKL_LIBRARY} ${SKL_TEST_LIBS} skl-test-driver
   )
   target_compile_options(
-    ${TEST_EXEC}
+    ${TEST_NAME}
     PRIVATE ${SKL_COMPILE_OPTIONS} ${SKL_TEST_COMPILE_OPTIONS} ${OPTS}
   )
-  target_include_directories(${TEST_EXEC} PRIVATE .)
-  set_target_properties(${TEST_EXEC} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TEST_DIR})
+  target_include_directories(${TEST_NAME} PRIVATE .)
+  set_target_properties(${TEST_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TEST_DIR})
   if(SKL_CLANG_TIDY_CMD)
-    set_target_properties(${TEST_EXEC} PROPERTIES
+    set_target_properties(${TEST_NAME} PROPERTIES
       C_CLANG_TIDY ${SKL_CLANG_TIDY_CMD}
     )
   endif()
 
   if(SKL_ENABLE_TESTS)
-    target_compile_definitions(${TEST_EXEC} PRIVATE SKL_ENABLE_TESTS)
+    target_compile_definitions(${TEST_NAME} PRIVATE SKL_ENABLE_TESTS)
   endif()
   if(SKL_ENABLE_BENCHMARKS)
-    target_compile_definitions(${TEST_EXEC} PRIVATE SKL_ENABLE_BENCHMARKS)
+    target_compile_definitions(${TEST_NAME} PRIVATE SKL_ENABLE_BENCHMARKS)
   endif()
 
   # Create the test command
   add_test(
     NAME ${TEST_NAME}
-    COMMAND ${SKL_TESTER} ${SKL_TESTER_OPTIONS} ${TEST_EXEC}
+    COMMAND ${SKL_TESTER} ${SKL_TESTER_OPTIONS} ${TEST_NAME}
     WORKING_DIRECTORY ${TEST_DIR}
   )
 endfunction()
