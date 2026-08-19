@@ -113,7 +113,7 @@ void skl_gemm_tile_zero_f32_f32_xsfmmbase(size_t m, size_t n, size_t tss,
     size_t n_avl = n;
     for (size_t j1 = 0; j1 < n1; ++j1) {
       size_t tn = n_avl >= ete ? ete : n_avl;
-      tile_zero_functions[tzf0 + i1 * rstzf + j1 * cstzf](tm, tn);
+      (*tile_zero_functions[tzf0 + i1 * rstzf + j1 * cstzf])(tm, tn);
       n_avl -= tn;
     }
     m_avl -= tm;
@@ -1147,8 +1147,8 @@ skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32_rcptexterc_xsfmm32a32f(
   }
 
   if (accum) {
-    tile_load(m, n, c, rsc0, csc0, rsc1, csc1, row1, col1, trans ? mt0c : mt0,
-              rstss, cstss);
+    (*tile_load)(m, n, c, rsc0, csc0, rsc1, csc1, row1, col1,
+                 trans ? mt0c : mt0, rstss, cstss);
   } else {
     if (trans) {
       // NOLINTBEGIN(readability-suspicious-call-argument)
@@ -1160,9 +1160,9 @@ skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32_rcptexterc_xsfmm32a32f(
   }
 
   if (trans) {
-    inner_loop(n, m, k, b, csb1, rsb1, a, csa1, rsa1);
+    (*inner_loop)(n, m, k, b, csb1, rsb1, a, csa1, rsa1);
   } else {
-    inner_loop(m, n, k, a, rsa1, csa1, b, rsb1, csb1);
+    (*inner_loop)(m, n, k, a, rsa1, csa1, b, rsb1, csb1);
   }
 
   skl_gemm_apply_fused_f32_f32_rcptexterc_xsfmmbase(
@@ -1176,7 +1176,7 @@ skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32_rcptexterc_xsfmm32a32f(
   do {                                                                         \
     skl_gemm_apply_tiling_f32rcptex1c_f32rcp1xte_f32_rcptexterc_xsfmm32a32f(   \
         tile_load, M1, N1,                                                     \
-        skl_gemm_inner_loop_##M1XN1##_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f,  \
+        &skl_gemm_inner_loop_##M1XN1##_f32rcptex1c_f32rcp1xte_f32_xsfmm32a32f, \
         M, N, k, a + (ROW1) * rsa1, rsa1, csa1, b + (COL1) * csb1, rsb1, csb1, \
         c, rsc0, csc0, rsc1, csc1, ROW1, COL1, accum, kernel, params);         \
   } while (0)
@@ -1271,9 +1271,9 @@ SKL_FUNC void skl_gemm_f32c_f32_f32_xsfmm32a32f(size_t m, size_t n, size_t k,
   __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
 
   skl_gemm_fused_f32rcptex1c_f32rcp1xte_f32_rcptexterc_xsfmm32a32f(
-      skl_gemm_tile_load_f32_f32rcptexterc_f32_xsfmmbase, m, n, k, a, ete, csa,
+      &skl_gemm_tile_load_f32_f32rcptexterc_f32_xsfmmbase, m, n, k, a, ete, csa,
       b, rsb, ete, c, rsc, 1, ete * rsc, ete, false,
-      skl_gemm_alpha_beta_scaling_f32_f32_f32rcptexterc_xsfmmbase, &params);
+      &skl_gemm_alpha_beta_scaling_f32_f32_f32rcptexterc_xsfmmbase, &params);
 }
 
 /* Computes C = alpha * A * B + beta * C for packed matrices A, B, and C. */
@@ -1288,7 +1288,7 @@ SKL_FUNC void skl_gemm_f32rcptex1c_f32rcp1xte_f32rcptexterc_xsfmm32a32f(
   __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
 
   skl_gemm_fused_f32rcptex1c_f32rcp1xte_f32_rcptexterc_xsfmm32a32f(
-      skl_gemm_tile_load_f32_f32rcptexterc_f32_xsfmmbase, m1 * ete, n1 * ete, k,
-      a, rsa1, csa1, b, rsb1, csb1, c, rsc0, csc0, rsc1, csc1, false,
-      skl_gemm_alpha_beta_scaling_f32_f32_f32rcptexterc_xsfmmbase, &params);
+      &skl_gemm_tile_load_f32_f32rcptexterc_f32_xsfmmbase, m1 * ete, n1 * ete,
+      k, a, rsa1, csa1, b, rsb1, csb1, c, rsc0, csc0, rsc1, csc1, false,
+      &skl_gemm_alpha_beta_scaling_f32_f32_f32rcptexterc_xsfmmbase, &params);
 }
