@@ -45,7 +45,6 @@ function(skl_add_test_default TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS
   endforeach()
 
   set(TEST_NAME test-${TEST_NAME})
-  set(TEST_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
   # Create the test executable
   add_executable(${TEST_NAME} ${HARNESS_SRC} ${TEST_SRC})
@@ -58,7 +57,6 @@ function(skl_add_test_default TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS
     PRIVATE ${SKL_COMPILE_OPTIONS} ${SKL_TEST_COMPILE_OPTIONS} ${OPTS}
   )
   target_include_directories(${TEST_NAME} PRIVATE .)
-  set_target_properties(${TEST_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TEST_DIR})
   if(SKL_CLANG_TIDY_CMD)
     set_target_properties(${TEST_NAME} PROPERTIES
       C_CLANG_TIDY ${SKL_CLANG_TIDY_CMD}
@@ -75,8 +73,7 @@ function(skl_add_test_default TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS
   # Create the test command
   add_test(
     NAME ${TEST_NAME}
-    COMMAND ${SKL_TESTER} ${SKL_TESTER_OPTIONS} ${TEST_NAME}
-    WORKING_DIRECTORY ${TEST_DIR}
+    COMMAND ${SKL_TESTER} ${SKL_TESTER_OPTIONS} $<TARGET_FILE:${TEST_NAME}>
   )
 endfunction()
 
