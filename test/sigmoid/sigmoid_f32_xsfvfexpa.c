@@ -39,27 +39,25 @@ static void test_swish_f32_xsfvfexpa(float *out, const float *in, size_t n) {
   skl_swish_f32_xsfvfexpa(out, SWISH_BETA, in, n);
 }
 
-static void test_glu_f32_xsfvfexpa(float *out, const float *in, size_t n) {
-  skl_glu_f32_xsfvfexpa(out, in, in, n);
-}
-
-static void test_swiglu_f32_xsfvfexpa(float *out, const float *in, size_t n) {
-  skl_swiglu_f32_xsfvfexpa(out, in, in, SWIGLU_DELTA, n);
-}
-
-#if defined(SKL_ENABLE_TESTS)
 static void ref_swish_f32(float *out, const float *in, size_t n) {
   skl_swish_f32_ref(out, SWISH_BETA, in, n);
+}
+
+static void test_glu_f32_xsfvfexpa(float *out, const float *in, size_t n) {
+  skl_glu_f32_xsfvfexpa(out, in, in, n);
 }
 
 static void ref_glu_f32(float *out, const float *in, size_t n) {
   skl_glu_f32_ref(out, in, in, n);
 }
 
+static void test_swiglu_f32_xsfvfexpa(float *out, const float *in, size_t n) {
+  skl_swiglu_f32_xsfvfexpa(out, in, in, SWIGLU_DELTA, n);
+}
+
 static void ref_swiglu_f32(float *out, const float *in, size_t n) {
   skl_swiglu_f32_ref(out, in, in, SWIGLU_DELTA, n);
 }
-#endif
 
 unary_f32_t tests[] = {
 #if defined(SKL_ENABLE_BENCHMARKS)
