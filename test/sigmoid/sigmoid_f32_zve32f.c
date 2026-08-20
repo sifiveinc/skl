@@ -35,27 +35,27 @@
 #define SWIGLU_MAX (+18.f)
 #define SWIGLU_DELTA 0.5f
 
-static void test_swish_f32_zve32f(float *out, const float *in, size_t n) {
+void test_swish_f32_zve32f(float *out, const float *in, size_t n) {
   skl_swish_f32_zve32f(out, SWISH_BETA, in, n);
 }
 
-static void ref_swish_f32(float *out, const float *in, size_t n) {
+void ref_swish_f32(float *out, const float *in, size_t n) {
   skl_swish_f32_ref(out, SWISH_BETA, in, n);
 }
 
-static void test_glu_f32_zve32f(float *out, const float *in, size_t n) {
+void test_glu_f32_zve32f(float *out, const float *in, size_t n) {
   skl_glu_f32_zve32f(out, in, in, n);
 }
 
-static void ref_glu_f32(float *out, const float *in, size_t n) {
+void ref_glu_f32(float *out, const float *in, size_t n) {
   skl_glu_f32_ref(out, in, in, n);
 }
 
-static void test_swiglu_f32_zve32f(float *out, const float *in, size_t n) {
+void test_swiglu_f32_zve32f(float *out, const float *in, size_t n) {
   skl_swiglu_f32_zve32f(out, in, in, SWIGLU_DELTA, n);
 }
 
-static void ref_swiglu_f32(float *out, const float *in, size_t n) {
+void ref_swiglu_f32(float *out, const float *in, size_t n) {
   skl_swiglu_f32_ref(out, in, in, SWIGLU_DELTA, n);
 }
 
