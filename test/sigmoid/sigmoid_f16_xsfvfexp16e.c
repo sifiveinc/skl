@@ -35,8 +35,7 @@
 #define SWIGLU_MAX (+9.f)
 #define SWIGLU_DELTA (_Float16)0.5
 
-void test_swish_f16_xsfvfexp16e(_Float16 *out, const _Float16 *in,
-                                       size_t n) {
+void test_swish_f16_xsfvfexp16e(_Float16 *out, const _Float16 *in, size_t n) {
   skl_swish_f16_xsfvfexp16e(out, SWISH_BETA, in, n);
 }
 
@@ -44,8 +43,7 @@ void ref_swish_f16(_Float16 *out, const _Float16 *in, size_t n) {
   skl_swish_f16_ref(out, SWISH_BETA, in, n);
 }
 
-void test_glu_f16_xsfvfexp16e(_Float16 *out, const _Float16 *in,
-                                     size_t n) {
+void test_glu_f16_xsfvfexp16e(_Float16 *out, const _Float16 *in, size_t n) {
   skl_glu_f16_xsfvfexp16e(out, in, in, n);
 }
 
@@ -53,8 +51,7 @@ void ref_glu_f16(_Float16 *out, const _Float16 *in, size_t n) {
   skl_glu_f16_ref(out, in, in, n);
 }
 
-void test_swiglu_f16_xsfvfexp16e(_Float16 *out, const _Float16 *in,
-                                        size_t n) {
+void test_swiglu_f16_xsfvfexp16e(_Float16 *out, const _Float16 *in, size_t n) {
   skl_swiglu_f16_xsfvfexp16e(out, in, in, SWIGLU_DELTA, n);
 }
 

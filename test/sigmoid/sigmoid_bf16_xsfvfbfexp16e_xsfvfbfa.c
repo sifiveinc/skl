@@ -36,8 +36,8 @@
 #define SWIGLU_MAX (+6.f)
 #define SWIGLU_DELTA (__bf16)0.5
 
-void test_swish_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *out,
-                                                   const __bf16 *in, size_t n) {
+void test_swish_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *out, const __bf16 *in,
+                                            size_t n) {
   skl_swish_bf16_xsfvfbfexp16e_xsfvfbfa(out, SWISH_BETA, in, n);
 }
 
@@ -46,7 +46,7 @@ void ref_swish_bf16(__bf16 *out, const __bf16 *in, size_t n) {
 }
 
 void test_glu_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *out, const __bf16 *in,
-                                                 size_t n) {
+                                          size_t n) {
   skl_glu_bf16_xsfvfbfexp16e_xsfvfbfa(out, in, in, n);
 }
 
@@ -54,9 +54,8 @@ void ref_glu_bf16(__bf16 *out, const __bf16 *in, size_t n) {
   skl_glu_bf16_ref(out, in, in, n);
 }
 
-void test_swiglu_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *out,
-                                                    const __bf16 *in,
-                                                    size_t n) {
+void test_swiglu_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *out, const __bf16 *in,
+                                             size_t n) {
   skl_swiglu_bf16_xsfvfbfexp16e_xsfvfbfa(out, in, in, SWIGLU_DELTA, n);
 }
 

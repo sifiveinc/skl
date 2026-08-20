@@ -51,8 +51,7 @@ void ref_glu_bf16(__bf16 *out, const __bf16 *in, size_t n) {
   skl_glu_bf16_ref(out, in, in, n);
 }
 
-void test_swiglu_bf16_xsfvfexpa(__bf16 *out, const __bf16 *in,
-                                       size_t n) {
+void test_swiglu_bf16_xsfvfexpa(__bf16 *out, const __bf16 *in, size_t n) {
   skl_swiglu_bf16_xsfvfexpa(out, in, in, SWIGLU_DELTA, n);
 }
 
