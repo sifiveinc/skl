@@ -58,7 +58,7 @@ gemm_i8rcprc_i8rcprc_i32rcprc_t tests[] = {
 
 #ifdef SKL_ENABLE_TESTS
     // Verification tests - comprehensive coverage for Zvqwbdota8i GEMM
-    {TEST, .m1 = 14,  .n1 = 16,    .k1 = 544},
+    {TEST, .m1 = 2, .n1 = 8, .k1 = 67},
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on
@@ -89,7 +89,7 @@ static void execute(skl_test_t *t) {
   const gemm_i8rcprc_i8rcprc_i32rcprc_t *h =
       (gemm_i8rcprc_i8rcprc_i32rcprc_t *)t->harness;
 
-  skl_gemm_a1b0_vlen512_15x16_i8_i8c_i32_zvqwbdota8i(h->k1, h->a_pack.data, h->rsa1,
+  skl_gemm_a1b0_2x8_i8_i8c_i32_zvqwbdota8i(h->k1, h->a_pack.data, h->rsa1,
                                             h->b_pack.data, h->csb1,
                                             h->c_pack.data, h->rsc1);
 }

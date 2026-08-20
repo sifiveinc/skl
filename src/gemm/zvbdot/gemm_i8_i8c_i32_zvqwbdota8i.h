@@ -63,7 +63,12 @@ extern "C" {
  * padding between the rows so that the row stride is a multiple of 4. Then the
  * kernel can be called by setting rsa1 to the row stride and csa1 = 4.
  */
+/*
 void skl_gemm_a1b0_vlen512_15x16_i8_i8c_i32_zvqwbdota8i(
+    size_t k, const int8_t *a, size_t rsa, const int8_t *b, size_t csb,
+    int32_t *c, size_t rsc);
+*/
+void skl_gemm_a1b0_2x8_i8_i8c_i32_zvqwbdota8i(
     size_t k, const int8_t *a, size_t rsa, const int8_t *b, size_t csb,
     int32_t *c, size_t rsc);
 

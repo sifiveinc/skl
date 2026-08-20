@@ -14,7 +14,7 @@ set(SKL_ARCH_EXTENSIONS
   rv64gcv
   zba
   zbb
-  zvl512b
+  # zvl512b
   # xsfmmbase
   # xsfmm32a8f
   # xsfmm32a8i
