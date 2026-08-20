@@ -35,30 +35,30 @@
 #define SWIGLU_MAX (+9.f)
 #define SWIGLU_DELTA (_Float16)0.5
 
-static void test_swish_f16_xsfvfexpa_zvfh(_Float16 *out, const _Float16 *in,
+void test_swish_f16_xsfvfexpa_zvfh(_Float16 *out, const _Float16 *in,
                                           size_t n) {
   skl_swish_f16_xsfvfexpa_zvfh(out, SWISH_BETA, in, n);
 }
 
-static void ref_swish_f16(_Float16 *out, const _Float16 *in, size_t n) {
+void ref_swish_f16(_Float16 *out, const _Float16 *in, size_t n) {
   skl_swish_f16_ref(out, SWISH_BETA, in, n);
 }
 
-static void test_glu_f16_xsfvfexpa_zvfh(_Float16 *out, const _Float16 *in,
+void test_glu_f16_xsfvfexpa_zvfh(_Float16 *out, const _Float16 *in,
                                         size_t n) {
   skl_glu_f16_xsfvfexpa_zvfh(out, in, in, n);
 }
 
-static void ref_glu_f16(_Float16 *out, const _Float16 *in, size_t n) {
+void ref_glu_f16(_Float16 *out, const _Float16 *in, size_t n) {
   skl_glu_f16_ref(out, in, in, n);
 }
 
-static void test_swiglu_f16_xsfvfexpa_zvfh(_Float16 *out, const _Float16 *in,
+void test_swiglu_f16_xsfvfexpa_zvfh(_Float16 *out, const _Float16 *in,
                                            size_t n) {
   skl_swiglu_f16_xsfvfexpa_zvfh(out, in, in, SWIGLU_DELTA, n);
 }
 
-static void ref_swiglu_f16(_Float16 *out, const _Float16 *in, size_t n) {
+void ref_swiglu_f16(_Float16 *out, const _Float16 *in, size_t n) {
   skl_swiglu_f16_ref(out, in, in, SWIGLU_DELTA, n);
 }
 
