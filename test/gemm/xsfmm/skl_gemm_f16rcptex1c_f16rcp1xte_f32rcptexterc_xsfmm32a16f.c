@@ -19,8 +19,8 @@
  * This test uses the gemm_f16rcprc_f16rcprc_f32rcprc harness with the following
  * restrictions on the input parameters:
  *  - The block dimensions are m0 = TE, n0 = TE, and k0 = 1
- *  - Matrix A_pack has column-major blocks (rsa0 == 1)
- *  - Matrix B_pack has row-major blocks (csb0 == 1)
+ *  - Matrix A has column-major blocks (rsa0 == 1)
+ *  - Matrix B has row-major blocks (csb0 == 1)
  */
 
 #define TEST                                                                   \
@@ -202,9 +202,8 @@ static void execute(skl_test_t *t) {
       (gemm_f16rcprc_f16rcprc_f32rcprc_t *)t->harness;
 
   skl_gemm_f16rcptex1c_f16rcp1xte_f32rcptexterc_xsfmm32a16f(
-      h->m1, h->n1, h->k1, h->alpha, h->a_pack.data, h->rsa1, h->csa1,
-      h->b_pack.data, h->rsb1, h->csb1, h->beta, h->c_pack.data, h->rsc0,
-      h->csc0, h->rsc1, h->csc1);
+      h->m1, h->n1, h->k1, h->alpha, h->a.data, h->rsa1, h->csa1, h->b.data,
+      h->rsb1, h->csb1, h->beta, h->c.data, h->rsc0, h->csc0, h->rsc1, h->csc1);
 }
 
 int main(void) {
