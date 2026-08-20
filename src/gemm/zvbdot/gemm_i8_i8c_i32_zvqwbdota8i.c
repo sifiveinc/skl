@@ -13,7 +13,7 @@
 
 #include "skl-common.h"
 
-SKL_FUNC void skl_gemm_a1b0_vlen512_2xm8_i8_i8c_i32_zvqwbdota8i(
+SKL_FUNC void skl_gemm_a1b0_2x8_i8_i8c_i32_zvqwbdota8i(
     size_t k, const int8_t *a, size_t rsa, const int8_t *b, size_t csb,
     int32_t *c, size_t rsc) {
   vint32m8_t cvec0 = __riscv_vmv_v_x_i32m8(0, 8);
@@ -50,10 +50,7 @@ SKL_FUNC void skl_gemm_a1b0_vlen512_2xm8_i8_i8c_i32_zvqwbdota8i(
                    "add %[b0], %[b0], %[csb]\n"
 
                    "vqwbdotas.vv %[cvec0], v0, %[avec], 0\n"
-
                    "vle8.v %[avec], (%[a0])\n"
-                   "add %[a0], %[a0], %[rsa]\n"
-
                    "vqwbdotas.vv %[cvec1], v0, %[avec], 0\n"
 
                    "add %[a], %[a], %[vl]\n"
@@ -62,14 +59,19 @@ SKL_FUNC void skl_gemm_a1b0_vlen512_2xm8_i8_i8c_i32_zvqwbdota8i(
 
                    "bnez %[avl], 0b\n"
                    : [avec] "=&vr"(avec), [cvec0] "+&vr"(cvec0),
-                     [cvec1] "+&vr"(cvec1), [a0] "+&r"(a0), [b0] "+&r"(b0),
+                     [cvec1] "+&vr"(cvec1), [a0] "=&r"(a0), [b0] "=&r"(b0),
                      [a] "+&r"(a), [b] "+&r"(b), [vl] "=&r"(vl)
-                   : [rsa] "rI"(rsa * sizeof(int8_t)),
-                     [csb] "rI"(csb * sizeof(int8_t)), [avl] "r"(avl)
+                   : [rsa] "rI"(rsa),
+                     [csb] "rI"(csb), [avl] "r"(avl)
                    : "vl", "vtype", "memory", "v0", "v1", "v2", "v3", "v4",
                      "v5", "v6", "v7");
+
+  __riscv_vse32_v_i32m8(c, cvec0, 8);
+  c += rsc;
+  __riscv_vse32_v_i32m8(c, cvec1, 8);
 }
 
+/*
 SKL_FUNC void skl_gemm_a1b0_vlen512_15x16_i8_i8c_i32_zvqwbdota8i(
     size_t k, const int8_t *a, size_t rsa, const int8_t *b, size_t csb,
     int32_t *c, size_t rsc) {
@@ -209,7 +211,7 @@ SKL_FUNC void skl_gemm_a1b0_vlen512_15x16_i8_i8c_i32_zvqwbdota8i(
           [cvec5] "+&vr"(cvec5), [cvec6] "+&vr"(cvec6), [cvec7] "+&vr"(cvec7),
           [cvec8] "+&vr"(cvec8), [cvec9] "+&vr"(cvec9), [cvec10] "+&vr"(cvec10),
           [cvec11] "+&vr"(cvec11), [cvec12] "+&vr"(cvec12),
-          [cvec13] "+&vr"(cvec13), /*[cvec14] "+&vr"(cvec14),*/[a0] "+&r"(a0),
+          [cvec13] "+&vr"(cvec13), [cvec14] "+&vr"(cvec14),[a0] "+&r"(a0),
           [b0] "+&r"(b0), [vl] "=&r"(vl)
         : [rsa] "rI"(rsa * sizeof(int8_t)), [csb] "rI"(csb * sizeof(int8_t)),
           [avl] "r"(avl)
@@ -251,3 +253,4 @@ SKL_FUNC void skl_gemm_a1b0_vlen512_15x16_i8_i8c_i32_zvqwbdota8i(
   // c += rsc;
   // __riscv_vse32_v_i32m1(c, cvec14, 16);
 }
+*/
