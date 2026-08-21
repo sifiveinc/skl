@@ -13,9 +13,82 @@
 
 #include "skl-common.h"
 
-SKL_FUNC void skl_gemm_a1b0_2x8_i8_i8c_i32_zvqwbdota8i(
-    size_t k, const int8_t *a, size_t rsa, const int8_t *b, size_t csb,
-    int32_t *c, size_t rsc) {
+SKL_FUNC void
+skl_gemm_a1b0_2xle8_i8_i8c_i32_zvqwbdota8i(size_t k, size_t n, const int8_t *a,
+                                           size_t rsa, const int8_t *b,
+                                           size_t csb, int32_t *c, size_t rsc) {
+  if (n == 0) {
+    return;
+  }
+  vint32m8_t cvec0 = __riscv_vmv_v_x_i32m8(0, 8);
+  vint32m8_t cvec1 = __riscv_vmv_v_x_i32m8(0, 8);
+  vint8m1_t avec = __riscv_vundefined_i8m1();
+
+  b += (n - 1) * csb;
+  const int8_t *a0 = a;
+  const int8_t *b0 = b;
+  size_t avl = k;
+  size_t vl = 0;
+  uint8_t mask = 0xFFU >> (8 - n);
+  size_t jump_addr = 0;
+  size_t offset = 4 * (8 + (16 - 2 * n));
+  // seems to work if compressed instructions are not used
+  __asm__ volatile(
+      "vsetvli x0, x0, e8, m1, ta, ma\n"
+      "vmv.s.x v0, %[mask]\n"
+
+      "auipc %[jump_addr], 0\n"
+      "add %[jump_addr], %[jump_addr], %[offset]\n"
+
+      "0:\n"
+      "mv %[a0], %[a]\n"
+      "mv %[b0], %[b]\n"
+
+      "vsetvli %[vl], %[avl], e8alt, m1, ta, ma\n"
+      "vle8.v %[avec], (%[a0])\n"
+      "add %[a0], %[a0], %[rsa]\n"
+      "jr %[jump_addr]\n"
+      "vle8.v v15, (%[b0])\n"
+      "sub %[b0], %[b0], %[csb]\n"
+      "vle8.v v14, (%[b0])\n"
+      "sub %[b0], %[b0], %[csb]\n"
+      "vle8.v v13, (%[b0])\n"
+      "sub %[b0], %[b0], %[csb]\n"
+      "vle8.v v12, (%[b0])\n"
+      "sub %[b0], %[b0], %[csb]\n"
+      "vle8.v v11, (%[b0])\n"
+      "sub %[b0], %[b0], %[csb]\n"
+      "vle8.v v10, (%[b0])\n"
+      "sub %[b0], %[b0], %[csb]\n"
+      "vle8.v v9, (%[b0])\n"
+      "sub %[b0], %[b0], %[csb]\n"
+      "vle8.v v8, (%[b0])\n"
+
+      "vqwbdotas.vv %[cvec0], v8, %[avec], 0, v0.t\n"
+      "vle8.v %[avec], (%[a0])\n"
+      "vqwbdotas.vv %[cvec1], v8, %[avec], 0, v0.t\n"
+
+      "add %[a], %[a], %[vl]\n"
+      "add %[b], %[b], %[vl]\n"
+      "sub %[avl], %[avl], %[vl]\n"
+
+      "bnez %[avl], 0b\n"
+      : [avec] "=&vr"(avec), [cvec0] "+&vr"(cvec0), [cvec1] "+&vr"(cvec1),
+        [jump_addr] "=&r"(jump_addr), [a0] "=&r"(a0), [b0] "=&r"(b0),
+        [a] "+&r"(a), [b] "+&r"(b), [vl] "=&r"(vl), [avl] "+&r"(avl)
+      : [mask] "r"(mask), [offset] "r"(offset), [rsa] "rI"(rsa), [csb] "rI"(csb)
+      : "vl", "vtype", "memory", "v0", "v8", "v9", "v10", "v11", "v12", "v13",
+        "v14", "v15");
+
+  __riscv_vse32_v_i32m8(c, cvec0, 8);
+  c += rsc;
+  __riscv_vse32_v_i32m8(c, cvec1, 8);
+}
+
+SKL_FUNC void
+skl_gemm_a1b0_2x8_i8_i8c_i32_zvqwbdota8i(size_t k, const int8_t *a, size_t rsa,
+                                         const int8_t *b, size_t csb,
+                                         int32_t *c, size_t rsc) {
   vint32m8_t cvec0 = __riscv_vmv_v_x_i32m8(0, 8);
   vint32m8_t cvec1 = __riscv_vmv_v_x_i32m8(0, 8);
 
@@ -61,8 +134,7 @@ SKL_FUNC void skl_gemm_a1b0_2x8_i8_i8c_i32_zvqwbdota8i(
                    : [avec] "=&vr"(avec), [cvec0] "+&vr"(cvec0),
                      [cvec1] "+&vr"(cvec1), [a0] "=&r"(a0), [b0] "=&r"(b0),
                      [a] "+&r"(a), [b] "+&r"(b), [vl] "=&r"(vl)
-                   : [rsa] "rI"(rsa),
-                     [csb] "rI"(csb), [avl] "r"(avl)
+                   : [rsa] "rI"(rsa), [csb] "rI"(csb), [avl] "r"(avl)
                    : "vl", "vtype", "memory", "v0", "v1", "v2", "v3", "v4",
                      "v5", "v6", "v7");
 
