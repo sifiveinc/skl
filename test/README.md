@@ -30,7 +30,7 @@ This abstraction is implemented in the form of a test driver framework, consisti
 ### Test Harness
 
 A harness encapsulates all of the test logic for a given kernel family, and defines a _test configuration_ structure that is used to parametrize individual test cases.
-For example, the `gemm_f32rc_f32rc_f32rc` [harness](gemm/gemm_f32rcprc_f32rcprc_f32rcprc.h) defines a configuration structure that contains the matrix dimensions, strides, and scaling factors for a GEMM test case:
+For example, the `gemm_f32rcprc_f32rcprc_f32rcprc` [harness](gemm/gemm_f32rcprc_f32rcprc_f32rcprc.h) defines a configuration structure that contains the matrix dimensions, strides, and scaling factors for a GEMM test case:
 ```c
 typedef struct {
   // Test function pointers for various steps
@@ -38,12 +38,13 @@ typedef struct {
   skl_test_steps_t steps;
 
   // Configurable parameters (arguments to GEMM function)
-  size_t m, n, k;
+  size_t m0, n0, k0;
+  size_t m1, n1, k1;
   float alpha;
-  size_t rsa, csa;
-  size_t rsb, csb;
+  size_t rsa0, csa0, rsa1, csa1;
+  size_t rsb0, csb0, rsb1, csb1;
   float beta;
-  size_t rsc, csc;
+  size_t rsc0, csc0, rsc1, csc1;
 
   // Buffer generation settings for A, B, C
   SKL_TEST_BUFFER(float) a, b, c;
@@ -54,7 +55,7 @@ typedef struct {
     float *ref_c;
     double *bound;
   } ctx;
-} gemm_f32rc_f32rc_f32rc_t;
+} gemm_f32rcprc_f32rcprc_f32rcprc_t;
 ```
 
 Generally, such structures will separate configurable settings from derived parameters and test state, with the latter contained in a nested structure as shown above.
@@ -97,9 +98,9 @@ typedef struct skl_test_t {
 } skl_test_t;
 ```
 In order to access the test configuration structure, the callback function should cast the `harness` pointer to the appropriate type.
-For example, the `gemm_f32rc_f32rc_f32rc` harness uses the following pattern in its `init` function:
+For example, the `gemm_f32rcprc_f32rcprc_f32rcprc` harness uses the following pattern in its `init` function:
 ```c
-gemm_f32rc_f32rc_f32rc_t *h = t->harness;
+gemm_f32rcprc_f32rcprc_f32rcprc_t *h = t->harness;
 ```
 
 ### Test Suite
@@ -107,51 +108,63 @@ gemm_f32rc_f32rc_f32rc_t *h = t->harness;
 A test suite is a collection of related tests that share a common harness, and may be intended for use with a specific driver or environment.
 
 These tests are enumerated in a C file as an array of test configuration structures.
-For example, the `skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f` [test suite](gemm/xsfmm/skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f.c) defines an array of `gemm_f32rc_f32rc_f32rc_t` structures, each of which configures a different set of matrix dimensions and strides for the GEMM test case:
+For example, the `skl_gemm_f32c_f32_f32_xsfmm32a32f` [test suite](gemm/xsfmm/skl_gemm_f32c_f32_f32_xsfmm32a32f.c) defines an array of `gemm_f32rcprc_f32rcprc_f32rcprc_t` structures, each of which configures a different set of matrix dimensions and strides for the GEMM test case:
 ```c
 #define TEST                                                                   \
-  GEMM_F32RC_F32RC_F32RC_DEFAULTS,                                             \
+  GEMM_F32RCPRC_F32RCPRC_F32RCPRC_DEFAULTS,                                    \
       .steps = {                                                               \
-          .init = gemm_f32rc_f32rc_f32rc_init,                                 \
+          .init = init,                                                        \
           .warmup = NULL,                                                      \
           .execute = execute,                                                  \
-          .verify = gemm_f32rc_f32rc_f32rc_verify,                             \
-          .report = NULL,                                                      \
-          .cleanup = gemm_f32rc_f32rc_f32rc_cleanup,                           \
+          .verify = gemm_f32rcprc_f32rcprc_f32rcprc_verify,                    \
+          .report = gemm_f32rcprc_f32rcprc_f32rcprc_test_report,               \
+          .cleanup = gemm_f32rcprc_f32rcprc_f32rcprc_cleanup,                  \
   }
+
 #define BENCH                                                                  \
-  GEMM_F32RC_F32RC_F32RC_DEFAULTS,                                             \
+  GEMM_F32RCPRC_F32RCPRC_F32RCPRC_DEFAULTS,                                    \
       .steps = {                                                               \
-          .init = gemm_f32rc_f32rc_f32rc_init,                                 \
+          .init = init,                                                        \
           .warmup = execute,                                                   \
           .execute = execute,                                                  \
           .verify = NULL,                                                      \
-          .report = gemm_f32rc_f32rc_f32rc_report,                             \
-          .cleanup = gemm_f32rc_f32rc_f32rc_cleanup,                           \
+          .report = gemm_f32rcprc_f32rcprc_f32rcprc_benchmark_report,          \
+          .cleanup = gemm_f32rcprc_f32rcprc_f32rcprc_cleanup,                  \
   }
+
+static void init(skl_test_t *t);
 static void execute(skl_test_t *t);
 
 // clang-format off
-gemm_f32rc_f32rc_f32rc_t tests[] = {
+gemm_f32rcprc_f32rcprc_f32rcprc_t tests[] = {
+#ifdef SKL_ENABLE_BENCHMARKS
     // Benchmark tests
-    {BENCH, .m = 128, .n = 128, .k = 2048, .beta = 0.f},
-    {BENCH, .m = 128, .n = 128, .k = 2048, .beta = 1.f},
+    {BENCH, .m1 = 2 * SKL_XSFMM_TE, .n1 = 2 * SKL_XSFMM_TE, .k1 = 2048, .alpha = 1.f, .beta = 0.f},
+    {BENCH, .m1 = 2 * SKL_XSFMM_TE, .n1 = 2 * SKL_XSFMM_TE, .k1 = 2048, .alpha = 1.f, .beta = 1.f},
     ...
-    // Verification tests
-    {TEST, .rsa = 1, .m = 16,  .n = 16, .k = 16},
-    {TEST, .rsa = 1, .m = 16,  .n = 16, .k = 16, .beta = 1.f},
+#endif // SKL_ENABLE_BENCHMARKS
+
+#ifdef SKL_ENABLE_TESTS
+    // Verification tests - comprehensive coverage for Xsfmm
+    /* Edge case: 1x1 matrix with k=0 (no computation, C = beta * C) */
+    {TEST, .m1 = 1, .n1 = 1, .k1 = 0, .alpha = 1.f},
+    /* Edge case: 1x1 matrix with k=1 (minimal computation) */
+    {TEST, .m1 = 1, .n1 = 1, .k1 = 1, .alpha = 1.f},
     ...
+#endif // SKL_ENABLE_TESTS
 };
+// clang-format on
 ```
 The list of test cases may include both correctness tests and performance benchmarks, distinguished by the callback functions they specify.
 Any callback except `execute` may be provided as `NULL` to skip the execution of such step.
 
 The test suite must also define a `skl_test_suite_t` structure that describes the test suite to the driver, and includes the array of test configurations:
 ```c
-skl_test_suite_t suite = {.name = "skl_gemm_a1b01_f32c_f32_f32_xsfmm32a32f",
-                          .num_tests = sizeof(tests) / sizeof(tests[0]),
-                          .test_size = sizeof(gemm_f32rc_f32rc_f32rc_t),
-                          .tests = tests};
+static skl_test_suite_t suite = {.name = "skl_gemm_f32c_f32_f32_xsfmm32a32f",
+                                 .num_tests = sizeof(tests) / sizeof(tests[0]),
+                                 .test_size =
+                                     sizeof(gemm_f32rcprc_f32rcprc_f32rcprc_t),
+                                 .tests = tests};
 ```
 The test suite C file must also call `skl_test_driver_run_suite` to execute the test suite, generally inside its own `main` function:
 ```c
