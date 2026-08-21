@@ -68,9 +68,15 @@ void skl_gemm_a1b0_vlen512_15x16_i8_i8c_i32_zvqwbdota8i(
     size_t k, const int8_t *a, size_t rsa, const int8_t *b, size_t csb,
     int32_t *c, size_t rsc);
 */
-void skl_gemm_a1b0_2x8_i8_i8c_i32_zvqwbdota8i(
-    size_t k, const int8_t *a, size_t rsa, const int8_t *b, size_t csb,
-    int32_t *c, size_t rsc);
+void skl_gemm_a1b0_2xle8_i8_i8c_i32_zvqwbdota8i(size_t k, size_t n,
+                                                const int8_t *a, size_t rsa,
+                                                const int8_t *b, size_t csb,
+                                                int32_t *c, size_t rsc);
+
+void skl_gemm_a1b0_2x8_i8_i8c_i32_zvqwbdota8i(size_t k, const int8_t *a,
+                                              size_t rsa, const int8_t *b,
+                                              size_t csb, int32_t *c,
+                                              size_t rsc);
 
 #if defined(__cplusplus)
 } // extern "C"
