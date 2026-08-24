@@ -61,7 +61,7 @@
 #endif
 
 #if defined(__riscv_zvqwbdota8i)
-#include "gemm/zvbdot/gemm_i8_i8c_i32_zvqwbdota8i.h"
+#include "gemm/gemm_i8_i8c_i32_zvqwbdota8i.h"
 #endif
 
 /*
