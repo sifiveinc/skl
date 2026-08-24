@@ -63,10 +63,10 @@ void gemm_f16rcprc_f16rcprc_f32rcprc_benchmark_report(skl_test_t *t);
 void gemm_f16rcprc_f16rcprc_f32rcprc_cleanup(skl_test_t *t);
 
 #define GEMM_F16RCPRC_F16RCPRC_F32RCPRC_DEFAULTS                               \
-  .a = {.min = (_Float16)-1.0f,                                           \
-             .max = (_Float16)1.0f,                                            \
-             .mode = SKL_TEST_RANDOM},                                         \
-  .b = {.min = (_Float16)-1.0f,                                           \
-             .max = (_Float16)1.0f,                                            \
-             .mode = SKL_TEST_RANDOM},                                         \
+  .a = {.min = (_Float16)-1.0f,                                                \
+        .max = (_Float16)1.0f,                                                 \
+        .mode = SKL_TEST_RANDOM},                                              \
+  .b = {.min = (_Float16)-1.0f,                                                \
+        .max = (_Float16)1.0f,                                                 \
+        .mode = SKL_TEST_RANDOM},                                              \
   .c = {.min = -1.0f, .max = 1.0f, .mode = SKL_TEST_RANDOM}
