@@ -139,7 +139,7 @@ add_skl_src(src/gemm/gemm_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c "xsfmm32a8f")
 add_skl_src(src/gemm/gemm_f8e5m2c_f8e5m2_f32_xsfmm32a8f.c "xsfmm32a8f")
 add_skl_src(src/gemm/gemm_i8c_i8_i32_xsfmm32a8i.c "xsfmm32a8i")
 add_skl_src(src/gemm/gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq.c "xsfvqdotq")
-add_skl_src(src/gemm/zvbdot/gemm_i8_i8c_i32_zvqwbdota8i.c "zvqwbdota8i")
+add_skl_src(src/gemm/gemm_i8_i8c_i32_zvqwbdota8i.c "zvqwbdota8i")
 
 add_skl_src(src/pack/pack_e16_zve32x.c "zve32x")
 add_skl_src(src/pack/pack_e32_zve32x.c "zve32x")
