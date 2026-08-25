@@ -21,8 +21,6 @@
  *  - Matrix A is row-major (csa1 = 1)
  *  - Matrix B is column-major (rsb1 = 1)
  *  - Matrix C is row-major (csc1 = 1)
- *  - Alpha must be 1
- *  - Beta must be 0
  */
 
 #define TEST                                                                   \
@@ -95,6 +93,7 @@ gemm_i8rcprc_i8rcprc_i32rcprc_t tests[] = {
     {TEST, .m1 = 3, .n1 = 15, .k1 = 67},
 
     {TEST, .m1 = 65, .n1 = 65, .k1 = 255},
+    {TEST, .m1 = 65, .n1 = 65, .k1 = 255, .alpha = 2, .beta = 3},
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on
@@ -115,8 +114,6 @@ static void init(skl_test_t *t) {
   SKL_TEST_REQUIRE(t, init_status, h->csa1 == 1);
   SKL_TEST_REQUIRE(t, init_status, h->rsb1 == 1);
   SKL_TEST_REQUIRE(t, init_status, h->csc1 == 1);
-  SKL_TEST_REQUIRE(t, init_status, h->alpha == 1);
-  SKL_TEST_REQUIRE(t, init_status, h->beta == 0);
 
   gemm_i8rcprc_i8rcprc_i32rcprc_init(t);
 }
@@ -125,9 +122,9 @@ static void execute(skl_test_t *t) {
   const gemm_i8rcprc_i8rcprc_i32rcprc_t *h =
       (gemm_i8rcprc_i8rcprc_i32rcprc_t *)t->harness;
 
-  skl_gemm_a1b0_i8_i8c_i32_zvqwbdota8i(h->m1, h->n1, h->k1, h->a_pack.data,
-                                       h->rsa1, h->b_pack.data, h->csb1,
-                                       h->c_pack.data, h->rsc1);
+  skl_gemm_i8_i8c_i32_zvqwbdota8i(h->m1, h->n1, h->k1, h->alpha, h->a_pack.data,
+                                  h->rsa1, h->b_pack.data, h->csb1, h->beta,
+                                  h->c_pack.data, h->rsc1);
 }
 
 int main(void) {
@@ -150,8 +147,6 @@ int main(void) {
     tests[i].csc0 = 1;
     tests[i].csc1 = 1;
     tests[i].rsc1 = tests[i].rsc1 ? tests[i].rsc1 : tests[i].n1;
-
-    tests[i].alpha = 1;
   }
 
   return skl_test_driver_run_suite(&suite);

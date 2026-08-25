@@ -26,7 +26,7 @@ extern "C" {
  * @param a - Pointer to matrix A in row-major format.
  * @param rsa - Stride between rows of matrix A in elements.
  * @param b - Pointer to matrix B in column-major format.
- * @param rsb - Stride between columns of matrix B in elements.
+ * @param csb - Stride between columns of matrix B in elements.
  * @param beta - Scalar multiplier for matrix C.
  * @param c - Pointer to matrix C in row-major format.
  * @param rsc - Stride between rows of matrix C in elements.
@@ -37,24 +37,23 @@ extern "C" {
  * Equivalent to:
  * ```
  * skl_gemm_i8rc_i8rc_i32rc_ref(
- *     m, n, k,   // m0, n0, k0, m1, n1, k1
- *     alpha,               // alpha
- *     a, rsa, 1,  // a, rsa, csa
- *     b, 1, csb,     // b, rsb, csb
- *     beta,                // beta
- *     c, rsc, 1      // c, rsc, csc
+ *     m, n, k,   // m, n, k
+ *     alpha,     // alpha
+ *     a, rsa, 1, // a, rsa, csa
+ *     b, 1, csb, // b, rsb, csb
+ *     beta,      // beta
+ *     c, rsc, 1  // c, rsc, csc
  * );
  * ```
  *
  * This kernel uses the SiFive Zvqwbdota8i extension for vector quad widening
  * batched dot product operations to achieve high performance on 8-bit integer
  * data.
- *
  */
-void skl_gemm_a1b0_i8_i8c_i32_zvqwbdota8i(size_t m, size_t k, size_t n,
-                                          const int8_t *a, size_t rsa,
-                                          const int8_t *b, size_t csb,
-                                          int32_t *c, size_t rsc);
+void skl_gemm_i8_i8c_i32_zvqwbdota8i(size_t m, size_t k, size_t n,
+                                     int32_t alpha, const int8_t *a, size_t rsa,
+                                     const int8_t *b, size_t csb, int32_t beta,
+                                     int32_t *c, size_t rsc);
 #if defined(__cplusplus)
 } // extern "C"
 #endif
