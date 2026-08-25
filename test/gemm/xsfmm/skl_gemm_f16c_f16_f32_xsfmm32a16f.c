@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "gemm/gemm_f16rcprc_f16rcprc_f32rcprc.h"
+#include "gemm/skl_test_gemm.h"
 #include "skl-test-driver.h"
 #include "skl.h"
 #include <stddef.h>
