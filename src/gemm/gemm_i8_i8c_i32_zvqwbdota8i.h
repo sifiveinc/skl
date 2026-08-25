@@ -17,72 +17,44 @@ extern "C" {
 #endif
 
 /**
- * @brief Xsfvqdotq int8 GEMM with int32 accumulator.
+ * @brief Zvqwbdota8i quad-widening int8 GEMM.
  *
  * @param m - Number of rows in A and C.
  * @param n - Number of columns in B and C.
- * @param k1 - Number of block-columns in A, block-rows in B.
+ * @param k - Number of columns in A, rows in B.
  * @param alpha - Scalar multiplier for A * B.
- * @param a - Pointer to packed matrix A (m0 = 1, k0 = 4, csa0 = 1).
- * @param rsa1 - Row stride between blocks of A in elements.
- * @param csa1 - Column stride between blocks of A in elements.
- * @param b - Pointer to packed matrix B (k0 = 4, n0 = 1, rsb0 = 1,
- *            csb1 = 4).
- * @param rsb1 - Row stride between blocks of B in elements.
+ * @param a - Pointer to matrix A in row-major format.
+ * @param rsa - Stride between rows of matrix A in elements.
+ * @param b - Pointer to matrix B in column-major format.
+ * @param rsb - Stride between columns of matrix B in elements.
  * @param beta - Scalar multiplier for matrix C.
  * @param c - Pointer to matrix C in row-major format.
  * @param rsc - Stride between rows of matrix C in elements.
  *
- * Computes `C = alpha * A * B + beta * C` for packed int8 matrices
- * A and B and int32 output matrix C.
+ * Computes `C = alpha * A * B + beta * C` for int8 row-major matrix A, int8
+ * column-major matrix B, and int32 row-major matrix C.
  *
  * Equivalent to:
  * ```
- * skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
- *     1, 1, 4, m, n, k1,   // m0, n0, k0, m1, n1, k1
+ * skl_gemm_i8rc_i8rc_i32rc_ref(
+ *     m, n, k,   // m0, n0, k0, m1, n1, k1
  *     alpha,               // alpha
- *     a, 0, 1, rsa1, csa1, // a, rsa0, csa0, rsa1, csa1
- *     b, 1, 0, rsb1, 4,    // b, rsb0, csb0, rsb1, csb1
+ *     a, rsa, 1,  // a, rsa, csa
+ *     b, 1, csb,     // b, rsb, csb
  *     beta,                // beta
- *     c, 0, 0, rsc, 1      // c, rsc0, csc0, rsc1, csc1
+ *     c, rsc, 1      // c, rsc, csc
  * );
  * ```
  *
- * This kernel uses the SiFive Xsfvqdotq extension for vector quad widening 4D
- * dot product operations to achieve high performance on 8-bit integer data.
- * Works best when A is 4-byte aligned and rsa1 and csa1 are multiples of 4.
+ * This kernel uses the SiFive Zvqwbdota8i extension for vector quad widening
+ * batched dot product operations to achieve high performance on 8-bit integer
+ * data.
  *
- * @note
- * If A does not meet the alignment requirements stated above, the kernel
- * falls back to an unaligned implementation that is unlikely to get good
- * performance since it must handle misaligned loads from A.
- *
- * @note
- * The simplest way to pack a row-major A matrix into an A that meets the
- * alignment requirements is to copy it into a 4-byte-aligned buffer, but insert
- * padding between the rows so that the row stride is a multiple of 4. Then the
- * kernel can be called by setting rsa1 to the row stride and csa1 = 4.
  */
-/*
-void skl_gemm_a1b0_vlen512_15x16_i8_i8c_i32_zvqwbdota8i(
-    size_t k, const int8_t *a, size_t rsa, const int8_t *b, size_t csb,
-    int32_t *c, size_t rsc);
-*/
-  /*
-void skl_gemm_a1b0_2xle8_i8_i8c_i32_zvqwbdota8i(size_t k, size_t n,
-                                                const int8_t *a, size_t rsa,
-                                                const int8_t *b, size_t csb,
-                                                int32_t *c, size_t rsc);
-
-void skl_gemm_a1b0_1xle8_i8_i8c_i32_zvqwbdota8i(size_t k, size_t n,
-                                                const int8_t *a, size_t rsa,
-                                                const int8_t *b, size_t csb,
-                                                int32_t *c);
-                                                */
 void skl_gemm_a1b0_i8_i8c_i32_zvqwbdota8i(size_t m, size_t k, size_t n,
-                                                const int8_t *a, size_t rsa,
-                                                const int8_t *b, size_t csb,
-                                                int32_t *c, size_t rsc);
+                                          const int8_t *a, size_t rsa,
+                                          const int8_t *b, size_t csb,
+                                          int32_t *c, size_t rsc);
 #if defined(__cplusplus)
 } // extern "C"
 #endif
