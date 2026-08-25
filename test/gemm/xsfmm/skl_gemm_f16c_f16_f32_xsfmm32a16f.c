@@ -122,7 +122,7 @@ static void execute(skl_test_t *t) {
 }
 
 int main(void) {
-  // Set default strides: A is column-major, B is row-major, C is row-major
+  // Set default strides: A is column-major, B and C are row-major
   for (size_t i = 0; i < suite.num_tests; ++i) {
     tests[i].m0 = 1;
     tests[i].n0 = 1;
