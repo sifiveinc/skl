@@ -31,6 +31,7 @@ SKL_FUNC_PRIVATE void skl_gemm_2xle8_i8_i8c_i32_zvqwbdota8i(
   size_t vl = 0;
   __asm__ volatile(
       "beqz %[avl], 2f\n"
+
       "vsetvli x0, x0, e8, m1, ta, ma\n"
       "vmv.s.x v0, %[mask]\n"
 
