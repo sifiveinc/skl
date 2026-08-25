@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "gemm/gemm_f16rcprc_f16rcprc_f32rcprc.h"
+#include "gemm/skl_test_gemm.h"
 #include "skl-test-driver.h"
 #include "skl.h"
 #include <stddef.h>
@@ -52,41 +53,41 @@ static void execute(skl_test_t *t);
 gemm_f16rcprc_f16rcprc_f32rcprc_t tests[] = {
 #ifdef SKL_ENABLE_BENCHMARKS
     // Benchmark tests
-    {BENCH, .m1 = 128, .n1 = 128, .k1 = 4096, .alpha = 1.f, .beta = 0.f},
-    {BENCH, .m1 = 128, .n1 = 128, .k1 = 4096, .alpha = 1.f, .beta = 1.f},
+    {BENCH, .m1 = 2 * SKL_XSFMM_TE, .n1 = 2 * SKL_XSFMM_TE, .k1 = 4096, .alpha = 1.f, .beta = 0.f},
+    {BENCH, .m1 = 2 * SKL_XSFMM_TE, .n1 = 2 * SKL_XSFMM_TE, .k1 = 4096, .alpha = 1.f, .beta = 1.f},
 #endif // SKL_ENABLE_BENCHMARKS
 
 #ifdef SKL_ENABLE_TESTS
-    // Verification tests - comprehensive coverage for Xsfmm layout
+    // Verification tests - comprehensive coverage for Xsfmm
     /* Edge case: 1x1 matrix with k=0 (no computation, C = beta * C) */
-    {TEST, .m1 = 1,   .n1 = 1,   .k1 = 0, .alpha = 1.f},
+    {TEST, .m1 = 1, .n1 = 1, .k1 = 0, .alpha = 1.f},
     /* Edge case: 1x1 matrix with k=1 (minimal computation) */
-    {TEST, .m1 = 1,   .n1 = 1,   .k1 = 1, .alpha = 1.f},
-    /* ETE-1 boundary: 63 = 64-1, tests just below tile edge */
-    {TEST, .m1 = 63,  .n1 = 63,  .k1 = 1, .alpha = 1.f},
-    {TEST, .m1 = 63,  .n1 = 63,  .k1 = 2, .alpha = 1.f},
-    {TEST, .m1 = 63,  .n1 = 63,  .k1 = 5, .alpha = 1.f},
-    /* Exact ETE boundary: 64x64 tiles */
-    {TEST, .m1 = 64,  .n1 = 64,  .k1 = 1, .alpha = 1.f},
-    {TEST, .m1 = 64,  .n1 = 64,  .k1 = 5, .alpha = 1.f},
-    /* ETE+1 boundary: 65 = 64+1, tests just past tile edge */
-    {TEST, .m1 = 65,  .n1 = 65,  .k1 = 1, .alpha = 1.f},
-    {TEST, .m1 = 65,  .n1 = 65,  .k1 = 5, .alpha = 1.f},
-    /* Multi-tile: 2*ETE = 128 */
-    {TEST, .m1 = 128, .n1 = 128, .k1 = 1, .alpha = 1.f},
-    {TEST, .m1 = 128, .n1 = 128, .k1 = 5, .alpha = 1.f},
-    /* Multi-tile+1: 2*ETE+1 = 129 */
-    {TEST, .m1 = 129, .n1 = 129, .k1 = 1, .alpha = 1.f},
-    {TEST, .m1 = 129, .n1 = 129, .k1 = 5, .alpha = 1.f},
+    {TEST, .m1 = 1, .n1 = 1, .k1 = 1, .alpha = 1.f},
+    /* ETE-1 boundary: tests just below tile edge */
+    {TEST, .m1 = 1 * SKL_XSFMM_TE - 1, .n1 = 1 * SKL_XSFMM_TE - 1, .k1 = 1, .alpha = 1.f},
+    {TEST, .m1 = 1 * SKL_XSFMM_TE - 1, .n1 = 1 * SKL_XSFMM_TE - 1, .k1 = 2, .alpha = 1.f},
+    {TEST, .m1 = 1 * SKL_XSFMM_TE - 1, .n1 = 1 * SKL_XSFMM_TE - 1, .k1 = 5, .alpha = 1.f},
+    /* Exact ETE boundary: ETExETE tiles */
+    {TEST, .m1 = 1 * SKL_XSFMM_TE,     .n1 = 1 * SKL_XSFMM_TE,     .k1 = 1, .alpha = 1.f},
+    {TEST, .m1 = 1 * SKL_XSFMM_TE,     .n1 = 1 * SKL_XSFMM_TE,     .k1 = 5, .alpha = 1.f},
+    /* ETE+1 boundary: tests just past tile edge */
+    {TEST, .m1 = 1 * SKL_XSFMM_TE + 1, .n1 = 1 * SKL_XSFMM_TE + 1, .k1 = 1, .alpha = 1.f},
+    {TEST, .m1 = 1 * SKL_XSFMM_TE + 1, .n1 = 1 * SKL_XSFMM_TE + 1, .k1 = 5, .alpha = 1.f},
+    /* Multi-tile: 2*ETE */
+    {TEST, .m1 = 2 * SKL_XSFMM_TE,     .n1 = 2 * SKL_XSFMM_TE,     .k1 = 1, .alpha = 1.f},
+    {TEST, .m1 = 2 * SKL_XSFMM_TE,     .n1 = 2 * SKL_XSFMM_TE,     .k1 = 5, .alpha = 1.f},
+    /* Multi-tile+1: 2*ETE+1 */
+    {TEST, .m1 = 2 * SKL_XSFMM_TE + 1, .n1 = 2 * SKL_XSFMM_TE + 1, .k1 = 1, .alpha = 1.f},
+    {TEST, .m1 = 2 * SKL_XSFMM_TE + 1, .n1 = 2 * SKL_XSFMM_TE + 1, .k1 = 5, .alpha = 1.f},
     /* Non-square matrices (rectangular tiles) */
-    {TEST, .m1 = 129, .n1 = 63,  .k1 = 1, .alpha = 1.f},
-    {TEST, .m1 = 65,  .n1 = 129, .k1 = 2, .alpha = 1.f},
-    {TEST, .m1 = 64,  .n1 = 128, .k1 = 5, .alpha = 1.f},
+    {TEST, .m1 = 2 * SKL_XSFMM_TE + 1, .n1 = 1 * SKL_XSFMM_TE - 1, .k1 = 1, .alpha = 1.f},
+    {TEST, .m1 = 1 * SKL_XSFMM_TE + 1, .n1 = 2 * SKL_XSFMM_TE + 1, .k1 = 2, .alpha = 1.f},
+    {TEST, .m1 = 1 * SKL_XSFMM_TE,     .n1 = 2 * SKL_XSFMM_TE,     .k1 = 5, .alpha = 1.f},
     /* General Alpha and Beta tests */
-    {TEST, .m1 = 65,  .n1 = 65,  .k1 = 0,  .alpha = 2.f, .beta = 3.f},
-    {TEST, .m1 = 65,  .n1 = 65,  .k1 = 1,  .alpha = 2.f, .beta = 3.f},
-    {TEST, .m1 = 65,  .n1 = 65,  .k1 = 33, .alpha = 2.f, .beta = 3.f},
-    {TEST, .m1 = 128, .n1 = 128, .k1 = 33, .alpha = 2.f, .beta = 3.f},
+    {TEST, .m1 = 1 * SKL_XSFMM_TE + 1, .n1 = 1 * SKL_XSFMM_TE + 1, .k1 = 0,  .alpha = 2.f, .beta = 3.f},
+    {TEST, .m1 = 1 * SKL_XSFMM_TE + 1, .n1 = 1 * SKL_XSFMM_TE + 1, .k1 = 1,  .alpha = 2.f, .beta = 3.f},
+    {TEST, .m1 = 1 * SKL_XSFMM_TE + 1, .n1 = 1 * SKL_XSFMM_TE + 1, .k1 = 33, .alpha = 2.f, .beta = 3.f},
+    {TEST, .m1 = 2 * SKL_XSFMM_TE,     .n1 = 2 * SKL_XSFMM_TE,     .k1 = 33, .alpha = 2.f, .beta = 3.f},
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on
@@ -115,13 +116,13 @@ static void execute(skl_test_t *t) {
   const gemm_f16rcprc_f16rcprc_f32rcprc_t *h =
       (gemm_f16rcprc_f16rcprc_f32rcprc_t *)t->harness;
 
-  skl_gemm_f16c_f16_f32_xsfmm32a16f(h->m1, h->n1, h->k1, h->alpha,
-                                    h->a_pack.data, h->csa1, h->b_pack.data,
-                                    h->rsb1, h->beta, h->c_pack.data, h->rsc1);
+  skl_gemm_f16c_f16_f32_xsfmm32a16f(h->m1, h->n1, h->k1, h->alpha, h->a.data,
+                                    h->csa1, h->b.data, h->rsb1, h->beta,
+                                    h->c.data, h->rsc1);
 }
 
 int main(void) {
-  // Set default strides: A is column-major, B is row-major, C is row-major
+  // Set default strides: A is column-major, B and C are row-major
   for (size_t i = 0; i < suite.num_tests; ++i) {
     tests[i].m0 = 1;
     tests[i].n0 = 1;
