@@ -13,22 +13,22 @@
 
 #include "skl-common.h"
 
-SKL_FUNC_PRIVATE void
-skl_gemm_a1b0_2xle8_i8_i8c_i32_zvqwbdota8i(size_t n, size_t k, const int8_t *a,
-                                           size_t rsa, const int8_t *b,
-                                           size_t csb, int32_t *c, size_t rsc) {
+SKL_FUNC_PRIVATE void skl_gemm_2xle8_i8_i8c_i32_zvqwbdota8i(
+    size_t n, size_t k, int32_t alpha, const int8_t *a, size_t rsa,
+    const int8_t *b, size_t csb, int32_t beta, int32_t *c, size_t rsc) {
   if (n == 0) {
     return;
   }
-  vint32m8_t cvec0 = __riscv_vmv_v_x_i32m8(0, 8);
-  vint32m8_t cvec1 = __riscv_vmv_v_x_i32m8(0, 8);
+
+  vint32m8_t vec0 = __riscv_vmv_v_x_i32m8(0, 8);
+  vint32m8_t vec1 = __riscv_vmv_v_x_i32m8(0, 8);
   vint8m1_t avec = __riscv_vundefined_i8m1();
 
   const int8_t *a0 = a;
   const int8_t *b0 = b;
+  uint8_t mask = 0xFFU >> (8 - n);
   size_t avl = k;
   size_t vl = 0;
-  uint8_t mask = 0xFFU >> (8 - n);
   __asm__ volatile(
       "beqz %[avl], 2f\n"
       "vsetvli x0, x0, e8, m1, ta, ma\n"
@@ -67,9 +67,9 @@ skl_gemm_a1b0_2xle8_i8_i8c_i32_zvqwbdota8i(size_t n, size_t k, const int8_t *a,
       "add %[b0], %[b0], %[csb]\n"
 
       "1:\n"
-      "vqwbdotas.vv %[cvec0], v8, %[avec], 0, v0.t\n"
+      "vqwbdotas.vv %[vec0], v8, %[avec], 0, v0.t\n"
       "vle8.v %[avec], (%[a0])\n"
-      "vqwbdotas.vv %[cvec1], v8, %[avec], 0, v0.t\n"
+      "vqwbdotas.vv %[vec1], v8, %[avec], 0, v0.t\n"
 
       "add %[a], %[a], %[vl]\n"
       "add %[b], %[b], %[vl]\n"
@@ -77,7 +77,7 @@ skl_gemm_a1b0_2xle8_i8_i8c_i32_zvqwbdota8i(size_t n, size_t k, const int8_t *a,
 
       "bnez %[avl], 0b\n"
       "2:\n"
-      : [avec] "=&vr"(avec), [cvec0] "+&vr"(cvec0), [cvec1] "+&vr"(cvec1),
+      : [avec] "=&vr"(avec), [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1),
         [a0] "=&r"(a0), [b0] "=&r"(b0), [a] "+&r"(a), [b] "+&r"(b),
         [vl] "=&r"(vl), [avl] "+&r"(avl)
       : [mask] "r"(mask), [rsa] "rI"(rsa), [csb] "rI"(csb), [n] "r"(n),
@@ -86,26 +86,45 @@ skl_gemm_a1b0_2xle8_i8_i8c_i32_zvqwbdota8i(size_t n, size_t k, const int8_t *a,
       : "vl", "vtype", "memory", "v0", "v8", "v9", "v10", "v11", "v12", "v13",
         "v14", "v15");
 
-  __riscv_vse32_v_i32m8(c, cvec0, n);
+  if (beta != 0) {
+    if (alpha != 1) {
+      vec0 = __riscv_vmul_vx_i32m8(vec0, alpha, n);
+      vec1 = __riscv_vmul_vx_i32m8(vec1, alpha, n);
+    }
+    int32_t *c0 = c;
+    vint32m8_t cvec0 = __riscv_vle32_v_i32m8(c0, n);
+    c0 += rsc;
+    vec0 = __riscv_vmacc_vx_i32m8(vec0, beta, cvec0, n);
+
+    vint32m8_t cvec1 = __riscv_vle32_v_i32m8(c0, n);
+    vec1 = __riscv_vmacc_vx_i32m8(vec1, beta, cvec1, n);
+  } else {
+    if (alpha != 1) {
+      vec0 = __riscv_vmul_vx_i32m8(vec0, alpha, n);
+      vec1 = __riscv_vmul_vx_i32m8(vec1, alpha, n);
+    }
+  }
+
+  __riscv_vse32_v_i32m8(c, vec0, n);
   c += rsc;
-  __riscv_vse32_v_i32m8(c, cvec1, n);
+  __riscv_vse32_v_i32m8(c, vec1, n);
 }
 
-SKL_FUNC_PRIVATE void
-skl_gemm_a1b0_1xle8_i8_i8c_i32_zvqwbdota8i(size_t n, size_t k, const int8_t *a,
-                                           size_t rsa, const int8_t *b,
-                                           size_t csb, int32_t *c) {
+SKL_FUNC_PRIVATE void skl_gemm_1xle8_i8_i8c_i32_zvqwbdota8i(
+    size_t n, size_t k, int32_t alpha, const int8_t *a, size_t rsa,
+    const int8_t *b, size_t csb, int32_t beta, int32_t *c) {
   if (n == 0) {
     return;
   }
-  vint32m8_t cvec0 = __riscv_vmv_v_x_i32m8(0, 8);
+
+  vint32m8_t vec0 = __riscv_vmv_v_x_i32m8(0, 8);
   vint8m1_t avec = __riscv_vundefined_i8m1();
 
   const int8_t *a0 = a;
   const int8_t *b0 = b;
+  uint8_t mask = 0xFFU >> (8 - n);
   size_t avl = k;
   size_t vl = 0;
-  uint8_t mask = 0xFFU >> (8 - n);
   __asm__ volatile("beqz %[avl], 2f\n"
 
                    "vsetvli x0, x0, e8, m1, ta, ma\n"
@@ -143,7 +162,7 @@ skl_gemm_a1b0_1xle8_i8_i8c_i32_zvqwbdota8i(size_t n, size_t k, const int8_t *a,
                    "add %[b0], %[b0], %[csb]\n"
 
                    "1:\n"
-                   "vqwbdotas.vv %[cvec0], v8, %[avec], 0, v0.t\n"
+                   "vqwbdotas.vv %[vec0], v8, %[avec], 0, v0.t\n"
 
                    "add %[a], %[a], %[vl]\n"
                    "add %[b], %[b], %[vl]\n"
@@ -151,7 +170,7 @@ skl_gemm_a1b0_1xle8_i8_i8c_i32_zvqwbdota8i(size_t n, size_t k, const int8_t *a,
 
                    "bnez %[avl], 0b\n"
                    "2:\n"
-                   : [avec] "=&vr"(avec), [cvec0] "+&vr"(cvec0), [a0] "=&r"(a0),
+                   : [avec] "=&vr"(avec), [vec0] "+&vr"(vec0), [a0] "=&r"(a0),
                      [b0] "=&r"(b0), [a] "+&r"(a), [b] "+&r"(b), [vl] "=&r"(vl),
                      [avl] "+&r"(avl)
                    : [mask] "r"(mask), [rsa] "rI"(rsa), [csb] "rI"(csb),
@@ -160,13 +179,27 @@ skl_gemm_a1b0_1xle8_i8_i8c_i32_zvqwbdota8i(size_t n, size_t k, const int8_t *a,
                    : "vl", "vtype", "memory", "v0", "v8", "v9", "v10", "v11",
                      "v12", "v13", "v14", "v15");
 
-  __riscv_vse32_v_i32m8(c, cvec0, n);
+  if (beta != 0) {
+    if (alpha != 1) {
+      vec0 = __riscv_vmul_vx_i32m8(vec0, alpha, n);
+    }
+    int32_t *c0 = c;
+    vint32m8_t cvec0 = __riscv_vle32_v_i32m8(c0, n);
+    vec0 = __riscv_vmacc_vx_i32m8(vec0, beta, cvec0, n);
+  } else {
+    if (alpha != 1) {
+      vec0 = __riscv_vmul_vx_i32m8(vec0, alpha, n);
+    }
+  }
+
+  __riscv_vse32_v_i32m8(c, vec0, n);
 }
 
-SKL_FUNC void skl_gemm_a1b0_i8_i8c_i32_zvqwbdota8i(size_t m, size_t n, size_t k,
-                                                   const int8_t *a, size_t rsa,
-                                                   const int8_t *b, size_t csb,
-                                                   int32_t *c, size_t rsc) {
+SKL_FUNC void skl_gemm_i8_i8c_i32_zvqwbdota8i(size_t m, size_t n, size_t k,
+                                              int32_t alpha, const int8_t *a,
+                                              size_t rsa, const int8_t *b,
+                                              size_t csb, int32_t beta,
+                                              int32_t *c, size_t rsc) {
   if (m == 0 || n == 0) {
     return;
   }
@@ -176,8 +209,9 @@ SKL_FUNC void skl_gemm_a1b0_i8_i8c_i32_zvqwbdota8i(size_t m, size_t n, size_t k,
     size_t n_vl = 0;
     for (size_t j = 0; j < n; j += n_vl) {
       n_vl = n - j >= 8 ? 8 : n - j;
-      skl_gemm_a1b0_2xle8_i8_i8c_i32_zvqwbdota8i(
-          n_vl, k, a + i * rsa, rsa, b + j * csb, csb, c + i * rsc + j, rsc);
+      skl_gemm_2xle8_i8_i8c_i32_zvqwbdota8i(n_vl, k, alpha, a + i * rsa, rsa,
+                                            b + j * csb, csb, beta,
+                                            c + i * rsc + j, rsc);
     }
   }
 
@@ -185,8 +219,9 @@ SKL_FUNC void skl_gemm_a1b0_i8_i8c_i32_zvqwbdota8i(size_t m, size_t n, size_t k,
     size_t n_vl = 0;
     for (size_t j = 0; j < n; j += n_vl) {
       n_vl = n - j >= 8 ? 8 : n - j;
-      skl_gemm_a1b0_1xle8_i8_i8c_i32_zvqwbdota8i(
-          n_vl, k, a + i * rsa, rsa, b + j * csb, csb, c + i * rsc + j);
+      skl_gemm_1xle8_i8_i8c_i32_zvqwbdota8i(n_vl, k, alpha, a + i * rsa, rsa,
+                                            b + j * csb, csb, beta,
+                                            c + i * rsc + j);
     }
   }
 }
