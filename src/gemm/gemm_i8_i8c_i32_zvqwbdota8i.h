@@ -54,6 +54,7 @@ void skl_gemm_i8_i8c_i32_zvqwbdota8i(size_t m, size_t k, size_t n,
                                      int32_t alpha, const int8_t *a, size_t rsa,
                                      const int8_t *b, size_t csb, int32_t beta,
                                      int32_t *c, size_t rsc);
+
 #if defined(__cplusplus)
 } // extern "C"
 #endif
