@@ -21,24 +21,25 @@
  */
 
 #define TEST                                                                   \
-  UNPACK_E32RCPRC_E32RC_DEFAULTS, .steps = {                                     \
-                                    .init = unpack_e32rcprc_e32rc_init,          \
-                                    .warmup = NULL,                            \
-                                    .execute = execute,                        \
-                                    .verify = unpack_e32rcprc_e32rc_verify,      \
-                                    .report = unpack_e32rcprc_e32rc_test_report, \
-                                    .cleanup = unpack_e32rcprc_e32rc_cleanup,    \
+  UNPACK_E32RCPRC_E32RC_DEFAULTS,                                              \
+      .steps = {                                                               \
+          .init = unpack_e32rcprc_e32rc_init,                                  \
+          .warmup = NULL,                                                      \
+          .execute = execute,                                                  \
+          .verify = unpack_e32rcprc_e32rc_verify,                              \
+          .report = unpack_e32rcprc_e32rc_test_report,                         \
+          .cleanup = unpack_e32rcprc_e32rc_cleanup,                            \
   }
 
 #define BENCH                                                                  \
-  UNPACK_E32RCPRC_E32RC_DEFAULTS,                                                \
+  UNPACK_E32RCPRC_E32RC_DEFAULTS,                                              \
       .steps = {                                                               \
-          .init = unpack_e32rcprc_e32rc_init,                                    \
+          .init = unpack_e32rcprc_e32rc_init,                                  \
           .warmup = execute,                                                   \
           .execute = execute,                                                  \
           .verify = NULL,                                                      \
-          .report = unpack_e32rcprc_e32rc_benchmark_report,                      \
-          .cleanup = unpack_e32rcprc_e32rc_cleanup,                              \
+          .report = unpack_e32rcprc_e32rc_benchmark_report,                    \
+          .cleanup = unpack_e32rcprc_e32rc_cleanup,                            \
   }
 
 static void execute(skl_test_t *t);
@@ -170,8 +171,8 @@ static void execute(skl_test_t *t) {
   const unpack_e32rcprc_e32rc_t *h = (unpack_e32rcprc_e32rc_t *)t->harness;
 
   skl_unpack_e32rcprc_e32rc_zve32x(h->m0, h->n0, h->src.data, h->rs0, h->cs0,
-                                 h->rs1, h->cs1, h->m, h->n, h->dst.data, h->rs,
-                                 h->cs);
+                                   h->rs1, h->cs1, h->m, h->n, h->dst.data,
+                                   h->rs, h->cs);
 }
 
 int main(void) { return skl_test_driver_run_suite(&suite); }
