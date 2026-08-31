@@ -85,6 +85,8 @@
 #include "ref/pack/transpose_e16.h"
 #include "ref/pack/transpose_e32.h"
 #include "ref/pack/transpose_e8.h"
+#include "ref/pack/unpack_e16rcprc_e16rc.h"
+#include "ref/pack/unpack_e32rcprc_e32rc.h"
 #include "ref/pack/unpack_e8rcprc_e8rc.h"
 
 // IWYU pragma: end_exports

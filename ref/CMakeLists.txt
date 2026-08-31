@@ -40,6 +40,8 @@ add_library(skl-ref
     pack/transpose_e16.c
     pack/transpose_e32.c
     pack/transpose_e8.c
+    pack/unpack_e16rcprc_e16rc.c
+    pack/unpack_e32rcprc_e32rc.c
     pack/unpack_e8rcprc_e8rc.c
     sigmoid/sigmoid_bf16.c
     sigmoid/sigmoid_f16.c

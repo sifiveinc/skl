@@ -667,6 +667,20 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_unpack_e16rcprc_e16rc_zve32x
+  pack/unpack_e16rcprc_e16rc.c
+  pack/rvv/skl_unpack_e16rcprc_e16rc_zve32x.c
+  "zve32x"
+  ""
+)
+skl_add_test(
+  skl_unpack_e32rcprc_e32rc_zve32x
+  pack/unpack_e32rcprc_e32rc.c
+  pack/rvv/skl_unpack_e32rcprc_e32rc_zve32x.c
+  "zve32x"
+  ""
+)
+skl_add_test(
   skl_unpack_e8rcprc_e8rc_zve32x
   pack/unpack_e8rcprc_e8rc.c
   pack/rvv/skl_unpack_e8rcprc_e8rc_zve32x.c
