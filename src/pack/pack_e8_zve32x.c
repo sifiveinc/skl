@@ -1254,7 +1254,7 @@ skl_pack_e8_e8rcprc_zve32x(size_t m, size_t n, const uint8_t *SKL_RESTRICT src,
       } else {
         for (size_t ii0 = 0; ii0 < m0; ++ii0) {
           for (size_t jj0 = 0; jj0 < n0; ++jj0) {
-            if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
+            if (ii0 < m_length && jj0 < n_length) {
               dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0];
             } else {
               dst_block[ii0 * rs0 + jj0 * cs0] = pad;
@@ -1404,11 +1404,9 @@ skl_unpack_e8rcprc_e8_zve32x(size_t m0, size_t n0,
         skl_copy_2d_e8_zve32x(m_length, n_length, src_block, rs0, dst_block,
                               rs);
       } else {
-        for (size_t ii0 = 0; ii0 < m0; ++ii0) {
-          for (size_t jj0 = 0; jj0 < n0; ++jj0) {
-            if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
-              dst_block[ii0 * rs + jj0] = src_block[ii0 * rs0 + jj0 * cs0];
-            }
+        for (size_t ii0 = 0; ii0 < m_length; ++ii0) {
+          for (size_t jj0 = 0; jj0 < n_length; ++jj0) {
+            dst_block[ii0 * rs + jj0] = src_block[ii0 * rs0 + jj0 * cs0];
           }
         }
       }

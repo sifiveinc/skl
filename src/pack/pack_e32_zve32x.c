@@ -1292,7 +1292,7 @@ SKL_FUNC_PRIVATE void skl_pack_e32_e32rcprc_zve32x(
       } else {
         for (size_t ii0 = 0; ii0 < m0; ++ii0) {
           for (size_t jj0 = 0; jj0 < n0; ++jj0) {
-            if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
+            if (ii0 < m_length && jj0 < n_length) {
               dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0];
             } else {
               dst_block[ii0 * rs0 + jj0 * cs0] = pad;
@@ -1439,11 +1439,9 @@ SKL_FUNC_PRIVATE void skl_unpack_e32rcprc_e32_zve32x(
         skl_copy_2d_e32_zve32x(m_length, n_length, src_block, rs0, dst_block,
                                rs);
       } else {
-        for (size_t ii0 = 0; ii0 < m0; ++ii0) {
-          for (size_t jj0 = 0; jj0 < n0; ++jj0) {
-            if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
-              dst_block[ii0 * rs + jj0] = src_block[ii0 * rs0 + jj0 * cs0];
-            }
+        for (size_t ii0 = 0; ii0 < m_length; ++ii0) {
+          for (size_t jj0 = 0; jj0 < n_length; ++jj0) {
+            dst_block[ii0 * rs + jj0] = src_block[ii0 * rs0 + jj0 * cs0];
           }
         }
       }
