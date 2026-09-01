@@ -1175,8 +1175,7 @@ SKL_FUNC_PRIVATE void skl_pack_e32_e32rcprc_zve32x(
     size_t n0, uint32_t *SKL_RESTRICT dst, size_t rs0, size_t cs0, size_t rs1,
     size_t cs1, uint32_t pad) {
 
-  // Handle division by zero
-  if (m0 == 0 || n0 == 0) {
+  if (m == 0 || n == 0 || m0 == 0 || n0 == 0) {
     return;
   }
 
@@ -1318,6 +1317,10 @@ SKL_FUNC void skl_pack_e32rc_e32rcprc_zve32x(
     skl_pack_e32_e32rcprc_zve32x(n, m, src, cs, n0, m0, dst, cs0, rs0, cs1, rs1,
                                  pad);
   } else {
+    // Handle division by zero
+    if (m0 == 0 || n0 == 0) {
+      return;
+    }
     size_t m1 = (m + m0 - 1) / m0; // Num. block-rows in output matrix
     size_t n1 = (n + n0 - 1) / n0; // Num. block-columns in output matrix
     for (size_t ii1 = 0; ii1 < m1; ++ii1) {
@@ -1343,8 +1346,7 @@ SKL_FUNC_PRIVATE void skl_unpack_e32rcprc_e32_zve32x(
     size_t cs0, size_t rs1, size_t cs1, size_t m, size_t n,
     uint32_t *SKL_RESTRICT dst, size_t rs) {
 
-  // Handle division by zero
-  if (m0 == 0 || n0 == 0) {
+  if (m == 0 || n == 0 || m0 == 0 || n0 == 0) {
     return;
   }
 
@@ -1462,6 +1464,10 @@ SKL_FUNC void skl_unpack_e32rcprc_e32rc_zve32x(
     skl_unpack_e32rcprc_e32_zve32x(n0, m0, src, cs0, rs0, cs1, rs1, n, m, dst,
                                    cs);
   } else {
+    // Handle division by zero
+    if (m0 == 0 || n0 == 0) {
+      return;
+    }
     size_t m1 = (m + m0 - 1) / m0;
     size_t n1 = (n + n0 - 1) / n0;
     for (size_t ii1 = 0; ii1 < m1; ++ii1) {
