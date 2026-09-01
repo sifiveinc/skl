@@ -13,13 +13,13 @@
 #endif
 
 /**
- * @brief Test cases for GEMM with Xsfvqdotq extension.
+ * @brief Test cases for the skl_gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq kernel.
  *
  * This test uses the gemm_i8rcprc_i8rcprc_i32rcprc harness with the following
  * restrictions on the input parameters:
  *  - The block dimensions are m0 = 1, n0 = 1, and k0 = 4
- *  - Matrix A_pack has row-major blocks (csa0 = 1)
- *  - Matrix B_pack is block-row major with column-major blocks (rsb0 = 1, csb1
+ *  - Matrix A has row-major blocks (csa0 = 1)
+ *  - Matrix B is block-row major with column-major blocks (rsb0 = 1, csb1
  *    = k0 * n0)
  *  - Matrix C is row-major (csc1 = 1)
  */
@@ -91,16 +91,17 @@ gemm_i8rcprc_i8rcprc_i32rcprc_t tests[] = {
     {TEST, .m1 = 6,   .n1 = 128,   .k1 = 4,  .alpha = 1},
     {TEST, .m1 = 6,   .n1 = 128,   .k1 = 4,  .alpha = 2,  .beta = 3},
     /* Multiple tiles */
-    {TEST, .m1 = 29,   .n1 = 64,    .k1 = 4,  .alpha = 1},
-    {TEST, .m1 = 29,   .n1 = 127,   .k1 = 4,  .alpha = 1},
-    {TEST, .m1 = 29,   .n1 = 129,   .k1 = 4,  .alpha = 1},
-    {TEST, .m1 = 29,   .n1 = 192,   .k1 = 4,  .alpha = 1},
-    {TEST, .m1 = 29,   .n1 = 255,   .k1 = 4,  .alpha = 1},
-    /* Block-column-major A_pack */
-    {TEST, .m1 = 29,   .n1 = 128,    .k1 = 4,  .alpha = 1,  .rsa1 = 4,
+    {TEST, .m1 = 29,  .n1 = 64,    .k1 = 4,  .alpha = 1},
+    {TEST, .m1 = 29,  .n1 = 127,   .k1 = 4,  .alpha = 1},
+    {TEST, .m1 = 29,  .n1 = 129,   .k1 = 4,  .alpha = 1},
+    {TEST, .m1 = 29,  .n1 = 192,   .k1 = 4,  .alpha = 1},
+    {TEST, .m1 = 29,  .n1 = 255,   .k1 = 4,  .alpha = 1},
+    {TEST, .m1 = 29,  .n1 = 255,   .k1 = 4,  .alpha = 2,  .beta = 3},
+    /* Block-column-major A */
+    {TEST, .m1 = 29,  .n1 = 128,   .k1 = 4,  .alpha = 1,  .rsa1 = 4,
            .csa1 = (size_t)(29 * 4)},
-    /* A_pack with misaligned rows */
-    {TEST, .m1 = 29,   .n1 = 128,    .k1 = 4,  .alpha = 1,
+    /* A with misaligned rows */
+    {TEST, .m1 = 29,  .n1 = 128,   .k1 = 4,  .alpha = 1,
            .rsa1 = (size_t)(4 * 4 + 1),  .csa1 = 4},
 #endif // SKL_ENABLE_TESTS
 };
@@ -132,8 +133,8 @@ static void execute(skl_test_t *t) {
       (gemm_i8rcprc_i8rcprc_i32rcprc_t *)t->harness;
 
   skl_gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
-      h->m1, h->n1, h->k1, h->alpha, h->a_pack.data, h->rsa1, h->csa1,
-      h->b_pack.data, h->rsb1, h->beta, h->c_pack.data, h->rsc1);
+      h->m1, h->n1, h->k1, h->alpha, h->a.data, h->rsa1, h->csa1, h->b.data,
+      h->rsb1, h->beta, h->c.data, h->rsc1);
 }
 
 int main(void) {
@@ -154,8 +155,8 @@ int main(void) {
 
     tests[i].rsc0 = 1;
     tests[i].csc0 = 1;
-    tests[i].csc1 = 1;
     tests[i].rsc1 = tests[i].rsc1 ? tests[i].rsc1 : tests[i].n1;
+    tests[i].csc1 = 1;
   }
 
   return skl_test_driver_run_suite(&suite);
