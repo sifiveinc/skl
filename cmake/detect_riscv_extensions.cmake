@@ -88,6 +88,7 @@ detect_riscv_extension("xsfvfexp16e" "x-xsfvfexp16e=true")
 detect_riscv_extension("xsfvfbfexp16e" "x-xsfvfbfexp16e=true")
 detect_riscv_extension("xsfvfexp32e" "x-xsfvfexp32e=true")
 detect_riscv_extension("xsfvqdotq" "x-xsfvqdotq=true")
+detect_riscv_extension("zvqwbdota8i" "x-zvqwbdota8i=true")
 
 string(JOIN "," SKL_QEMU_CPU_OPTIONS ${SKL_QEMU_CPU_OPTIONS})
 set(SKL_QEMU_OPTIONS -cpu ${SKL_QEMU_CPU_OPTIONS})
