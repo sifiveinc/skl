@@ -46,9 +46,8 @@ extern "C" {
  * );
  * ```
  *
- * This kernel uses the SiFive Zvqwbdota8i extension for vector quad widening
- * batched dot product operations to achieve high performance on 8-bit integer
- * data.
+ * This kernel uses the Zvqwbdota8i extension for vector quad widening batched
+ * dot product operations to achieve high performance on 8-bit integer data.
  */
 void skl_gemm_i8_i8c_i32_zvqwbdota8i(size_t m, size_t k, size_t n,
                                      int32_t alpha, const int8_t *a, size_t rsa,
