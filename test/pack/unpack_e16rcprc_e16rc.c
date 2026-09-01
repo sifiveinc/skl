@@ -43,14 +43,14 @@ void unpack_e16rcprc_e16rc_init(skl_test_t *t) {
     return;
   }
 
-  if (m == 0 || n == 0) {
+  if (m1 == 0 || n1 == 0) {
     h->src.len = 0;
   } else {
     h->src.len =
         (m1 - 1) * rs1 + (n1 - 1) * cs1 + (m0 - 1) * rs0 + (n0 - 1) * cs0 + 1;
   }
 
-  if (m1 == 0 || n1 == 0) {
+  if (m == 0 || n == 0) {
     h->dst.len = 0;
   } else {
     h->dst.len = (m - 1) * rs + (n - 1) * cs + 1;
