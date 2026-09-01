@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Reference implementation for unpacking an 16-bit 4D blocked matrix
+ * @brief Reference implementation for unpacking a 16-bit 4D blocked matrix
  * into a 2D matrix.
  *
  * @param m0 - Num. rows in a block of input matrix
