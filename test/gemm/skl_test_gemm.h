@@ -172,25 +172,25 @@ static inline void skl_test_check_matrix_clobbered_rcprc(
  * @brief Print out the matrix dimensions and strides for a packed GEMM test.
  *
  * @param t - Test context.
- * @param m0 - Number of rows in each block of matrices A_pack and C_pack.
- * @param n0 - Number of columns in each block of matrices B_pack and C_pack.
- * @param k0 - Number of columns in each block of A_pack and rows in each block
- *             of B_pack.
- * @param m1 - Number of rows in A_pack and C_pack as block matrices.
- * @param n1 - Number of columns in B_pack and C_pack as block matrices.
- * @param k1 - Number of columns in A_pack and rows in B_pack as block matrices.
- * @param rsa0 - Row stride within each block of A_pack in elements.
- * @param csa0 - Column stride within each block of A_pack in elements.
- * @param rsa1 - Row stride between blocks of A_pack in elements.
- * @param csa1 - Column stride between blocks of A_pack in elements.
- * @param rsb0 - Row stride within each block of B_pack in elements.
- * @param csb0 - Column stride within each block of B_pack in elements.
- * @param rsb1 - Row stride between blocks of B_pack in elements.
- * @param csb1 - Column stride between blocks of B_pack in elements.
- * @param rsc0 - Row stride within each block of C_pack in elements.
- * @param csc0 - Column stride within each block of C_pack in elements.
- * @param rsc1 - Row stride between blocks of C_pack in elements.
- * @param csc1 - Column stride between blocks of C_pack in elements.
+ * @param m0 - Number of rows in each block of matrices A and C.
+ * @param n0 - Number of columns in each block of matrices B and C.
+ * @param k0 - Number of columns in each block of A and rows in each block
+ *             of B.
+ * @param m1 - Number of rows in A and C as block matrices.
+ * @param n1 - Number of columns in B and C as block matrices.
+ * @param k1 - Number of columns in A and rows in B as block matrices.
+ * @param rsa0 - Row stride within each block of A in elements.
+ * @param csa0 - Column stride within each block of A in elements.
+ * @param rsa1 - Row stride between blocks of A in elements.
+ * @param csa1 - Column stride between blocks of A in elements.
+ * @param rsb0 - Row stride within each block of B in elements.
+ * @param csb0 - Column stride within each block of B in elements.
+ * @param rsb1 - Row stride between blocks of B in elements.
+ * @param csb1 - Column stride between blocks of B in elements.
+ * @param rsc0 - Row stride within each block of C in elements.
+ * @param csc0 - Column stride within each block of C in elements.
+ * @param rsc1 - Row stride between blocks of C in elements.
+ * @param csc1 - Column stride between blocks of C in elements.
  */
 static inline void gemm_rcprc_rcprc_rcprc_report_matrix_params(
     skl_test_t *t, size_t m0, size_t n0, size_t k0, size_t m1, size_t n1,
