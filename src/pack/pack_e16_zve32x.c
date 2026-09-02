@@ -1175,8 +1175,7 @@ SKL_FUNC_PRIVATE void skl_pack_e16_e16rcprc_zve32x(
     size_t n0, uint16_t *SKL_RESTRICT dst, size_t rs0, size_t cs0, size_t rs1,
     size_t cs1, uint16_t pad) {
 
-  // Handle division by zero
-  if (m0 == 0 || n0 == 0) {
+  if (m == 0 || n == 0 || m0 == 0 || n0 == 0) {
     return;
   }
 
@@ -1293,7 +1292,7 @@ SKL_FUNC_PRIVATE void skl_pack_e16_e16rcprc_zve32x(
       } else {
         for (size_t ii0 = 0; ii0 < m0; ++ii0) {
           for (size_t jj0 = 0; jj0 < n0; ++jj0) {
-            if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
+            if (ii0 < m_length && jj0 < n_length) {
               dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0];
             } else {
               dst_block[ii0 * rs0 + jj0 * cs0] = pad;
@@ -1318,6 +1317,10 @@ SKL_FUNC void skl_pack_e16rc_e16rcprc_zve32x(
     skl_pack_e16_e16rcprc_zve32x(n, m, src, cs, n0, m0, dst, cs0, rs0, cs1, rs1,
                                  pad);
   } else {
+    // Handle division by zero
+    if (m0 == 0 || n0 == 0) {
+      return;
+    }
     size_t m1 = (m + m0 - 1) / m0; // Num. block-rows in output matrix
     size_t n1 = (n + n0 - 1) / n0; // Num. block-columns in output matrix
     for (size_t ii1 = 0; ii1 < m1; ++ii1) {
@@ -1330,6 +1333,149 @@ SKL_FUNC void skl_pack_e16rc_e16rcprc_zve32x(
               dst_block[ii0 * rs0 + jj0 * cs0] = src_block[ii0 * rs + jj0 * cs];
             } else {
               dst_block[ii0 * rs0 + jj0 * cs0] = pad;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+SKL_FUNC_PRIVATE void skl_unpack_e16rcprc_e16_zve32x(
+    size_t m0, size_t n0, const uint16_t *SKL_RESTRICT src, size_t rs0,
+    size_t cs0, size_t rs1, size_t cs1, size_t m, size_t n,
+    uint16_t *SKL_RESTRICT dst, size_t rs) {
+
+  if (m == 0 || n == 0 || m0 == 0 || n0 == 0) {
+    return;
+  }
+
+  size_t m1 = (m + m0 - 1) / m0; // Num. row blocks in the matrix
+  size_t n1 = (n + n0 - 1) / n0; // Num. column blocks in the matrix
+
+  /* Column panels */
+  if (rs0 == 1 && n0 == 1) {
+    if (m0 == rs1) {
+      /* column-major block ordering */
+      // Transpose from column-major to row-major
+      skl_transpose_e16_zve32x(n, m, src, cs1, dst, rs);
+    } else {
+      /* row-major block ordering */
+      const uint16_t *src_block = src;
+      uint16_t *dst_block = dst;
+      for (size_t ii1 = 0; ii1 < m1 - 1; ++ii1) {
+        // Transpose from column-major to row-major
+        skl_transpose_e16_zve32x(n, m0, src_block, cs1, dst_block, rs);
+        src_block += rs1;
+        dst_block += m0 * rs;
+      }
+      size_t m_tail = m - m0 * (m1 - 1);
+      skl_transpose_e16_zve32x(n, m_tail, src_block, cs1, dst_block, rs);
+    }
+    return;
+  }
+
+  /* intra-block: column-major, inter-block: row-major */
+  if ((cs0 * n0 == cs1) && rs0 == 1) {
+    const uint16_t *src_block = src;
+    uint16_t *dst_block = dst;
+    for (size_t ii1 = 0; ii1 < m1 - 1; ++ii1) {
+      // Transpose from column-major to row-major
+      skl_transpose_e16_zve32x(n, m0, src_block, cs0, dst_block, rs);
+      src_block += rs1;
+      dst_block += m0 * rs;
+    }
+    size_t m_tail = m - m0 * (m1 - 1);
+    skl_transpose_e16_zve32x(n, m_tail, src_block, cs0, dst_block, rs);
+    return;
+  }
+
+  /* Row panels */
+  if (cs0 == 1 && m0 == 1) {
+    if (n0 == cs1) {
+      /* row-major block ordering */
+      skl_copy_2d_e16_zve32x(m, n, src, rs1, dst, rs);
+    } else {
+      /* column-major block ordering */
+      const uint16_t *src_block = src;
+      uint16_t *dst_block = dst;
+      for (size_t jj1 = 0; jj1 < n1 - 1; ++jj1) {
+        skl_copy_2d_e16_zve32x(m, n0, src_block, rs1, dst_block, rs);
+        src_block += cs1;
+        dst_block += n0;
+      }
+      size_t n_tail = n - n0 * (n1 - 1);
+      skl_copy_2d_e16_zve32x(m, n_tail, src_block, rs1, dst_block, rs);
+    }
+    return;
+  }
+
+  /* intra-block: row-major, inter-block: column-major */
+  if ((rs0 * m0 == rs1) && cs0 == 1) {
+    const uint16_t *src_block = src;
+    uint16_t *dst_block = dst;
+    for (size_t jj1 = 0; jj1 < n1 - 1; ++jj1) {
+      skl_copy_2d_e16_zve32x(m, n0, src_block, rs0, dst_block, rs);
+      src_block += cs1;
+      dst_block += n0;
+    }
+    size_t n_tail = n - n0 * (n1 - 1);
+    skl_copy_2d_e16_zve32x(m, n_tail, src_block, rs0, dst_block, rs);
+    return;
+  }
+
+  for (size_t ii1 = 0; ii1 < m1; ++ii1) {
+    size_t m_length = m0 < m - ii1 * m0 ? m0 : m - ii1 * m0;
+    for (size_t jj1 = 0; jj1 < n1; ++jj1) {
+      const uint16_t *src_block = src + ii1 * rs1 + jj1 * cs1;
+      uint16_t *dst_block = dst + ii1 * m0 * rs + jj1 * n0;
+      size_t n_length = n0 < n - jj1 * n0 ? n0 : n - jj1 * n0;
+
+      if (rs0 == 1) {
+        // Transpose from column-major to row-major
+        skl_transpose_e16_zve32x(n_length, m_length, src_block, cs0, dst_block,
+                                 rs);
+      } else if (cs0 == 1) {
+        skl_copy_2d_e16_zve32x(m_length, n_length, src_block, rs0, dst_block,
+                               rs);
+      } else {
+        for (size_t ii0 = 0; ii0 < m_length; ++ii0) {
+          for (size_t jj0 = 0; jj0 < n_length; ++jj0) {
+            dst_block[ii0 * rs + jj0] = src_block[ii0 * rs0 + jj0 * cs0];
+          }
+        }
+      }
+    }
+  }
+}
+
+SKL_FUNC void skl_unpack_e16rcprc_e16rc_zve32x(
+    size_t m0, size_t n0, const uint16_t *SKL_RESTRICT src, size_t rs0,
+    size_t cs0, size_t rs1, size_t cs1, size_t m, size_t n,
+    uint16_t *SKL_RESTRICT dst, size_t rs, size_t cs) {
+  if (cs == 1) {
+    skl_unpack_e16rcprc_e16_zve32x(m0, n0, src, rs0, cs0, rs1, cs1, m, n, dst,
+                                   rs);
+  } else if (rs == 1) {
+    // When output is column-major (rs==1), transpose both dimensions and
+    // strides
+    skl_unpack_e16rcprc_e16_zve32x(n0, m0, src, cs0, rs0, cs1, rs1, n, m, dst,
+                                   cs);
+  } else {
+    // Handle division by zero
+    if (m0 == 0 || n0 == 0) {
+      return;
+    }
+    size_t m1 = (m + m0 - 1) / m0;
+    size_t n1 = (n + n0 - 1) / n0;
+    for (size_t ii1 = 0; ii1 < m1; ++ii1) {
+      for (size_t jj1 = 0; jj1 < n1; ++jj1) {
+        const uint16_t *src_block = src + ii1 * rs1 + jj1 * cs1;
+        uint16_t *dst_block = dst + ii1 * m0 * rs + jj1 * n0 * cs;
+        for (size_t ii0 = 0; ii0 < m0; ++ii0) {
+          for (size_t jj0 = 0; jj0 < n0; ++jj0) {
+            if (ii1 * m0 + ii0 < m && jj1 * n0 + jj0 < n) {
+              dst_block[ii0 * rs + jj0 * cs] = src_block[ii0 * rs0 + jj0 * cs0];
             }
           }
         }

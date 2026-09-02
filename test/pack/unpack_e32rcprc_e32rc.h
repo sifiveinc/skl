@@ -4,15 +4,14 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * @brief Test and benchmark for Pack
+ * @brief Test and benchmark for Unpack
  *
  * This test uses a table-driven approach where test configurations are defined
  * in the `tests` array. Each test specifies:
- *  - Input matrix dimensions m, n
- *  - Input matrix strides rs, cs
- *  - Block dimensions m0, n0
- *  - Output block strides rs0, cs0 (within block), rs1, cs1 (between blocks)
- *  - Padding value
+ *  - Input block dimensions m0, n0
+ *  - Input block strides rs0, cs0 (within block), rs1, cs1 (between blocks)
+ *  - Output matrix dimensions m, n
+ *  - Output matrix strides rs, cs
  */
 
 #pragma once
@@ -26,17 +25,16 @@ typedef struct {
   // *** This field must be placed first within this struct ***
   skl_test_steps_t steps;
 
-  // Input matrix dimensions
-  size_t m, n;
-  // Input matrix strides
-  size_t rs, cs;
-  // Block dimensions
+  // Input block dimensions
   size_t m0, n0;
-  // Output block strides
+  // Input block strides
   size_t rs0, cs0; // within block
   size_t rs1, cs1; // between blocks
+  // Output matrix dimensions
+  size_t m, n;
+  // Output matrix strides
+  size_t rs, cs;
 
-  uint32_t pad;
   // Buffer generation settings
   SKL_TEST_BUFFER(uint32_t) src, dst;
 
@@ -44,15 +42,14 @@ typedef struct {
   struct {
     uint32_t *ref_dst;
   } ctx;
-} pack_e32rc_e32rcprc_t;
+} unpack_e32rcprc_e32rc_t;
 
-#define PACK_E32RC_E32RCPRC_DEFAULTS                                           \
+#define UNPACK_E32RCPRC_E32RC_DEFAULTS                                         \
   .src = {.min = 0, .max = 0XFFFFFFFF, .mode = SKL_TEST_RANDOM},               \
-  .dst = {.min = 0, .max = 0XFFFFFFFF, .mode = SKL_TEST_RANDOM},               \
-  .pad = 0xDEADBEEF
+  .dst = {.min = 0, .max = 0XFFFFFFFF, .mode = SKL_TEST_RANDOM}
 
-void pack_e32rc_e32rcprc_init(skl_test_t *t);
-void pack_e32rc_e32rcprc_verify(skl_test_t *t);
-void pack_e32rc_e32rcprc_test_report(skl_test_t *t);
-void pack_e32rc_e32rcprc_benchmark_report(skl_test_t *t);
-void pack_e32rc_e32rcprc_cleanup(skl_test_t *t);
+void unpack_e32rcprc_e32rc_init(skl_test_t *t);
+void unpack_e32rcprc_e32rc_verify(skl_test_t *t);
+void unpack_e32rcprc_e32rc_test_report(skl_test_t *t);
+void unpack_e32rcprc_e32rc_benchmark_report(skl_test_t *t);
+void unpack_e32rcprc_e32rc_cleanup(skl_test_t *t);

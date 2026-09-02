@@ -4,15 +4,14 @@
 // SPDX-License-Identifier: MIT
 
 /**
- * @brief Test and benchmark for Pack
+ * @brief Test and benchmark for Unpack
  *
  * This test uses a table-driven approach where test configurations are defined
  * in the `tests` array. Each test specifies:
- *  - Input matrix dimensions m, n
- *  - Input matrix strides rs, cs
- *  - Block dimensions m0, n0
- *  - Output block strides rs0, cs0 (within block), rs1, cs1 (between blocks)
- *  - Padding value
+ *  - Input block dimensions m0, n0
+ *  - Input block strides rs0, cs0 (within block), rs1, cs1 (between blocks)
+ *  - Output matrix dimensions m, n
+ *  - Output matrix strides rs, cs
  */
 
 #pragma once
@@ -26,17 +25,16 @@ typedef struct {
   // *** This field must be placed first within this struct ***
   skl_test_steps_t steps;
 
-  // Input matrix dimensions
-  size_t m, n;
-  // Input matrix strides
-  size_t rs, cs;
-  // Block dimensions
+  // Input block dimensions
   size_t m0, n0;
-  // Output block strides
+  // Input block strides
   size_t rs0, cs0; // within block
   size_t rs1, cs1; // between blocks
+  // Output matrix dimensions
+  size_t m, n;
+  // Output matrix strides
+  size_t rs, cs;
 
-  uint16_t pad;
   // Buffer generation settings
   SKL_TEST_BUFFER(uint16_t) src, dst;
 
@@ -44,14 +42,14 @@ typedef struct {
   struct {
     uint16_t *ref_dst;
   } ctx;
-} pack_e16rc_e16rcprc_t;
+} unpack_e16rcprc_e16rc_t;
 
-#define PACK_E16RC_E16RCPRC_DEFAULTS                                           \
+#define UNPACK_E16RCPRC_E16RC_DEFAULTS                                         \
   .src = {.min = 0, .max = 0XFFFF, .mode = SKL_TEST_RANDOM},                   \
-  .dst = {.min = 0, .max = 0XFFFF, .mode = SKL_TEST_RANDOM}, .pad = 0xBEEF
+  .dst = {.min = 0, .max = 0XFFFF, .mode = SKL_TEST_RANDOM}
 
-void pack_e16rc_e16rcprc_init(skl_test_t *t);
-void pack_e16rc_e16rcprc_verify(skl_test_t *t);
-void pack_e16rc_e16rcprc_test_report(skl_test_t *t);
-void pack_e16rc_e16rcprc_benchmark_report(skl_test_t *t);
-void pack_e16rc_e16rcprc_cleanup(skl_test_t *t);
+void unpack_e16rcprc_e16rc_init(skl_test_t *t);
+void unpack_e16rcprc_e16rc_verify(skl_test_t *t);
+void unpack_e16rcprc_e16rc_test_report(skl_test_t *t);
+void unpack_e16rcprc_e16rc_benchmark_report(skl_test_t *t);
+void unpack_e16rcprc_e16rc_cleanup(skl_test_t *t);
