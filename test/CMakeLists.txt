@@ -212,6 +212,13 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_gemm_i8_i8c_i32_zvqwbdota8i
+  gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+  gemm/zvbdot/skl_gemm_i8_i8c_i32_zvqwbdota8i.c
+  "zvqwbdota8i"
+  ""
+)
+skl_add_test(
   skl_gemm_i8c_i8_i32_xsfmm32a8i
   gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
   gemm/xsfmm/skl_gemm_i8c_i8_i32_xsfmm32a8i.c
