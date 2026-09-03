@@ -366,10 +366,24 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_pack_e16_e16rcptex1c_xsfmmbase
+  pack/pack_e16rc_e16rcprc.c
+  pack/xsfmm/skl_pack_e16_e16rcptex1c_xsfmmbase.c
+  "xsfmmbase"
+  ""
+)
+skl_add_test(
   skl_pack_e16rc_e16rcprc_zve32x
   pack/pack_e16rc_e16rcprc.c
   pack/rvv/skl_pack_e16rc_e16rcprc_zve32x.c
   "zve32x"
+  ""
+)
+skl_add_test(
+  skl_pack_e32_e32rcptex1c_xsfmmbase
+  pack/pack_e32rc_e32rcprc.c
+  pack/xsfmm/skl_pack_e32_e32rcptex1c_xsfmmbase.c
+  "xsfmmbase"
   ""
 )
 skl_add_test(
@@ -380,24 +394,17 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_pack_e8_e8rcptex1c_xsfmmbase
+  pack/pack_e8rc_e8rcprc.c
+  pack/xsfmm/skl_pack_e8_e8rcptex1c_xsfmmbase.c
+  "xsfmmbase"
+  ""
+)
+skl_add_test(
   skl_pack_e8rc_e8rcprc_zve32x
   pack/pack_e8rc_e8rcprc.c
   pack/rvv/skl_pack_e8rc_e8rcprc_zve32x.c
   "zve32x"
-  ""
-)
-skl_add_test(
-  skl_pack_e16_e16rcptex1c_xsfmmbase
-  pack/pack_e16rc_e16rcprc.c
-  pack/xsfmm/skl_pack_e16_e16rcptex1c_xsfmmbase.c
-  "xsfmmbase"
-  ""
-)
-skl_add_test(
-  skl_pack_e32_e32rcptex1c_xsfmmbase
-  pack/pack_e32rc_e32rcprc.c
-  pack/xsfmm/skl_pack_e32_e32rcptex1c_xsfmmbase.c
-  "xsfmmbase"
   ""
 )
 skl_add_test(
