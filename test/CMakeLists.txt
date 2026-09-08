@@ -18,7 +18,24 @@ target_compile_options(
   PRIVATE ${SKL_COMPILE_OPTIONS} ${SKL_TEST_COMPILE_OPTIONS}
 )
 
+set(SKL_ADD_TEST_FUNC "skl_add_test_default" CACHE
+  STRING "Name of the function used to add a SKL test target."
+)
+
 function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
+  # Set SKL_ADD_TEST_FUNC for customized functionality.
+  cmake_language(CALL ${SKL_ADD_TEST_FUNC}
+    ${TEST_NAME}
+    ${HARNESS_SRC}
+    ${TEST_SRC}
+    "${REQUIRED_EXTENSIONS}"
+    "${OPTS}"
+  )
+endfunction()
+
+function(skl_add_test_default TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
+  # Build a test executable from the given harness and test file, and add a ctest test for it.
+
   # Only add the test if all extensions in REQUIRED_EXTENSIONS are present.
   foreach(EXT ${REQUIRED_EXTENSIONS})
     assert_extension_valid(${EXT})
@@ -27,33 +44,36 @@ function(skl_add_test TEST_NAME HARNESS_SRC TEST_SRC REQUIRED_EXTENSIONS OPTS)
     endif()
   endforeach()
 
-  add_executable(test-${TEST_NAME} ${HARNESS_SRC} ${TEST_SRC})
+  set(TEST_NAME test-${TEST_NAME})
+
+  # Create the test executable
+  add_executable(${TEST_NAME} ${HARNESS_SRC} ${TEST_SRC})
   target_link_libraries(
-    test-${TEST_NAME}
+    ${TEST_NAME}
     PRIVATE ${SKL_LIBRARY} ${SKL_TEST_LIBS} skl-test-driver
   )
   target_compile_options(
-    test-${TEST_NAME}
+    ${TEST_NAME}
     PRIVATE ${SKL_COMPILE_OPTIONS} ${SKL_TEST_COMPILE_OPTIONS} ${OPTS}
   )
-  target_include_directories(test-${TEST_NAME} PRIVATE .)
+  target_include_directories(${TEST_NAME} PRIVATE .)
   if(SKL_CLANG_TIDY_CMD)
-    set_target_properties(test-${TEST_NAME} PROPERTIES
+    set_target_properties(${TEST_NAME} PROPERTIES
       C_CLANG_TIDY ${SKL_CLANG_TIDY_CMD}
     )
   endif()
 
   if(SKL_ENABLE_TESTS)
-    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_TESTS)
+    target_compile_definitions(${TEST_NAME} PRIVATE SKL_ENABLE_TESTS)
   endif()
   if(SKL_ENABLE_BENCHMARKS)
-    target_compile_definitions(test-${TEST_NAME} PRIVATE SKL_ENABLE_BENCHMARKS)
+    target_compile_definitions(${TEST_NAME} PRIVATE SKL_ENABLE_BENCHMARKS)
   endif()
 
+  # Create the test command
   add_test(
-    NAME test-${TEST_NAME}
-    COMMAND
-      ${SKL_TESTER} ${SKL_TESTER_OPTIONS} $<TARGET_FILE:test-${TEST_NAME}>
+    NAME ${TEST_NAME}
+    COMMAND ${SKL_TESTER} ${SKL_TESTER_OPTIONS} $<TARGET_FILE:${TEST_NAME}>
   )
 endfunction()
 
