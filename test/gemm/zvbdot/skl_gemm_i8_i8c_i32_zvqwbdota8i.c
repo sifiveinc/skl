@@ -13,7 +13,7 @@
 #endif
 
 /**
- * @brief Test cases for GEMM with Zvqwbdota8i extension.
+ * @brief Test cases for the skl_gemm_i8_i8c_i32_zvqwbdota8i kernel.
  *
  * This test uses the gemm_i8rcprc_i8rcprc_i32rcprc harness with the following
  * restrictions on the input parameters:
@@ -122,9 +122,9 @@ static void execute(skl_test_t *t) {
   const gemm_i8rcprc_i8rcprc_i32rcprc_t *h =
       (gemm_i8rcprc_i8rcprc_i32rcprc_t *)t->harness;
 
-  skl_gemm_i8_i8c_i32_zvqwbdota8i(h->m1, h->n1, h->k1, h->alpha, h->a_pack.data,
-                                  h->rsa1, h->b_pack.data, h->csb1, h->beta,
-                                  h->c_pack.data, h->rsc1);
+  skl_gemm_i8_i8c_i32_zvqwbdota8i(h->m1, h->n1, h->k1, h->alpha, h->a.data,
+                                  h->rsa1, h->b.data, h->csb1, h->beta,
+                                  h->c.data, h->rsc1);
 }
 
 int main(void) {
