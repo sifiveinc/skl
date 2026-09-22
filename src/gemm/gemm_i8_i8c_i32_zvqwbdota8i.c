@@ -87,11 +87,12 @@ SKL_FUNC_PRIVATE void skl_gemm_2xle8_i8_i8c_i32_zvqwbdota8i(
       : "vl", "vtype", "memory", "v0", "v8", "v9", "v10", "v11", "v12", "v13",
         "v14", "v15");
 
+  if (alpha != 1) {
+    vec0 = __riscv_vmul_vx_i32m8(vec0, alpha, n);
+    vec1 = __riscv_vmul_vx_i32m8(vec1, alpha, n);
+  }
+
   if (beta != 0) {
-    if (alpha != 1) {
-      vec0 = __riscv_vmul_vx_i32m8(vec0, alpha, n);
-      vec1 = __riscv_vmul_vx_i32m8(vec1, alpha, n);
-    }
     int32_t *c0 = c;
     vint32m8_t cvec0 = __riscv_vle32_v_i32m8(c0, n);
     c0 += rsc;
@@ -99,11 +100,6 @@ SKL_FUNC_PRIVATE void skl_gemm_2xle8_i8_i8c_i32_zvqwbdota8i(
 
     vint32m8_t cvec1 = __riscv_vle32_v_i32m8(c0, n);
     vec1 = __riscv_vmacc_vx_i32m8(vec1, beta, cvec1, n);
-  } else {
-    if (alpha != 1) {
-      vec0 = __riscv_vmul_vx_i32m8(vec0, alpha, n);
-      vec1 = __riscv_vmul_vx_i32m8(vec1, alpha, n);
-    }
   }
 
   __riscv_vse32_v_i32m8(c, vec0, n);
@@ -180,17 +176,14 @@ SKL_FUNC_PRIVATE void skl_gemm_1xle8_i8_i8c_i32_zvqwbdota8i(
                    : "vl", "vtype", "memory", "v0", "v8", "v9", "v10", "v11",
                      "v12", "v13", "v14", "v15");
 
+  if (alpha != 1) {
+    vec0 = __riscv_vmul_vx_i32m8(vec0, alpha, n);
+  }
+
   if (beta != 0) {
-    if (alpha != 1) {
-      vec0 = __riscv_vmul_vx_i32m8(vec0, alpha, n);
-    }
     int32_t *c0 = c;
     vint32m8_t cvec0 = __riscv_vle32_v_i32m8(c0, n);
     vec0 = __riscv_vmacc_vx_i32m8(vec0, beta, cvec0, n);
-  } else {
-    if (alpha != 1) {
-      vec0 = __riscv_vmul_vx_i32m8(vec0, alpha, n);
-    }
   }
 
   __riscv_vse32_v_i32m8(c, vec0, n);
