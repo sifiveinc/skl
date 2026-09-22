@@ -14,13 +14,14 @@
 #endif
 
 /**
- * @brief Test cases for GEMM with Xsfmm32a8f extension.
+ * @brief Test cases for the
+ * skl_gemm_f8e5m2rcptex1c_f8e5m2rcp1xte_f32rcptexterc_xsfmm32a8f kernel.
  *
  * This test uses the gemm_f8rcprc_f8rcprc_f32rcprc harness with the following
  * restrictions on the input parameters:
  *  - The block dimensions are m0 = TE, n0 = TE, and k0 = 1
- *  - Matrix A_pack has column-major blocks (rsa0 == 1)
- *  - Matrix B_pack has row-major blocks (csb0 == 1)
+ *  - Matrix A has column-major blocks (rsa0 == 1)
+ *  - Matrix B has row-major blocks (csb0 == 1)
  */
 
 #define TEST                                                                   \
@@ -220,7 +221,7 @@ gemm_f8rcprc_f8rcprc_f32rcprc_t tests[] = {
 
     {TEST, .m1 = 7, .n1 = 7, .k1 = 15, .alpha = 2.f, .beta = 3.f, .csc0 = 2},
     {TEST, .m1 = 7, .n1 = 7, .k1 = 15, .alpha = 2.f, .beta = 3.f, .rsc0 = 1,
-           .csc0 = __riscv_min_xsfmm_te},
+           .csc0 = SKL_XSFMM_TE},
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on
@@ -235,9 +236,8 @@ static void init(skl_test_t *t) {
   const gemm_f8rcprc_f8rcprc_f32rcprc_t *h =
       (gemm_f8rcprc_f8rcprc_f32rcprc_t *)t->harness;
 
-  size_t ete = skl_get_ete_xsfmmbase();
-  SKL_TEST_REQUIRE(t, init_status, h->m0 == ete);
-  SKL_TEST_REQUIRE(t, init_status, h->n0 == ete);
+  SKL_TEST_REQUIRE(t, init_status, h->m0 == SKL_XSFMM_TE);
+  SKL_TEST_REQUIRE(t, init_status, h->n0 == SKL_XSFMM_TE);
   SKL_TEST_REQUIRE(t, init_status, h->k0 == 1);
   SKL_TEST_REQUIRE(t, init_status, h->rsa0 == 1); // Note: column-major
   SKL_TEST_REQUIRE(t, init_status, h->csb0 == 1);
@@ -250,17 +250,16 @@ static void execute(skl_test_t *t) {
       (gemm_f8rcprc_f8rcprc_f32rcprc_t *)t->harness;
 
   skl_gemm_f8e5m2rcptex1c_f8e5m2rcp1xte_f32rcptexterc_xsfmm32a8f(
-      h->m1, h->n1, h->k1 * h->k0, h->alpha, h->a_pack.data, h->rsa1, h->csa1,
-      h->b_pack.data, h->rsb1, h->csb1, h->beta, h->c_pack.data, h->rsc0,
-      h->csc0, h->rsc1, h->csc1);
+      h->m1, h->n1, h->k1 * h->k0, h->alpha, h->a.data, h->rsa1, h->csa1,
+      h->b.data, h->rsb1, h->csb1, h->beta, h->c.data, h->rsc0, h->csc0,
+      h->rsc1, h->csc1);
 }
 
 int main(void) {
   // Set default strides: A has column-major blocks, B has row-major blocks
-  size_t ete = skl_get_ete_xsfmmbase();
   for (size_t i = 0; i < suite.num_tests; ++i) {
-    tests[i].m0 = ete;
-    tests[i].n0 = ete;
+    tests[i].m0 = SKL_XSFMM_TE;
+    tests[i].n0 = SKL_XSFMM_TE;
     tests[i].k0 = 1;
 
     tests[i].rsa0 = 1;
