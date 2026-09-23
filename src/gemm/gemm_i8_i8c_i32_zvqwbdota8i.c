@@ -107,9 +107,10 @@ SKL_FUNC_PRIVATE void skl_gemm_2xle8_i8_i8c_i32_zvqwbdota8i(
   __riscv_vse32_v_i32m8(c, vec1, n);
 }
 
-SKL_FUNC_PRIVATE void skl_gemm_1xle8_i8_i8c_i32_zvqwbdota8i(
-    size_t n, size_t k, int32_t alpha, const int8_t *a, size_t rsa,
-    const int8_t *b, size_t csb, int32_t beta, int32_t *c) {
+SKL_FUNC_PRIVATE void
+skl_gemm_1xle8_i8_i8c_i32_zvqwbdota8i(size_t n, size_t k, int32_t alpha,
+                                      const int8_t *a, const int8_t *b,
+                                      size_t csb, int32_t beta, int32_t *c) {
   if (n == 0) {
     return;
   }
@@ -122,59 +123,59 @@ SKL_FUNC_PRIVATE void skl_gemm_1xle8_i8_i8c_i32_zvqwbdota8i(
   uint8_t mask = 0xFFU >> (8 - n);
   size_t avl = k;
   size_t vl = 0;
-  __asm__ volatile("beqz %[avl], 2f\n"
+  __asm__ volatile(
+      "beqz %[avl], 2f\n"
 
-                   "vsetvli x0, x0, e8, m1, ta, ma\n"
-                   "vmv.s.x v0, %[mask]\n"
+      "vsetvli x0, x0, e8, m1, ta, ma\n"
+      "vmv.s.x v0, %[mask]\n"
 
-                   "0:\n"
-                   "mv %[a0], %[a]\n"
-                   "mv %[b0], %[b]\n"
+      "0:\n"
+      "mv %[a0], %[a]\n"
+      "mv %[b0], %[b]\n"
 
-                   "vsetvli %[vl], %[avl], e8alt, m1, ta, ma\n"
-                   "vle8.v %[avec], (%[a0])\n"
+      "vsetvli %[vl], %[avl], e8alt, m1, ta, ma\n"
+      "vle8.v %[avec], (%[a0])\n"
 
-                   "vle8.v v8, (%[b0])\n"
-                   "add %[b0], %[b0], %[csb]\n"
-                   "beq %[n], %[i1], 1f\n"
-                   "vle8.v v9, (%[b0])\n"
-                   "add %[b0], %[b0], %[csb]\n"
-                   "beq %[n], %[i2], 1f\n"
-                   "vle8.v v10, (%[b0])\n"
-                   "add %[b0], %[b0], %[csb]\n"
-                   "beq %[n], %[i3], 1f\n"
-                   "vle8.v v11, (%[b0])\n"
-                   "add %[b0], %[b0], %[csb]\n"
-                   "beq %[n], %[i4], 1f\n"
-                   "vle8.v v12, (%[b0])\n"
-                   "add %[b0], %[b0], %[csb]\n"
-                   "beq %[n], %[i5], 1f\n"
-                   "vle8.v v13, (%[b0])\n"
-                   "add %[b0], %[b0], %[csb]\n"
-                   "beq %[n], %[i6], 1f\n"
-                   "vle8.v v14, (%[b0])\n"
-                   "add %[b0], %[b0], %[csb]\n"
-                   "beq %[n], %[i7], 1f\n"
-                   "vle8.v v15, (%[b0])\n"
-                   "add %[b0], %[b0], %[csb]\n"
+      "vle8.v v8, (%[b0])\n"
+      "add %[b0], %[b0], %[csb]\n"
+      "beq %[n], %[i1], 1f\n"
+      "vle8.v v9, (%[b0])\n"
+      "add %[b0], %[b0], %[csb]\n"
+      "beq %[n], %[i2], 1f\n"
+      "vle8.v v10, (%[b0])\n"
+      "add %[b0], %[b0], %[csb]\n"
+      "beq %[n], %[i3], 1f\n"
+      "vle8.v v11, (%[b0])\n"
+      "add %[b0], %[b0], %[csb]\n"
+      "beq %[n], %[i4], 1f\n"
+      "vle8.v v12, (%[b0])\n"
+      "add %[b0], %[b0], %[csb]\n"
+      "beq %[n], %[i5], 1f\n"
+      "vle8.v v13, (%[b0])\n"
+      "add %[b0], %[b0], %[csb]\n"
+      "beq %[n], %[i6], 1f\n"
+      "vle8.v v14, (%[b0])\n"
+      "add %[b0], %[b0], %[csb]\n"
+      "beq %[n], %[i7], 1f\n"
+      "vle8.v v15, (%[b0])\n"
+      "add %[b0], %[b0], %[csb]\n"
 
-                   "1:\n"
-                   "vqwbdotas.vv %[vec0], v8, %[avec], 0, v0.t\n"
+      "1:\n"
+      "vqwbdotas.vv %[vec0], v8, %[avec], 0, v0.t\n"
 
-                   "add %[a], %[a], %[vl]\n"
-                   "add %[b], %[b], %[vl]\n"
-                   "sub %[avl], %[avl], %[vl]\n"
+      "add %[a], %[a], %[vl]\n"
+      "add %[b], %[b], %[vl]\n"
+      "sub %[avl], %[avl], %[vl]\n"
 
-                   "bnez %[avl], 0b\n"
-                   "2:\n"
-                   : [avec] "=&vr"(avec), [vec0] "+&vr"(vec0), [a0] "=&r"(a0),
-                     [b0] "=&r"(b0), [a] "+&r"(a), [b] "+&r"(b), [vl] "=&r"(vl),
-                     [avl] "+&r"(avl)
-                   : [mask] "r"(mask), [rsa] "rI"(rsa), [csb] "rI"(csb),
-                     [n] "r"(n), [i1] "r"(1), [i2] "r"(2), [i3] "r"(3),
-                     [i4] "r"(4), [i5] "r"(5), [i6] "r"(6), [i7] "r"(7)
-                   : "vl", "vtype", "memory", "v0", "v8", "v9", "v10", "v11",
-                     "v12", "v13", "v14", "v15");
+      "bnez %[avl], 0b\n"
+      "2:\n"
+      : [avec] "=&vr"(avec), [vec0] "+&vr"(vec0), [a0] "=&r"(a0),
+        [b0] "=&r"(b0), [a] "+&r"(a), [b] "+&r"(b), [vl] "=&r"(vl),
+        [avl] "+&r"(avl)
+      : [mask] "r"(mask), [csb] "rI"(csb), [n] "r"(n), [i1] "r"(1), [i2] "r"(2),
+        [i3] "r"(3), [i4] "r"(4), [i5] "r"(5), [i6] "r"(6), [i7] "r"(7)
+      : "vl", "vtype", "memory", "v0", "v8", "v9", "v10", "v11", "v12", "v13",
+        "v14", "v15");
 
   if (alpha != 1) {
     vec0 = __riscv_vmul_vx_i32m8(vec0, alpha, n);
@@ -213,9 +214,8 @@ SKL_FUNC void skl_gemm_i8_i8c_i32_zvqwbdota8i(size_t m, size_t n, size_t k,
     size_t n_vl = 0;
     for (size_t j = 0; j < n; j += n_vl) {
       n_vl = n - j >= 8 ? 8 : n - j;
-      skl_gemm_1xle8_i8_i8c_i32_zvqwbdota8i(n_vl, k, alpha, a + i * rsa, rsa,
-                                            b + j * csb, csb, beta,
-                                            c + i * rsc + j);
+      skl_gemm_1xle8_i8_i8c_i32_zvqwbdota8i(
+          n_vl, k, alpha, a + i * rsa, b + j * csb, csb, beta, c + i * rsc + j);
     }
   }
 }
