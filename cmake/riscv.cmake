@@ -32,6 +32,7 @@ set(SKL_ARCH_EXTENSIONS
   # xsfvqdotq
   zvfbfmin
   zvfbfwma
+  # zvqwbdota8i0p2
   zihintntl
 )
 

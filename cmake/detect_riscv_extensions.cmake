@@ -65,6 +65,7 @@ detect_riscv_extension("zve64d" "zve64d=true")
 detect_riscv_extension("zve32x" "zve32x=true")
 detect_riscv_extension("zvfofp4min" "x-zvfofp4min=true")
 detect_riscv_extension("zvfofp8min" "x-zvfofp8min=true")
+detect_riscv_extension("zvqwbdota8i" "x-zvqwbdota8i=true")
 
 detect_riscv_extension("xsfmmbase" "x-xsfmmbase=true")
 detect_riscv_extension("xsfmm32a8f" "x-xsfmm32a8f=true")
