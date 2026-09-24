@@ -21,7 +21,8 @@
  */
 SKL_FUNC_PRIVATE void
 skl_pack_tile_load_e32_e32_xsfmmbase(size_t tm, size_t tn, const uint32_t *src,
-                                     size_t rs, size_t tss) SKL_XSFMM_INOUT {
+                                     size_t rs, size_t tss)
+    __riscv_inout("xsfmm") {
   if (tm == 0 || tn == 0) {
     return;
   }
@@ -51,7 +52,7 @@ skl_pack_tile_load_e32_e32_xsfmmbase(size_t tm, size_t tn, const uint32_t *src,
 SKL_FUNC_PRIVATE void skl_pack_tile_store_pad_bottom_e32_e32_xsfmmbase(
     size_t tm, size_t tss, size_t m0, size_t n0,
     uint32_t *dst, // NOLINT(readability-non-const-parameter)
-    size_t rs, uint32_t pad) SKL_XSFMM_IN {
+    size_t rs, uint32_t pad) __riscv_in("xsfmm") {
   if (m0 == 0 || n0 == 0) {
     return;
   }
@@ -100,7 +101,7 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
     size_t tm_store, size_t tss_store, size_t m0, size_t n0,
     uint32_t *dst, // NOLINT(readability-non-const-parameter)
     size_t rsdst, size_t tm_load, size_t tn_load, const uint32_t *src,
-    size_t rssrc, size_t tss_load, uint32_t pad) SKL_XSFMM_INOUT {
+    size_t rssrc, size_t tss_load, uint32_t pad) __riscv_inout("xsfmm") {
   if ((m0 == 0 || n0 == 0) && (tm_load == 0 || tn_load == 0)) {
     return;
   }
@@ -198,9 +199,9 @@ SKL_FUNC_PRIVATE void skl_pack_tile_store_load_e32_e32_xsfmmbase(
 /* Set the entries of the tm x tn tile specified by tss to pad.
  * Tiles may have loaded data, so marked as INOUT.
  */
-SKL_FUNC_PRIVATE void
-skl_pack_tile_set_e32_xsfmmbase(size_t tm, size_t tn, size_t tss,
-                                uint32_t pad) SKL_XSFMM_INOUT {
+SKL_FUNC_PRIVATE void skl_pack_tile_set_e32_xsfmmbase(size_t tm, size_t tn,
+                                                      size_t tss, uint32_t pad)
+    __riscv_inout("xsfmm") {
   if (tm == 0 || tn == 0) {
     return;
   }
@@ -228,7 +229,7 @@ skl_pack_tile_set_e32_xsfmmbase(size_t tm, size_t tn, size_t tss,
 SKL_FUNC_PRIVATE void skl_pack_padding_optional_e32_e32rcptextec_xsfmmbase(
     size_t m, size_t n, const uint32_t *src, size_t rs, uint32_t *dst,
     size_t cs0, size_t rs1, size_t cs1, bool pad_right, bool pad_bottom,
-    uint32_t pad) SKL_XSFMM_NEW {
+    uint32_t pad) __riscv_new("xsfmm") {
   if (m == 0 || n == 0) {
     return;
   }
