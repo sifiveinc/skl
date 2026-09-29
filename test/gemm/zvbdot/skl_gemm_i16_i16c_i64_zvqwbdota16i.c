@@ -32,7 +32,7 @@
           .verify = gemm_i16rcprc_i16rcprc_i64rcprc_verify,                    \
           .report = gemm_i16rcprc_i16rcprc_i64rcprc_test_report,               \
           .cleanup = gemm_i16rcprc_i16rcprc_i64rcprc_cleanup,                  \
-      }
+  }
 
 #define BENCH                                                                  \
   GEMM_I16RCPRC_I16RCPRC_I64RCPRC_DEFAULTS,                                    \
@@ -43,7 +43,7 @@
           .verify = NULL,                                                      \
           .report = gemm_i16rcprc_i16rcprc_i64rcprc_benchmark_report,          \
           .cleanup = gemm_i16rcprc_i16rcprc_i64rcprc_cleanup,                  \
-      }
+  }
 
 static void init(skl_test_t *t);
 static void execute(skl_test_t *t);
