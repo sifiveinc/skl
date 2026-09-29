@@ -20,8 +20,8 @@ SKL_FUNC_PRIVATE void skl_gemm_2xle8_i8_i8c_i32_zvqwbdota8i(
     return;
   }
 
-  vint32m8_t vec0 = __riscv_vmv_v_x_i32m8(0, 8);
-  vint32m8_t vec1 = __riscv_vmv_v_x_i32m8(0, 8);
+  vint32m8_t vec0 = __riscv_vmv_v_x_i32m8(0, n);
+  vint32m8_t vec1 = __riscv_vmv_v_x_i32m8(0, n);
   vint8m1_t avec = __riscv_vundefined_i8m1();
 
   const int8_t *a0 = a;
@@ -115,7 +115,7 @@ skl_gemm_1xle8_i8_i8c_i32_zvqwbdota8i(size_t n, size_t k, int32_t alpha,
     return;
   }
 
-  vint32m8_t vec0 = __riscv_vmv_v_x_i32m8(0, 8);
+  vint32m8_t vec0 = __riscv_vmv_v_x_i32m8(0, n);
   vint8m1_t avec = __riscv_vundefined_i8m1();
 
   const int8_t *a0 = a;
@@ -130,7 +130,6 @@ skl_gemm_1xle8_i8_i8c_i32_zvqwbdota8i(size_t n, size_t k, int32_t alpha,
       "vmv.s.x v0, %[mask]\n"
 
       "0:\n"
-      "mv %[a0], %[a]\n"
       "mv %[b0], %[b]\n"
 
       "vsetvli %[vl], %[avl], e8alt, m1, ta, ma\n"
@@ -163,15 +162,14 @@ skl_gemm_1xle8_i8_i8c_i32_zvqwbdota8i(size_t n, size_t k, int32_t alpha,
       "1:\n"
       "vqwbdotas.vv %[vec0], v8, %[avec], 0, v0.t\n"
 
-      "add %[a], %[a], %[vl]\n"
+      "add %[a0], %[a0], %[vl]\n"
       "add %[b], %[b], %[vl]\n"
       "sub %[avl], %[avl], %[vl]\n"
 
       "bnez %[avl], 0b\n"
       "2:\n"
-      : [avec] "=&vr"(avec), [vec0] "+&vr"(vec0), [a0] "=&r"(a0),
-        [b0] "=&r"(b0), [a] "+&r"(a), [b] "+&r"(b), [vl] "=&r"(vl),
-        [avl] "+&r"(avl)
+      : [avec] "=&vr"(avec), [vec0] "+&vr"(vec0), [a0] "+&r"(a0),
+        [b0] "=&r"(b0), [b] "+&r"(b), [vl] "=&r"(vl), [avl] "+&r"(avl)
       : [mask] "r"(mask), [csb] "rI"(csb), [n] "r"(n), [i1] "r"(1), [i2] "r"(2),
         [i3] "r"(3), [i4] "r"(4), [i5] "r"(5), [i6] "r"(6), [i7] "r"(7)
       : "vl", "vtype", "memory", "v0", "v8", "v9", "v10", "v11", "v12", "v13",
