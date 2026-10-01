@@ -33,8 +33,11 @@ endif()
 
 # Build the library itself
 
-set(SKL_LIBRARY skl)
+set(SKL_TARGET_PREFIX "skl" CACHE
+  STRING "The prefix to use for SKL targets. Default: \"skl\""
+)
 
+set(SKL_LIBRARY ${SKL_TARGET_PREFIX})
 add_library(${SKL_LIBRARY} STATIC)
 
 # Try to compile SKL with a recent standard with GNU extensions.
@@ -80,6 +83,7 @@ target_sources(${SKL_LIBRARY} PUBLIC FILE_SET source_headers TYPE HEADERS
 )
 
 # Build the reference library for functional testing
+set(SKL_REF ${SKL_TARGET_PREFIX}-ref)
 add_subdirectory(ref)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/detect_riscv_extensions.cmake)
@@ -183,7 +187,7 @@ if(NOT DEFINED SKL_TESTER_OPTIONS)
   set(SKL_TESTER_OPTIONS ${SKL_QEMU_OPTIONS})
 endif()
 
-set(SKL_TEST_LIBS skl-ref m)
+set(SKL_TEST_LIBS ${SKL_REF} m)
 
 set(SKL_ENABLE_TESTS OFF CACHE STRING "Enable building of validation tests.")
 message(STATUS "SKL_ENABLE_TESTS: ${SKL_ENABLE_TESTS}")
