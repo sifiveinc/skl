@@ -40,10 +40,10 @@ extern "C" {
  *     1, 1, 1,         // m0, n0, k0
  *     m, n, k,         // m1, n1, k1
  *     alpha,           // alpha
- *     a, 0, 1, rsa, 1, // a, rsa0, csa0, rsa1, csa1
- *     b, 1, 0, 1, csb, // b, rsb0, csb0, rsb1, csb1
+ *     a, 0, 0, rsa, 1, // a, rsa0, csa0, rsa1, csa1
+ *     b, 0, 0, 1, csb, // b, rsb0, csb0, rsb1, csb1
  *     beta,            // beta
- *     c, 0, 1, rsc, 1  // c, rsc0, csc0, rsc1, csc1
+ *     c, 0, 0, rsc, 1  // c, rsc0, csc0, rsc1, csc1
  * );
  * ```
  *
