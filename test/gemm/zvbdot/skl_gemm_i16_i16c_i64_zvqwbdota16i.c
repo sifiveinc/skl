@@ -13,7 +13,7 @@
 #endif
 
 /**
- * @brief Test cases for GEMM with Zvqwbdota16i extension.
+ * @brief Test cases for the skl_gemm_i16_i16c_i64_zvqwbdota16i kernel.
  *
  * This test uses the gemm_i16rcprc_i16rcprc_i64rcprc harness with the following
  * restrictions on the input parameters:
