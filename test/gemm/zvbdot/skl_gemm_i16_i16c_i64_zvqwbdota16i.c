@@ -135,18 +135,18 @@ int main(void) {
 
     tests[i].rsa0 = 0;
     tests[i].csa0 = 1;
-    tests[i].csa1 = 1;
     tests[i].rsa1 = tests[i].rsa1 ? tests[i].rsa1 : tests[i].k1;
+    tests[i].csa1 = 1;
 
     tests[i].rsb0 = 1;
     tests[i].csb0 = 0;
-    tests[i].rsb1 = 1;
     tests[i].csb1 = tests[i].csb1 ? tests[i].csb1 : tests[i].k1;
+    tests[i].rsb1 = 1;
 
     tests[i].rsc0 = 0;
     tests[i].csc0 = 1;
-    tests[i].csc1 = 1;
     tests[i].rsc1 = tests[i].rsc1 ? tests[i].rsc1 : tests[i].n1;
+    tests[i].csc1 = 1;
   }
 
   return skl_test_driver_run_suite(&suite);
