@@ -7,7 +7,7 @@
  * @brief Implementation of the gemm_i16rcprc_i16rcprc_i64rcprc test harness.
  *
  * This file defines all harness functions _except_ `skl_test_execute`, which is
- * defined in the test file (e.g. zvbdot/skl_gemm_i16_i16_i64_zve64x.c).
+ * defined in the test file (e.g. zvbdot/skl_gemm_i16_i16c_i64_zvqwbdota16i.c).
  */
 
 #include "gemm_i16rcprc_i16rcprc_i64rcprc.h"
