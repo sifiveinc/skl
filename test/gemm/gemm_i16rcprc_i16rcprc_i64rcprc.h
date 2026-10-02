@@ -45,9 +45,9 @@ typedef struct {
   size_t rsc0, csc0, rsc1, csc1;
 
   // Buffer generation settings for A, B, C
-  SKL_TEST_BUFFER(int16_t) a_pack;
-  SKL_TEST_BUFFER(int16_t) b_pack;
-  SKL_TEST_BUFFER(int64_t) c_pack;
+  SKL_TEST_BUFFER(int16_t) a;
+  SKL_TEST_BUFFER(int16_t) b;
+  SKL_TEST_BUFFER(int64_t) c;
 
   // Derived parameters & buffers (private to the test harness)
   struct {
@@ -62,6 +62,6 @@ void gemm_i16rcprc_i16rcprc_i64rcprc_benchmark_report(skl_test_t *t);
 void gemm_i16rcprc_i16rcprc_i64rcprc_cleanup(skl_test_t *t);
 
 #define GEMM_I16RCPRC_I16RCPRC_I64RCPRC_DEFAULTS                               \
-  .a_pack = {.min = -32768, .max = 32767, .mode = SKL_TEST_RANDOM},            \
-  .b_pack = {.min = -32768, .max = 32767, .mode = SKL_TEST_RANDOM},            \
-  .c_pack = {.min = -32768, .max = 32767, .mode = SKL_TEST_RANDOM}
+  .a = {.min = -32768, .max = 32767, .mode = SKL_TEST_RANDOM},                 \
+  .b = {.min = -32768, .max = 32767, .mode = SKL_TEST_RANDOM},                 \
+  .c = {.min = -32768, .max = 32767, .mode = SKL_TEST_RANDOM}

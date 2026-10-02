@@ -52,36 +52,34 @@ void gemm_i16rcprc_i16rcprc_i64rcprc_init(skl_test_t *t) {
   }
 
   if (m1 == 0 || k1 == 0) {
-    h->a_pack.len = 0;
+    h->a.len = 0;
   } else {
-    h->a_pack.len = (m1 - 1) * rsa1 + (k1 - 1) * csa1 + (m0 - 1) * rsa0 +
-                    (k0 - 1) * csa0 + 1;
+    h->a.len = (m1 - 1) * rsa1 + (k1 - 1) * csa1 + (m0 - 1) * rsa0 +
+               (k0 - 1) * csa0 + 1;
   }
 
   if (k1 == 0 || n1 == 0) {
-    h->b_pack.len = 0;
+    h->b.len = 0;
   } else {
-    h->b_pack.len = (k1 - 1) * rsb1 + (n1 - 1) * csb1 + (k0 - 1) * rsb0 +
-                    (n0 - 1) * csb0 + 1;
+    h->b.len = (k1 - 1) * rsb1 + (n1 - 1) * csb1 + (k0 - 1) * rsb0 +
+               (n0 - 1) * csb0 + 1;
   }
 
   if (m1 == 0 || n1 == 0) {
-    h->c_pack.len = 0;
+    h->c.len = 0;
   } else {
-    h->c_pack.len = (m1 - 1) * rsc1 + (n1 - 1) * csc1 + (m0 - 1) * rsc0 +
-                    (n0 - 1) * csc0 + 1;
+    h->c.len = (m1 - 1) * rsc1 + (n1 - 1) * csc1 + (m0 - 1) * rsc0 +
+               (n0 - 1) * csc0 + 1;
   }
 
   // Allocate buffers
-  SKL_TEST_BUF_CREATE(t, int16_t, &h->a_pack);
-  SKL_TEST_BUF_CREATE(t, int16_t, &h->b_pack);
-  SKL_TEST_BUF_CREATE(t, int64_t, &h->c_pack);
+  SKL_TEST_BUF_CREATE(t, int16_t, &h->a);
+  SKL_TEST_BUF_CREATE(t, int16_t, &h->b);
+  SKL_TEST_BUF_CREATE(t, int64_t, &h->c);
   if (h->steps.verify) {
-    h->ctx.ref_c =
-        h->c_pack.len ? malloc(h->c_pack.len * sizeof(*(h->ctx.ref_c))) : NULL;
-    if (h->c_pack.len) {
-      memcpy(h->ctx.ref_c, h->c_pack.data,
-             h->c_pack.len * sizeof(*(h->c_pack.data)));
+    h->ctx.ref_c = h->c.len ? malloc(h->c.len * sizeof(*(h->ctx.ref_c))) : NULL;
+    if (h->c.len) {
+      memcpy(h->ctx.ref_c, h->c.data, h->c.len * sizeof(*(h->c.data)));
     }
   }
 }
@@ -110,10 +108,10 @@ void gemm_i16rcprc_i16rcprc_i64rcprc_verify(skl_test_t *t) {
   size_t csc1 = h->csc1;
   int64_t alpha = h->alpha;
   int64_t beta = h->beta;
-  int16_t *a = h->a_pack.data;
-  int16_t *b = h->b_pack.data;
-  int64_t *c = h->c_pack.data;
-  size_t c_len = h->c_pack.len;
+  int16_t *a = h->a.data;
+  int16_t *b = h->b.data;
+  int64_t *c = h->c.data;
+  size_t c_len = h->c.len;
   int64_t *ref_c = h->ctx.ref_c;
 
   // Compute the reference result using h->ctx.ref_c
@@ -172,9 +170,9 @@ void gemm_i16rcprc_i16rcprc_i64rcprc_cleanup(skl_test_t *t) {
       (gemm_i16rcprc_i16rcprc_i64rcprc_t *)t->harness;
 
   // Free buffers
-  SKL_TEST_BUF_FREE(t, &h->a_pack);
-  SKL_TEST_BUF_FREE(t, &h->b_pack);
-  SKL_TEST_BUF_FREE(t, &h->c_pack);
+  SKL_TEST_BUF_FREE(t, &h->a);
+  SKL_TEST_BUF_FREE(t, &h->b);
+  SKL_TEST_BUF_FREE(t, &h->c);
   if (h->steps.verify) {
     free(h->ctx.ref_c);
   }
