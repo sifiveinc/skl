@@ -31,16 +31,11 @@ if(SKL_ENABLE_CLANG_TIDY)
   endif()
 endif()
 
-# Prefix for SKL target names. External projects can set SKL_TARGET_PREFIX
-# to help avoid target name clashes. This variable should *not* be cached.
-set(SKL_PREFIX "${SKL_TARGET_PREFIX}")
-if(NOT SKL_PREFIX STREQUAL "")
-  set(SKL_PREFIX "${SKL_PREFIX}-")
-endif()
-
 # Build the library itself
 
-set(SKL_LIBRARY "${SKL_PREFIX}skl")
+# External projects can set SKL_TARGET_PREFIX to help avoid target name clashes
+# in some cases. This variable should *not* be cached.
+set(SKL_LIBRARY "${SKL_TARGET_PREFIX}skl")
 add_library(${SKL_LIBRARY} STATIC)
 
 # Try to compile SKL with a recent standard with GNU extensions.
@@ -86,7 +81,7 @@ target_sources(${SKL_LIBRARY} PUBLIC FILE_SET source_headers TYPE HEADERS
 )
 
 # Build the reference library for functional testing
-set(SKL_REF "${SKL_PREFIX}skl-ref")
+set(SKL_REF "${SKL_TARGET_PREFIX}skl-ref")
 add_subdirectory(ref)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/detect_riscv_extensions.cmake)
