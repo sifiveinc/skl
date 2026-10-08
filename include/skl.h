@@ -60,6 +60,10 @@
 #include "gemm/gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq.h"
 #endif
 
+#if defined(__riscv_zvqwbdota16i)
+#include "gemm/gemm_i16_i16c_i64_zvqwbdota16i.h"
+#endif
+
 /*
  * Exponential Function Kernels
  */

@@ -246,6 +246,13 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_gemm_i16_i16c_i64_zvqwbdota16i
+  gemm/gemm_i16rcprc_i16rcprc_i64rcprc.c
+  gemm/zvbdot/skl_gemm_i16_i16c_i64_zvqwbdota16i.c
+  "zvqwbdota16i"
+  ""
+)
+skl_add_test(
   skl_gemm_f8e4m3c_f8e4m3_f32_xsfmm32a8f
   gemm/gemm_f8rcprc_f8rcprc_f32rcprc.c
   gemm/xsfmm/skl_gemm_f8e4m3c_f8e4m3_f32_xsfmm32a8f.c
