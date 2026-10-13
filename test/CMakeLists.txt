@@ -8,7 +8,10 @@ set(SKL_TEST_LOG_LEVEL SKL_TEST_LOG_INFO CACHE STRING "Test log level")
 message(STATUS "SKL_TEST_LOG_LEVEL: ${SKL_TEST_LOG_LEVEL}")
 
 
-add_library(skl-test-driver OBJECT skl-test-driver.c)
+add_library(skl-test-driver OBJECT
+  skl-test-driver.c
+  skl-rng.c
+)
 target_compile_definitions(
   skl-test-driver
   PRIVATE SKL_TEST_LOG_LEVEL=${SKL_TEST_LOG_LEVEL}
