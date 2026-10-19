@@ -76,6 +76,15 @@
 #include "ref/softmax/softmax_f32.h"
 
 /*
+ * Square-root Kernels
+ */
+
+#include "ref/sqrt/sqrt_bf16.h"
+#include "ref/sqrt/sqrt_f16.h"
+#include "ref/sqrt/sqrt_f32.h"
+#include "ref/sqrt/sqrt_f64.h"
+
+/*
  * Pack Kernels
  */
 

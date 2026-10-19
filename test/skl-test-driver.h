@@ -565,21 +565,21 @@ typedef enum {
  *
  * @note This function assumes `x` and `r` are of the same floating-point type.
  */
-static inline float skl_abs_error_ulp(float x, float r, int emin, int p) {
+static inline float skl_abs_error_ulp(double x, double r, int emin, int p) {
   if (x == r || (isnan(x) && isnan(r)))
     return 0.f;
   if (isinf(r) || isnan(x) || isnan(r))
     return INFINITY;
 
   int e;
-  float d = fabsf(x - r);
-  frexpf(r, &e);
+  double d = fabs(x - r);
+  frexp(r, &e);
   e = (e < emin || r == 0.f) ? emin - p : e - p;
-  return ldexpf(d, -e);
+  return (float) ldexp(d, -e);
 }
 
 /**
- * @brief Calculate absolute error for float data.
+ * @brief Calculate absolute error for double data.
  *
  * @param x The test value
  * @param r The reference value
@@ -587,13 +587,22 @@ static inline float skl_abs_error_ulp(float x, float r, int emin, int p) {
  *
  * This is a specialization of skl_abs_error_ulp.
  */
+static inline float skl_abs_error_ulp_f64(double x, double r) {
+  return skl_abs_error_ulp(x, r, DBL_MIN_EXP, DBL_MANT_DIG);
+}
+
+/**
+ * @brief Calculate absolute error for float data.
+ *
+ * @details @copydetails skl_abs_error_ulp_f64
+ */
 static inline float skl_abs_error_ulp_f32(float x, float r) {
   return skl_abs_error_ulp(x, r, FLT_MIN_EXP, FLT_MANT_DIG);
 }
 
 /**
  * @brief Calculate absolute error for _Float16 data.
- * @details @copydetails skl_abs_error_ulp_f32
+ * @details @copydetails skl_abs_error_ulp_f64
  */
 static inline float skl_abs_error_ulp_f16(_Float16 x, _Float16 r) {
   return skl_abs_error_ulp(x, r, -13, 11);
@@ -601,65 +610,10 @@ static inline float skl_abs_error_ulp_f16(_Float16 x, _Float16 r) {
 
 /**
  * @brief Calculate absolute error for __bf16 data.
- * @details @copydetails skl_abs_error_ulp_f32
+ * @details @copydetails skl_abs_error_ulp_f64
  */
 static inline float skl_abs_error_ulp_bf16(__bf16 x, __bf16 r) {
   return skl_abs_error_ulp(x, r, FLT_MIN_EXP, 8);
-}
-
-/**
- * @brief Determine maximum error for float data
- *
- * @param res Array of test result values
- * @param ref Array of test reference values
- * @param len Length of result and reference arrays
- * @returns The maximum error found
- *
- * This function calculates and returns the absolute error in ulps
- * between res[i] and ref[i] for i in [0, len).
- */
-static inline float skl_error_ulp_f32(const float *res, const float *ref,
-                                      size_t len) {
-  float max = 0;
-  for (size_t i = 0; i < len; i++) {
-    float err = skl_abs_error_ulp_f32(res[i], ref[i]);
-    if (err > max) {
-      max = err;
-    }
-  }
-  return max;
-}
-
-/**
- * @brief Determine maximum error for _Float16 data
- * @details @copydetails skl_check_ulp_f32
- */
-static inline float skl_error_ulp_f16(const _Float16 *res, const _Float16 *ref,
-                                      size_t len) {
-  float max = 0;
-  for (size_t i = 0; i < len; i++) {
-    float err = skl_abs_error_ulp_f16(res[i], ref[i]);
-    if (err > max) {
-      max = err;
-    }
-  }
-  return max;
-}
-
-/**
- * @brief Determine maximum error for __bf16 data
- * @details @copydetails skl_check_error_ulp_f32
- */
-static inline float skl_error_ulp_bf16(const __bf16 *res, const __bf16 *ref,
-                                       size_t len) {
-  float max = 0;
-  for (size_t i = 0; i < len; i++) {
-    float err = skl_abs_error_ulp_bf16(res[i], ref[i]);
-    if (err > max) {
-      max = err;
-    }
-  }
-  return max;
 }
 
 /**
