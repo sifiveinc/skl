@@ -575,7 +575,7 @@ static inline float skl_abs_error_ulp(double x, double r, int emin, int p) {
   double d = fabs(x - r);
   frexp(r, &e);
   e = (e < emin || r == 0.f) ? emin - p : e - p;
-  return (float) ldexp(d, -e);
+  return (float)ldexp(d, -e);
 }
 
 /**

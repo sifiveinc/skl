@@ -26,8 +26,8 @@ typedef struct {
   skl_test_steps_t steps;
 
   // Configurable parameters
-  double alpha;               // Parameter for alpha-scaling variants
-  double beta;                // Parameter for beta-scaling variants
+  double alpha;              // Parameter for alpha-scaling variants
+  double beta;               // Parameter for beta-scaling variants
   const char *func_name;     // The name of the function to test
   unary_func_f64_t func;     // The function to test
   unary_func_f64_t ref_func; // The reference function
@@ -37,8 +37,8 @@ typedef struct {
 
   // Derived parameters and buffers (private to the test harness)
   struct {
-    double *out;        // Result buffer
-    double *ref;        // Reference buffer
+    double *out;       // Result buffer
+    double *ref;       // Reference buffer
     float max_err;     // Ulp tolerance
     size_t max_errors; // Maximum number of errors to report
   } ctx;
