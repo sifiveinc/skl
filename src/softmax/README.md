@@ -81,7 +81,7 @@ void skl_softmax_bf16_xsfvfbfexp16e_xsfvfbfa(__bf16 *y, const __bf16 *x,
                                              __bf16 beta, size_t n);
 void skl_softmax_bf16_xsfvfexp32e_zvfbfmin(__bf16 *y, const __bf16 *x,
                                            __bf16 beta, size_t n);`
-``
+```
 
 ### Two-dimensional Softmax
 
