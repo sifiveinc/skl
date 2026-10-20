@@ -244,4 +244,26 @@
 #include "pack/pack_e8_xsfmmbase.h"
 #endif
 
+/*
+ * Square-root Kernels
+ */
+#if defined(__riscv_xsfvfbfa)
+#include "sqrt/sqrt_bf16_xsfvfbfa.h"
+#endif
+#if defined(__riscv_zve32f)
+#include "sqrt/sqrt_bf16_zve32f.h"
+#endif
+#if defined(__riscv_zvfbfmin)
+#include "sqrt/sqrt_bf16_zvfbfmin.h"
+#endif
+#if defined(__riscv_zvfh)
+#include "sqrt/sqrt_f16_zvfh.h"
+#endif
+#if defined(__riscv_zve32f)
+#include "sqrt/sqrt_f32_zve32f.h"
+#endif
+#if defined(__riscv_zve64d)
+#include "sqrt/sqrt_f64_zve64d.h"
+#endif
+
 // IWYU pragma: end_exports
