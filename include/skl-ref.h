@@ -27,6 +27,7 @@
 #include "ref/gemm/gemm_f64rcprc_f64rcprc_f64rcprc.h"
 #include "ref/gemm/gemm_f8e4m3rcprc_f8e4m3rcprc_f32rcprc.h"
 #include "ref/gemm/gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc.h"
+#include "ref/gemm/gemm_i16rcprc_i16rcprc_i64rcprc.h"
 #include "ref/gemm/gemm_i8rcprc_i8rcprc_i32rcprc.h"
 
 /*

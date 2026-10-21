@@ -34,6 +34,7 @@ add_library(${SKL_REF}
     gemm/gemm_f64rcprc_f64rcprc_f64rcprc.c
     gemm/gemm_i8rc_i8rc_i32rc.c
     gemm/gemm_i8rcprc_i8rcprc_i32rcprc.c
+    gemm/gemm_i16rcprc_i16rcprc_i64rcprc.c
     pack/pack_e16rc_e16rcprc.c
     pack/pack_e32rc_e32rcprc.c
     pack/pack_e8rc_e8rcprc.c
