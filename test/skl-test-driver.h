@@ -448,6 +448,35 @@ SKL_TEST_BUF_SEQ_IMPL(float,    double,   "f")
 SKL_TEST_BUF_SEQ_IMPL(double,   double,   "f")
 // clang-format on
 
+// clang-tidy wants this to be an enum, but the FLOAT variant isn't an int.
+// NOLINTNEXTLINE(modernize-macro-to-enum)
+#define SKL_TEST_NAN_INT_ 0
+#define SKL_TEST_NAN_FLOAT_ nan("1")
+
+#define SKL_TEST_BUF_NAN_IMPL(BUF_TYPE, NAN_TYPE)                              \
+  static inline void skl_test_buf_nan_##BUF_TYPE(skl_test_t *t, BUF_TYPE *buf, \
+                                                 size_t len) {                 \
+    SKL_TEST_LOG(t, SKL_TEST_LOG_DEBUG, "  populating with NaN values.\n");    \
+    for (size_t i = 0; i < len; ++i) {                                         \
+      buf[i] = (BUF_TYPE)(SKL_TEST_NAN_##NAN_TYPE##_);                         \
+    }                                                                          \
+  }
+
+// clang-format off
+SKL_TEST_BUF_NAN_IMPL(int8_t,   INT)
+SKL_TEST_BUF_NAN_IMPL(int16_t,  INT )
+SKL_TEST_BUF_NAN_IMPL(int32_t,  INT )
+SKL_TEST_BUF_NAN_IMPL(int64_t,  INT )
+SKL_TEST_BUF_NAN_IMPL(uint8_t,  INT )
+SKL_TEST_BUF_NAN_IMPL(uint16_t, INT )
+SKL_TEST_BUF_NAN_IMPL(uint32_t, INT )
+SKL_TEST_BUF_NAN_IMPL(uint64_t, INT )
+SKL_TEST_BUF_NAN_IMPL(_Float16, FLOAT )
+SKL_TEST_BUF_NAN_IMPL(__bf16,   FLOAT )
+SKL_TEST_BUF_NAN_IMPL(float,    FLOAT )
+SKL_TEST_BUF_NAN_IMPL(double,   FLOAT )
+// clang-format on
+
 /**
  * @brief Populate a buffer by copying data from a circular buffer.
  *
@@ -509,6 +538,7 @@ typedef enum {
   SKL_TEST_RANDOM, /**< Initialize with random values in [min, max] */
   SKL_TEST_STATIC, /**< Initialize from static_data array */
   SKL_TEST_SEQ,    /**< Initialize with sequential values from min to max */
+  SKL_TEST_NAN,    /**< Initialize with NaN values; integer buffers use 0 */
 } skl_test_init_mode_t;
 
 /**
@@ -545,6 +575,9 @@ typedef enum {
     case SKL_TEST_SEQ:                                                         \
       skl_test_buf_seq_##TYPE((T), (BUF)->data, (BUF)->len, (BUF)->min,        \
                               (BUF)->max);                                     \
+      break;                                                                   \
+    case SKL_TEST_NAN:                                                         \
+      skl_test_buf_nan_##TYPE((T), (BUF)->data, (BUF)->len);                   \
       break;                                                                   \
     default:                                                                   \
       SKL_TEST_LOG((T), SKL_TEST_LOG_ERROR,                                    \
