@@ -632,11 +632,13 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m2_f32_f32_f32_xsfmmbase(
 
 /* Specialization that correctly handles the case beta == 0. */
 SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_b0_m2_f32_f32_f32_xsfmmbase(
-    size_t tm, size_t tn, float alpha, size_t tss, float *c, size_t rsc0) SKL_XSFMM_IN {
+    size_t tm, size_t tn, float alpha, size_t tss, float *c,
+    size_t rsc0) SKL_XSFMM_IN {
   if (tm == 0 || tn == 0) {
     return;
   }
 
+  const float beta = 0.f;
   const size_t kRowInc = 1;
 
   size_t tss_0 = tss;
@@ -655,175 +657,122 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_b0_m2_f32_f32_f32_xsfmmbase(
 
       "sf.vtmv.v.t v0, %[tss_0]\n"
       "add %[tss_0], %[tss_0], %[kRowInc]\n"
-
       "sf.vtmv.v.t v2, %[tss_1]\n"
       "add %[tss_1], %[tss_1], %[kRowInc]\n"
 
       "sf.vtmv.v.t v4, %[tss_0]\n"
       "add %[tss_0], %[tss_0], %[kRowInc]\n"
-
       "sf.vtmv.v.t v6, %[tss_1]\n"
       "add %[tss_1], %[tss_1], %[kRowInc]\n"
 
       "sf.vtmv.v.t v8, %[tss_0]\n"
       "add %[tss_0], %[tss_0], %[kRowInc]\n"
-
       "sf.vtmv.v.t v10, %[tss_1]\n"
       "add %[tss_1], %[tss_1], %[kRowInc]\n"
 
       "sf.vtmv.v.t v12, %[tss_0]\n"
       "add %[tss_0], %[tss_0], %[kRowInc]\n"
-
       "sf.vtmv.v.t v14, %[tss_1]\n"
       "add %[tss_1], %[tss_1], %[kRowInc]\n"
 
-      "vfmul.vf v16, v0, %[alpha]\n"
-      "sf.vtmv.v.t v0, %[tss_0]\n"
-      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "addi %[i], %[i], -8\n"
 
-      "vfmul.vf v18, v2, %[alpha]\n"
-      "sf.vtmv.v.t v2, %[tss_1]\n"
-      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+      "vfmul.vf v0, v0, %[alpha]\n"
+      "vfmul.vf v2, v2, %[alpha]\n"
 
       "bltu %[i], %[i8], 1f\n"
 
       "0:\n" // loop body
-      "vse32.v v16, (%[c_store_0])\n"
+      "addi %[i], %[i], -8\n"
+      "vse32.v v0, (%[c_store_0])\n"
       "add %[c_store_0], %[c_store_0], %[sc]\n"
-      "vfmul.vf v20, v4, %[alpha]\n"
-      "sf.vtmv.v.t v4, %[tss_0]\n"
-      "add %[tss_0], %[tss_0], %[kRowInc]\n"
-
-      "vse32.v v18, (%[c_store_1])\n"
-      "add %[c_store_1], %[c_store_1], %[sc]\n"
-      "vfmul.vf v22, v6, %[alpha]\n"
-      "sf.vtmv.v.t v6, %[tss_1]\n"
-      "add %[tss_1], %[tss_1], %[kRowInc]\n"
-
-      "vse32.v v20, (%[c_store_0])\n"
-      "add %[c_store_0], %[c_store_0], %[sc]\n"
-      "vfmul.vf v24, v8, %[alpha]\n"
-      "sf.vtmv.v.t v8, %[tss_0]\n"
-      "add %[tss_0], %[tss_0], %[kRowInc]\n"
-
-      "vse32.v v22, (%[c_store_1])\n"
-      "add %[c_store_1], %[c_store_1], %[sc]\n"
-      "vfmul.vf v26, v10, %[alpha]\n"
-      "sf.vtmv.v.t v10, %[tss_1]\n"
-      "add %[tss_1], %[tss_1], %[kRowInc]\n"
-
-      "vse32.v v24, (%[c_store_0])\n"
-      "add %[c_store_0], %[c_store_0], %[sc]\n"
-      "vfmul.vf v28, v12, %[alpha]\n"
-      "sf.vtmv.v.t v12, %[tss_0]\n"
-      "add %[tss_0], %[tss_0], %[kRowInc]\n"
-
-      "vse32.v v26, (%[c_store_1])\n"
-      "add %[c_store_1], %[c_store_1], %[sc]\n"
-      "vfmul.vf v30, v14, %[alpha]\n"
-      "sf.vtmv.v.t v14, %[tss_1]\n"
-      "add %[tss_1], %[tss_1], %[kRowInc]\n"
-
-      "vse32.v v28, (%[c_store_0])\n"
-      "add %[c_store_0], %[c_store_0], %[sc]\n"
-      "vfmul.vf v16, v0, %[alpha]\n"
       "sf.vtmv.v.t v0, %[tss_0]\n"
       "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "vfmul.vf v4, v4, %[alpha]\n"
 
-      "vse32.v v30, (%[c_store_1])\n"
+      "vse32.v v2, (%[c_store_1])\n"
       "add %[c_store_1], %[c_store_1], %[sc]\n"
-      "vfmul.vf v18, v2, %[alpha]\n"
       "sf.vtmv.v.t v2, %[tss_1]\n"
       "add %[tss_1], %[tss_1], %[kRowInc]\n"
+      "vfmul.vf v6, v6, %[alpha]\n"
+
+      "vse32.v v4, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "sf.vtmv.v.t v4, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "vfmul.vf v8, v8, %[alpha]\n"
+
+      "vse32.v v6, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "sf.vtmv.v.t v6, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+      "vfmul.vf v10, v10, %[alpha]\n"
+
+      "vse32.v v8, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "sf.vtmv.v.t v8, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "vfmul.vf v12, v12, %[alpha]\n"
+
+      "vse32.v v10, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "sf.vtmv.v.t v10, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+      "vfmul.vf v14, v14, %[alpha]\n"
+
+      "vse32.v v12, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "sf.vtmv.v.t v12, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "vfmul.vf v0, v0, %[alpha]\n"
+
+      "vse32.v v14, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "sf.vtmv.v.t v14, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+      "vfmul.vf v2, v2, %[alpha]\n"
+
       "bgeu %[i], %[i8], 0b\n"
 
       "1:\n"
-      "vse32.v v16, (%[c_store_0])\n"
+      "vse32.v v0, (%[c_store_0])\n"
       "add %[c_store_0], %[c_store_0], %[sc]\n"
-      "vfmul.vf v20, v4, %[alpha]\n"
-      "sf.vtmv.v.t v4, %[tss_0]\n"
-      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "vfmul.vf v4, v4, %[alpha]\n"
 
-      "vse32.v v18, (%[c_store_1])\n"
+      "vse32.v v2, (%[c_store_1])\n"
       "add %[c_store_1], %[c_store_1], %[sc]\n"
-      "vfmul.vf v22, v6, %[alpha]\n"
-      "sf.vtmv.v.t v6, %[tss_1]\n"
-      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+      "vfmul.vf v6, v6, %[alpha]\n"
 
-      "vse32.v v20, (%[c_store_0])\n"
+      "vse32.v v4, (%[c_store_0])\n"
       "add %[c_store_0], %[c_store_0], %[sc]\n"
-      "vfmul.vf v24, v8, %[alpha]\n"
-      "sf.vtmv.v.t v8, %[tss_0]\n"
-      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "vfmul.vf v8, v8, %[alpha]\n"
 
-      "vse32.v v22, (%[c_store_1])\n"
+      "vse32.v v6, (%[c_store_1])\n"
       "add %[c_store_1], %[c_store_1], %[sc]\n"
-      "vfmul.vf v26, v10, %[alpha]\n"
-      "sf.vtmv.v.t v10, %[tss_1]\n"
-      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+      "vfmul.vf v10, v10, %[alpha]\n"
 
-      "vse32.v v24, (%[c_store_0])\n"
+      "vse32.v v8, (%[c_store_0])\n"
       "add %[c_store_0], %[c_store_0], %[sc]\n"
-      "vfmul.vf v28, v12, %[alpha]\n"
-      "sf.vtmv.v.t v12, %[tss_0]\n"
-      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "vfmul.vf v12, v12, %[alpha]\n"
 
-      "vse32.v v26, (%[c_store_1])\n"
+      "vse32.v v10, (%[c_store_1])\n"
       "add %[c_store_1], %[c_store_1], %[sc]\n"
-      "vfmul.vf v30, v14, %[alpha]\n"
-      "sf.vtmv.v.t v14, %[tss_1]\n"
-      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+      "vfmul.vf v14, v14, %[alpha]\n"
 
-      "vse32.v v28, (%[c_store_0])\n"
-      "add %[c_store_0], %[c_store_0], %[sc]\n"
-      "vfmul.vf v16, v0, %[alpha]\n"
-
-      "vse32.v v30, (%[c_store_1])\n"
-      "add %[c_store_1], %[c_store_1], %[sc]\n"
-      "vfmul.vf v18, v2, %[alpha]\n"
-
-      "vse32.v v16, (%[c_store_0])\n"
-      "add %[c_store_0], %[c_store_0], %[sc]\n"
-      "vfmul.vf v20, v4, %[alpha]\n"
-
-      "vse32.v v18, (%[c_store_1])\n"
-      "add %[c_store_1], %[c_store_1], %[sc]\n"
-      "vfmul.vf v22, v6, %[alpha]\n"
-
-      "vse32.v v20, (%[c_store_0])\n"
-      "add %[c_store_0], %[c_store_0], %[sc]\n"
-      "vfmul.vf v24, v8, %[alpha]\n"
-
-      "vse32.v v22, (%[c_store_1])\n"
-      "add %[c_store_1], %[c_store_1], %[sc]\n"
-      "vfmul.vf v26, v10, %[alpha]\n"
-
-      "vse32.v v24, (%[c_store_0])\n"
-      "add %[c_store_0], %[c_store_0], %[sc]\n"
-      "vfmul.vf v28, v12, %[alpha]\n"
-
-      "vse32.v v26, (%[c_store_1])\n"
-      "add %[c_store_1], %[c_store_1], %[sc]\n"
-      "vfmul.vf v30, v14, %[alpha]\n"
-
-      "vse32.v v28, (%[c_store_0])\n"
-      "add %[c_store_0], %[c_store_0], %[sc]\n"
-
-      "vse32.v v30, (%[c_store_1])\n"
-      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "vse32.v v12, (%[c_store_0])\n"
+      "vse32.v v14, (%[c_store_1])\n"
 
       "2:\n"
       : [tss_0] "+&r"(tss_0), [tss_1] "+&r"(tss_1), [c_load_0] "+&r"(c_load_0),
         [c_load_1] "+&r"(c_load_1), [c_store_0] "+&r"(c_store_0),
         [c_store_1] "+&r"(c_store_1), [i] "+&r"(i)
-      : [alpha] "f"(alpha), [beta] "f"(beta), [kRowInc] "rI"(2 * kRowInc),
+      : [alpha] "f"(alpha), [kRowInc] "rI"(2 * kRowInc),
         [sc] "r"(2 * rsc0 * sizeof(float)), [tn] "r"(tn), [i8] "r"(8)
       : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
         "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20",
         "v21", "v22", "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30",
         "v31", "vtype", "vl", "memory");
 
-  float beta = 0.f;
   /* Process the remaining rows. */
   i = tm % 8;
   if (i >= 4) {
