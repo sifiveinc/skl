@@ -4,7 +4,7 @@
 
 * GEMM:
   * All floating-point GEMM functions (in both `src` and `ref`) will no longer
-  propagate NaNs in the C matrix when `beta == 0.0f`. In such cases, the C
+  propagate NaNs in the C matrix when `beta == 0.0`. In such cases, the C
   matrix values are not read and are instead populated with the value of
   `alpha * A * B`.
 
