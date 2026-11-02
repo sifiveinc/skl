@@ -630,7 +630,9 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m2_f32_f32_f32_xsfmmbase(
   }
 }
 
-/* Specialization that correctly handles the case beta == 0. */
+/* Specialization of skl_gemm_alpha_beta_scaling_m2_f32_f32_f32_xsfmmbase that
+ * correctly handles the case beta == 0.
+ */
 SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_b0_m2_f32_f32_f32_xsfmmbase(
     size_t tm, size_t tn, float alpha, size_t tss, float *c,
     size_t rsc0) SKL_XSFMM_IN {
@@ -831,13 +833,14 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_b0_m2_f32_f32_f32_xsfmmbase(
   }
 
   if (i >= 1) {
-    __asm__ volatile(
-        "sf.vsettnt x0, %[tn], e32, w1\n"
-        "sf.vtmv.v.t v0, %[tss_0]\n"
-        "vfmul.vf v0, v0, %[alpha]\n"
-        "vse32.v v0, (%[c_store_0])\n" ::[tss_0] "r"(tss_0),
-        [c_store_0] "r"(c_store_0), [alpha] "f"(alpha), [tn] "r"(tn)
-        : "v0", "v1", "vtype", "vl", "memory");
+    __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
+                     "sf.vtmv.v.t v0, %[tss_0]\n"
+                     "vfmul.vf v0, v0, %[alpha]\n"
+                     "vse32.v v0, (%[c_store_0])\n"
+                     :
+                     : [tss_0] "r"(tss_0), [c_store_0] "r"(c_store_0),
+                       [alpha] "f"(alpha), [tn] "r"(tn)
+                     : "v0", "v1", "vtype", "vl", "memory");
   }
 }
 
