@@ -879,8 +879,13 @@ void skl_gemm_alpha_beta_scaling_f32_f32_f32rcptexterc_xsfmmbase(
   __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
 
   if (ete <= (size_t)__riscv_vsetvlmax_e32m2() && csc0 == 1) {
-    skl_gemm_alpha_beta_scaling_m2_f32_f32_f32_xsfmmbase(tm, tn, alpha, tss,
-                                                         beta, c_block, rsc0);
+    if (beta == 0.f) {
+      skl_gemm_alpha_beta_scaling_b0_m2_f32_f32_f32_xsfmmbase(
+          tm, tn, alpha, tss, c_block, rsc0);
+    } else {
+      skl_gemm_alpha_beta_scaling_m2_f32_f32_f32_xsfmmbase(tm, tn, alpha, tss,
+                                                           beta, c_block, rsc0);
+    }
   } else {
     skl_gemm_alpha_beta_scaling_m8_f32_f32_f32rc_xsfmmbase(
         tm, tn, alpha, tss, beta, c_block, rsc0, csc0);
