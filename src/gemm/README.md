@@ -43,7 +43,7 @@ Inspired by the BLAS standard, SKL GEMM APIs support alpha- and beta-scaling of 
 This addition was chosen primarily to support both accumulation (`beta=1`) and initialization (`beta=0`), as well as for its general familiarity.
 Note that when `k=0`, the `alpha` parameter is ignored, and the `beta` parameter is used to scale the accumulator.
 When `beta=0`, the values of the C matrix are not read and are instead overwritten with the value of `alpha * A * B`;
-this implies that floating-point NaNs and infinities in the C matrix are not propagated when `beta=0`.
+this implies that floating-point elements in the C matrix --- in particular NaNs and infinities --- do not affect the result when `beta=0`.
 
 While many other operations could be combined with matrix multiplication, such as requantization and activation functions, SKL does not currently provide APIs for these specialized operations.
 For such applications, users can either extract the relevant inner loop nests and extend them, or set `alpha=1` and `beta` to an appropriate value, and tile the accumulator matrix to apply any desired post-processing operations while preserving data locality within the tile.
