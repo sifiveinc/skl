@@ -638,13 +638,10 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_b0_m2_f32_f32_f32_xsfmmbase(
     return;
   }
 
-  const float beta = 0.f;
   const size_t kRowInc = 1;
 
   size_t tss_0 = tss;
   size_t tss_1 = tss_0 + kRowInc;
-  float *c_load_0 = c;
-  float *c_load_1 = c_load_0 + rsc0;
   float *c_store_0 = c;
   float *c_store_1 = c_store_0 + rsc0;
 
@@ -760,18 +757,17 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_b0_m2_f32_f32_f32_xsfmmbase(
       "vfmul.vf v14, v14, %[alpha]\n"
 
       "vse32.v v12, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
       "vse32.v v14, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
 
       "2:\n"
-      : [tss_0] "+&r"(tss_0), [tss_1] "+&r"(tss_1), [c_load_0] "+&r"(c_load_0),
-        [c_load_1] "+&r"(c_load_1), [c_store_0] "+&r"(c_store_0),
-        [c_store_1] "+&r"(c_store_1), [i] "+&r"(i)
+      : [tss_0] "+&r"(tss_0), [tss_1] "+&r"(tss_1),
+        [c_store_0] "+&r"(c_store_0), [c_store_1] "+&r"(c_store_1), [i] "+&r"(i)
       : [alpha] "f"(alpha), [kRowInc] "rI"(2 * kRowInc),
         [sc] "r"(2 * rsc0 * sizeof(float)), [tn] "r"(tn), [i8] "r"(8)
       : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
-        "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20",
-        "v21", "v22", "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30",
-        "v31", "vtype", "vl", "memory");
+        "v11", "v12", "v13", "v14", "v15", "vtype", "vl", "memory");
 
   /* Process the remaining rows. */
   i = tm % 8;
@@ -781,49 +777,32 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_b0_m2_f32_f32_f32_xsfmmbase(
 
         "sf.vtmv.v.t v0, %[tss_0]\n"
         "add %[tss_0], %[tss_0], %[kRowInc]\n"
-        "vle32.v v16, (%[c_load_0])\n"
-        "add %[c_load_0], %[c_load_0], %[sc]\n"
-
         "sf.vtmv.v.t v2, %[tss_1]\n"
         "add %[tss_1], %[tss_1], %[kRowInc]\n"
-        "vle32.v v18, (%[c_load_1])\n"
-        "add %[c_load_1], %[c_load_1], %[sc]\n"
-
         "sf.vtmv.v.t v4, %[tss_0]\n"
         "add %[tss_0], %[tss_0], %[kRowInc]\n"
-        "vle32.v v20, (%[c_load_0])\n"
-        "add %[c_load_0], %[c_load_0], %[sc]\n"
-
         "sf.vtmv.v.t v6, %[tss_1]\n"
         "add %[tss_1], %[tss_1], %[kRowInc]\n"
-        "vle32.v v22, (%[c_load_1])\n"
-        "add %[c_load_1], %[c_load_1], %[sc]\n"
 
-        "vfmul.vf v16, v16, %[beta]\n"
-        "vfmul.vf v18, v18, %[beta]\n"
-        "vfmul.vf v20, v20, %[beta]\n"
-        "vfmul.vf v22, v22, %[beta]\n"
+        "vfmul.vf v0, v0, %[alpha]\n"
+        "vfmul.vf v2, v2, %[alpha]\n"
+        "vfmul.vf v4, v4, %[alpha]\n"
+        "vfmul.vf v6, v6, %[alpha]\n"
 
-        "vfmacc.vf v16, %[alpha], v0\n"
-        "vfmacc.vf v18, %[alpha], v2\n"
-        "vfmacc.vf v20, %[alpha], v4\n"
-        "vfmacc.vf v22, %[alpha], v6\n"
-
-        "vse32.v v16, (%[c_store_0])\n"
+        "vse32.v v0, (%[c_store_0])\n"
         "add %[c_store_0], %[c_store_0], %[sc]\n"
-        "vse32.v v18, (%[c_store_1])\n"
+        "vse32.v v2, (%[c_store_1])\n"
         "add %[c_store_1], %[c_store_1], %[sc]\n"
-        "vse32.v v20, (%[c_store_0])\n"
+        "vse32.v v4, (%[c_store_0])\n"
         "add %[c_store_0], %[c_store_0], %[sc]\n"
-        "vse32.v v22, (%[c_store_1])\n"
+        "vse32.v v6, (%[c_store_1])\n"
         "add %[c_store_1], %[c_store_1], %[sc]\n"
         : [tss_0] "+&r"(tss_0), [tss_1] "+&r"(tss_1),
-          [c_load_0] "+&r"(c_load_0), [c_load_1] "+&r"(c_load_1),
           [c_store_0] "+&r"(c_store_0), [c_store_1] "+&r"(c_store_1)
-        : [alpha] "f"(alpha), [beta] "f"(beta), [kRowInc] "rI"(2 * kRowInc),
+        : [alpha] "f"(alpha), [kRowInc] "rI"(2 * kRowInc),
           [sc] "r"(2 * rsc0 * sizeof(float)), [tn] "r"(tn)
-        : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v16", "v17", "v18",
-          "v19", "v20", "v21", "v22", "v23", "vtype", "vl", "memory");
+        : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "vtype", "vl",
+          "memory");
     i -= 4;
   }
 
@@ -833,50 +812,32 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_b0_m2_f32_f32_f32_xsfmmbase(
 
         "sf.vtmv.v.t v0, %[tss_0]\n"
         "add %[tss_0], %[tss_0], %[kRowInc]\n"
-        "vle32.v v16, (%[c_load_0])\n"
-        "add %[c_load_0], %[c_load_0], %[sc]\n"
-
         "sf.vtmv.v.t v2, %[tss_1]\n"
         "add %[tss_1], %[tss_1], %[kRowInc]\n"
-        "vle32.v v18, (%[c_load_1])\n"
-        "add %[c_load_1], %[c_load_1], %[sc]\n"
 
-        "vfmul.vf v16, v16, %[beta]\n"
-        "vfmul.vf v18, v18, %[beta]\n"
+        "vfmul.vf v0, v0, %[alpha]\n"
+        "vfmul.vf v2, v2, %[alpha]\n"
 
-        "vfmacc.vf v16, %[alpha], v0\n"
-        "vfmacc.vf v18, %[alpha], v2\n"
-
-        "vse32.v v16, (%[c_store_0])\n"
+        "vse32.v v0, (%[c_store_0])\n"
         "add %[c_store_0], %[c_store_0], %[sc]\n"
-        "vse32.v v18, (%[c_store_1])\n"
+        "vse32.v v2, (%[c_store_1])\n"
         "add %[c_store_1], %[c_store_1], %[sc]\n"
         : [tss_0] "+&r"(tss_0), [tss_1] "+&r"(tss_1),
-          [c_load_0] "+&r"(c_load_0), [c_load_1] "+&r"(c_load_1),
           [c_store_0] "+&r"(c_store_0), [c_store_1] "+&r"(c_store_1)
-        : [alpha] "f"(alpha), [beta] "f"(beta), [kRowInc] "rI"(2 * kRowInc),
+        : [alpha] "f"(alpha), [kRowInc] "rI"(2 * kRowInc),
           [sc] "r"(2 * rsc0 * sizeof(float)), [tn] "r"(tn)
-        : "v0", "v1", "v2", "v3", "v16", "v17", "v18", "v19", "vtype", "vl",
-          "memory");
+        : "v0", "v1", "v2", "v3", "vtype", "vl", "memory");
     i -= 2;
   }
 
   if (i >= 1) {
-    __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
-
-                     "sf.vtmv.v.t v0, %[tss_0]\n"
-                     "vle32.v v16, (%[c_load_0])\n"
-
-                     "vfmul.vf v16, v16, %[beta]\n"
-
-                     "vfmacc.vf v16, %[alpha], v0\n"
-
-                     "vse32.v v16, (%[c_store_0])\n"
-                     :
-                     : [tss_0] "r"(tss_0), [c_load_0] "r"(c_load_0),
-                       [c_store_0] "r"(c_store_0), [alpha] "f"(alpha),
-                       [beta] "f"(beta), [tn] "r"(tn)
-                     : "v0", "v1", "v16", "v17", "vtype", "vl", "memory");
+    __asm__ volatile(
+        "sf.vsettnt x0, %[tn], e32, w1\n"
+        "sf.vtmv.v.t v0, %[tss_0]\n"
+        "vfmul.vf v0, v0, %[alpha]\n"
+        "vse32.v v0, (%[c_store_0])\n" ::[tss_0] "r"(tss_0),
+        [c_store_0] "r"(c_store_0), [alpha] "f"(alpha), [tn] "r"(tn)
+        : "v0", "v1", "vtype", "vl", "memory");
   }
 }
 
