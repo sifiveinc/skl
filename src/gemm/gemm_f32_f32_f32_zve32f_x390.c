@@ -271,24 +271,42 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
         );
       }
 
-      __asm__ volatile(
-          // clang-format off
-          "\n\t"
-          "vsetvli zero, %[jj_vl], e32, m8, ta, ma \n\t"
+      if (beta != 0) {
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "vsetvli zero, %[jj_vl], e32, m8, ta, ma \n\t"
 
-          "vle32.v %[c00], (%[c_addr]) \n\t"
-          "vfmul.vf %[c00], %[c00], %[beta] \n\t"
-          "vfmacc.vf %[c00], %[alpha], %[acc0] \n\t"
-          "vse32.v %[c00], (%[c_addr]) \n\t"
-          : [c00] "=&vr"(c00)
-          : [jj_vl] "r"(jj_vl),
-            [c_addr] "r"(c + ii * rsc + jj),
-            [beta] "f"(beta),
-            [alpha] "f"(alpha),
-            [acc0] "vr"(acc0)
-          : "vtype", "vl", "memory"
-          // clang-format on
-      );
+            "vle32.v %[c00], (%[c_addr]) \n\t"
+            "vfmul.vf %[c00], %[c00], %[beta] \n\t"
+            "vfmacc.vf %[c00], %[alpha], %[acc0] \n\t"
+            "vse32.v %[c00], (%[c_addr]) \n\t"
+            : [c00] "=&vr"(c00)
+            : [jj_vl] "r"(jj_vl),
+              [c_addr] "r"(c + ii * rsc + jj),
+              [beta] "f"(beta),
+              [alpha] "f"(alpha),
+              [acc0] "vr"(acc0)
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
+      } else {
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "vsetvli zero, %[jj_vl], e32, m8, ta, ma \n\t"
+
+            "vfmul.vf %[c00], %[acc0], %[alpha] \n\t"
+            "vse32.v %[c00], (%[c_addr]) \n\t"
+            : [c00] "=&vr"(c00)
+            : [jj_vl] "r"(jj_vl),
+              [c_addr] "r"(c + ii * rsc + jj),
+              [alpha] "f"(alpha),
+              [acc0] "vr"(acc0)
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
+      }
     }
   }
 }
@@ -1170,79 +1188,139 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm2x12_f32_f32_f32_zve32f_x390(
             // clang-format on
         );
       }
-      __asm__ volatile(
-          // clang-format off
-          "\n\t"
-          "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
-          "vle32.v %[c00], (%[c_addr0]) \n\t"
-          "vfmul.vf %[c00], %[c00], %[beta] \n\t"
-          "vfmacc.vf %[c00], %[alpha], %[acc0] \n\t"
-          "vle32.v %[c10], (%[c_addr1]) \n\t"
-          "vse32.v %[c00], (%[c_addr0]) \n\t"
+      if (beta != 0) {
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
+            "vle32.v %[c00], (%[c_addr0]) \n\t"
+            "vfmul.vf %[c00], %[c00], %[beta] \n\t"
+            "vfmacc.vf %[c00], %[alpha], %[acc0] \n\t"
+            "vle32.v %[c10], (%[c_addr1]) \n\t"
+            "vse32.v %[c00], (%[c_addr0]) \n\t"
 
-          "vfmul.vf %[c10], %[c10], %[beta] \n\t"
-          "vfmacc.vf %[c10], %[alpha], %[acc1] \n\t"
-          "vle32.v %[c20], (%[c_addr2]) \n\t"
-          "vse32.v %[c10], (%[c_addr1]) \n\t"
+            "vfmul.vf %[c10], %[c10], %[beta] \n\t"
+            "vfmacc.vf %[c10], %[alpha], %[acc1] \n\t"
+            "vle32.v %[c20], (%[c_addr2]) \n\t"
+            "vse32.v %[c10], (%[c_addr1]) \n\t"
 
-          "vfmul.vf %[c20], %[c20], %[beta] \n\t"
-          "vfmacc.vf %[c20], %[alpha], %[acc2] \n\t"
-          "vle32.v %[c30], (%[c_addr3]) \n\t"
-          "vse32.v %[c20], (%[c_addr2]) \n\t"
+            "vfmul.vf %[c20], %[c20], %[beta] \n\t"
+            "vfmacc.vf %[c20], %[alpha], %[acc2] \n\t"
+            "vle32.v %[c30], (%[c_addr3]) \n\t"
+            "vse32.v %[c20], (%[c_addr2]) \n\t"
 
-          "vfmul.vf %[c30], %[c30], %[beta] \n\t"
-          "vfmacc.vf %[c30], %[alpha], %[acc3] \n\t"
-          "vle32.v %[c40], (%[c_addr4]) \n\t"
-          "vse32.v %[c30], (%[c_addr3]) \n\t"
+            "vfmul.vf %[c30], %[c30], %[beta] \n\t"
+            "vfmacc.vf %[c30], %[alpha], %[acc3] \n\t"
+            "vle32.v %[c40], (%[c_addr4]) \n\t"
+            "vse32.v %[c30], (%[c_addr3]) \n\t"
 
-          "vfmul.vf %[c40], %[c40], %[beta] \n\t"
-          "vfmacc.vf %[c40], %[alpha], %[acc4] \n\t"
-          "vle32.v %[c50], (%[c_addr5]) \n\t"
-          "vse32.v %[c40], (%[c_addr4]) \n\t"
+            "vfmul.vf %[c40], %[c40], %[beta] \n\t"
+            "vfmacc.vf %[c40], %[alpha], %[acc4] \n\t"
+            "vle32.v %[c50], (%[c_addr5]) \n\t"
+            "vse32.v %[c40], (%[c_addr4]) \n\t"
 
-          "vfmul.vf %[c50], %[c50], %[beta] \n\t"
-          "vfmacc.vf %[c50], %[alpha], %[acc5] \n\t"
-          "vle32.v %[c60], (%[c_addr6]) \n\t"
-          "vse32.v %[c50], (%[c_addr5]) \n\t"
+            "vfmul.vf %[c50], %[c50], %[beta] \n\t"
+            "vfmacc.vf %[c50], %[alpha], %[acc5] \n\t"
+            "vle32.v %[c60], (%[c_addr6]) \n\t"
+            "vse32.v %[c50], (%[c_addr5]) \n\t"
 
-          "vfmul.vf %[c60], %[c60], %[beta] \n\t"
-          "vfmacc.vf %[c60], %[alpha], %[acc6] \n\t"
-          "vle32.v %[c70], (%[c_addr7]) \n\t"
-          "vse32.v %[c60], (%[c_addr6]) \n\t"
+            "vfmul.vf %[c60], %[c60], %[beta] \n\t"
+            "vfmacc.vf %[c60], %[alpha], %[acc6] \n\t"
+            "vle32.v %[c70], (%[c_addr7]) \n\t"
+            "vse32.v %[c60], (%[c_addr6]) \n\t"
 
-          "vfmul.vf %[c70], %[c70], %[beta] \n\t"
-          "vfmacc.vf %[c70], %[alpha], %[acc7] \n\t"
-          "vse32.v %[c70], (%[c_addr7]) \n\t"
-          : [c00] "=&vr"(c00),
-            [c10] "=&vr"(c10),
-            [c20] "=&vr"(c20),
-            [c30] "=&vr"(c30),
-            [c40] "=&vr"(c40),
-            [c50] "=&vr"(c50),
-            [c60] "=&vr"(c60),
-            [c70] "=&vr"(c70)
-          : [jj_vl] "r"(jj_vl),
-            [c_addr0] "r"(c + (ii + 0) * rsc + jj),
-            [c_addr1] "r"(c + (ii + 1) * rsc + jj),
-            [c_addr2] "r"(c + (ii + 2) * rsc + jj),
-            [c_addr3] "r"(c + (ii + 3) * rsc + jj),
-            [c_addr4] "r"(c + (ii + 4) * rsc + jj),
-            [c_addr5] "r"(c + (ii + 5) * rsc + jj),
-            [c_addr6] "r"(c + (ii + 6) * rsc + jj),
-            [c_addr7] "r"(c + (ii + 7) * rsc + jj),
-            [beta] "f"(beta),
-            [alpha] "f"(alpha),
-            [acc0] "vr"(acc0),
-            [acc1] "vr"(acc1),
-            [acc2] "vr"(acc2),
-            [acc3] "vr"(acc3),
-            [acc4] "vr"(acc4),
-            [acc5] "vr"(acc5),
-            [acc6] "vr"(acc6),
-            [acc7] "vr"(acc7)
-          : "vtype", "vl", "memory"
-          // clang-format on
-      );
+            "vfmul.vf %[c70], %[c70], %[beta] \n\t"
+            "vfmacc.vf %[c70], %[alpha], %[acc7] \n\t"
+            "vse32.v %[c70], (%[c_addr7]) \n\t"
+            : [c00] "=&vr"(c00),
+              [c10] "=&vr"(c10),
+              [c20] "=&vr"(c20),
+              [c30] "=&vr"(c30),
+              [c40] "=&vr"(c40),
+              [c50] "=&vr"(c50),
+              [c60] "=&vr"(c60),
+              [c70] "=&vr"(c70)
+            : [jj_vl] "r"(jj_vl),
+              [c_addr0] "r"(c + (ii + 0) * rsc + jj),
+              [c_addr1] "r"(c + (ii + 1) * rsc + jj),
+              [c_addr2] "r"(c + (ii + 2) * rsc + jj),
+              [c_addr3] "r"(c + (ii + 3) * rsc + jj),
+              [c_addr4] "r"(c + (ii + 4) * rsc + jj),
+              [c_addr5] "r"(c + (ii + 5) * rsc + jj),
+              [c_addr6] "r"(c + (ii + 6) * rsc + jj),
+              [c_addr7] "r"(c + (ii + 7) * rsc + jj),
+              [beta] "f"(beta),
+              [alpha] "f"(alpha),
+              [acc0] "vr"(acc0),
+              [acc1] "vr"(acc1),
+              [acc2] "vr"(acc2),
+              [acc3] "vr"(acc3),
+              [acc4] "vr"(acc4),
+              [acc5] "vr"(acc5),
+              [acc6] "vr"(acc6),
+              [acc7] "vr"(acc7)
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
+      } else {
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
+
+            "vfmul.vf %[c00], %[acc0], %[alpha] \n\t"
+            "vse32.v %[c00], (%[c_addr0]) \n\t"
+
+            "vfmul.vf %[c10], %[acc1], %[alpha] \n\t"
+            "vse32.v %[c10], (%[c_addr1]) \n\t"
+
+            "vfmul.vf %[c20], %[acc2], %[alpha] \n\t"
+            "vse32.v %[c20], (%[c_addr2]) \n\t"
+
+            "vfmul.vf %[c30], %[acc3], %[alpha] \n\t"
+            "vse32.v %[c30], (%[c_addr3]) \n\t"
+
+            "vfmul.vf %[c40], %[acc4], %[alpha] \n\t"
+            "vse32.v %[c40], (%[c_addr4]) \n\t"
+
+            "vfmul.vf %[c50], %[acc5], %[alpha] \n\t"
+            "vse32.v %[c50], (%[c_addr5]) \n\t"
+
+            "vfmul.vf %[c60], %[acc6], %[alpha] \n\t"
+            "vse32.v %[c60], (%[c_addr6]) \n\t"
+
+            "vfmul.vf %[c70], %[acc7], %[alpha] \n\t"
+            "vse32.v %[c70], (%[c_addr7]) \n\t"
+            : [c00] "=&vr"(c00),
+              [c10] "=&vr"(c10),
+              [c20] "=&vr"(c20),
+              [c30] "=&vr"(c30),
+              [c40] "=&vr"(c40),
+              [c50] "=&vr"(c50),
+              [c60] "=&vr"(c60),
+              [c70] "=&vr"(c70)
+            : [jj_vl] "r"(jj_vl),
+              [c_addr0] "r"(c + (ii + 0) * rsc + jj),
+              [c_addr1] "r"(c + (ii + 1) * rsc + jj),
+              [c_addr2] "r"(c + (ii + 2) * rsc + jj),
+              [c_addr3] "r"(c + (ii + 3) * rsc + jj),
+              [c_addr4] "r"(c + (ii + 4) * rsc + jj),
+              [c_addr5] "r"(c + (ii + 5) * rsc + jj),
+              [c_addr6] "r"(c + (ii + 6) * rsc + jj),
+              [c_addr7] "r"(c + (ii + 7) * rsc + jj),
+              [alpha] "f"(alpha),
+              [acc0] "vr"(acc0),
+              [acc1] "vr"(acc1),
+              [acc2] "vr"(acc2),
+              [acc3] "vr"(acc3),
+              [acc4] "vr"(acc4),
+              [acc5] "vr"(acc5),
+              [acc6] "vr"(acc6),
+              [acc7] "vr"(acc7)
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
+      }
     }
   }
   for (; ii < m; ii++) {
@@ -1282,23 +1360,40 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm2x12_f32_f32_f32_zve32f_x390(
             // clang-format on
         );
       }
-      __asm__ volatile(
-          // clang-format off
-          "\n\t"
-          "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
-          "vle32.v %[c00], (%[c_addr]) \n\t"
-          "vfmul.vf %[c00], %[c00], %[beta] \n\t"
-          "vfmacc.vf %[c00], %[alpha], %[acc0] \n\t"
-          "vse32.v %[c00], (%[c_addr]) \n\t"
-          : [c00] "=&vr"(c00)
-          : [jj_vl] "r"(jj_vl),
-            [c_addr] "r"(c + ii * rsc + jj),
-            [beta] "f"(beta),
-            [alpha] "f"(alpha),
-            [acc0] "vr"(acc0)
-          : "vtype", "vl", "memory"
-          // clang-format on
-      );
+      if (beta != 0) {
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
+            "vle32.v %[c00], (%[c_addr]) \n\t"
+            "vfmul.vf %[c00], %[c00], %[beta] \n\t"
+            "vfmacc.vf %[c00], %[alpha], %[acc0] \n\t"
+            "vse32.v %[c00], (%[c_addr]) \n\t"
+            : [c00] "=&vr"(c00)
+            : [jj_vl] "r"(jj_vl),
+              [c_addr] "r"(c + ii * rsc + jj),
+              [beta] "f"(beta),
+              [alpha] "f"(alpha),
+              [acc0] "vr"(acc0)
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
+      } else {
+        __asm__ volatile(
+            // clang-format off
+            "\n\t"
+            "vsetvli zero, %[jj_vl], e32, m2, ta, ma \n\t"
+            "vfmul.vf %[c00], %[acc0], %[alpha] \n\t"
+            "vse32.v %[c00], (%[c_addr]) \n\t"
+            : [c00] "=&vr"(c00)
+            : [jj_vl] "r"(jj_vl),
+              [c_addr] "r"(c + ii * rsc + jj),
+              [alpha] "f"(alpha),
+              [acc0] "vr"(acc0)
+            : "vtype", "vl", "memory"
+            // clang-format on
+        );
+      }
     }
   }
 }
@@ -1632,38 +1727,65 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(
               [b_load] "r"(b + kk0 * rsb + jj), [jj_vl_in] "r"(jj_vl)
             : "vtype", "vl", "memory");
       }
-      __asm__ volatile(
-          "\n\t"
-          "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
+      if (beta != 0.0f) {
+        __asm__ volatile(
+            "\n\t"
+            "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
 
-          "vle32.v %[c00], (%[c_addr_0]) \n\t"
-          "vfmul.vf %[c00], %[c00], %[beta] \n\t"
-          "vfmacc.vf %[c00], %[alpha], %[acc0] \n\t"
-          "vse32.v %[c00], (%[c_addr_0]) \n\t"
+            "vle32.v %[c00], (%[c_addr_0]) \n\t"
+            "vfmul.vf %[c00], %[c00], %[beta] \n\t"
+            "vfmacc.vf %[c00], %[alpha], %[acc0] \n\t"
+            "vse32.v %[c00], (%[c_addr_0]) \n\t"
 
-          "vle32.v %[c10], (%[c_addr_1]) \n\t"
-          "vfmul.vf %[c10], %[c10], %[beta] \n\t"
-          "vfmacc.vf %[c10], %[alpha], %[acc1] \n\t"
-          "vse32.v %[c10], (%[c_addr_1]) \n\t"
+            "vle32.v %[c10], (%[c_addr_1]) \n\t"
+            "vfmul.vf %[c10], %[c10], %[beta] \n\t"
+            "vfmacc.vf %[c10], %[alpha], %[acc1] \n\t"
+            "vse32.v %[c10], (%[c_addr_1]) \n\t"
 
-          "vle32.v %[c20], (%[c_addr_2]) \n\t"
-          "vfmul.vf %[c20], %[c20], %[beta] \n\t"
-          "vfmacc.vf %[c20], %[alpha], %[acc2] \n\t"
-          "vse32.v %[c20], (%[c_addr_2]) \n\t"
+            "vle32.v %[c20], (%[c_addr_2]) \n\t"
+            "vfmul.vf %[c20], %[c20], %[beta] \n\t"
+            "vfmacc.vf %[c20], %[alpha], %[acc2] \n\t"
+            "vse32.v %[c20], (%[c_addr_2]) \n\t"
 
-          "vle32.v %[c30], (%[c_addr_3]) \n\t"
-          "vfmul.vf %[c30], %[c30], %[beta] \n\t"
-          "vfmacc.vf %[c30], %[alpha], %[acc3] \n\t"
-          "vse32.v %[c30], (%[c_addr_3]) \n\t"
-          : [c00] "=&vr"(c00), [c10] "=&vr"(c10), [c20] "=&vr"(c20),
-            [c30] "=&vr"(c30)
-          : [jj_vl_in] "r"(jj_vl), [c_addr_0] "r"(c + (ii + 0) * rsc + jj),
-            [c_addr_1] "r"(c + (ii + 1) * rsc + jj),
-            [c_addr_2] "r"(c + (ii + 2) * rsc + jj),
-            [c_addr_3] "r"(c + (ii + 3) * rsc + jj), [beta] "f"(beta),
-            [alpha] "f"(alpha), [acc0] "vr"(acc0), [acc1] "vr"(acc1),
-            [acc2] "vr"(acc2), [acc3] "vr"(acc3)
-          : "vtype", "vl", "memory");
+            "vle32.v %[c30], (%[c_addr_3]) \n\t"
+            "vfmul.vf %[c30], %[c30], %[beta] \n\t"
+            "vfmacc.vf %[c30], %[alpha], %[acc3] \n\t"
+            "vse32.v %[c30], (%[c_addr_3]) \n\t"
+            : [c00] "=&vr"(c00), [c10] "=&vr"(c10), [c20] "=&vr"(c20),
+              [c30] "=&vr"(c30)
+            : [jj_vl_in] "r"(jj_vl), [c_addr_0] "r"(c + (ii + 0) * rsc + jj),
+              [c_addr_1] "r"(c + (ii + 1) * rsc + jj),
+              [c_addr_2] "r"(c + (ii + 2) * rsc + jj),
+              [c_addr_3] "r"(c + (ii + 3) * rsc + jj), [beta] "f"(beta),
+              [alpha] "f"(alpha), [acc0] "vr"(acc0), [acc1] "vr"(acc1),
+              [acc2] "vr"(acc2), [acc3] "vr"(acc3)
+            : "vtype", "vl", "memory");
+      } else {
+        __asm__ volatile(
+            "\n\t"
+            "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
+
+            "vfmul.vf %[c00], %[acc0], %[alpha] \n\t"
+            "vse32.v %[c00], (%[c_addr_0]) \n\t"
+
+            "vfmul.vf %[c10], %[acc1], %[alpha] \n\t"
+            "vse32.v %[c10], (%[c_addr_1]) \n\t"
+
+            "vfmul.vf %[c20], %[acc2], %[alpha] \n\t"
+            "vse32.v %[c20], (%[c_addr_2]) \n\t"
+
+            "vfmul.vf %[c30], %[acc3], %[alpha] \n\t"
+            "vse32.v %[c30], (%[c_addr_3]) \n\t"
+            : [c00] "=&vr"(c00), [c10] "=&vr"(c10), [c20] "=&vr"(c20),
+              [c30] "=&vr"(c30)
+            : [jj_vl_in] "r"(jj_vl), [c_addr_0] "r"(c + (ii + 0) * rsc + jj),
+              [c_addr_1] "r"(c + (ii + 1) * rsc + jj),
+              [c_addr_2] "r"(c + (ii + 2) * rsc + jj),
+              [c_addr_3] "r"(c + (ii + 3) * rsc + jj), [alpha] "f"(alpha),
+              [acc0] "vr"(acc0), [acc1] "vr"(acc1), [acc2] "vr"(acc2),
+              [acc3] "vr"(acc3)
+            : "vtype", "vl", "memory");
+      }
     }
   }
   for (ii0 = ii; (ii0 + 1) <= m; ii0 = ii0 + 1) {
@@ -1690,17 +1812,29 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(
               [b_load] "r"(b + kk * rsb + jj)
             : "vtype", "vl", "memory");
       }
-      __asm__ volatile(
-          "\n\t"
-          "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
-          "vle32.v %[c0], (%[c_addr]) \n\t"
-          "vfmul.vf %[c0], %[c0], %[beta] \n\t"
-          "vfmacc.vf %[c0], %[alpha], %[acc] \n\t"
-          "vse32.v %[c0], (%[c_addr]) \n\t"
-          : [c0] "=&vr"(c0)
-          : [jj_vl_in] "r"(jj_vl), [c_addr] "r"(c + ii0 * rsc + jj),
-            [beta] "f"(beta), [alpha] "f"(alpha), [acc] "vr"(acc)
-          : "vtype", "vl", "memory");
+      if (beta != 0) {
+        __asm__ volatile(
+            "\n\t"
+            "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
+            "vle32.v %[c0], (%[c_addr]) \n\t"
+            "vfmul.vf %[c0], %[c0], %[beta] \n\t"
+            "vfmacc.vf %[c0], %[alpha], %[acc] \n\t"
+            "vse32.v %[c0], (%[c_addr]) \n\t"
+            : [c0] "=&vr"(c0)
+            : [jj_vl_in] "r"(jj_vl), [c_addr] "r"(c + ii0 * rsc + jj),
+              [beta] "f"(beta), [alpha] "f"(alpha), [acc] "vr"(acc)
+            : "vtype", "vl", "memory");
+      } else {
+        __asm__ volatile(
+            "\n\t"
+            "vsetvli zero, %[jj_vl_in], e32, m4, ta, ma \n\t"
+            "vfmul.vf %[c0], %[acc], %[alpha] \n\t"
+            "vse32.v %[c0], (%[c_addr]) \n\t"
+            : [c0] "=&vr"(c0)
+            : [jj_vl_in] "r"(jj_vl), [c_addr] "r"(c + ii0 * rsc + jj),
+              [alpha] "f"(alpha), [acc] "vr"(acc)
+            : "vtype", "vl", "memory");
+      }
     }
   }
 }
