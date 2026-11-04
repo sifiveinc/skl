@@ -652,6 +652,48 @@ skl_add_test(
   ""
 )
 skl_add_test(
+  skl_sqrt_bf16_xsfvfbfa
+  elementwise/unary_bf16.c
+  sqrt/skl_sqrt_bf16_xsfvfbfa.c
+  "xsfvfbfa"
+  ""
+)
+skl_add_test(
+  skl_sqrt_bf16_zve32f
+  elementwise/unary_bf16.c
+  sqrt/skl_sqrt_bf16_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_sqrt_bf16_zvfbfmin
+  elementwise/unary_bf16.c
+  sqrt/skl_sqrt_bf16_zvfbfmin.c
+  "zvfbfmin"
+  ""
+)
+skl_add_test(
+  skl_sqrt_f16_zvfh
+  elementwise/unary_f16.c
+  sqrt/skl_sqrt_f16_zvfh.c
+  "zvfh"
+  ""
+)
+skl_add_test(
+  skl_sqrt_f32_zve32f
+  elementwise/unary_f32.c
+  sqrt/skl_sqrt_f32_zve32f.c
+  "zve32f"
+  ""
+)
+skl_add_test(
+  skl_sqrt_f64_zve64d
+  elementwise/unary_f64.c
+  sqrt/skl_sqrt_f64_zve64d.c
+  "zve64d"
+  ""
+)
+skl_add_test(
   skl_transpose_e16_xsfmmbase
   pack/transpose_e16.c
   pack/xsfmm/skl_transpose_e16_xsfmmbase.c

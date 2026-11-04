@@ -176,6 +176,13 @@ add_skl_src(src/softmax/softmax_f32_xsfvfexp32e.c "xsfvfexp32e")
 add_skl_src(src/softmax/softmax_f32_xsfvfexpa.c "xsfvfexpa")
 add_skl_src(src/softmax/softmax_f32_zve32f.c "zve32f")
 
+add_skl_src(src/sqrt/sqrt_bf16_xsfvfbfa.c "xsfvfbfa")
+add_skl_src(src/sqrt/sqrt_bf16_zve32f.c "zve32f")
+add_skl_src(src/sqrt/sqrt_bf16_zvfbfmin.c "zvfbfmin")
+add_skl_src(src/sqrt/sqrt_f16_zvfh.c "zvfh")
+add_skl_src(src/sqrt/sqrt_f32_zve32f.c "zve32f")
+add_skl_src(src/sqrt/sqrt_f64_zve64d.c "zve64d")
+
 # Optionally build library tests
 
 if(NOT DEFINED SKL_TESTER)
