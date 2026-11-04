@@ -1,6 +1,14 @@
 # SKL Changelog
 
-### v3.0.0
+## (Upcoming Release)
+
+* GEMM:
+  * All floating-point GEMM functions (in both `src` and `ref`) will no longer
+  read the C matrix values when `beta == 0.0` and will instead populate C with
+  the value of `alpha * A * B`. In particular, floating-point NaNs and
+  infinities in the C matrix do not affect the result when `beta == 0.0`.
+
+## v3.0.0
 
 Initial release of SKL. Features include:
 * Supported kernels:

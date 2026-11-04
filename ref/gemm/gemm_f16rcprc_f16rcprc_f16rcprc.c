@@ -27,8 +27,8 @@ SKL_FUNC void skl_gemm_f16rcprc_f16rcprc_f16rcprc_ref(
               acc += a_val * b_val;
             }
           }
-          c_block[ii0 * rsc0 + jj0 * csc0] =
-              beta * c_block[ii0 * rsc0 + jj0 * csc0] + alpha * acc;
+          _Float16 c_val = (beta == 0) ? 0 : c_block[ii0 * rsc0 + jj0 * csc0];
+          c_block[ii0 * rsc0 + jj0 * csc0] = beta * c_val + alpha * acc;
         }
       }
     }

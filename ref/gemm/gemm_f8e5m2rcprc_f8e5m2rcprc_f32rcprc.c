@@ -29,8 +29,8 @@ SKL_FUNC void skl_gemm_f8e5m2rcprc_f8e5m2rcprc_f32rcprc_ref(
               acc += skl_cvt_f8e5m2_f32(a_val) * skl_cvt_f8e5m2_f32(b_val);
             }
           }
-          c_block[ii0 * rsc0 + jj0 * csc0] =
-              beta * c_block[ii0 * rsc0 + jj0 * csc0] + alpha * acc;
+          float c_val = (beta == 0) ? 0 : c_block[ii0 * rsc0 + jj0 * csc0];
+          c_block[ii0 * rsc0 + jj0 * csc0] = beta * c_val + alpha * acc;
         }
       }
     }

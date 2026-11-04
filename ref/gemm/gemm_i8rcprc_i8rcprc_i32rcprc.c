@@ -28,8 +28,8 @@ SKL_FUNC void skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
               acc += (int32_t)a_val * (int32_t)b_val;
             }
           }
-          c_block[ii0 * rsc0 + jj0 * csc0] =
-              beta * c_block[ii0 * rsc0 + jj0 * csc0] + alpha * acc;
+          int32_t c_val = (beta == 0) ? 0 : c_block[ii0 * rsc0 + jj0 * csc0];
+          c_block[ii0 * rsc0 + jj0 * csc0] = beta * c_val + alpha * acc;
         }
       }
     }
