@@ -173,10 +173,8 @@ void gemm_f32rcprc_f32rcprc_f32rcprc_verify(skl_test_t *t) {
       for (size_t i0 = 0; i0 < m0; ++i0) {
         for (size_t j0 = 0; j0 < n0; ++j0) {
           size_t idx = i1 * rsc1 + j1 * csc1 + i0 * rsc0 + j0 * csc0;
-          // NOLINTBEGIN(misc-redundant-expression)
-          bool ref_is_nan = ref_c[idx] != ref_c[idx];
-          bool res_is_nan = c[idx] != c[idx];
-          // NOLINTEND(misc-redundant-expression)
+          bool ref_is_nan = skl_is_nan_f32(ref_c[idx]);
+          bool res_is_nan = skl_is_nan_f32(c[idx]);
           bool only_one_nan = ref_is_nan ^ res_is_nan;
           bool large_error =
               fabs((double)c[idx] - (double)ref_c[idx]) > bound[idx];
