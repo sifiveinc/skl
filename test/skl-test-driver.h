@@ -663,6 +663,21 @@ static inline float skl_error_ulp_bf16(const __bf16 *res, const __bf16 *ref,
 }
 
 /**
+ * @brief Returns true if the given FP16 value is a NaN.
+ */
+static inline bool skl_is_nan_f16(_Float16 val) { return val != val; }
+
+/**
+ * @brief Returns true if the given FP32 value is a NaN.
+ */
+static inline bool skl_is_nan_f32(float val) { return val != val; }
+
+/**
+ * @brief Returns true if the given FP64 value is a NaN.
+ */
+static inline bool skl_is_nan_f64(double val) { return val != val; }
+
+/**
  * @brief Check packed matrix dimensions and strides
  *
  * @param t - Test context.
