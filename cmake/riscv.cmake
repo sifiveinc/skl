@@ -35,7 +35,8 @@ set(SKL_ARCH_EXTENSIONS
   zihintntl
 )
 
-string(JOIN "_" SKL_ARCH_STR ${SKL_ARCH_EXTENSIONS})
+string(JOIN "_" SKL_ARCH_STR_ ${SKL_ARCH_EXTENSIONS})
+set(SKL_ARCH_STR ${SKL_ARCH_STR_} CACHE STRING "ISA string used when compiling SKL")
 set(COMPILE_OPTIONS -march=${SKL_ARCH_STR} -menable-experimental-extensions)
 
 set(SKL_COMPILE_OPTIONS ${COMPILE_OPTIONS})
