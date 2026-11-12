@@ -208,9 +208,7 @@ void gemm_f64rcprc_f64rcprc_f64rcprc_verify(skl_test_t *t) {
       for (size_t i0 = 0; i0 < m0; ++i0) {
         for (size_t j0 = 0; j0 < n0; ++j0) {
           size_t idx = i1 * rsc1 + j1 * csc1 + i0 * rsc0 + j0 * csc0;
-          bool ref_is_nan = skl_is_nan_f64(ref_c[idx]);
-          bool res_is_nan = skl_is_nan_f64(c[idx]);
-          bool only_one_nan = ref_is_nan ^ res_is_nan;
+          bool only_one_nan = isnan(ref_c[idx]) ^ isnan(c[idx]);
           bool large_error =
               fabsl((long double)c[idx] - (long double)ref_c[idx]) > bound[idx];
           if (only_one_nan || large_error) {
