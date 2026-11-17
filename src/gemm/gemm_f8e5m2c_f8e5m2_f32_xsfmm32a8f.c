@@ -871,6 +871,11 @@ skl_gemm_alpha_beta_scaling_b0_m2_f8e5m2_f32_f32_xsfmmbase(
  *  - tile is the tm x tn tile specified by tss
  *  - tm and tn must be <= TE
  *
+ * When alpha or beta is zero, the kernel behaves as follows:
+ *  - If alpha and beta are both zero, C is set to zero.
+ *  - If alpha is nonzero and beta is zero, C := alpha * tile. C is not read.
+ *  - If alpha is zero and beta is nonzero, C := beta * C. tile is not read.
+ *
  * This kernel dispatches to the optimized m2 version when possible.
  */
 SKL_FUNC_PRIVATE
