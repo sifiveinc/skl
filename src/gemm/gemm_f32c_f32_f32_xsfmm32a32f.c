@@ -659,7 +659,7 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m2_f32_f32_f32_xsfmmbase(
 }
 
 /* A version of skl_gemm_alpha_beta_scaling_m2_f32_f32_f32_xsfmmbase that
- * correctly handles the case beta == 0.
+ * handles the case when alpha is nonzero and beta is zero.
  */
 SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_b0_m2_f32_f32_f32_xsfmmbase(
     size_t tm, size_t tn, float alpha, size_t tss, float *c,
@@ -875,6 +875,11 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_b0_m2_f32_f32_f32_xsfmmbase(
 /* Computes C := alpha * tile + beta * C, where:
  *  - tile is the tm x tn tile specified by tss
  *  - tm and tn must be <= TE
+ *
+ * When alpha or beta is zero, the kernel behaves as follows:
+ *  - If alpha and beta are both zero, C is set to zero.
+ *  - If alpha is nonzero and beta is zero, C := alpha * tile. C is not read.
+ *  - If alpha is zero and beta is nonzero, C := beta * C. tile is not read.
  *
  * This kernel dispatches to the optimized m2 version when possible.
  */
