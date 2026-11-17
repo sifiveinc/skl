@@ -241,104 +241,95 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m8_f32_f32_f32rc_xsfmmbase(
         if (csc0 == 1) {
           __riscv_vse32_v_f32m8(c + i * rsc0, zero_vec, tn);
         } else {
-          __riscv_vsse32_v_f32m8(c + i * rsc0, csc0 * sizeof(float), zero_vec,
-                                 tn);
+          __riscv_vsse32_v_f32m8(
+              c + i * rsc0, (ptrdiff_t)(csc0 * sizeof(float)), zero_vec, tn);
         }
       }
     } else {
       for (size_t i = 0; i < tm; ++i) {
+        // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
+        vfloat32m8_t cvec = __riscv_vundefined_f32m8();
+        // NOLINTEND(clang-analyzer-deadcode.DeadStores)
         if (csc0 == 1) {
-          vfloat32m8_t cvec = __riscv_vle32_v_f32m8(c + i * rsc0, tn);
+          cvec = __riscv_vle32_v_f32m8(c + i * rsc0, tn);
         } else {
-          vfloat32m8_t cvec =
-              __riscv_vlse32_v_f32m8(c + i * rsc0, csc0 * sizeof(float), tn);
+          cvec = __riscv_vlse32_v_f32m8(c + i * rsc0,
+                                        (ptrdiff_t)(csc0 * sizeof(float)), tn);
         }
         cvec = __riscv_vfmul_vf_f32m8(cvec, beta, tn);
         if (csc0 == 1) {
           __riscv_vse32_v_f32m8(c + i * rsc0, cvec, tn);
         } else {
-          __riscv_vsse32_v_f32m8(c + i * rsc0, csc0 * sizeof(float), cvec, tn);
+          __riscv_vsse32_v_f32m8(c + i * rsc0,
+                                 (ptrdiff_t)(csc0 * sizeof(float)), cvec, tn);
         }
       }
     }
   } else { // alpha != 0.f
     float *c_end = c + tm * rsc0;
     if (beta == 0.f) {
-      if (csc0 == 1) {
-        __asm__ volatile(
-            "sf.vsettnt x0, %[tn], e32, w1\n"
+      __asm__ volatile(
+          "sf.vsettnt x0, %[tn], e32, w1\n"
 
-            "0:\n"
-            "sf.vtmv.v.t v0, %[tss]\n"
-            "add %[tss], %[tss], %[kRowInc]\n"
-            "vfmul.vf v0, v0, %[alpha]\n"
-            "vse32.v v0, (%[c])\n"
-            "add %[c], %[c], %[rsc0]\n"
-            "bnez %[c], %[c_end], 0b"
-            : [tss] "+&r"(tss), [c] "+&r"(c)
-            : [alpha] "f"(alpha), [c_end] "r"(c_end), [kRowInc] "rI"(kRowInc),
-              [rsc0] "r"(rsc0 * sizeof(float)), [tn] "r"(tn)
-            : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "vtype", "vl",
-              "memory");
-      } else {
-        __asm__ volatile(
-            "sf.vsettnt x0, %[tn], e32, w1\n"
+          "bne %[csc0], %[i1], 1f\n"
+          "0:\n"
+          "sf.vtmv.v.t v0, %[tss]\n"
+          "add %[tss], %[tss], %[kRowInc]\n"
+          "vfmul.vf v0, v0, %[alpha]\n"
+          "vse32.v v0, (%[c])\n"
+          "add %[c], %[c], %[rsc0]\n"
+          "bne %[c], %[c_end], 0b\n"
+          "j 2f\n"
 
-            "0:\n"
-            "sf.vtmv.v.t v0, %[tss]\n"
-            "add %[tss], %[tss], %[kRowInc]\n"
-            "vfmul.vf v0, v0, %[alpha]\n"
-            "vsse32.v v0, (%[c]), %[csc0]\n"
-            "add %[c], %[c], %[rsc0]\n"
-            "bnez %[c], %[c_end], 0b"
-            : [tss] "+&r"(tss), [c] "+&r"(c)
-            : [alpha] "f"(alpha), [c_end] "r"(c_end), [kRowInc] "rI"(kRowInc),
-              [rsc0] "r"(rsc0 * sizeof(float)),
-              [csc0] "r"(csc0 * sizeof(float)), [tn] "r"(tn)
-            : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "vtype", "vl",
-              "memory");
-      }
+          "1:\n"
+          "sf.vtmv.v.t v0, %[tss]\n"
+          "add %[tss], %[tss], %[kRowInc]\n"
+          "vfmul.vf v0, v0, %[alpha]\n"
+          "vsse32.v v0, (%[c]), %[csc0]\n"
+          "add %[c], %[c], %[rsc0]\n"
+          "bne %[c], %[c_end], 1b\n"
+
+          "2:\n"
+          : [tss] "+&r"(tss), [c] "+&r"(c)
+          : [alpha] "f"(alpha), [c_end] "r"(c_end), [kRowInc] "rI"(kRowInc),
+            [rsc0] "r"(rsc0 * sizeof(float)), [csc0] "r"(csc0 * sizeof(float)),
+            [tn] "r"(tn), [i1] "r"(sizeof(float))
+          : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "vtype", "vl",
+            "memory");
     } else {
-      if (csc0 == 1) {
-        __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
+      __asm__ volatile(
+          "sf.vsettnt x0, %[tn], e32, w1\n"
 
-                         "0:\n"
-                         "sf.vtmv.v.t v0, %[tss]\n"
-                         "add %[tss], %[tss], %[kRowInc]\n"
-                         "vle32.v v16, (%[c])\n"
-                         "vfmul.vf v16, v16, %[beta]\n"
-                         "vfmacc.vf v16, %[alpha], v0\n"
-                         "vse32.v v16, (%[c])\n"
-                         "add %[c], %[c], %[rsc0]\n"
-                         "bnez %[c], %[c_end], 0b"
-                         : [tss] "+&r"(tss), [c] "+&r"(c)
-                         : [alpha] "f"(alpha), [beta] "f"(beta),
-                           [c_end] "r"(c_end), [kRowInc] "rI"(kRowInc),
-                           [rsc0] "r"(rsc0 * sizeof(float)), [tn] "r"(tn)
-                         : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7",
-                           "v16", "v17", "v18", "v19", "v20", "v21", "v22",
-                           "v23", "vtype", "vl", "memory");
-      } else {
-        __asm__ volatile(
-            "sf.vsettnt x0, %[tn], e32, w1\n"
+          "bne %[csc0], %[i1], 1f\n"
+          "0:\n"
+          "sf.vtmv.v.t v0, %[tss]\n"
+          "add %[tss], %[tss], %[kRowInc]\n"
+          "vle32.v v16, (%[c])\n"
+          "vfmul.vf v16, v16, %[beta]\n"
+          "vfmacc.vf v16, %[alpha], v0\n"
+          "vse32.v v16, (%[c])\n"
+          "add %[c], %[c], %[rsc0]\n"
+          "bne %[c], %[c_end], 0b\n"
+          "j 2f\n"
 
-            "0:\n"
-            "sf.vtmv.v.t v0, %[tss]\n"
-            "add %[tss], %[tss], %[kRowInc]\n"
-            "vlse32.v v16, (%[c]), %[csc0]\n"
-            "vfmul.vf v16, v16, %[beta]\n"
-            "vfmacc.vf v16, %[alpha], v0\n"
-            "vsse32.v v16, (%[c]), %[csc0]\n"
-            "add %[c], %[c], %[rsc0]\n"
-            "bnez %[i], 0b"
-            : [tss] "+&r"(tss), [c] "+&r"(c)
-            : [alpha] "f"(alpha), [beta] "f"(beta), [c_end] "r"(c_end),
-              [kRowInc] "rI"(kRowInc), [rsc0] "r"(rsc0 * sizeof(float)),
-              [csc0] "r"(csc0 * sizeof(float)), [tn] "r"(tn)
-            : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v16", "v17",
-              "v18", "v19", "v20", "v21", "v22", "v23", "vtype", "vl",
-              "memory");
-      }
+          "1:\n"
+          "sf.vtmv.v.t v0, %[tss]\n"
+          "add %[tss], %[tss], %[kRowInc]\n"
+          "vlse32.v v16, (%[c]), %[csc0]\n"
+          "vfmul.vf v16, v16, %[beta]\n"
+          "vfmacc.vf v16, %[alpha], v0\n"
+          "vsse32.v v16, (%[c]), %[csc0]\n"
+          "add %[c], %[c], %[rsc0]\n"
+          "bne %[c], %[c_end], 1b\n"
+
+          "2:\n"
+          : [tss] "+&r"(tss), [c] "+&r"(c)
+          : [alpha] "f"(alpha), [beta] "f"(beta), [c_end] "r"(c_end),
+            [kRowInc] "rI"(kRowInc), [rsc0] "r"(rsc0 * sizeof(float)),
+            [csc0] "r"(csc0 * sizeof(float)), [tn] "r"(tn),
+            [i1] "r"(sizeof(float))
+          : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v16", "v17", "v18",
+            "v19", "v20", "v21", "v22", "v23", "vtype", "vl", "memory");
     }
   }
 }
