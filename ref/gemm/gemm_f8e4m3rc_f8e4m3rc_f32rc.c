@@ -15,9 +15,11 @@ SKL_FUNC void skl_gemm_f8e4m3rc_f8e4m3rc_f32rc_ref(
   for (size_t ii = 0; ii < m; ii++) {
     for (size_t jj = 0; jj < n; jj++) {
       float acc = 0;
-      for (size_t kk = 0; kk < k; kk++) {
-        acc += skl_cvt_f8e4m3_f32(a[ii * rsa + kk * csa]) *
-               skl_cvt_f8e4m3_f32(b[kk * rsb + jj * csb]);
+      if (alpha != 0) {
+        for (size_t kk = 0; kk < k; kk++) {
+          acc += skl_cvt_f8e4m3_f32(a[ii * rsa + kk * csa]) *
+                 skl_cvt_f8e4m3_f32(b[kk * rsb + jj * csb]);
+        }
       }
       float c_val = (beta == 0) ? 0 : c[ii * rsc + jj * csc];
       c[ii * rsc + jj * csc] = beta * c_val + alpha * acc;
