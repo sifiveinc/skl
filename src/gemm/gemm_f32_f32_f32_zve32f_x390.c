@@ -72,8 +72,12 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
     for (ii = 0; (ii + 1) <= m; ii = ii + 1) {
       for (jj = 0; jj < n; jj = jj + jj_vl) {
         jj_vl = __riscv_vsetvl_e32m8(n - jj);
-        c00 = __riscv_vle32_v_f32m8(c + ii * rsc + jj, jj_vl);
-        c00 = __riscv_vfmul_vf_f32m8(c00, beta, jj_vl);
+        if (beta != 0.0f) {
+          c00 = __riscv_vle32_v_f32m8(c + ii * rsc + jj, jj_vl);
+          c00 = __riscv_vfmul_vf_f32m8(c00, beta, jj_vl);
+        } else {
+          c00 = __riscv_vfmv_v_f_f32m8(0.0f, jj_vl);
+        }
         __riscv_vse32_v_f32m8(c + ii * rsc + jj, c00, jj_vl);
       }
     }
@@ -409,8 +413,13 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm2x12_f32_f32_f32_zve32f_x390(
     for (ii = 0; (ii + 1) <= m; ii = ii + 1) {
       for (jj = 0; jj < n; jj = jj + jj_vl) {
         jj_vl = __riscv_vsetvl_e32m8(n - jj);
-        vfloat32m8_t c0m8 = __riscv_vle32_v_f32m8(c + ii * rsc + jj, jj_vl);
-        c0m8 = __riscv_vfmul_vf_f32m8(c0m8, beta, jj_vl);
+        vfloat32m8_t c0m8;
+        if (beta != 0.0f) {
+          c0m8 = __riscv_vle32_v_f32m8(c + ii * rsc + jj, jj_vl);
+          c0m8 = __riscv_vfmul_vf_f32m8(c0m8, beta, jj_vl);
+        } else {
+          c0m8 = __riscv_vfmv_v_f_f32m8(0.0f, jj_vl);
+        }
         __riscv_vse32_v_f32m8(c + ii * rsc + jj, c0m8, jj_vl);
       }
     }
@@ -1477,10 +1486,15 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(
   if (k == 0) {
     for (ii = 0; (ii + 1) <= m; ii = ii + 1) {
       for (jj = 0; jj < n; jj = jj + jj_vl) {
-        jj_vl = __riscv_vsetvl_e32m4(n - jj);
-        c0 = __riscv_vle32_v_f32m4(c + (((ii + 0) * rsc) + jj), jj_vl);
-        c0 = __riscv_vfmul_vf_f32m4(c0, beta, jj_vl);
-        __riscv_vse32_v_f32m4(c + (((ii + 0) * rsc) + jj), c0, jj_vl);
+        jj_vl = __riscv_vsetvl_e32m8(n - jj);
+        vfloat32m8_t c0m8;
+        if (beta != 0.0f) {
+          c0m8 = __riscv_vle32_v_f32m8(c + (((ii + 0) * rsc) + jj), jj_vl);
+          c0m8 = __riscv_vfmul_vf_f32m8(c0m8, beta, jj_vl);
+        } else {
+          c0m8 = __riscv_vfmv_v_f_f32m8(0.0f, jj_vl);
+        }
+        __riscv_vse32_v_f32m8(c + (((ii + 0) * rsc) + jj), c0m8, jj_vl);
       }
     }
     return;
