@@ -77,8 +77,12 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f(
     for (ii = 0; ii < m; ii++) {
       for (jj = 0; jj < n; jj += jj_vl) {
         jj_vl = __riscv_vsetvl_e32m8(n - jj);
-        c0 = __riscv_vle32_v_f32m8(c + (ii + 0) * rsc + jj, jj_vl);
-        c0 = __riscv_vfmul_vf_f32m8(c0, beta, jj_vl);
+        if (beta != 0.0f) {
+          c0 = __riscv_vle32_v_f32m8(c + (ii + 0) * rsc + jj, jj_vl);
+          c0 = __riscv_vfmul_vf_f32m8(c0, beta, jj_vl);
+        } else {
+          c0 = __riscv_vfmv_v_f_f32m8(0.0f, jj_vl);
+        }
         __riscv_vse32_v_f32m8(c + (ii + 0) * rsc + jj, c0, jj_vl);
       }
     }
