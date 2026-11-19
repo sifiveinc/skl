@@ -103,13 +103,15 @@ static void skl_gemm_f128rcprc_f128rcprc_f128rcprc_ref(
       for (size_t ii0 = 0; ii0 < m0; ++ii0) {
         for (size_t jj0 = 0; jj0 < n0; ++jj0) {
           long double acc = 0;
-          for (size_t kk1 = 0; kk1 < k1; ++kk1) {
-            const long double *a_block = a + ii1 * rsa1 + kk1 * csa1;
-            const long double *b_block = b + kk1 * rsb1 + jj1 * csb1;
-            for (size_t kk0 = 0; kk0 < k0; ++kk0) {
-              long double a_val = a_block[ii0 * rsa0 + kk0 * csa0];
-              long double b_val = b_block[kk0 * rsb0 + jj0 * csb0];
-              acc += a_val * b_val;
+          if (alpha != 0) {
+            for (size_t kk1 = 0; kk1 < k1; ++kk1) {
+              const long double *a_block = a + ii1 * rsa1 + kk1 * csa1;
+              const long double *b_block = b + kk1 * rsb1 + jj1 * csb1;
+              for (size_t kk0 = 0; kk0 < k0; ++kk0) {
+                long double a_val = a_block[ii0 * rsa0 + kk0 * csa0];
+                long double b_val = b_block[kk0 * rsb0 + jj0 * csb0];
+                acc += a_val * b_val;
+              }
             }
           }
           long double c_val =
