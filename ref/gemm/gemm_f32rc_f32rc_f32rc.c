@@ -15,8 +15,10 @@ SKL_FUNC void skl_gemm_f32rc_f32rc_f32rc_ref(size_t m, size_t n, size_t k,
   for (size_t ii = 0; ii < m; ii++) {
     for (size_t jj = 0; jj < n; jj++) {
       float acc = 0;
-      for (size_t kk = 0; kk < k; kk++) {
-        acc += a[ii * rsa + kk * csa] * b[kk * rsb + jj * csb];
+      if (alpha != 0) {
+        for (size_t kk = 0; kk < k; kk++) {
+          acc += a[ii * rsa + kk * csa] * b[kk * rsb + jj * csb];
+        }
       }
       float c_val = (beta == 0) ? 0 : c[ii * rsc + jj * csc];
       c[ii * rsc + jj * csc] = beta * c_val + alpha * acc;
