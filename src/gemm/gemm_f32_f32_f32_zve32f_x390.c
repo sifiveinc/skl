@@ -68,7 +68,7 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm8x3_f32_f32_f32_zve32f_x390(
   vfloat32m8_t acc0;
   vfloat32m8_t c00;
 
-  if (k == 0) {
+  if (k == 0 || alpha == 0.0f) {
     for (ii = 0; (ii + 1) <= m; ii = ii + 1) {
       for (jj = 0; jj < n; jj = jj + jj_vl) {
         jj_vl = __riscv_vsetvl_e32m8(n - jj);
@@ -409,7 +409,7 @@ SKL_FUNC_PRIVATE void skl_gemm_8xm2x12_f32_f32_f32_zve32f_x390(
   vfloat32m2_t c60;
   vfloat32m2_t c70;
 
-  if (k == 0) {
+  if (k == 0 || alpha == 0.0f) {
     for (ii = 0; (ii + 1) <= m; ii = ii + 1) {
       for (jj = 0; jj < n; jj = jj + jj_vl) {
         jj_vl = __riscv_vsetvl_e32m8(n - jj);
@@ -1483,7 +1483,7 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x4_f32_f32_f32_zve32f_x390(
   vfloat32m4_t acc;
   vfloat32m4_t c0;
 
-  if (k == 0) {
+  if (k == 0 || alpha == 0.0f) {
     for (ii = 0; (ii + 1) <= m; ii = ii + 1) {
       for (jj = 0; jj < n; jj = jj + jj_vl) {
         jj_vl = __riscv_vsetvl_e32m8(n - jj);
