@@ -19,17 +19,19 @@ SKL_FUNC void skl_gemm_i8rcprc_i8rcprc_i32rcprc_ref(
       for (size_t ii0 = 0; ii0 < m0; ++ii0) {
         for (size_t jj0 = 0; jj0 < n0; ++jj0) {
           int32_t acc = 0;
-          for (size_t kk1 = 0; kk1 < k1; ++kk1) {
-            const int8_t *a_block = a + ii1 * rsa1 + kk1 * csa1;
-            const int8_t *b_block = b + kk1 * rsb1 + jj1 * csb1;
-            for (size_t kk0 = 0; kk0 < k0; ++kk0) {
-              int8_t a_val = a_block[ii0 * rsa0 + kk0 * csa0];
-              int8_t b_val = b_block[kk0 * rsb0 + jj0 * csb0];
-              acc += (int32_t)a_val * (int32_t)b_val;
+          if (alpha != 0) {
+            for (size_t kk1 = 0; kk1 < k1; ++kk1) {
+              const int8_t *a_block = a + ii1 * rsa1 + kk1 * csa1;
+              const int8_t *b_block = b + kk1 * rsb1 + jj1 * csb1;
+              for (size_t kk0 = 0; kk0 < k0; ++kk0) {
+                int8_t a_val = a_block[ii0 * rsa0 + kk0 * csa0];
+                int8_t b_val = b_block[kk0 * rsb0 + jj0 * csb0];
+                acc += (int32_t)a_val * (int32_t)b_val;
+              }
             }
           }
-          c_block[ii0 * rsc0 + jj0 * csc0] =
-              beta * c_block[ii0 * rsc0 + jj0 * csc0] + alpha * acc;
+          int32_t c_val = (beta == 0) ? 0 : c_block[ii0 * rsc0 + jj0 * csc0];
+          c_block[ii0 * rsc0 + jj0 * csc0] = beta * c_val + alpha * acc;
         }
       }
     }

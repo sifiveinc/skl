@@ -16,11 +16,14 @@ SKL_FUNC void skl_gemm_i8rc_i8rc_i32rc_ref(size_t m, size_t n, size_t k,
   for (size_t ii = 0; ii < m; ii++) {
     for (size_t jj = 0; jj < n; jj++) {
       int32_t acc = 0;
-      for (size_t kk = 0; kk < k; kk++) {
-        acc +=
-            (int32_t)a[ii * rsa + kk * csa] * (int32_t)b[kk * rsb + jj * csb];
+      if (alpha != 0) {
+        for (size_t kk = 0; kk < k; kk++) {
+          acc +=
+              (int32_t)a[ii * rsa + kk * csa] * (int32_t)b[kk * rsb + jj * csb];
+        }
       }
-      c[ii * rsc + jj * csc] = beta * c[ii * rsc + jj * csc] + alpha * acc;
+      int32_t c_val = (beta == 0) ? 0 : c[ii * rsc + jj * csc];
+      c[ii * rsc + jj * csc] = beta * c_val + alpha * acc;
     }
   }
 }
