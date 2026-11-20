@@ -73,7 +73,7 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f32_f32_f32_zve32f(
   vfloat32m8_t acc0;
   vfloat32m8_t c0;
 
-  if (k == 0) {
+  if (k == 0 || alpha == 0.0f) {
     for (ii = 0; ii < m; ii++) {
       for (jj = 0; jj < n; jj += jj_vl) {
         jj_vl = __riscv_vsetvl_e32m8(n - jj);
