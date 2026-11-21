@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "gemm/gemm_f32rcprc_f32rcprc_f32rcprc.h"
-#include "skl-static-data.h"
+#include "skl-static-data.h" // IWYU pragma: keep
 #include "skl-test-driver.h"
 #include "skl.h"
 #include <stddef.h>
