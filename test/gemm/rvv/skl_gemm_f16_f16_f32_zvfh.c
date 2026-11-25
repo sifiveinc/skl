@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "gemm/gemm_f16rcprc_f16rcprc_f32rcprc.h"
+#include "skl-static-data.h" // IWYU pragma: keep
 #include "skl-test-driver.h"
 #include "skl.h"
 #include <stddef.h>
@@ -21,30 +22,28 @@
  *  - All matrices are row-major (csa1 == 1, csb1 == 1, csc1 == 1)
  */
 
-#define TEST                                                                   \
-  GEMM_F16RCPRC_F16RCPRC_F32RCPRC_DEFAULTS,                                    \
-      .steps = {                                                               \
-          .init = init,                                                        \
-          .warmup = NULL,                                                      \
-          .execute = execute,                                                  \
-          .verify = gemm_f16rcprc_f16rcprc_f32rcprc_verify,                    \
-          .report = gemm_f16rcprc_f16rcprc_f32rcprc_test_report,               \
-          .cleanup = gemm_f16rcprc_f16rcprc_f32rcprc_cleanup,                  \
-  }
-
-#define BENCH                                                                  \
-  GEMM_F16RCPRC_F16RCPRC_F32RCPRC_DEFAULTS,                                    \
-      .steps = {                                                               \
-          .init = init,                                                        \
-          .warmup = execute,                                                   \
-          .execute = execute,                                                  \
-          .verify = NULL,                                                      \
-          .report = gemm_f16rcprc_f16rcprc_f32rcprc_benchmark_report,          \
-          .cleanup = gemm_f16rcprc_f16rcprc_f32rcprc_cleanup,                  \
-  }
-
 static void init(skl_test_t *t);
 static void execute(skl_test_t *t);
+
+const skl_test_steps_t test_steps = {
+    .init = init,
+    .warmup = NULL,
+    .execute = execute,
+    .verify = gemm_f16rcprc_f16rcprc_f32rcprc_verify,
+    .report = gemm_f16rcprc_f16rcprc_f32rcprc_test_report,
+    .cleanup = gemm_f16rcprc_f16rcprc_f32rcprc_cleanup,
+};
+const skl_test_steps_t bench_steps = {
+    .init = init,
+    .warmup = execute,
+    .execute = execute,
+    .verify = NULL,
+    .report = gemm_f16rcprc_f16rcprc_f32rcprc_benchmark_report,
+    .cleanup = gemm_f16rcprc_f16rcprc_f32rcprc_cleanup,
+};
+
+#define TEST GEMM_F16RCPRC_F16RCPRC_F32RCPRC_DEFAULTS, .steps = test_steps
+#define BENCH GEMM_F16RCPRC_F16RCPRC_F32RCPRC_DEFAULTS, .steps = bench_steps
 
 // clang-format off
 gemm_f16rcprc_f16rcprc_f32rcprc_t tests[] = {
@@ -87,6 +86,29 @@ gemm_f16rcprc_f16rcprc_f32rcprc_t tests[] = {
 
     /* No beta scaling tests (beta=1, accumulate into existing C) */
     {TEST, .m1 = 32,  .n1 = 32,  .k1 = 32, .alpha = 2.f,  .beta = 1.f},
+
+    /* Alpha 0 with NaN-initialized A, B */
+    { .steps = test_steps, .m1 = 32, .n1 = 256, .k1 = 32, .alpha = 0.0f, .beta = 2.0f,
+      .a = {.mode = SKL_TEST_STATIC, .static_data = skl_static_nan_f16,
+            .static_data_len = skl_static_nan_f16_len },
+      .b = {.mode = SKL_TEST_STATIC, .static_data = skl_static_nan_f16,
+            .static_data_len = skl_static_nan_f16_len },
+      .c = {.mode = SKL_TEST_RANDOM, .min = -1.0f, .max = 1.0f },
+    },
+
+    /* Beta 0 with NaN-initialized C */
+    { .steps = test_steps, .m1 = 32, .n1 = 256, .k1 = 32, .alpha = 2.0f, .beta = 0.0f,
+      .a = {.mode = SKL_TEST_RANDOM, .min = (_Float16) -1.0f, .max = (_Float16) 1.0f },
+      .b = {.mode = SKL_TEST_RANDOM, .min = (_Float16) -1.0f, .max = (_Float16) 1.0f },
+      .c = {.mode = SKL_TEST_STATIC, .static_data = skl_static_nan_f32,
+            .static_data_len = skl_static_nan_f32_len },
+    },
+    { .steps = test_steps, .m1 = 32, .n1 = 256, .k1 =  0, .alpha = 2.0f, .beta = 0.0f,
+      .a = {.mode = SKL_TEST_RANDOM, .min = (_Float16) -1.0f, .max = (_Float16) 1.0f },
+      .b = {.mode = SKL_TEST_RANDOM, .min = (_Float16) -1.0f, .max = (_Float16) 1.0f },
+      .c = {.mode = SKL_TEST_STATIC, .static_data = skl_static_nan_f32,
+            .static_data_len = skl_static_nan_f32_len },
+    },
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on
