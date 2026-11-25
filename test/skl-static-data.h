@@ -15,6 +15,11 @@ static const uint8_t skl_static_nan_f8e4m3[] = {127};
 static const size_t skl_static_nan_f8e4m3_len =
     SKL_ARRAY_LEN(skl_static_nan_f8e4m3);
 
+// Use the canonical NaN 0.11111.10 for E5M2
+static const uint8_t skl_static_nan_f8e5m2[] = {126};
+static const size_t skl_static_nan_f8e5m2_len =
+    SKL_ARRAY_LEN(skl_static_nan_f8e5m2);
+
 static const __bf16 skl_static_nan_bf16[] = {NAN};
 static const size_t skl_static_nan_bf16_len =
     SKL_ARRAY_LEN(skl_static_nan_bf16);
