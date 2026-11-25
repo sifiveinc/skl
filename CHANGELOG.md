@@ -3,10 +3,15 @@
 ## (Upcoming Release)
 
 * GEMM:
-  * All floating-point GEMM functions (in both `src` and `ref`) will no longer
-  read the C matrix values when `beta == 0.0` and will instead populate C with
-  the value of `alpha * A * B`. In particular, floating-point NaNs and
-  infinities in the C matrix do not affect the result when `beta == 0.0`.
+  * All GEMM functions (in both `src` and `ref`) will no longer read
+  the A or B matrix values when `alpha` is zero or
+  the C matrix values when `beta` is zero.
+  Thus, when `alpha` and `beta` are both zero, C is set to zero.
+  When `alpha` is zero and `beta` is nonzero, C is set to `beta * C`.
+  When `alpha` is nonzero and `beta` is zero, C is set to `alpha * A * B`.
+  In particular, floating-point NaNs and infinities in the C matrix
+  do not affect the result when `beta == 0.0`
+  and neither do those in the A or B matrices when `alpha == 0.0`.
 
 ## v3.0.0
 

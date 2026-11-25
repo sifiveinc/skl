@@ -13,8 +13,10 @@ SKL_FUNC void skl_gemm_f16rc_f16rc_f16rc_ref(
   for (size_t ii = 0; ii < m; ii++) {
     for (size_t jj = 0; jj < n; jj++) {
       _Float16 acc = 0;
-      for (size_t kk = 0; kk < k; kk++) {
-        acc += a[ii * rsa + kk * csa] * b[kk * rsb + jj * csb];
+      if (alpha != 0) {
+        for (size_t kk = 0; kk < k; kk++) {
+          acc += a[ii * rsa + kk * csa] * b[kk * rsb + jj * csb];
+        }
       }
       _Float16 c_val = (beta == 0) ? 0 : c[ii * rsc + jj * csc];
       c[ii * rsc + jj * csc] = beta * c_val + alpha * acc;
