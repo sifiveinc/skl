@@ -75,7 +75,7 @@ void gemm_f8rcprc_f8rcprc_f32rcprc_cleanup(skl_test_t *t);
 #define GEMM_F8E4M3RCPRC_F8E4M3RCPRC_F32RCPRC_DEFAULTS                         \
   .input_type = F8E4M3, .a = {.min = 8, .max = 126, .mode = SKL_TEST_RANDOM},  \
   .b = {.min = 8, .max = 126, .mode = SKL_TEST_RANDOM},                        \
-  .c = {.min = 8, .max = 126, .mode = SKL_TEST_RANDOM}
+  .c = {.min = -1.0f, .max = 1.0f, .mode = SKL_TEST_RANDOM}
 
 /* The min and max positive normal values for E5M2 are:
  *   2^-14, represented by 0.00001.00,
@@ -84,4 +84,4 @@ void gemm_f8rcprc_f8rcprc_f32rcprc_cleanup(skl_test_t *t);
 #define GEMM_F8E5M2RCPRC_F8E5M2RCPRC_F32RCPRC_DEFAULTS                         \
   .input_type = F8E5M2, .a = {.min = 4, .max = 123, .mode = SKL_TEST_RANDOM},  \
   .b = {.min = 4, .max = 123, .mode = SKL_TEST_RANDOM},                        \
-  .c = {.min = 4, .max = 123, .mode = SKL_TEST_RANDOM}
+  .c = {.min = -1.0f, .max = 1.0f, .mode = SKL_TEST_RANDOM}
