@@ -73,6 +73,7 @@ void unary_f32_report(skl_test_t *t) {
   INFO("Function: %s\n", h->func_name);
   INFO("N: %zd\n", h->in.len);
   if (h->steps.verify) {
+    INFO("Domain: [%g ; %g]\n", h->in.min, h->in.max);
     INFO("Max ulp: %.3f\n", h->ctx.max_err);
   } else {
     INFO("Cycles: %zd\n", t->counters.cycles);

@@ -49,6 +49,10 @@ add_library(${SKL_REF}
     softmax/softmax_bf16.c
     softmax/softmax_f16.c
     softmax/softmax_f32.c
+    sqrt/sqrt_bf16.c
+    sqrt/sqrt_f16.c
+    sqrt/sqrt_f32.c
+    sqrt/sqrt_f64.c
 )
 
 target_include_directories(${SKL_REF} PUBLIC ../include ..)
