@@ -5,6 +5,7 @@
 
 #include "gemm/gemm_f16rcprc_f16rcprc_f32rcprc.h"
 #include "gemm/skl_test_gemm.h"
+#include "skl-static-data.h" // IWYU pragma: keep
 #include "skl-test-driver.h"
 #include "skl.h"
 #include <stddef.h>
@@ -24,30 +25,29 @@
  *  - Matrix B has row-major blocks (csb0 == 1)
  */
 
-#define TEST                                                                   \
-  GEMM_F16RCPRC_F16RCPRC_F32RCPRC_DEFAULTS,                                    \
-      .steps = {                                                               \
-          .init = init,                                                        \
-          .warmup = NULL,                                                      \
-          .execute = execute,                                                  \
-          .verify = gemm_f16rcprc_f16rcprc_f32rcprc_verify,                    \
-          .report = gemm_f16rcprc_f16rcprc_f32rcprc_test_report,               \
-          .cleanup = gemm_f16rcprc_f16rcprc_f32rcprc_cleanup,                  \
-  }
-
-#define BENCH                                                                  \
-  GEMM_F16RCPRC_F16RCPRC_F32RCPRC_DEFAULTS,                                    \
-      .steps = {                                                               \
-          .init = init,                                                        \
-          .warmup = execute,                                                   \
-          .execute = execute,                                                  \
-          .verify = NULL,                                                      \
-          .report = gemm_f16rcprc_f16rcprc_f32rcprc_benchmark_report,          \
-          .cleanup = gemm_f16rcprc_f16rcprc_f32rcprc_cleanup,                  \
-  }
-
 static void init(skl_test_t *t);
 static void execute(skl_test_t *t);
+
+const skl_test_steps_t test_steps = {
+    .init = init,
+    .warmup = NULL,
+    .execute = execute,
+    .verify = gemm_f16rcprc_f16rcprc_f32rcprc_verify,
+    .report = gemm_f16rcprc_f16rcprc_f32rcprc_test_report,
+    .cleanup = gemm_f16rcprc_f16rcprc_f32rcprc_cleanup,
+};
+
+const skl_test_steps_t bench_steps = {
+    .init = init,
+    .warmup = execute,
+    .execute = execute,
+    .verify = NULL,
+    .report = gemm_f16rcprc_f16rcprc_f32rcprc_benchmark_report,
+    .cleanup = gemm_f16rcprc_f16rcprc_f32rcprc_cleanup,
+};
+
+#define TEST GEMM_F16RCPRC_F16RCPRC_F32RCPRC_DEFAULTS, .steps = test_steps
+#define BENCH GEMM_F16RCPRC_F16RCPRC_F32RCPRC_DEFAULTS, .steps = bench_steps
 
 // clang-format off
 gemm_f16rcprc_f16rcprc_f32rcprc_t tests[] = {
@@ -174,6 +174,29 @@ gemm_f16rcprc_f16rcprc_f32rcprc_t tests[] = {
     {TEST, .m1 = 7, .n1 = 7, .k1 = 15, .alpha = 2.f, .beta = 3.f, .csc0 = 2},
     {TEST, .m1 = 7, .n1 = 7, .k1 = 15, .alpha = 2.f, .beta = 3.f, .rsc0 = 1,
            .csc0 = SKL_XSFMM_TE},
+
+    /* Alpha or Beta 0 with NaN-initialized A, B, or C */
+    {.steps = test_steps, .m1 = 2, .n1 = 2, .k1 = 5, .alpha = 0.f, .beta = 0.f,
+     .a = {.mode = SKL_TEST_STATIC, .static_data = skl_static_nan_f16,
+           .static_data_len = skl_static_nan_f16_len },
+     .b = {.mode = SKL_TEST_STATIC, .static_data = skl_static_nan_f16,
+           .static_data_len = skl_static_nan_f16_len },
+     .c = {.mode = SKL_TEST_STATIC, .static_data = skl_static_nan_f32,
+           .static_data_len = skl_static_nan_f32_len },
+    },
+    {.steps = test_steps, .m1 = 2, .n1 = 2, .k1 = 5, .alpha = 0.f, .beta = 3.f,
+     .a = {.mode = SKL_TEST_STATIC, .static_data = skl_static_nan_f16,
+           .static_data_len = skl_static_nan_f16_len },
+     .b = {.mode = SKL_TEST_STATIC, .static_data = skl_static_nan_f16,
+           .static_data_len = skl_static_nan_f16_len },
+     .c = {.mode = SKL_TEST_RANDOM, .min = -1.0f, .max = 1.0f },
+    },
+    {.steps = test_steps, .m1 = 2, .n1 = 2, .k1 = 5, .alpha = 2.f, .beta = 0.f,
+     .a = {.mode = SKL_TEST_RANDOM, .min = (_Float16)-1.0f, .max = (_Float16)1.0f },
+     .b = {.mode = SKL_TEST_RANDOM, .min = (_Float16)-1.0f, .max = (_Float16)1.0f },
+     .c = {.mode = SKL_TEST_STATIC, .static_data = skl_static_nan_f32,
+           .static_data_len = skl_static_nan_f32_len },
+    },
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on
