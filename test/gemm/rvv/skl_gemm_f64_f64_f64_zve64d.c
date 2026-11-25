@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "gemm/gemm_f64rcprc_f64rcprc_f64rcprc.h"
+#include "skl-static-data.h" // IWYU pragma: keep
 #include "skl-test-driver.h"
 #include "skl.h"
 #include <stddef.h>
@@ -21,30 +22,29 @@
  *  - All matrices are row-major (csa1 == 1, csb1 == 1, csc1 == 1)
  */
 
-#define TEST                                                                   \
-  GEMM_F64RCPRC_F64RCPRC_F64RCPRC_DEFAULTS,                                    \
-      .steps = {                                                               \
-          .init = init,                                                        \
-          .warmup = NULL,                                                      \
-          .execute = execute,                                                  \
-          .verify = gemm_f64rcprc_f64rcprc_f64rcprc_verify,                    \
-          .report = gemm_f64rcprc_f64rcprc_f64rcprc_test_report,               \
-          .cleanup = gemm_f64rcprc_f64rcprc_f64rcprc_cleanup,                  \
-  }
-
-#define BENCH                                                                  \
-  GEMM_F64RCPRC_F64RCPRC_F64RCPRC_DEFAULTS,                                    \
-      .steps = {                                                               \
-          .init = init,                                                        \
-          .warmup = execute,                                                   \
-          .execute = execute,                                                  \
-          .verify = NULL,                                                      \
-          .report = gemm_f64rcprc_f64rcprc_f64rcprc_benchmark_report,          \
-          .cleanup = gemm_f64rcprc_f64rcprc_f64rcprc_cleanup,                  \
-  }
-
 static void init(skl_test_t *t);
 static void execute(skl_test_t *t);
+
+const skl_test_steps_t test_steps = {
+    .init = init,
+    .warmup = NULL,
+    .execute = execute,
+    .verify = gemm_f64rcprc_f64rcprc_f64rcprc_verify,
+    .report = gemm_f64rcprc_f64rcprc_f64rcprc_test_report,
+    .cleanup = gemm_f64rcprc_f64rcprc_f64rcprc_cleanup,
+};
+
+const skl_test_steps_t bench_steps = {
+    .init = init,
+    .warmup = execute,
+    .execute = execute,
+    .verify = NULL,
+    .report = gemm_f64rcprc_f64rcprc_f64rcprc_benchmark_report,
+    .cleanup = gemm_f64rcprc_f64rcprc_f64rcprc_cleanup,
+};
+
+#define TEST GEMM_F64RCPRC_F64RCPRC_F64RCPRC_DEFAULTS, .steps = test_steps
+#define BENCH GEMM_F64RCPRC_F64RCPRC_F64RCPRC_DEFAULTS, .steps = bench_steps
 
 // clang-format off
 gemm_f64rcprc_f64rcprc_f64rcprc_t tests[] = {
@@ -86,6 +86,28 @@ gemm_f64rcprc_f64rcprc_f64rcprc_t tests[] = {
 
     /* Beta scaling test */
     {TEST, .m1 = 32,  .n1 = 32,  .k1 = 32, .alpha = 2.0,  .beta = 3.0},
+
+    /* Alpha 0 with NaN-initialized A, B */
+    {.steps = test_steps, .m1 = 32,  .n1 = 32, .k1 = 32, .alpha = 0.0, .beta = 2.0,
+      .a = {.mode = SKL_TEST_STATIC, .static_data = skl_static_nan_f64,
+            .static_data_len = skl_static_nan_f64_len },
+      .b = {.mode = SKL_TEST_STATIC, .static_data = skl_static_nan_f64,
+            .static_data_len = skl_static_nan_f64_len },
+      .c = {.mode = SKL_TEST_RANDOM, .min = -1.0, .max = 1.0 },
+    },
+    /* Beta 0 with NaN-initialized C */
+    {.steps = test_steps, .m1 = 35,  .n1 = 128, .k1 = 32, .alpha = 2.0, .beta = 0.0,
+      .a = {.mode = SKL_TEST_RANDOM, .min = -1.0, .max = 1.0},
+      .b = {.mode = SKL_TEST_RANDOM, .min = -1.0, .max = 1.0 },
+      .c = {.mode = SKL_TEST_STATIC, .static_data = skl_static_nan_f64,
+            .static_data_len = skl_static_nan_f64_len},
+    },
+    {.steps = test_steps, .m1 = 35,  .n1 = 128, .k1 =  0, .alpha = 2.0, .beta = 0.0,
+      .a = {.mode = SKL_TEST_RANDOM, .min = -1.0, .max = 1.0},
+      .b = {.mode = SKL_TEST_RANDOM, .min = -1.0, .max = 1.0 },
+      .c = {.mode = SKL_TEST_STATIC, .static_data = skl_static_nan_f64,
+            .static_data_len = skl_static_nan_f64_len},
+    },
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on

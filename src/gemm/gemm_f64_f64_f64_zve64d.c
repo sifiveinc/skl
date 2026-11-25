@@ -73,12 +73,16 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f64_f64_f64_zve64d(
   vfloat64m8_t acc0;
   vfloat64m8_t c0;
 
-  if (k == 0) {
+  if (k == 0 || alpha == 0.0) {
     for (ii = 0; ii < m; ii++) {
       for (jj = 0; jj < n; jj += jj_vl) {
         jj_vl = __riscv_vsetvl_e64m8(n - jj);
-        c0 = __riscv_vle64_v_f64m8(c + (ii + 0) * rsc + jj, jj_vl);
-        c0 = __riscv_vfmul_vf_f64m8(c0, beta, jj_vl);
+        if (beta != 0.0) {
+          c0 = __riscv_vle64_v_f64m8(c + (ii + 0) * rsc + jj, jj_vl);
+          c0 = __riscv_vfmul_vf_f64m8(c0, beta, jj_vl);
+        } else {
+          c0 = __riscv_vfmv_v_f_f64m8(0.0, jj_vl);
+        }
         __riscv_vse64_v_f64m8(c + (ii + 0) * rsc + jj, c0, jj_vl);
       }
     }
@@ -111,24 +115,31 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f64_f64_f64_zve64d(
         acc30 = __riscv_vfmacc_vf_f64m4(acc30, a30, b00, jj_vl);
       }
 
-      c00 = __riscv_vle64_v_f64m4(c + (ii + 0) * rsc + jj, jj_vl);
-      c00 = __riscv_vfmul_vf_f64m4(c00, beta, jj_vl);
-      c00 = __riscv_vfmacc_vf_f64m4(c00, alpha, acc00, jj_vl);
+      if (beta != 0.0) {
+        c00 = __riscv_vle64_v_f64m4(c + (ii + 0) * rsc + jj, jj_vl);
+        c00 = __riscv_vfmul_vf_f64m4(c00, beta, jj_vl);
+        c00 = __riscv_vfmacc_vf_f64m4(c00, alpha, acc00, jj_vl);
+
+        c10 = __riscv_vle64_v_f64m4(c + (ii + 1) * rsc + jj, jj_vl);
+        c10 = __riscv_vfmul_vf_f64m4(c10, beta, jj_vl);
+        c10 = __riscv_vfmacc_vf_f64m4(c10, alpha, acc10, jj_vl);
+
+        c20 = __riscv_vle64_v_f64m4(c + (ii + 2) * rsc + jj, jj_vl);
+        c20 = __riscv_vfmul_vf_f64m4(c20, beta, jj_vl);
+        c20 = __riscv_vfmacc_vf_f64m4(c20, alpha, acc20, jj_vl);
+
+        c30 = __riscv_vle64_v_f64m4(c + (ii + 3) * rsc + jj, jj_vl);
+        c30 = __riscv_vfmul_vf_f64m4(c30, beta, jj_vl);
+        c30 = __riscv_vfmacc_vf_f64m4(c30, alpha, acc30, jj_vl);
+      } else {
+        c00 = __riscv_vfmul_vf_f64m4(acc00, alpha, jj_vl);
+        c10 = __riscv_vfmul_vf_f64m4(acc10, alpha, jj_vl);
+        c20 = __riscv_vfmul_vf_f64m4(acc20, alpha, jj_vl);
+        c30 = __riscv_vfmul_vf_f64m4(acc30, alpha, jj_vl);
+      }
       __riscv_vse64_v_f64m4(c + (ii + 0) * rsc + jj, c00, jj_vl);
-
-      c10 = __riscv_vle64_v_f64m4(c + (ii + 1) * rsc + jj, jj_vl);
-      c10 = __riscv_vfmul_vf_f64m4(c10, beta, jj_vl);
-      c10 = __riscv_vfmacc_vf_f64m4(c10, alpha, acc10, jj_vl);
       __riscv_vse64_v_f64m4(c + (ii + 1) * rsc + jj, c10, jj_vl);
-
-      c20 = __riscv_vle64_v_f64m4(c + (ii + 2) * rsc + jj, jj_vl);
-      c20 = __riscv_vfmul_vf_f64m4(c20, beta, jj_vl);
-      c20 = __riscv_vfmacc_vf_f64m4(c20, alpha, acc20, jj_vl);
       __riscv_vse64_v_f64m4(c + (ii + 2) * rsc + jj, c20, jj_vl);
-
-      c30 = __riscv_vle64_v_f64m4(c + (ii + 3) * rsc + jj, jj_vl);
-      c30 = __riscv_vfmul_vf_f64m4(c30, beta, jj_vl);
-      c30 = __riscv_vfmacc_vf_f64m4(c30, alpha, acc30, jj_vl);
       __riscv_vse64_v_f64m4(c + (ii + 3) * rsc + jj, c30, jj_vl);
     }
   }
@@ -147,9 +158,13 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_f64_f64_f64_zve64d(
         acc0 = __riscv_vfmacc_vf_f64m8(acc0, a0, b0, jj_vl);
       }
 
-      c0 = __riscv_vle64_v_f64m8(c + (ii + 0) * rsc + jj, jj_vl);
-      c0 = __riscv_vfmul_vf_f64m8(c0, beta, jj_vl);
-      c0 = __riscv_vfmacc_vf_f64m8(c0, alpha, acc0, jj_vl);
+      if (beta != 0.0) {
+        c0 = __riscv_vle64_v_f64m8(c + (ii + 0) * rsc + jj, jj_vl);
+        c0 = __riscv_vfmul_vf_f64m8(c0, beta, jj_vl);
+        c0 = __riscv_vfmacc_vf_f64m8(c0, alpha, acc0, jj_vl);
+      } else {
+        c0 = __riscv_vfmul_vf_f64m8(acc0, alpha, jj_vl);
+      }
       __riscv_vse64_v_f64m8(c + (ii + 0) * rsc + jj, c0, jj_vl);
     }
   }
