@@ -222,6 +222,11 @@ gemm_i8rcprc_i8rcprc_i32rcprc_t tests[] = {
     {TEST, .m1 = 7, .n1 = 7, .k1 = 15, .alpha = 2, .beta = 3, .csc0 = 2},
     {TEST, .m1 = 7, .n1 = 7, .k1 = 15, .alpha = 2, .beta = 3, .rsc0 = 1,
            .csc0 = SKL_XSFMM_TE},
+
+    /* Alpha or Beta 0 */
+    {TEST, .m1 = 2, .n1 = 2, .k1 = 5,  .alpha = 0, .beta = 0},
+    {TEST, .m1 = 2, .n1 = 2, .k1 = 5,  .alpha = 0, .beta = 3},
+    {TEST, .m1 = 2, .n1 = 2, .k1 = 5,  .alpha = 2, .beta = 0},
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on

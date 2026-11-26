@@ -88,6 +88,10 @@ gemm_i8rcprc_i8rcprc_i32rcprc_t tests[] = {
     {TEST, .m1 = 1 * SKL_XSFMM_TE + 1, .n1 = 1 * SKL_XSFMM_TE + 1, .k1 = 1,  .alpha = 2, .beta = 3},
     {TEST, .m1 = 1 * SKL_XSFMM_TE + 1, .n1 = 1 * SKL_XSFMM_TE + 1, .k1 = 33, .alpha = 2, .beta = 3},
     {TEST, .m1 = 2 * SKL_XSFMM_TE,     .n1 = 2 * SKL_XSFMM_TE,     .k1 = 33, .alpha = 2, .beta = 3},
+    /* Alpha or Beta 0 */
+    {TEST, .m1 = 1 * SKL_XSFMM_TE + 1, .n1 = 1 * SKL_XSFMM_TE + 1, .k1 = 5,  .alpha = 0, .beta = 0},
+    {TEST, .m1 = 1 * SKL_XSFMM_TE + 1, .n1 = 1 * SKL_XSFMM_TE + 1, .k1 = 5,  .alpha = 0, .beta = 3},
+    {TEST, .m1 = 1 * SKL_XSFMM_TE + 1, .n1 = 1 * SKL_XSFMM_TE + 1, .k1 = 5,  .alpha = 2, .beta = 0},
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on
