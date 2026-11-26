@@ -229,62 +229,119 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m8_i8_i32_i32rc_xsfmmbase(
     size_t tm, size_t tn, int32_t alpha, size_t tss, int32_t beta,
     int32_t *c, // NOLINT(readability-non-const-parameter)
     size_t rsc0, size_t csc0) SKL_XSFMM_IN {
-  if (tm == 0 || tn == 0) {
+  if (tm == 0 || tn == 0 || (alpha == 0 && beta == 1)) {
     return;
   }
 
   const size_t kRowInc = 1;
 
-  size_t i = tm;
-  if (csc0 == 1) {
-    __asm__ volatile(
-        "sf.vsettnt x0, %[tn], e32, w1\n"
+  if (alpha == 0) {
+    if (beta == 0) {
+      vint32m8_t zero_vec = __riscv_vmv_v_x_i32m8(0, tn);
+      for (size_t i = 0; i < tm; ++i) {
+        if (csc0 == 1) {
+          __riscv_vse32_v_i32m8(c + i * rsc0, zero_vec, tn);
+        } else {
+          __riscv_vsse32_v_i32m8(
+              c + i * rsc0, (ptrdiff_t)(csc0 * sizeof(int32_t)), zero_vec, tn);
+        }
+      }
+    } else {
+      for (size_t i = 0; i < tm; ++i) {
+        // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
+        vint32m8_t cvec = __riscv_vundefined_i32m8();
+        // NOLINTEND(clang-analyzer-deadcode.DeadStores)
+        if (csc0 == 1) {
+          cvec = __riscv_vle32_v_i32m8(c + i * rsc0, tn);
+        } else {
+          cvec = __riscv_vlse32_v_i32m8(
+              c + i * rsc0, (ptrdiff_t)(csc0 * sizeof(int32_t)), tn);
+        }
+        cvec = __riscv_vmul_vx_i32m8(cvec, beta, tn);
+        if (csc0 == 1) {
+          __riscv_vse32_v_i32m8(c + i * rsc0, cvec, tn);
+        } else {
+          __riscv_vsse32_v_i32m8(c + i * rsc0,
+                                 (ptrdiff_t)(csc0 * sizeof(int32_t)), cvec, tn);
+        }
+      }
+    }
+  } else { // alpha != 0
+    int32_t *c_end = c + tm * rsc0;
+    if (beta == 0) {
+      __asm__ volatile(
+          "sf.vsettnt x0, %[tn], e32, w1\n"
 
-        "0:\n"
-        "sf.vtmv.v.t v0, %[tss]\n"
-        "add %[tss], %[tss], %[kRowInc]\n"
-        "vle32.v v16, (%[c])\n"
-        "vmul.vx v16, v16, %[beta]\n"
-        "vmacc.vx v16, %[alpha], v0\n"
-        "vse32.v v16, (%[c])\n"
-        "add %[c], %[c], %[rsc0]\n"
-        "addi %[i], %[i], -1\n"
-        "bnez %[i], 0b"
-        : [tss] "+&r"(tss), [c] "+&r"(c), [i] "+&r"(i)
-        : [alpha] "r"(alpha), [beta] "r"(beta), [kRowInc] "rI"(kRowInc),
-          [rsc0] "r"(rsc0 * sizeof(int32_t)), [tn] "r"(tn)
-        : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v16", "v17", "v18",
-          "v19", "v20", "v21", "v22", "v23", "vtype", "vl", "memory");
-  } else {
-    __asm__ volatile(
-        "sf.vsettnt x0, %[tn], e32, w1\n"
+          "bne %[csc0], %[i1], 1f\n"
+          "0:\n"
+          "sf.vtmv.v.t v0, %[tss]\n"
+          "add %[tss], %[tss], %[kRowInc]\n"
+          "vmul.vx v0, v0, %[alpha]\n"
+          "vse32.v v0, (%[c])\n"
+          "add %[c], %[c], %[rsc0]\n"
+          "bne %[c], %[c_end], 0b\n"
+          "j 2f\n"
 
-        "0:\n"
-        "sf.vtmv.v.t v0, %[tss]\n"
-        "add %[tss], %[tss], %[kRowInc]\n"
-        "vlse32.v v16, (%[c]), %[csc0]\n"
-        "vmul.vx v16, v16, %[beta]\n"
-        "vmacc.vx v16, %[alpha], v0\n"
-        "vsse32.v v16, (%[c]), %[csc0]\n"
-        "add %[c], %[c], %[rsc0]\n"
-        "addi %[i], %[i], -1\n"
-        "bnez %[i], 0b"
-        : [tss] "+&r"(tss), [c] "+&r"(c), [i] "+&r"(i)
-        : [alpha] "r"(alpha), [beta] "r"(beta), [kRowInc] "rI"(kRowInc),
-          [rsc0] "r"(rsc0 * sizeof(int32_t)),
-          [csc0] "r"(csc0 * sizeof(int32_t)), [tn] "r"(tn)
-        : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v16", "v17", "v18",
-          "v19", "v20", "v21", "v22", "v23", "vtype", "vl", "memory");
+          "1:\n"
+          "sf.vtmv.v.t v0, %[tss]\n"
+          "add %[tss], %[tss], %[kRowInc]\n"
+          "vmul.vx v0, v0, %[alpha]\n"
+          "vsse32.v v0, (%[c]), %[csc0]\n"
+          "add %[c], %[c], %[rsc0]\n"
+          "bne %[c], %[c_end], 1b\n"
+
+          "2:\n"
+          : [tss] "+&r"(tss), [c] "+&r"(c)
+          : [alpha] "r"(alpha), [c_end] "r"(c_end), [kRowInc] "rI"(kRowInc),
+            [rsc0] "r"(rsc0 * sizeof(int32_t)),
+            [csc0] "r"(csc0 * sizeof(int32_t)), [tn] "r"(tn),
+            [i1] "r"(sizeof(int32_t))
+          : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "vtype", "vl",
+            "memory");
+    } else {
+      __asm__ volatile(
+          "sf.vsettnt x0, %[tn], e32, w1\n"
+
+          "bne %[csc0], %[i1], 1f\n"
+          "0:\n"
+          "sf.vtmv.v.t v0, %[tss]\n"
+          "add %[tss], %[tss], %[kRowInc]\n"
+          "vle32.v v16, (%[c])\n"
+          "vmul.vx v16, v16, %[beta]\n"
+          "vmacc.vx v16, %[alpha], v0\n"
+          "vse32.v v16, (%[c])\n"
+          "add %[c], %[c], %[rsc0]\n"
+          "bne %[c], %[c_end], 0b\n"
+          "j 2f\n"
+
+          "1:\n"
+          "sf.vtmv.v.t v0, %[tss]\n"
+          "add %[tss], %[tss], %[kRowInc]\n"
+          "vlse32.v v16, (%[c]), %[csc0]\n"
+          "vmul.vx v16, v16, %[beta]\n"
+          "vmacc.vx v16, %[alpha], v0\n"
+          "vsse32.v v16, (%[c]), %[csc0]\n"
+          "add %[c], %[c], %[rsc0]\n"
+          "bne %[c], %[c_end], 1b\n"
+
+          "2:\n"
+          : [tss] "+&r"(tss), [c] "+&r"(c)
+          : [alpha] "r"(alpha), [beta] "r"(beta), [c_end] "r"(c_end),
+            [kRowInc] "rI"(kRowInc), [rsc0] "r"(rsc0 * sizeof(int32_t)),
+            [csc0] "r"(csc0 * sizeof(int32_t)), [tn] "r"(tn),
+            [i1] "r"(sizeof(int32_t))
+          : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v16", "v17", "v18",
+            "v19", "v20", "v21", "v22", "v23", "vtype", "vl", "memory");
+    }
   }
 }
 
 /* Computes C := alpha * tile + beta * C, where:
  *  - tile is the tm x tn tile specified by tss
  *  - tm and tn must be <= ETE
+ *  - alpha and beta are nonzero
  *  - csc0 == 1
  *  - tile rows fit into LMUL = 2 vector register groups
- *
- * The last condition must be checked by the caller.
  *
  * In this kernel, the availability of 16 register groups allows unrolling the
  * scaling loop by a factor of 8 and software pipelining the tile row transfers
@@ -594,9 +651,228 @@ SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_m2_i8_i32_i32_xsfmmbase(
   }
 }
 
+/* A version of skl_gemm_alpha_beta_scaling_m2_i8_i32_i32_xsfmmbase that
+ * handles the case when alpha is nonzero and beta is zero.
+ */
+SKL_FUNC_PRIVATE void skl_gemm_alpha_beta_scaling_b0_m2_i8_i32_i32_xsfmmbase(
+    size_t tm, size_t tn, int32_t alpha, size_t tss, int32_t *c,
+    size_t rsc0) SKL_XSFMM_IN {
+  if (tm == 0 || tn == 0) {
+    return;
+  }
+
+  const size_t kRowInc = 1;
+
+  size_t tss_0 = tss;
+  size_t tss_1 = tss_0 + kRowInc;
+  int32_t *c_store_0 = c;
+  int32_t *c_store_1 = c_store_0 + rsc0;
+
+  /* Process (tm / 8) * 8 rows. */
+  size_t i = (tm / 8) * 8;
+  __asm__ volatile(
+      "sf.vsettnt x0, %[tn], e32, w1\n"
+
+      "beqz %[i], 2f\n"
+
+      "sf.vtmv.v.t v0, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "sf.vtmv.v.t v2, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+      "sf.vtmv.v.t v4, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "sf.vtmv.v.t v6, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+      "sf.vtmv.v.t v8, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "sf.vtmv.v.t v10, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+      "sf.vtmv.v.t v12, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "sf.vtmv.v.t v14, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+      "addi %[i], %[i], -8\n"
+
+      "vmul.vx v0, v0, %[alpha]\n"
+      "vmul.vx v2, v2, %[alpha]\n"
+
+      "bltu %[i], %[i8], 1f\n"
+
+      "0:\n" // loop body
+      "addi %[i], %[i], -8\n"
+      "vse32.v v0, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "sf.vtmv.v.t v0, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "vmul.vx v4, v4, %[alpha]\n"
+
+      "vse32.v v2, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "sf.vtmv.v.t v2, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+      "vmul.vx v6, v6, %[alpha]\n"
+
+      "vse32.v v4, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "sf.vtmv.v.t v4, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "vmul.vx v8, v8, %[alpha]\n"
+
+      "vse32.v v6, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "sf.vtmv.v.t v6, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+      "vmul.vx v10, v10, %[alpha]\n"
+
+      "vse32.v v8, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "sf.vtmv.v.t v8, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "vmul.vx v12, v12, %[alpha]\n"
+
+      "vse32.v v10, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "sf.vtmv.v.t v10, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+      "vmul.vx v14, v14, %[alpha]\n"
+
+      "vse32.v v12, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "sf.vtmv.v.t v12, %[tss_0]\n"
+      "add %[tss_0], %[tss_0], %[kRowInc]\n"
+      "vmul.vx v0, v0, %[alpha]\n"
+
+      "vse32.v v14, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "sf.vtmv.v.t v14, %[tss_1]\n"
+      "add %[tss_1], %[tss_1], %[kRowInc]\n"
+      "vmul.vx v2, v2, %[alpha]\n"
+
+      "bgeu %[i], %[i8], 0b\n"
+
+      "1:\n"
+      "vse32.v v0, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "vmul.vx v4, v4, %[alpha]\n"
+
+      "vse32.v v2, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "vmul.vx v6, v6, %[alpha]\n"
+
+      "vse32.v v4, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "vmul.vx v8, v8, %[alpha]\n"
+
+      "vse32.v v6, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "vmul.vx v10, v10, %[alpha]\n"
+
+      "vse32.v v8, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "vmul.vx v12, v12, %[alpha]\n"
+
+      "vse32.v v10, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+      "vmul.vx v14, v14, %[alpha]\n"
+
+      "vse32.v v12, (%[c_store_0])\n"
+      "add %[c_store_0], %[c_store_0], %[sc]\n"
+      "vse32.v v14, (%[c_store_1])\n"
+      "add %[c_store_1], %[c_store_1], %[sc]\n"
+
+      "2:\n"
+      : [tss_0] "+&r"(tss_0), [tss_1] "+&r"(tss_1),
+        [c_store_0] "+&r"(c_store_0), [c_store_1] "+&r"(c_store_1), [i] "+&r"(i)
+      : [alpha] "r"(alpha), [kRowInc] "rI"(2 * kRowInc),
+        [sc] "r"(2 * rsc0 * sizeof(int32_t)), [tn] "r"(tn), [i8] "r"(8)
+      : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
+        "v11", "v12", "v13", "v14", "v15", "vtype", "vl", "memory");
+
+  /* Process the remaining rows. */
+  i = tm % 8;
+  if (i >= 4) {
+    __asm__ volatile(
+        "sf.vsettnt x0, %[tn], e32, w1\n"
+
+        "sf.vtmv.v.t v0, %[tss_0]\n"
+        "add %[tss_0], %[tss_0], %[kRowInc]\n"
+        "sf.vtmv.v.t v2, %[tss_1]\n"
+        "add %[tss_1], %[tss_1], %[kRowInc]\n"
+        "sf.vtmv.v.t v4, %[tss_0]\n"
+        "add %[tss_0], %[tss_0], %[kRowInc]\n"
+        "sf.vtmv.v.t v6, %[tss_1]\n"
+        "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+        "vmul.vx v0, v0, %[alpha]\n"
+        "vmul.vx v2, v2, %[alpha]\n"
+        "vmul.vx v4, v4, %[alpha]\n"
+        "vmul.vx v6, v6, %[alpha]\n"
+
+        "vse32.v v0, (%[c_store_0])\n"
+        "add %[c_store_0], %[c_store_0], %[sc]\n"
+        "vse32.v v2, (%[c_store_1])\n"
+        "add %[c_store_1], %[c_store_1], %[sc]\n"
+        "vse32.v v4, (%[c_store_0])\n"
+        "add %[c_store_0], %[c_store_0], %[sc]\n"
+        "vse32.v v6, (%[c_store_1])\n"
+        "add %[c_store_1], %[c_store_1], %[sc]\n"
+        : [tss_0] "+&r"(tss_0), [tss_1] "+&r"(tss_1),
+          [c_store_0] "+&r"(c_store_0), [c_store_1] "+&r"(c_store_1)
+        : [alpha] "r"(alpha), [kRowInc] "rI"(2 * kRowInc),
+          [sc] "r"(2 * rsc0 * sizeof(int32_t)), [tn] "r"(tn)
+        : "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "vtype", "vl",
+          "memory");
+    i -= 4;
+  }
+
+  if (i >= 2) {
+    __asm__ volatile(
+        "sf.vsettnt x0, %[tn], e32, w1\n"
+
+        "sf.vtmv.v.t v0, %[tss_0]\n"
+        "add %[tss_0], %[tss_0], %[kRowInc]\n"
+        "sf.vtmv.v.t v2, %[tss_1]\n"
+        "add %[tss_1], %[tss_1], %[kRowInc]\n"
+
+        "vmul.vx v0, v0, %[alpha]\n"
+        "vmul.vx v2, v2, %[alpha]\n"
+
+        "vse32.v v0, (%[c_store_0])\n"
+        "add %[c_store_0], %[c_store_0], %[sc]\n"
+        "vse32.v v2, (%[c_store_1])\n"
+        "add %[c_store_1], %[c_store_1], %[sc]\n"
+        : [tss_0] "+&r"(tss_0), [tss_1] "+&r"(tss_1),
+          [c_store_0] "+&r"(c_store_0), [c_store_1] "+&r"(c_store_1)
+        : [alpha] "r"(alpha), [kRowInc] "rI"(2 * kRowInc),
+          [sc] "r"(2 * rsc0 * sizeof(int32_t)), [tn] "r"(tn)
+        : "v0", "v1", "v2", "v3", "vtype", "vl", "memory");
+    i -= 2;
+  }
+
+  if (i >= 1) {
+    __asm__ volatile("sf.vsettnt x0, %[tn], e32, w1\n"
+                     "sf.vtmv.v.t v0, %[tss_0]\n"
+                     "vmul.vx v0, v0, %[alpha]\n"
+                     "vse32.v v0, (%[c_store_0])\n"
+                     :
+                     : [tss_0] "r"(tss_0), [c_store_0] "r"(c_store_0),
+                       [alpha] "r"(alpha), [tn] "r"(tn)
+                     : "v0", "v1", "vtype", "vl", "memory");
+  }
+}
+
 /* Computes C := alpha * tile + beta * C, where:
  *  - tile is the tm x tn tile specified by tss
  *  - tm and tn must be <= TE
+ *
+ * When alpha or beta is zero, the kernel behaves as follows:
+ *  - If alpha and beta are both zero, C is set to zero.
+ *  - If alpha is nonzero and beta is zero, C := alpha * tile. C is not read.
+ *  - If alpha is zero and beta is nonzero, C := beta * C. tile is not read.
  *
  * This kernel dispatches to the optimized m2 version when possible.
  */
@@ -631,9 +907,14 @@ void skl_gemm_alpha_beta_scaling_i8_i32_i32rcptexterc_xsfmmbase(
   size_t ete = 0;
   __asm__ volatile("sf.vsettnt %0, x0, e32, w1" : "=r"(ete) : : "vtype", "vl");
 
-  if (ete <= (size_t)__riscv_vsetvlmax_e32m2() && csc0 == 1) {
-    skl_gemm_alpha_beta_scaling_m2_i8_i32_i32_xsfmmbase(tm, tn, alpha, tss,
-                                                        beta, c_block, rsc0);
+  if (ete <= (size_t)__riscv_vsetvlmax_e32m2() && alpha != 0 && csc0 == 1) {
+    if (beta == 0) {
+      skl_gemm_alpha_beta_scaling_b0_m2_i8_i32_i32_xsfmmbase(tm, tn, alpha, tss,
+                                                             c_block, rsc0);
+    } else {
+      skl_gemm_alpha_beta_scaling_m2_i8_i32_i32_xsfmmbase(tm, tn, alpha, tss,
+                                                          beta, c_block, rsc0);
+    }
   } else {
     skl_gemm_alpha_beta_scaling_m8_i8_i32_i32rc_xsfmmbase(
         tm, tn, alpha, tss, beta, c_block, rsc0, csc0);
