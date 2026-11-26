@@ -58,14 +58,18 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_bf16_bf16_f32_zvfbfwma(
   size_t jj_vl;
   size_t ii;
 
-  if (k == 0) {
-    // C = beta * C
+  if (k == 0 || alpha == 0.0f) {
     for (ii = 0; ii < m; ii++) {
       for (size_t jj = 0; jj < n; jj += jj_vl) {
         jj_vl = __riscv_vsetvl_e32m4(n - jj);
-        vfloat32m4_t c0 = __riscv_vle32_v_f32m4(c + ii * rsc + jj, jj_vl);
-        c0 = __riscv_vfmul_vf_f32m4(c0, beta, jj_vl);
-        __riscv_vse32_v_f32m4(c + ii * rsc + jj, c0, jj_vl);
+        vfloat32m8_t c0;
+        if (beta != 0.0f) {
+          c0 = __riscv_vle32_v_f32m8(c + ii * rsc + jj, jj_vl);
+          c0 = __riscv_vfmul_vf_f32m8(c0, beta, jj_vl);
+        } else {
+          c0 = __riscv_vfmv_v_f_f32m8(0.0f, jj_vl);
+        }
+        __riscv_vse32_v_f32m8(c + ii * rsc + jj, c0, jj_vl);
       }
     }
     return;
@@ -89,25 +93,33 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_bf16_bf16_f32_zvfbfwma(
         acc2 = __riscv_vfwmaccbf16_vf_f32m4(acc2, a02, b0, jj_vl);
         acc3 = __riscv_vfwmaccbf16_vf_f32m4(acc3, a03, b0, jj_vl);
       }
-      vfloat32m4_t c00 = __riscv_vle32_v_f32m4(c + (ii + 0) * rsc + jj, jj_vl);
-      vfloat32m4_t c01 = __riscv_vle32_v_f32m4(c + (ii + 1) * rsc + jj, jj_vl);
-      vfloat32m4_t c02 = __riscv_vle32_v_f32m4(c + (ii + 2) * rsc + jj, jj_vl);
-      vfloat32m4_t c03 = __riscv_vle32_v_f32m4(c + (ii + 3) * rsc + jj, jj_vl);
 
-      c00 = __riscv_vfmul_vf_f32m4(c00, beta, jj_vl);
-      c00 = __riscv_vfmacc_vf_f32m4(c00, alpha, acc0, jj_vl);
+      vfloat32m4_t c00, c01, c02, c03;
+      if (beta != 0.0f) {
+        c00 = __riscv_vle32_v_f32m4(c + (ii + 0) * rsc + jj, jj_vl);
+        c00 = __riscv_vfmul_vf_f32m4(c00, beta, jj_vl);
+        c00 = __riscv_vfmacc_vf_f32m4(c00, alpha, acc0, jj_vl);
+
+        c01 = __riscv_vle32_v_f32m4(c + (ii + 1) * rsc + jj, jj_vl);
+        c01 = __riscv_vfmul_vf_f32m4(c01, beta, jj_vl);
+        c01 = __riscv_vfmacc_vf_f32m4(c01, alpha, acc1, jj_vl);
+
+        c02 = __riscv_vle32_v_f32m4(c + (ii + 2) * rsc + jj, jj_vl);
+        c02 = __riscv_vfmul_vf_f32m4(c02, beta, jj_vl);
+        c02 = __riscv_vfmacc_vf_f32m4(c02, alpha, acc2, jj_vl);
+
+        c03 = __riscv_vle32_v_f32m4(c + (ii + 3) * rsc + jj, jj_vl);
+        c03 = __riscv_vfmul_vf_f32m4(c03, beta, jj_vl);
+        c03 = __riscv_vfmacc_vf_f32m4(c03, alpha, acc3, jj_vl);
+      } else {
+        c00 = __riscv_vfmul_vf_f32m4(acc0, alpha, jj_vl);
+        c01 = __riscv_vfmul_vf_f32m4(acc1, alpha, jj_vl);
+        c02 = __riscv_vfmul_vf_f32m4(acc2, alpha, jj_vl);
+        c03 = __riscv_vfmul_vf_f32m4(acc3, alpha, jj_vl);
+      }
       __riscv_vse32_v_f32m4(c + (ii + 0) * rsc + jj, c00, jj_vl);
-
-      c01 = __riscv_vfmul_vf_f32m4(c01, beta, jj_vl);
-      c01 = __riscv_vfmacc_vf_f32m4(c01, alpha, acc1, jj_vl);
       __riscv_vse32_v_f32m4(c + (ii + 1) * rsc + jj, c01, jj_vl);
-
-      c02 = __riscv_vfmul_vf_f32m4(c02, beta, jj_vl);
-      c02 = __riscv_vfmacc_vf_f32m4(c02, alpha, acc2, jj_vl);
       __riscv_vse32_v_f32m4(c + (ii + 2) * rsc + jj, c02, jj_vl);
-
-      c03 = __riscv_vfmul_vf_f32m4(c03, beta, jj_vl);
-      c03 = __riscv_vfmacc_vf_f32m4(c03, alpha, acc3, jj_vl);
       __riscv_vse32_v_f32m4(c + (ii + 3) * rsc + jj, c03, jj_vl);
     }
   }
@@ -121,9 +133,15 @@ SKL_FUNC_PRIVATE void skl_gemm_4xm4x1_bf16_bf16_f32_zvfbfwma(
         vbfloat16m2_t b0 = __riscv_vle16_v_bf16m2(b + kk * rsb + jj, jj_vl);
         acc = __riscv_vfwmaccbf16_vf_f32m4(acc, a0, b0, jj_vl);
       }
-      vfloat32m4_t c0 = __riscv_vle32_v_f32m4(c + ii * rsc + jj, jj_vl);
-      c0 = __riscv_vfmul_vf_f32m4(c0, beta, jj_vl);
-      c0 = __riscv_vfmacc_vf_f32m4(c0, alpha, acc, jj_vl);
+
+      vfloat32m4_t c0;
+      if (beta != 0.0f) {
+        c0 = __riscv_vle32_v_f32m4(c + ii * rsc + jj, jj_vl);
+        c0 = __riscv_vfmul_vf_f32m4(c0, beta, jj_vl);
+        c0 = __riscv_vfmacc_vf_f32m4(c0, alpha, acc, jj_vl);
+      } else {
+        c0 = __riscv_vfmul_vf_f32m4(acc, alpha, jj_vl);
+      }
       __riscv_vse32_v_f32m4(c + ii * rsc + jj, c0, jj_vl);
     }
   }
