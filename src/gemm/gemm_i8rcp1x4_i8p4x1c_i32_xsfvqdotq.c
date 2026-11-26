@@ -30,7 +30,23 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     size_t n, size_t k1, int32_t alpha, const int8_t *a, size_t rsa1,
     size_t csa1, const int8_t *b, size_t rsb1, int32_t beta, int32_t *c,
     size_t rsc) {
-  if (n == 0) {
+  if (n == 0 || ((alpha == 0 || k1 == 0) && beta == 1)) {
+    return;
+  }
+
+  if (alpha == 0 || k1 == 0) {
+    if (beta == 0) {
+      vint32m4_t zero_vec = __riscv_vmv_v_x_i32m4(0, n);
+      for (size_t i = 0; i < 6; ++i) {
+        __riscv_vse32_v_i32m4(c + i * rsc, zero_vec, n);
+      }
+    } else {
+      for (size_t i = 0; i < 6; ++i) {
+        vint32m4_t cvec = __riscv_vle32_v_i32m4(c + i * rsc, n);
+        cvec = __riscv_vmul_vx_i32m4(cvec, beta, n);
+        __riscv_vse32_v_i32m4(c + i * rsc, cvec, n);
+      }
+    }
     return;
   }
 
@@ -44,24 +60,101 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
   const int8_t *a0 = a + 0 * rsa1;
   const int8_t *a1 = a + 1 * rsa1;
 
-  if (k1) {
-    uint32_t a0_0;
-    uint32_t a0_1;
-    uint32_t a0_2;
-    uint32_t a0_3;
-    uint32_t a0_4;
-    uint32_t a0_5;
-    uint32_t a1_0;
-    uint32_t a1_1;
-    uint32_t a1_2;
-    uint32_t a1_3;
-    uint32_t a1_4;
-    uint32_t a1_5;
-    vint8m4_t bvec0;
-    vint8m4_t bvec1;
+  uint32_t a0_0;
+  uint32_t a0_1;
+  uint32_t a0_2;
+  uint32_t a0_3;
+  uint32_t a0_4;
+  uint32_t a0_5;
+  uint32_t a1_0;
+  uint32_t a1_1;
+  uint32_t a1_2;
+  uint32_t a1_3;
+  uint32_t a1_4;
+  uint32_t a1_5;
+  vint8m4_t bvec0;
+  vint8m4_t bvec1;
 
+  __asm__ volatile(
+      // clang-format off
+      NTL_P1
+      "lw %[a0_0], 0(%[a0])\n"
+      "add %[a0], %[a0], %[rsa1_0]\n"
+
+      NTL_P1
+      "lw %[a0_1], 0(%[a1])\n"
+      "add %[a1], %[a1], %[rsa1_0]\n"
+
+      NTL_P1
+      "lw %[a0_2], 0(%[a0])\n"
+      "add %[a0], %[a0], %[rsa1_0]\n"
+
+      NTL_P1
+      "lw %[a0_3], 0(%[a1])\n"
+      "add %[a1], %[a1], %[rsa1_0]\n"
+
+      NTL_P1
+      "lw %[a0_4], 0(%[a0])\n"
+      "add %[a0], %[a0], %[rsa1_1]\n"
+
+      NTL_P1
+      "lw %[a0_5], 0(%[a1])\n"
+      "add %[a1], %[a1], %[rsa1_1]\n"
+
+      // load first B tile (4xn)
+      "vsetvli x0, %[n4], e8, m4, ta, ma\n"
+      "vle8.v %[bvec0], (%[b])\n"
+      "add %[b], %[b], %[rsb1]\n"
+      // clang-format on
+      : [bvec0] "=&vr"(bvec0), [a0_0] "=&r"(a0_0), [a0_1] "=&r"(a0_1),
+        [a0_2] "=&r"(a0_2), [a0_3] "=&r"(a0_3), [a0_4] "=&r"(a0_4),
+        [a0_5] "=&r"(a0_5), [a0] "+&r"(a0), [a1] "+&r"(a1), [b] "+&r"(b)
+      : [rsa1_0] "rI"(2 * rsa1 * sizeof(int8_t)),
+        [rsa1_1] "rI"(csa1 - 4 * rsa1 * sizeof(int8_t)),
+        [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n4] "r"(4 * n)
+      : "vl", "vtype", "memory");
+
+  while (k1 >= 3) {
     __asm__ volatile(
         // clang-format off
+        NTL_P1
+        "lw %[a1_0], 0(%[a0])\n"
+        "add %[a0], %[a0], %[rsa1_0]\n"
+
+        NTL_P1
+        "lw %[a1_1], 0(%[a1])\n"
+        "add %[a1], %[a1], %[rsa1_0]\n"
+
+        NTL_P1
+        "lw %[a1_2], 0(%[a0])\n"
+        "add %[a0], %[a0], %[rsa1_0]\n"
+
+        NTL_P1
+        "lw %[a1_3], 0(%[a1])\n"
+        "add %[a1], %[a1], %[rsa1_0]\n"
+
+        NTL_P1
+        "lw %[a1_4], 0(%[a0])\n"
+        "add %[a0], %[a0], %[rsa1_1]\n"
+
+        NTL_P1
+        "lw %[a1_5], 0(%[a1])\n"
+        "add %[a1], %[a1], %[rsa1_1]\n"
+
+        // load second B tile (4xn)
+        "vsetvli x0, %[n4], e8, m4, ta, ma\n"
+        "vle8.v %[bvec1], (%[b])\n"
+        "add %[b], %[b], %[rsb1]\n"
+
+        // compute first tile
+        "vsetvli x0, %[n], e32, m4, ta, ma\n"
+        "sf.vqdot.vx %[vec0], %[bvec0], %[a0_0]\n"
+        "sf.vqdot.vx %[vec1], %[bvec0], %[a0_1]\n"
+        "sf.vqdot.vx %[vec2], %[bvec0], %[a0_2]\n"
+        "sf.vqdot.vx %[vec3], %[bvec0], %[a0_3]\n"
+        "sf.vqdot.vx %[vec4], %[bvec0], %[a0_4]\n"
+        "sf.vqdot.vx %[vec5], %[bvec0], %[a0_5]\n"
+
         NTL_P1
         "lw %[a0_0], 0(%[a0])\n"
         "add %[a0], %[a0], %[rsa1_0]\n"
@@ -86,202 +179,123 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
         "lw %[a0_5], 0(%[a1])\n"
         "add %[a1], %[a1], %[rsa1_1]\n"
 
-        // load first B tile (4xn)
+        // pre-load first B tile (4xn) of next iteration
         "vsetvli x0, %[n4], e8, m4, ta, ma\n"
         "vle8.v %[bvec0], (%[b])\n"
         "add %[b], %[b], %[rsb1]\n"
+
+        // compute second tile
+        "vsetvli x0, %[n], e32, m4, ta, ma\n"
+        "sf.vqdot.vx %[vec0], %[bvec1], %[a1_0]\n"
+        "sf.vqdot.vx %[vec1], %[bvec1], %[a1_1]\n"
+        "sf.vqdot.vx %[vec2], %[bvec1], %[a1_2]\n"
+        "sf.vqdot.vx %[vec3], %[bvec1], %[a1_3]\n"
+        "sf.vqdot.vx %[vec4], %[bvec1], %[a1_4]\n"
+        "sf.vqdot.vx %[vec5], %[bvec1], %[a1_5]\n"
         // clang-format on
-        : [bvec0] "=&vr"(bvec0), [a0_0] "=&r"(a0_0), [a0_1] "=&r"(a0_1),
-          [a0_2] "=&r"(a0_2), [a0_3] "=&r"(a0_3), [a0_4] "=&r"(a0_4),
-          [a0_5] "=&r"(a0_5), [a0] "+&r"(a0), [a1] "+&r"(a1), [b] "+&r"(b)
+        : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
+          [vec3] "+&vr"(vec3), [vec4] "+&vr"(vec4), [vec5] "+&vr"(vec5),
+          [bvec0] "+&vr"(bvec0), [bvec1] "=&vr"(bvec1), [a0_0] "+&r"(a0_0),
+          [a0_1] "+&r"(a0_1), [a0_2] "+&r"(a0_2), [a0_3] "+&r"(a0_3),
+          [a0_4] "+&r"(a0_4), [a0_5] "+&r"(a0_5), [a1_0] "=&r"(a1_0),
+          [a1_1] "=&r"(a1_1), [a1_2] "=&r"(a1_2), [a1_3] "=&r"(a1_3),
+          [a1_4] "=&r"(a1_4), [a1_5] "=&r"(a1_5), [a0] "+&r"(a0),
+          [a1] "+&r"(a1), [b] "+&r"(b)
         : [rsa1_0] "rI"(2 * rsa1 * sizeof(int8_t)),
           [rsa1_1] "rI"(csa1 - 4 * rsa1 * sizeof(int8_t)),
-          [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n4] "r"(4 * n)
+          [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n), [n4] "r"(4 * n)
         : "vl", "vtype", "memory");
 
-    while (k1 >= 3) {
-      __asm__ volatile(
-          // clang-format off
-          NTL_P1
-          "lw %[a1_0], 0(%[a0])\n"
-          "add %[a0], %[a0], %[rsa1_0]\n"
-
-          NTL_P1
-          "lw %[a1_1], 0(%[a1])\n"
-          "add %[a1], %[a1], %[rsa1_0]\n"
-
-          NTL_P1
-          "lw %[a1_2], 0(%[a0])\n"
-          "add %[a0], %[a0], %[rsa1_0]\n"
-
-          NTL_P1
-          "lw %[a1_3], 0(%[a1])\n"
-          "add %[a1], %[a1], %[rsa1_0]\n"
-
-          NTL_P1
-          "lw %[a1_4], 0(%[a0])\n"
-          "add %[a0], %[a0], %[rsa1_1]\n"
-
-          NTL_P1
-          "lw %[a1_5], 0(%[a1])\n"
-          "add %[a1], %[a1], %[rsa1_1]\n"
-
-          // load second B tile (4xn)
-          "vsetvli x0, %[n4], e8, m4, ta, ma\n"
-          "vle8.v %[bvec1], (%[b])\n"
-          "add %[b], %[b], %[rsb1]\n"
-
-          // compute first tile
-          "vsetvli x0, %[n], e32, m4, ta, ma\n"
-          "sf.vqdot.vx %[vec0], %[bvec0], %[a0_0]\n"
-          "sf.vqdot.vx %[vec1], %[bvec0], %[a0_1]\n"
-          "sf.vqdot.vx %[vec2], %[bvec0], %[a0_2]\n"
-          "sf.vqdot.vx %[vec3], %[bvec0], %[a0_3]\n"
-          "sf.vqdot.vx %[vec4], %[bvec0], %[a0_4]\n"
-          "sf.vqdot.vx %[vec5], %[bvec0], %[a0_5]\n"
-
-          NTL_P1
-          "lw %[a0_0], 0(%[a0])\n"
-          "add %[a0], %[a0], %[rsa1_0]\n"
-
-          NTL_P1
-          "lw %[a0_1], 0(%[a1])\n"
-          "add %[a1], %[a1], %[rsa1_0]\n"
-
-          NTL_P1
-          "lw %[a0_2], 0(%[a0])\n"
-          "add %[a0], %[a0], %[rsa1_0]\n"
-
-          NTL_P1
-          "lw %[a0_3], 0(%[a1])\n"
-          "add %[a1], %[a1], %[rsa1_0]\n"
-
-          NTL_P1
-          "lw %[a0_4], 0(%[a0])\n"
-          "add %[a0], %[a0], %[rsa1_1]\n"
-
-          NTL_P1
-          "lw %[a0_5], 0(%[a1])\n"
-          "add %[a1], %[a1], %[rsa1_1]\n"
-
-          // pre-load first B tile (4xn) of next iteration
-          "vsetvli x0, %[n4], e8, m4, ta, ma\n"
-          "vle8.v %[bvec0], (%[b])\n"
-          "add %[b], %[b], %[rsb1]\n"
-
-          // compute second tile
-          "vsetvli x0, %[n], e32, m4, ta, ma\n"
-          "sf.vqdot.vx %[vec0], %[bvec1], %[a1_0]\n"
-          "sf.vqdot.vx %[vec1], %[bvec1], %[a1_1]\n"
-          "sf.vqdot.vx %[vec2], %[bvec1], %[a1_2]\n"
-          "sf.vqdot.vx %[vec3], %[bvec1], %[a1_3]\n"
-          "sf.vqdot.vx %[vec4], %[bvec1], %[a1_4]\n"
-          "sf.vqdot.vx %[vec5], %[bvec1], %[a1_5]\n"
-          // clang-format on
-          : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
-            [vec3] "+&vr"(vec3), [vec4] "+&vr"(vec4), [vec5] "+&vr"(vec5),
-            [bvec0] "+&vr"(bvec0), [bvec1] "=&vr"(bvec1), [a0_0] "+&r"(a0_0),
-            [a0_1] "+&r"(a0_1), [a0_2] "+&r"(a0_2), [a0_3] "+&r"(a0_3),
-            [a0_4] "+&r"(a0_4), [a0_5] "+&r"(a0_5), [a1_0] "=&r"(a1_0),
-            [a1_1] "=&r"(a1_1), [a1_2] "=&r"(a1_2), [a1_3] "=&r"(a1_3),
-            [a1_4] "=&r"(a1_4), [a1_5] "=&r"(a1_5), [a0] "+&r"(a0),
-            [a1] "+&r"(a1), [b] "+&r"(b)
-          : [rsa1_0] "rI"(2 * rsa1 * sizeof(int8_t)),
-            [rsa1_1] "rI"(csa1 - 4 * rsa1 * sizeof(int8_t)),
-            [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n), [n4] "r"(4 * n)
-          : "vl", "vtype", "memory");
-
-      k1 -= 2;
-    }
-
-    if (k1 == 2) {
-      __asm__ volatile(
-          // clang-format off
-          NTL_P1
-          "lw %[a1_0], 0(%[a0])\n"
-          "add %[a0], %[a0], %[rsa1_0]\n"
-
-          NTL_P1
-          "lw %[a1_1], 0(%[a1])\n"
-          "add %[a1], %[a1], %[rsa1_0]\n"
-
-          NTL_P1
-          "lw %[a1_2], 0(%[a0])\n"
-          "add %[a0], %[a0], %[rsa1_0]\n"
-
-          NTL_P1
-          "lw %[a1_3], 0(%[a1])\n"
-          "add %[a1], %[a1], %[rsa1_0]\n"
-
-          NTL_P1
-          "lw %[a1_4], 0(%[a0])\n"
-          "add %[a0], %[a0], %[rsa1_1]\n"
-
-          NTL_P1
-          "lw %[a1_5], 0(%[a1])\n"
-          "add %[a1], %[a1], %[rsa1_1]\n"
-
-          // load second B tile (4xn)
-          "vsetvli x0, %[n4], e8, m4, ta, ma\n"
-          "vle8.v %[bvec1], (%[b])\n"
-          "add %[b], %[b], %[rsb1]\n"
-
-          // compute first tile
-          "vsetvli x0, %[n], e32, m4, ta, ma\n"
-          "sf.vqdot.vx %[vec0], %[bvec0], %[a0_0]\n"
-          "sf.vqdot.vx %[vec1], %[bvec0], %[a0_1]\n"
-          "sf.vqdot.vx %[vec2], %[bvec0], %[a0_2]\n"
-          "sf.vqdot.vx %[vec3], %[bvec0], %[a0_3]\n"
-          "sf.vqdot.vx %[vec4], %[bvec0], %[a0_4]\n"
-          "sf.vqdot.vx %[vec5], %[bvec0], %[a0_5]\n"
-
-          // compute second tile
-          "sf.vqdot.vx %[vec0], %[bvec1], %[a1_0]\n"
-          "sf.vqdot.vx %[vec1], %[bvec1], %[a1_1]\n"
-          "sf.vqdot.vx %[vec2], %[bvec1], %[a1_2]\n"
-          "sf.vqdot.vx %[vec3], %[bvec1], %[a1_3]\n"
-          "sf.vqdot.vx %[vec4], %[bvec1], %[a1_4]\n"
-          "sf.vqdot.vx %[vec5], %[bvec1], %[a1_5]\n"
-          // clang-format on
-          : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
-            [vec3] "+&vr"(vec3), [vec4] "+&vr"(vec4), [vec5] "+&vr"(vec5),
-            [bvec1] "=&vr"(bvec1), [a1_0] "=&r"(a1_0), [a1_1] "=&r"(a1_1),
-            [a1_2] "=&r"(a1_2), [a1_3] "=&r"(a1_3), [a1_4] "=&r"(a1_4),
-            [a1_5] "=&r"(a1_5), [a0] "+&r"(a0), [a1] "+&r"(a1), [b] "+&r"(b)
-          : [bvec0] "vr"(bvec0), [a0_0] "r"(a0_0), [a0_1] "r"(a0_1),
-            [a0_2] "r"(a0_2), [a0_3] "r"(a0_3), [a0_4] "r"(a0_4),
-            [a0_5] "r"(a0_5), [rsa1_0] "rI"(2 * rsa1 * sizeof(int8_t)),
-            [rsa1_1] "rI"(csa1 - 4 * rsa1 * sizeof(int8_t)),
-            [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n), [n4] "r"(4 * n)
-          : "vl", "vtype", "memory");
-    } else { // k1 == 1
-      __asm__ volatile(
-          // compute first tile
-          "vsetvli x0, %[n], e32, m4, ta, ma\n"
-          "sf.vqdot.vx %[vec0], %[bvec0], %[a0_0]\n"
-          "sf.vqdot.vx %[vec1], %[bvec0], %[a0_1]\n"
-          "sf.vqdot.vx %[vec2], %[bvec0], %[a0_2]\n"
-          "sf.vqdot.vx %[vec3], %[bvec0], %[a0_3]\n"
-          "sf.vqdot.vx %[vec4], %[bvec0], %[a0_4]\n"
-          "sf.vqdot.vx %[vec5], %[bvec0], %[a0_5]\n"
-          : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
-            [vec3] "+&vr"(vec3), [vec4] "+&vr"(vec4), [vec5] "+&vr"(vec5)
-          : [bvec0] "vr"(bvec0), [a0_0] "r"(a0_0), [a0_1] "r"(a0_1),
-            [a0_2] "r"(a0_2), [a0_3] "r"(a0_3), [a0_4] "r"(a0_4),
-            [a0_5] "r"(a0_5), [n] "r"(n)
-          : "vl", "vtype");
-    }
+    k1 -= 2;
   }
 
+  if (k1 == 2) {
+    __asm__ volatile(
+        // clang-format off
+        NTL_P1
+        "lw %[a1_0], 0(%[a0])\n"
+        "add %[a0], %[a0], %[rsa1_0]\n"
+
+        NTL_P1
+        "lw %[a1_1], 0(%[a1])\n"
+        "add %[a1], %[a1], %[rsa1_0]\n"
+
+        NTL_P1
+        "lw %[a1_2], 0(%[a0])\n"
+        "add %[a0], %[a0], %[rsa1_0]\n"
+
+        NTL_P1
+        "lw %[a1_3], 0(%[a1])\n"
+        "add %[a1], %[a1], %[rsa1_0]\n"
+
+        NTL_P1
+        "lw %[a1_4], 0(%[a0])\n"
+        "add %[a0], %[a0], %[rsa1_1]\n"
+
+        NTL_P1
+        "lw %[a1_5], 0(%[a1])\n"
+        "add %[a1], %[a1], %[rsa1_1]\n"
+
+        // load second B tile (4xn)
+        "vsetvli x0, %[n4], e8, m4, ta, ma\n"
+        "vle8.v %[bvec1], (%[b])\n"
+        "add %[b], %[b], %[rsb1]\n"
+
+        // compute first tile
+        "vsetvli x0, %[n], e32, m4, ta, ma\n"
+        "sf.vqdot.vx %[vec0], %[bvec0], %[a0_0]\n"
+        "sf.vqdot.vx %[vec1], %[bvec0], %[a0_1]\n"
+        "sf.vqdot.vx %[vec2], %[bvec0], %[a0_2]\n"
+        "sf.vqdot.vx %[vec3], %[bvec0], %[a0_3]\n"
+        "sf.vqdot.vx %[vec4], %[bvec0], %[a0_4]\n"
+        "sf.vqdot.vx %[vec5], %[bvec0], %[a0_5]\n"
+
+        // compute second tile
+        "sf.vqdot.vx %[vec0], %[bvec1], %[a1_0]\n"
+        "sf.vqdot.vx %[vec1], %[bvec1], %[a1_1]\n"
+        "sf.vqdot.vx %[vec2], %[bvec1], %[a1_2]\n"
+        "sf.vqdot.vx %[vec3], %[bvec1], %[a1_3]\n"
+        "sf.vqdot.vx %[vec4], %[bvec1], %[a1_4]\n"
+        "sf.vqdot.vx %[vec5], %[bvec1], %[a1_5]\n"
+        // clang-format on
+        : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
+          [vec3] "+&vr"(vec3), [vec4] "+&vr"(vec4), [vec5] "+&vr"(vec5),
+          [bvec1] "=&vr"(bvec1), [a1_0] "=&r"(a1_0), [a1_1] "=&r"(a1_1),
+          [a1_2] "=&r"(a1_2), [a1_3] "=&r"(a1_3), [a1_4] "=&r"(a1_4),
+          [a1_5] "=&r"(a1_5), [a0] "+&r"(a0), [a1] "+&r"(a1), [b] "+&r"(b)
+        : [bvec0] "vr"(bvec0), [a0_0] "r"(a0_0), [a0_1] "r"(a0_1),
+          [a0_2] "r"(a0_2), [a0_3] "r"(a0_3), [a0_4] "r"(a0_4),
+          [a0_5] "r"(a0_5), [rsa1_0] "rI"(2 * rsa1 * sizeof(int8_t)),
+          [rsa1_1] "rI"(csa1 - 4 * rsa1 * sizeof(int8_t)),
+          [rsb1] "rI"(rsb1 * sizeof(int8_t)), [n] "r"(n), [n4] "r"(4 * n)
+        : "vl", "vtype", "memory");
+  } else { // k1 == 1
+    __asm__ volatile(
+        // compute first tile
+        "vsetvli x0, %[n], e32, m4, ta, ma\n"
+        "sf.vqdot.vx %[vec0], %[bvec0], %[a0_0]\n"
+        "sf.vqdot.vx %[vec1], %[bvec0], %[a0_1]\n"
+        "sf.vqdot.vx %[vec2], %[bvec0], %[a0_2]\n"
+        "sf.vqdot.vx %[vec3], %[bvec0], %[a0_3]\n"
+        "sf.vqdot.vx %[vec4], %[bvec0], %[a0_4]\n"
+        "sf.vqdot.vx %[vec5], %[bvec0], %[a0_5]\n"
+        : [vec0] "+&vr"(vec0), [vec1] "+&vr"(vec1), [vec2] "+&vr"(vec2),
+          [vec3] "+&vr"(vec3), [vec4] "+&vr"(vec4), [vec5] "+&vr"(vec5)
+        : [bvec0] "vr"(bvec0), [a0_0] "r"(a0_0), [a0_1] "r"(a0_1),
+          [a0_2] "r"(a0_2), [a0_3] "r"(a0_3), [a0_4] "r"(a0_4),
+          [a0_5] "r"(a0_5), [n] "r"(n)
+        : "vl", "vtype");
+  }
+
+  if (alpha != 1) {
+    vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+    vec1 = __riscv_vmul_vx_i32m4(vec1, alpha, n);
+    vec2 = __riscv_vmul_vx_i32m4(vec2, alpha, n);
+    vec3 = __riscv_vmul_vx_i32m4(vec3, alpha, n);
+    vec4 = __riscv_vmul_vx_i32m4(vec4, alpha, n);
+    vec5 = __riscv_vmul_vx_i32m4(vec5, alpha, n);
+  }
   if (beta != 0) {
-    if (alpha != 1) {
-      vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
-      vec1 = __riscv_vmul_vx_i32m4(vec1, alpha, n);
-      vec2 = __riscv_vmul_vx_i32m4(vec2, alpha, n);
-      vec3 = __riscv_vmul_vx_i32m4(vec3, alpha, n);
-      vec4 = __riscv_vmul_vx_i32m4(vec4, alpha, n);
-      vec5 = __riscv_vmul_vx_i32m4(vec5, alpha, n);
-    }
     int32_t *c_read = c;
     vint32m4_t cvec0 = __riscv_vle32_v_i32m4(c_read, n);
     c_read += rsc;
@@ -305,15 +319,6 @@ SKL_FUNC_PRIVATE void skl_gemm_6xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
 
     vint32m4_t cvec5 = __riscv_vle32_v_i32m4(c_read, n);
     vec5 = __riscv_vmacc_vx_i32m4(vec5, beta, cvec5, n);
-  } else {
-    if (alpha != 1) {
-      vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
-      vec1 = __riscv_vmul_vx_i32m4(vec1, alpha, n);
-      vec2 = __riscv_vmul_vx_i32m4(vec2, alpha, n);
-      vec3 = __riscv_vmul_vx_i32m4(vec3, alpha, n);
-      vec4 = __riscv_vmul_vx_i32m4(vec4, alpha, n);
-      vec5 = __riscv_vmul_vx_i32m4(vec5, alpha, n);
-    }
   }
 
   // write result back to C tile
@@ -335,7 +340,23 @@ SKL_FUNC_PRIVATE void skl_gemm_lt6xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     size_t m, size_t n, size_t k1, int32_t alpha, const int8_t *a, size_t rsa1,
     size_t csa1, const int8_t *b, size_t rsb1, int32_t beta, int32_t *c,
     size_t rsc) {
-  if (m == 0 || n == 0) {
+  if (m == 0 || n == 0 || ((alpha == 0 || k1 == 0) && beta == 1)) {
+    return;
+  }
+
+  if (alpha == 0 || k1 == 0) {
+    if (beta == 0) {
+      vint32m4_t zero_vec = __riscv_vmv_v_x_i32m4(0, n);
+      for (size_t i = 0; i < m; ++i) {
+        __riscv_vse32_v_i32m4(c + i * rsc, zero_vec, n);
+      }
+    } else {
+      for (size_t i = 0; i < m; ++i) {
+        vint32m4_t cvec = __riscv_vle32_v_i32m4(c + i * rsc, n);
+        cvec = __riscv_vmul_vx_i32m4(cvec, beta, n);
+        __riscv_vse32_v_i32m4(c + i * rsc, cvec, n);
+      }
+    }
     return;
   }
 
@@ -386,29 +407,28 @@ SKL_FUNC_PRIVATE void skl_gemm_lt6xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     k1 -= 1;
   }
 
-  if (beta != 0) {
-    if (alpha != 1) {
-      switch (m) {
-      case 5:
-        vec4 = __riscv_vmul_vx_i32m4(vec4, alpha, n);
-        __attribute__((fallthrough));
-      case 4:
-        vec3 = __riscv_vmul_vx_i32m4(vec3, alpha, n);
-        __attribute__((fallthrough));
-      case 3:
-        vec2 = __riscv_vmul_vx_i32m4(vec2, alpha, n);
-        __attribute__((fallthrough));
-      case 2:
-        vec1 = __riscv_vmul_vx_i32m4(vec1, alpha, n);
-        __attribute__((fallthrough));
-      case 1:
-        vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
-        __attribute__((fallthrough));
-      default:
-        break;
-      }
+  if (alpha != 1) {
+    switch (m) {
+    case 5:
+      vec4 = __riscv_vmul_vx_i32m4(vec4, alpha, n);
+      __attribute__((fallthrough));
+    case 4:
+      vec3 = __riscv_vmul_vx_i32m4(vec3, alpha, n);
+      __attribute__((fallthrough));
+    case 3:
+      vec2 = __riscv_vmul_vx_i32m4(vec2, alpha, n);
+      __attribute__((fallthrough));
+    case 2:
+      vec1 = __riscv_vmul_vx_i32m4(vec1, alpha, n);
+      __attribute__((fallthrough));
+    case 1:
+      vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+      __attribute__((fallthrough));
+    default:
+      break;
     }
-
+  }
+  if (beta != 0) {
     int32_t *c_read = c + (m - 1) * rsc;
     // NOLINTBEGIN(clang-analyzer-deadcode.DeadStores)
     vint32m4_t cvec0 = __riscv_vundefined_i32m4();
@@ -445,28 +465,6 @@ SKL_FUNC_PRIVATE void skl_gemm_lt6xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     default:
       break;
     }
-  } else {
-    if (alpha != 1) {
-      switch (m) {
-      case 5:
-        vec4 = __riscv_vmul_vx_i32m4(vec4, alpha, n);
-        __attribute__((fallthrough));
-      case 4:
-        vec3 = __riscv_vmul_vx_i32m4(vec3, alpha, n);
-        __attribute__((fallthrough));
-      case 3:
-        vec2 = __riscv_vmul_vx_i32m4(vec2, alpha, n);
-        __attribute__((fallthrough));
-      case 2:
-        vec1 = __riscv_vmul_vx_i32m4(vec1, alpha, n);
-        __attribute__((fallthrough));
-      case 1:
-        vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
-        __attribute__((fallthrough));
-      default:
-        break;
-      }
-    }
   }
 
   // write result back to C tile
@@ -500,7 +498,19 @@ SKL_FUNC_PRIVATE void skl_gemm_lt6xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
 SKL_FUNC_PRIVATE void skl_gemm_1xm4_unaligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     size_t n, size_t k1, int32_t alpha, const int8_t *a, size_t csa1,
     const int8_t *b, size_t rsb1, int32_t beta, int32_t *c) {
-  if (n == 0) {
+  if (n == 0 || ((alpha == 0 || k1 == 0) && beta == 1)) {
+    return;
+  }
+
+  if (alpha == 0 || k1 == 0) {
+    if (beta == 0) {
+      vint32m4_t zero_vec = __riscv_vmv_v_x_i32m4(0, n);
+      __riscv_vse32_v_i32m4(c, zero_vec, n);
+    } else {
+      vint32m4_t cvec = __riscv_vle32_v_i32m4(c, n);
+      cvec = __riscv_vmul_vx_i32m4(cvec, beta, n);
+      __riscv_vse32_v_i32m4(c, cvec, n);
+    }
     return;
   }
 
@@ -523,17 +533,13 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_unaligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     k1 -= 1;
   }
 
+  if (alpha != 1) {
+    vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+  }
   if (beta != 0) {
-    if (alpha != 1) {
-      vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
-    }
     int32_t *c_read = c;
     vint32m4_t cvec = __riscv_vle32_v_i32m4(c_read, n);
     vec0 = __riscv_vmacc_vx_i32m4(vec0, beta, cvec, n);
-  } else {
-    if (alpha != 1) {
-      vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
-    }
   }
 
   __riscv_vse32_v_i32m4(c, vec0, n);
@@ -543,7 +549,19 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_unaligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
 SKL_FUNC_PRIVATE void skl_gemm_1xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     size_t n, size_t k1, int32_t alpha, const int8_t *a, size_t csa1,
     const int8_t *b, size_t rsb1, int32_t beta, int32_t *c) {
-  if (n == 0) {
+  if (n == 0 || ((alpha == 0 || k1 == 0) && beta == 1)) {
+    return;
+  }
+
+  if (alpha == 0 || k1 == 0) {
+    if (beta == 0) {
+      vint32m4_t zero_vec = __riscv_vmv_v_x_i32m4(0, n);
+      __riscv_vse32_v_i32m4(c, zero_vec, n);
+    } else {
+      vint32m4_t cvec = __riscv_vle32_v_i32m4(c, n);
+      cvec = __riscv_vmul_vx_i32m4(cvec, beta, n);
+      __riscv_vse32_v_i32m4(c, cvec, n);
+    }
     return;
   }
 
@@ -615,17 +633,13 @@ SKL_FUNC_PRIVATE void skl_gemm_1xm4_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
 
   vec0 = __riscv_vadd_vv_i32m4(vec0, vec1, n);
 
+  if (alpha != 1) {
+    vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
+  }
   if (beta != 0) {
-    if (alpha != 1) {
-      vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
-    }
     int32_t *c_read = c;
     vint32m4_t cvec = __riscv_vle32_v_i32m4(c_read, n);
     vec0 = __riscv_vmacc_vx_i32m4(vec0, beta, cvec, n);
-  } else {
-    if (alpha != 1) {
-      vec0 = __riscv_vmul_vx_i32m4(vec0, alpha, n);
-    }
   }
 
   __riscv_vse32_v_i32m4(c, vec0, n);
@@ -635,7 +649,7 @@ SKL_FUNC_PRIVATE void skl_gemm_aligned_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     size_t m, size_t n, size_t k1, int32_t alpha, const int8_t *a, size_t rsa1,
     size_t csa1, const int8_t *b, size_t rsb1, int32_t beta, int32_t *c,
     size_t rsc) {
-  if (m == 0 || n == 0) {
+  if (m == 0 || n == 0 || ((alpha == 0 || k1 == 0) && beta == 1)) {
     return;
   }
 
@@ -697,7 +711,7 @@ SKL_FUNC void skl_gemm_i8rcp1x4_i8p4x1c_i32_xsfvqdotq(
     size_t m, size_t n, size_t k1, int32_t alpha, const int8_t *a, size_t rsa1,
     size_t csa1, const int8_t *b, size_t rsb1, int32_t beta, int32_t *c,
     size_t rsc) {
-  if (m == 0 || n == 0) {
+  if (m == 0 || n == 0 || ((alpha == 0 || k1 == 0) && beta == 1)) {
     return;
   }
 

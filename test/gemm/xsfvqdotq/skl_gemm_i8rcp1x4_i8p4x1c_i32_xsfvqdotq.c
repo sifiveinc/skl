@@ -103,6 +103,19 @@ gemm_i8rcprc_i8rcprc_i32rcprc_t tests[] = {
     /* A with misaligned rows */
     {TEST, .m1 = 29,  .n1 = 128,   .k1 = 4,  .alpha = 1,
            .rsa1 = (size_t)(4 * 4 + 1),  .csa1 = 4},
+    /* Alpha or Beta 0 */
+    {TEST, .m1 = 1,   .n1 = 128,   .k1 = 4,  .alpha = 0,  .beta = 0,  .csa1 = 5},
+    {TEST, .m1 = 1,   .n1 = 128,   .k1 = 4,  .alpha = 0,  .beta = 3,  .csa1 = 5},
+    {TEST, .m1 = 1,   .n1 = 128,   .k1 = 4,  .alpha = 2,  .beta = 0,  .csa1 = 5},
+    {TEST, .m1 = 1,   .n1 = 128,   .k1 = 4,  .alpha = 0,  .beta = 0},
+    {TEST, .m1 = 1,   .n1 = 128,   .k1 = 4,  .alpha = 0,  .beta = 3},
+    {TEST, .m1 = 1,   .n1 = 128,   .k1 = 4,  .alpha = 2,  .beta = 0},
+    {TEST, .m1 = 5,   .n1 = 128,   .k1 = 4,  .alpha = 0,  .beta = 0},
+    {TEST, .m1 = 5,   .n1 = 128,   .k1 = 4,  .alpha = 0,  .beta = 3},
+    {TEST, .m1 = 5,   .n1 = 128,   .k1 = 4,  .alpha = 2,  .beta = 0},
+    {TEST, .m1 = 6,   .n1 = 128,   .k1 = 4,  .alpha = 0,  .beta = 0},
+    {TEST, .m1 = 6,   .n1 = 128,   .k1 = 4,  .alpha = 0,  .beta = 3},
+    {TEST, .m1 = 6,   .n1 = 128,   .k1 = 4,  .alpha = 2,  .beta = 0},
 #endif // SKL_ENABLE_TESTS
 };
 // clang-format on
